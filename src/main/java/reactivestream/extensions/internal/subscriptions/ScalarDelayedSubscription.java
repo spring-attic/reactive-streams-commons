@@ -77,4 +77,7 @@ public final class ScalarDelayedSubscription<T> implements Subscription {
         state = HAS_VALUE_HAS_REQUEST;
     }
 
+    public boolean isCancelled() {
+        return state == HAS_VALUE_HAS_REQUEST;
+    }
 }

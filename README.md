@@ -5,9 +5,12 @@ A Repository for commons utilities implementations for Reactive Streams.
 
 I.e., converts non-reactive data sources into `Publisher`s.
 
-  - `PublisherJust` : emits a single value
   - `PublisherArray` : emits the elements of an array
+  - `PublisherCallable` : emits a single value returned by a `Callable`
+  - `PublisherCompletableFuture` : emits a single value produced by a `CompletableFuture`
   - `PublisherIterable` : emits the elements of an `Iterable`
+  - `PublisherJust` : emits a single value
+  - `PublisherStream` : emits elements of a `Stream`
   
 ## Supported transformations
 

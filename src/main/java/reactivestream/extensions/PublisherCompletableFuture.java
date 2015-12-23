@@ -1,0 +1,47 @@
+package reactivestream.extensions;
+
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+
+import org.reactivestreams.*;
+
+import reactivestream.extensions.internal.subscriptions.ScalarDelayedSubscription;
+
+/**
+ * Emits the value or error produced by the wrapped CompletableFuture.
+ * <p>
+ * Note that if Subscribers cancel their subscriptions, the CompletableFuture
+ * is not cancelled.
+ *
+ * @param <T> the value type
+ */
+public final class PublisherCompletableFuture<T> implements Publisher<T> {
+
+    final CompletableFuture<? extends T> future;
+    
+    public PublisherCompletableFuture(CompletableFuture<? extends T> future) {
+        this.future = Objects.requireNonNull(future);
+    }
+    
+    @Override
+    public void subscribe(Subscriber<? super T> s) {
+        ScalarDelayedSubscription<T> sds = new ScalarDelayedSubscription<>(s);
+        
+        s.onSubscribe(sds);
+        
+        if (sds.isCancelled()) {
+            return;
+        }
+        
+        future.whenComplete((v, e) -> {
+            if (e != null) {
+                s.onError(e);
+            } else 
+            if (v != null) {
+                sds.set(v);
+            } else {
+                s.onError(new NullPointerException("The future produced a null value"));
+            }
+        });
+    }
+}
