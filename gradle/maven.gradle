@@ -4,8 +4,7 @@ apply plugin: 'signing'
 project.status = 'release'
 
 signing {
-    required { gradle.taskGraph.hasTask(uploadMavenCentral) }
-    sign configurations.archives
+   sign configurations.archives
 }
 
 /**
