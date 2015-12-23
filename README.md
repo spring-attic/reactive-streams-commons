@@ -1,5 +1,5 @@
 # reactive-streams-commons
-A Repository for commons utilities implementations for Reactive Streams that are not tied to scheduling nor queueing.
+A Repository for commons utilities implementations for Reactive Streams.
 
 ## Supported datasources
 
