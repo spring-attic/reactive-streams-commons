@@ -1,5 +1,5 @@
 # reactive-streams-commons
-A Repository for standard simple Reactive Extensions Implementations of Reactive Stream that are not tied to scheduling nor queueing.
+A Repository for commons utilities implementations for Reactive Streams that are not tied to scheduling nor queueing.
 
 ## Supported datasources
 
