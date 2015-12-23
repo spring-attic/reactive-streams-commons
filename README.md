@@ -19,4 +19,4 @@ I.e., these allow leaving the reactive-streams world
 ## Travis status
 
 
-<a href='https://travis-ci.org/reactor/reactive-stream-extensions/builds'><img src='https://travis-ci.org/reactor/reactive-stream-extensions.svg?branch=master'></a>
+<a href='https://travis-ci.org/reactor/reactive-streams-commons/builds'><img src='https://travis-ci.org/reactor/reactive-streams-commons.svg?branch=master'></a>

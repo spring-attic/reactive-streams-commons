@@ -22,7 +22,7 @@ targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
 group = "org.projectreactor" 
-ext.githubProjectName = 'reactive-steam-extensions'
+ext.githubProjectName = 'reactive-steams-commons'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -74,9 +74,9 @@ artifacts {
 
 jar {
     manifest {
-        name = 'reactive-stream-extensions'
+        name = 'reactive-streams-commons'
         instruction 'Bundle-Vendor', 'reactor'
-        instruction 'Bundle-DocURL', 'https://github.com/reactor/reactive-stream-extensions'
+        instruction 'Bundle-DocURL', 'https://github.com/reactor/reactive-streams-commons'
         instruction 'Import-Package', '!org.junit,!junit.framework,!org.mockito.*,*'
         instruction 'Eclipse-ExtensibleAPI', 'true'
     }
