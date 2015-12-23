@@ -12,7 +12,7 @@ import reactivestreams.commons.internal.subscriptions.EmptySubscription;
  */
 public final class PublisherEmpty implements Publisher<Object> {
 
-    static final Publisher<Object> INSTANCE = new PublisherEmpty();
+    private static final Publisher<Object> INSTANCE = new PublisherEmpty();
     
     private PublisherEmpty() {
         // deliberately no op

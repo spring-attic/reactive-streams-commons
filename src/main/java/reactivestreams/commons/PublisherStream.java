@@ -147,9 +147,9 @@ public final class PublisherStream<T> implements Publisher<T> {
                     e++;
                 }
                 
-                n = get() - e;
+                n = get();
                 
-                if (n == 0) {
+                if (n == e) {
                     n = addAndGet(-e);
                     if (n == 0L) {
                         return;

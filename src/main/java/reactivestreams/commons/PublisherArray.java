@@ -98,9 +98,9 @@ public final class PublisherArray<T> implements Publisher<T> {
                     return;
                 }
                 
-                n = get() - e;
+                n = get();
                 
-                if (n == 0) {
+                if (n == e) {
                     index = i;
                     n = addAndGet(-e);
                     if (n == 0) {

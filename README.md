@@ -20,7 +20,10 @@ I.e., converts non-reactive data sources into `Publisher`s.
   
 ## Supported transformations
 
+  - `PublisherFilter` : filters out values which doesn't pass a predicate
   - `PublisherMap` : map values to other values via a function
+  - `PublisherSkip` : skips a specified amount of values
+  - `PublisherTake` : takes a specified amount of values and completes
 
 ## Supported extractions
 

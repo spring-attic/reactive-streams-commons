@@ -124,8 +124,8 @@ public final class PublisherRange implements Publisher<Integer> {
                     return;
                 }
                 
-                n = get() - e;
-                if (n == 0) {
+                n = get();
+                if (n == e) {
                     index = i;
                     n = addAndGet(-e);
                     if (n == 0) {
