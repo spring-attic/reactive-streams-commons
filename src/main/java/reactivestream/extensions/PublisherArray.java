@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.*;
 
 import reactivestream.extensions.internal.*;
+import reactivestream.extensions.internal.subscriptions.EmptySubscription;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -22,8 +23,11 @@ public final class PublisherArray<T> implements Publisher<T> {
     
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        // TODO Auto-generated method stub
-        
+        if (array.length == 0) {
+            EmptySubscription.complete(s);
+            return;
+        }
+        s.onSubscribe(new PublisherArraySubscription<>(s, array));
     }
     
     static final class PublisherArraySubscription<T>
@@ -72,7 +76,14 @@ public final class PublisherArray<T> implements Publisher<T> {
                 }
 
                 while (i != len && e != n) {
-                    s.onNext(a[i]);
+                    T t = a[i];
+                    
+                    if (t == null) {
+                        s.onError(new NullPointerException("The " + i + "th array element was null"));
+                        return;
+                    }
+                    
+                    s.onNext(t);
                     
                     if (cancelled) {
                         return;
@@ -109,7 +120,15 @@ public final class PublisherArray<T> implements Publisher<T> {
                 if (cancelled) {
                     return;
                 }
-                s.onNext(a[i]);
+
+                T t = a[i];
+                
+                if (t == null) {
+                    s.onError(new NullPointerException("The " + i + "th array element was null"));
+                    return;
+                }
+                
+                s.onNext(t);
             }
             if (cancelled) {
                 return;

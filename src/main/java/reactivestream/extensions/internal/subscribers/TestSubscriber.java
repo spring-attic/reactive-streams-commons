@@ -175,8 +175,8 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription {
         int s = this.values.size();
         
         if (s != values.length) {
-            assertionError("Different value count: expected = [" + values.length + "] " + Arrays.toString(values)
-            + ", actual = [" + s + "] " + this.values, null);
+            assertionError("Different value count: expected = [length = " + values.length + "] " + Arrays.toString(values)
+            + ", actual = [length = " + s + "] " + this.values, null);
         }
         for (int i = 0; i < s; i++) {
             T t1 = values[i];
@@ -190,6 +190,42 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription {
         return this;
     }
 
+    public final TestSubscriber<T> assertValueSequence(Iterable<? extends T> expectedSequence) {
+        
+        Iterator<T> actual = values.iterator();
+        Iterator<? extends T> expected = expectedSequence.iterator();
+        
+        int i = 0;
+        
+        for (;;) {
+            boolean n1 = actual.hasNext();
+            boolean n2 = expected.hasNext();
+            
+            if (n1 && n2) {
+                T t1 = actual.next();
+                T t2 = expected.next();
+                
+                if (!Objects.equals(t1, t2)) {
+                    assertionError("The " + i + " th elements differ: expected = " + valueAndClass(t2) + ", actual =" + valueAndClass(t1), null);
+                }
+                i++;
+            } else
+            if (n1 && !n2) {
+                assertionError("Actual contains more elements" + values, null);
+                break;
+            } else
+            if (!n1 && n2) {
+                assertionError("Actual contains fewer elements: " + values, null);
+                break;
+            } else {
+                break;
+            }
+            
+        }
+        
+        return this;
+    }
+    
     public final TestSubscriber<T> assertComplete() {
         int c = completions;
         if (c == 0) {
