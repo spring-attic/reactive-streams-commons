@@ -28,7 +28,11 @@ public enum SubscriptionHelper {
     public static void reportBadRequest(long n) {
         new IllegalArgumentException("request amount > 0 required but it was " + n).printStackTrace();
     }
-    
+
+    public static void reportMoreProduced() {
+        new IllegalStateException("More produced than requested").printStackTrace();
+    }
+
     public static boolean validate(long n) {
         if (n < 0) {
             reportBadRequest(n);

@@ -5,6 +5,7 @@ A Repository for commons utilities implementations for Reactive Streams.
 
 I.e., converts non-reactive data sources into `Publisher`s.
 
+  - `PublisherAmb` : relays signals of that source Publisher which responds first with any signal
   - `PublisherArray` : emits the elements of an array
   - `PublisherCallable` : emits a single value returned by a `Callable`
   - `PublisherCompletableFuture` : emits a single value produced by a `CompletableFuture`

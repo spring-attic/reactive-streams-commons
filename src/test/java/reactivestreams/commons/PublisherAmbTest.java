@@ -1,0 +1,65 @@
+package reactivestreams.commons;
+
+import org.junit.Test;
+import org.reactivestreams.Publisher;
+
+import reactivestreams.commons.internal.subscribers.TestSubscriber;
+
+public class PublisherAmbTest {
+
+    @Test(expected = NullPointerException.class)
+    public void arrayNull() {
+        new PublisherAmb<>((Publisher<Integer>[])null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void iterableNull() {
+        new PublisherAmb<>((Iterable<Publisher<Integer>>)null);
+    }
+    
+    @Test
+    public void firstWinner() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherAmb<>(new PublisherRange(1, 10), new PublisherRange(11, 10)).subscribe(ts);
+        
+        ts.assertValues(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        .assertComplete()
+        .assertNoError();
+    }
+
+    @Test
+    public void firstWinnerBackpressured() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(5);
+        
+        new PublisherAmb<>(new PublisherRange(1, 10), new PublisherRange(11, 10)).subscribe(ts);
+        
+        ts.assertValues(1, 2, 3, 4, 5)
+        .assertNotComplete()
+        .assertNoError();
+    }
+
+    @Test
+    public void secondWinner() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherAmb<>(PublisherNever.instance(), new PublisherRange(11, 10)).subscribe(ts);
+        
+        ts.assertValues(11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+        .assertComplete()
+        .assertNoError();
+    }
+
+    @Test
+    public void secondEmitsError() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        RuntimeException ex = new RuntimeException("forced failure");
+        
+        new PublisherAmb<>(PublisherNever.instance(), new PublisherError<Integer>(ex)).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertError(ex);
+    }
+}
