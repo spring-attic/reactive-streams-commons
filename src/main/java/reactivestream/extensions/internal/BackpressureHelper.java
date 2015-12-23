@@ -2,8 +2,9 @@ package reactivestream.extensions.internal;
 
 import java.util.concurrent.atomic.*;
 
-public class BackpressureHelper {
-
+public enum BackpressureHelper {
+    ;
+    
     public static long addCap(long a, long b) {
         long u = a + b;
         if (u < 0) {
@@ -44,5 +45,17 @@ public class BackpressureHelper {
                 return u;
             }
         }
+    }
+    
+    public static void reportBadRequest(long n) {
+        new IllegalArgumentException("Request amount must be positive but it is " + n).printStackTrace();
+    }
+    
+    public static boolean validate(long n) {
+        if (n <= 0) {
+            reportBadRequest(n);
+            return false;
+        }
+        return true;
     }
 }
