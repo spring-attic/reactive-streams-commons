@@ -46,6 +46,11 @@ task uploadMavenCentral(type:Upload, dependsOn: signArchives) {
                             name 'David Karnok'
                             email 'akarnokd@gmail.com'
                         }
+                        developer {
+                            id 'smaldini'
+                            name 'Stephane Maldini'
+                            email 'smaldini@pivotal.io'
+                        }
                     }
                     licenses {
                         license {
