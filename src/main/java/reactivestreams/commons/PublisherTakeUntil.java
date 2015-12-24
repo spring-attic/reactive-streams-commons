@@ -1,6 +1,7 @@
 package reactivestreams.commons;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 
 /**
  * Relays values from the main Publisher until another Publisher signals an event.

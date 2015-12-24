@@ -3,8 +3,8 @@ package reactivestreams.commons;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscription;
 
 /**

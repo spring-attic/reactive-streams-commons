@@ -1,6 +1,7 @@
 package reactivestreams.commons.internal.subscribers;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 public enum EmptySubscriber implements Subscriber<Object> {
     INSTANCE;

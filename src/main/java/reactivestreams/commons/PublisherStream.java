@@ -1,10 +1,11 @@
 package reactivestreams.commons;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
 /**

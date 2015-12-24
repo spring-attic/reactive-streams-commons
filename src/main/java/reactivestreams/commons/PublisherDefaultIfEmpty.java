@@ -3,8 +3,9 @@ package reactivestreams.commons;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.SubscriptionHelper;
 
 /**

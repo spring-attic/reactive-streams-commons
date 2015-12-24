@@ -1,10 +1,10 @@
 package reactivestreams.commons.internal;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
 
 /**

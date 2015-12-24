@@ -1,7 +1,7 @@
 package reactivestreams.commons.internal.subscribers;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.SubscriptionHelper;
 
 /**

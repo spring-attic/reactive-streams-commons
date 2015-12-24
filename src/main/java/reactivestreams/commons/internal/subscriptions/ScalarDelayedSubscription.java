@@ -3,8 +3,8 @@ package reactivestreams.commons.internal.subscriptions;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.SubscriptionHelper;
 
 public final class ScalarDelayedSubscription<T> implements Subscription {

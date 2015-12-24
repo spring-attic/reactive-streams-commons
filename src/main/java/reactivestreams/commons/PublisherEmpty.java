@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
 /**

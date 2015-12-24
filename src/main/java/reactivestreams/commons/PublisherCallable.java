@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscription;
 
 /**

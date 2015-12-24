@@ -1,11 +1,14 @@
 package reactivestreams.commons;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.internal.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.internal.SingleSubscriptionArbiter;
+import reactivestreams.commons.internal.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
 /**

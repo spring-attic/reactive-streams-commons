@@ -1,6 +1,7 @@
 package reactivestreams.commons.internal.subscriptions;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 /**
  * A singleton enumeration that represents a no-op Subscription instance
