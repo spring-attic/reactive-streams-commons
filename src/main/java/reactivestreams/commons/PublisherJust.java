@@ -12,7 +12,7 @@ public final class PublisherJust<T> implements Supplier<T>, Publisher<T> {
     final T value;
     
     public PublisherJust(T value) {
-        this.value = Objects.requireNonNull(value);
+        this.value = Objects.requireNonNull(value, "value");
     }
     
     @Override

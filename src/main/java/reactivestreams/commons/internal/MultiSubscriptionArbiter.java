@@ -60,7 +60,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
     public void request(long n) {
         if (SubscriptionHelper.validate(n)) {
             
-            if (wip == 0 && WIP.compareAndSet(this, 1, 0)) {
+            if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
                 long r = requested;
                 
                 if (r != Long.MAX_VALUE) {
@@ -87,7 +87,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
     }
 
     public void producedOne() {
-        if (wip == 0 && WIP.compareAndSet(this, 1, 0)) {
+        if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
             long r = requested;
             
             if (r != Long.MAX_VALUE) {
@@ -116,7 +116,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
     
     public void produced(long n) {
         if (SubscriptionHelper.validate(n)) {
-            if (wip == 0 && WIP.compareAndSet(this, 1, 0)) {
+            if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
                 long r = requested;
                 
                 if (r != Long.MAX_VALUE) {

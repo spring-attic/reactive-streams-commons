@@ -6,78 +6,95 @@ import java.util.function.Predicate;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscription;
 
 /**
- * Filters out values that make a filter function return false.
- *
- * @param <T> the value type
+ * Emits a single boolean true if any of the values of the source sequence match
+ * the predicate.
+ * <p>
+ * The implementation uses short-circuit logic and completes with true if
+ * the predicate matches a value.
+ * 
+ * @param <T> the source value type
  */
-public final class PublisherFilter<T> implements Publisher<T> {
+public final class PublisherAny<T> implements Publisher<Boolean> {
 
     final Publisher<? extends T> source;
     
     final Predicate<? super T> predicate;
-    
-    public PublisherFilter(Publisher<? extends T> source, Predicate<? super T> predicate) {
+
+    public PublisherAny(Publisher<? extends T> source, Predicate<? super T> predicate) {
         this.source = Objects.requireNonNull(source, "source");
         this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
     
-    public Publisher<? extends T> source() {
-        return source;
-    }
-    
-    public Predicate<? super T> predicate() {
-        return predicate;
-    }
-
     @Override
-    public void subscribe(Subscriber<? super T> s) {
-        source.subscribe(new PublisherFilterSubscriber<>(s, predicate));
+    public void subscribe(Subscriber<? super Boolean> s) {
+        source.subscribe(new PublisherAnySubscriber<T>(s, predicate));
     }
     
-    static final class PublisherFilterSubscriber<T> implements Subscriber<T> {
-        final Subscriber<? super T> actual;
+    static final class PublisherAnySubscriber<T> implements Subscriber<T>, Subscription {
+        final Subscriber<? super Boolean> actual;
         
         final Predicate<? super T> predicate;
 
+        final ScalarDelayedSubscription<Boolean> delayed;
+        
         Subscription s;
         
         boolean done;
         
-        public PublisherFilterSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
+        public PublisherAnySubscriber(Subscriber<? super Boolean> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
+            this.delayed = new ScalarDelayedSubscription<>(actual);
+        }
+
+        @Override
+        public void request(long n) {
+            delayed.request(n);
+        }
+
+        @Override
+        public void cancel() {
+            s.cancel();
+            delayed.cancel();
         }
 
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                actual.onSubscribe(s);
+                
+                actual.onSubscribe(this);
+                
+                s.request(Long.MAX_VALUE);
             }
         }
 
         @Override
         public void onNext(T t) {
+
             if (done) {
                 return;
             }
             
             boolean b;
-            
+
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
+                done = true;
                 s.cancel();
                 
-                onError(e);
+                actual.onError(e);
                 return;
             }
             if (b) {
-                actual.onNext(t);
-            } else {
-                s.request(1);
+                done = true;
+                s.cancel();
+                
+                delayed.set(true);
             }
         }
 
@@ -87,6 +104,7 @@ public final class PublisherFilter<T> implements Publisher<T> {
                 return;
             }
             done = true;
+
             actual.onError(t);
         }
 
@@ -96,9 +114,7 @@ public final class PublisherFilter<T> implements Publisher<T> {
                 return;
             }
             done = true;
-            actual.onComplete();
+            delayed.set(false);
         }
-        
-        
     }
 }

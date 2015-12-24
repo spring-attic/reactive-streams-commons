@@ -17,7 +17,7 @@ public final class PublisherDefer<T> implements Publisher<T> {
     final Supplier<? extends Publisher<? extends T>> supplier;
     
     public PublisherDefer(Supplier<? extends Publisher<? extends T>> supplier) {
-        this.supplier = Objects.requireNonNull(supplier);
+        this.supplier = Objects.requireNonNull(supplier, "supplier");
     }
     
     @Override

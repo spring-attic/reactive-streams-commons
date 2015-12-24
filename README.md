@@ -9,6 +9,8 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherArray` : emits the elements of an array
   - `PublisherCallable` : emits a single value returned by a `Callable`
   - `PublisherCompletableFuture` : emits a single value produced by a `CompletableFuture`
+  - `PublisherConcatArray` : concatenate an array of `Publisher`s
+  - `PublisherConcatIterable` : concatenate an `Iterable` sequence of `Publisher`s
   - `PublisherDefer` : calls a `Supplier` to create the actual `Publisher` the `Subscriber` will be subscribed to.
   - `PublisherEmpty` : does not emit any value and calls `onCompleted`; use `instance()` to get its singleton instance with the proper type parameter
   - `PublisherError` : emits a constant or generated Throwable exception
@@ -20,8 +22,13 @@ I.e., converts non-reactive data sources into `Publisher`s.
   
 ## Supported transformations
 
+  - `PublisherAll` : emits a single true if all values of the source sequence match the predicate
+  - `PublisherAny` : emits a single true if any value of the source sequence matches the predicate
+  - `PublisherCount` : counts the number of elements the source sequence emits
   - `PublisherFilter` : filters out values which doesn't pass a predicate
   - `PublisherMap` : map values to other values via a function
+  - `PublisherRepeat` : repeatedly streams the source sequence fixed or unlimited times
+  - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
   - `PublisherSkip` : skips a specified amount of values
   - `PublisherTake` : takes a specified amount of values and completes
 

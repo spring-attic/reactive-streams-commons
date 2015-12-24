@@ -20,7 +20,7 @@ public final class PublisherCompletableFuture<T> implements Publisher<T> {
     final CompletableFuture<? extends T> future;
     
     public PublisherCompletableFuture(CompletableFuture<? extends T> future) {
-        this.future = Objects.requireNonNull(future);
+        this.future = Objects.requireNonNull(future, "future");
     }
     
     @Override

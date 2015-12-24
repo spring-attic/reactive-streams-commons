@@ -22,7 +22,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
     
     @SafeVarargs
     public PublisherAmb(Publisher<? extends T>... array) {
-        this.array = Objects.requireNonNull(array);
+        this.array = Objects.requireNonNull(array, "array");
         this.iterable = null;
     }
     

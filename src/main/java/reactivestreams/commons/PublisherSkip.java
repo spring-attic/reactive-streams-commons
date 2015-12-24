@@ -19,7 +19,7 @@ public final class PublisherSkip<T> implements Publisher<T> {
         if (n < 0) {
             throw new IllegalArgumentException("n >= 0 required but it was " + n);
         }
-        this.source = Objects.requireNonNull(source);
+        this.source = Objects.requireNonNull(source, "source");
         this.n = n;
     }
     

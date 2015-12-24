@@ -20,7 +20,7 @@ public final class PublisherCallable<T> implements Publisher<T> {
     final Callable<? extends T> callable;
     
     public PublisherCallable(Callable<? extends T> callable) {
-        this.callable = Objects.requireNonNull(callable);
+        this.callable = Objects.requireNonNull(callable, "callable");
     }
     
     @Override
