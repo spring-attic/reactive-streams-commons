@@ -137,7 +137,7 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription {
 
     public final TestSubscriber<T> assertNoValues() {
         if (!values.isEmpty()) {
-            assertionError("Values received: " + values, null);
+            assertionError("No values expected but received: [length = " + values.size() + "] " + values, null);
         }
         return this;
     }

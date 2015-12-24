@@ -28,13 +28,18 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
   - `PublisherFilter` : filters out values which doesn't pass a predicate
   - `PublisherIsEmpty` : returns a single true if the source sequence is empty
+  - `PublisherLift` : maps the downstream Subscriber into an upstream Subscriber which allows implementing custom operators via lambdas
   - `PublisherMap` : map values to other values via a function
   - `PublisherRepeat` : repeatedly streams the source sequence fixed or unlimited times
   - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
   - `PublisherSkip` : skips a specified amount of values
+  - `PublisherSkipWhile` skips values while the predicate returns true
+  - `PublisherSkipUntil` : skips values until another sequence signals a value or completes
   - `PublisherSwitchIfEmpty` : continues with another sequence if the first sequence turns out to be empty.
   - `PublisherTake` : takes a specified amount of values and completes
+  - `PublisherTakeWhile` : relays values while a predicate returns true for the values (checked before each value)
   - `PublisherTakeUntil` : relays values until another Publisher signals
+  - `PublisherTakeUntilPredicate` : relays values until a predicate returns true (checked after each value)
 
 ## Supported extractions
 

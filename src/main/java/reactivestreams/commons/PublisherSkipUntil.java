@@ -1,6 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Publisher;
@@ -13,39 +14,38 @@ import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
 /**
- * Relays values from the main Publisher until another Publisher signals an event.
+ * Skips values from the main publisher until the other publisher signals
+ * an onNext or onComplete.
  *
  * @param <T> the value type of the main Publisher
  * @param <U> the value type of the other Publisher
  */
-public final class PublisherTakeUntil<T, U> implements Publisher<T> {
+public final class PublisherSkipUntil<T, U> implements Publisher<T> {
     
     final Publisher<? extends T> source;
     
     final Publisher<U> other;
 
-    public PublisherTakeUntil(Publisher<? extends T> source, Publisher<U> other) {
+    public PublisherSkipUntil(Publisher<? extends T> source, Publisher<U> other) {
         this.source = Objects.requireNonNull(source, "source");
         this.other = Objects.requireNonNull(other, "other");
     }
     
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        PublisherTakeUntilMainSubscriber<T> mainSubscriber = new PublisherTakeUntilMainSubscriber<>(s);
+        PublisherSkipUntilMainSubscriber<T> mainSubscriber = new PublisherSkipUntilMainSubscriber<>(s);
         
-        PublisherTakeUntilOtherSubscriber<U> otherSubscriber = new PublisherTakeUntilOtherSubscriber<>(mainSubscriber);
+        PublisherSkipUntilOtherSubscriber<U> otherSubscriber = new PublisherSkipUntilOtherSubscriber<>(mainSubscriber);
         
         other.subscribe(otherSubscriber);
         
         source.subscribe(mainSubscriber);
     }
     
-    static final class PublisherTakeUntilOtherSubscriber<U> implements Subscriber<U> {
-        final PublisherTakeUntilMainSubscriber<?> main;
+    static final class PublisherSkipUntilOtherSubscriber<U> implements Subscriber<U> {
+        final PublisherSkipUntilMainSubscriber<?> main;
 
-        boolean once;
-        
-        public PublisherTakeUntilOtherSubscriber(PublisherTakeUntilMainSubscriber<?> main) {
+        public PublisherSkipUntilOtherSubscriber(PublisherSkipUntilMainSubscriber<?> main) {
             this.main = main;
         }
 
@@ -58,44 +58,56 @@ public final class PublisherTakeUntil<T, U> implements Publisher<T> {
 
         @Override
         public void onNext(U t) {
-            onComplete();
+            if (main.get()) {
+                return;
+            }
+            PublisherSkipUntilMainSubscriber<?> m = main;
+            m.other.cancel();
+            m.set(true);
+            m.other = CancelledSubscription.INSTANCE;
         }
 
         @Override
         public void onError(Throwable t) {
-            if (once) {
+            PublisherSkipUntilMainSubscriber<?> m = main;
+            if (m.get()) {
                 return;
             }
-            once = true;
-            main.onError(t);
+            m.onError(t);
         }
 
         @Override
         public void onComplete() {
-            if (once) {
+            PublisherSkipUntilMainSubscriber<?> m = main;
+            if (m.get()) {
                 return;
             }
-            once = true;
-            main.onComplete();
+            m.set(true);
+            m.other = CancelledSubscription.INSTANCE;
         }
 
         
     }
     
-    static final class PublisherTakeUntilMainSubscriber<T> implements Subscriber<T>, Subscription {
+    static final class PublisherSkipUntilMainSubscriber<T> 
+    extends AtomicBoolean
+    implements Subscriber<T>, Subscription {
+        /** */
+        private static final long serialVersionUID = 2598676390483421138L;
+
         final SerializedSubscriber<T> actual;
         
         volatile Subscription main;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherTakeUntilMainSubscriber, Subscription> MAIN =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherTakeUntilMainSubscriber.class, Subscription.class, "main");
+        static final AtomicReferenceFieldUpdater<PublisherSkipUntilMainSubscriber, Subscription> MAIN =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherSkipUntilMainSubscriber.class, Subscription.class, "main");
         
         volatile Subscription other;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherTakeUntilMainSubscriber, Subscription> OTHER =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherTakeUntilMainSubscriber.class, Subscription.class, "other");
+        static final AtomicReferenceFieldUpdater<PublisherSkipUntilMainSubscriber, Subscription> OTHER =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherSkipUntilMainSubscriber.class, Subscription.class, "other");
         
-        public PublisherTakeUntilMainSubscriber(Subscriber<? super T> actual) {
+        public PublisherSkipUntilMainSubscriber(Subscriber<? super T> actual) {
             this.actual = new SerializedSubscriber<>(actual);
         }
         
@@ -153,12 +165,15 @@ public final class PublisherTakeUntil<T, U> implements Publisher<T> {
 
         @Override
         public void onNext(T t) {
-            actual.onNext(t);
+            if (get()) {
+                actual.onNext(t);
+            } else {
+                main.request(1);
+            }
         }
 
         @Override
         public void onError(Throwable t) {
-            
             if (main == null) {
                 if (MAIN.compareAndSet(this, null, CancelledSubscription.INSTANCE)) {
                     EmptySubscription.error(actual, t);
@@ -172,14 +187,7 @@ public final class PublisherTakeUntil<T, U> implements Publisher<T> {
 
         @Override
         public void onComplete() {
-            if (main == null) {
-                if (MAIN.compareAndSet(this, null, CancelledSubscription.INSTANCE)) {
-                    cancelOther();
-                    EmptySubscription.complete(actual);
-                    return;
-                }
-            }
-            cancel();
+            cancelOther();
             
             actual.onComplete();
         }
