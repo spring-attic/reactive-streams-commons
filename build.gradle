@@ -4,10 +4,12 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven { url "http://repo.spring.io/plugins-release" }
     }
 
     dependencies {
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.9.0'
+        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
         classpath "me.champeau.gradle:jmh-gradle-plugin:0.2.0"
     }
 }
@@ -21,8 +23,8 @@ apply plugin: "me.champeau.gradle.jmh"
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
-group = "org.projectreactor" 
-ext.githubProjectName = 'reactive-steams-commons'
+group = "io.projectreactor"
+ext.githubProjectName = 'reactive-streams-commons'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -46,6 +48,7 @@ apply plugin: 'osgi'
 
 dependencies {
     compile 'org.reactivestreams:reactive-streams:1.0.0'
+    testCompile 'org.reactivestreams:reactive-streams-tck:1.0.0'
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
 }

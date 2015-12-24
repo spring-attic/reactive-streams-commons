@@ -14,6 +14,7 @@ hs_err_pid*
 .m2
 /.nb-gradle/
 /bin/
+*.iml
 .settings/
 .nb-gradle-properties
 .classpath
