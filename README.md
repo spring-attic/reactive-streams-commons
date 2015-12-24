@@ -23,8 +23,10 @@ I.e., converts non-reactive data sources into `Publisher`s.
   
 ## Supported transformations
 
+  - `PublisherAccumulate` : Accumulates the source values with an accumulator function and returns the intermediate results of this function application
   - `PublisherAll` : emits a single true if all values of the source sequence match the predicate
   - `PublisherAny` : emits a single true if any value of the source sequence matches the predicate
+  - `PublisherCollect` : collects the values into a container and emits it when the source completes
   - `PublisherCount` : counts the number of elements the source sequence emits
   - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
   - `PublisherFilter` : filters out values which doesn't pass a predicate
@@ -33,6 +35,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherMap` : map values to other values via a function
   - `PublisherRepeat` : repeatedly streams the source sequence fixed or unlimited times
   - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
+  - `PublisherScan` : aggregates the source values with the help of an accumulator function and emits the intermediate results
   - `PublisherSkip` : skips a specified amount of values
   - `PublisherSkipWhile` skips values while the predicate returns true
   - `PublisherSkipUntil` : skips values until another sequence signals a value or completes
@@ -41,6 +44,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherTakeWhile` : relays values while a predicate returns true for the values (checked before each value)
   - `PublisherTakeUntil` : relays values until another Publisher signals
   - `PublisherTakeUntilPredicate` : relays values until a predicate returns true (checked after each value)
+  - `PublisherWithLatestFrom` : combines values from a master source with the latest values of another Publisher via a function
 
 ## Supported extractions
 
