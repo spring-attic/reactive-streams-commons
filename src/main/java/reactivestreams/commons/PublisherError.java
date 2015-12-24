@@ -3,8 +3,8 @@ package reactivestreams.commons;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
 /**
@@ -20,9 +20,14 @@ public final class PublisherError<T> implements Publisher<T> {
         this(create(error));
     }
     
-    static Supplier<Throwable> create(Throwable error) {
+    static Supplier<Throwable> create(final Throwable error) {
         Objects.requireNonNull(error);
-        return () -> error;
+        return new Supplier<Throwable>() {
+            @Override
+            public Throwable get() {
+                return error;
+            }
+        };
     }
     
     public PublisherError(Supplier<? extends Throwable> supplier) {
