@@ -14,6 +14,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherDefer` : calls a `Supplier` to create the actual `Publisher` the `Subscriber` will be subscribed to.
   - `PublisherEmpty` : does not emit any value and calls `onCompleted`; use `instance()` to get its singleton instance with the proper type parameter
   - `PublisherError` : emits a constant or generated Throwable exception
+  - `PublisherGenerate` : generate signals one-by-one via a function 
   - `PublisherIterable` : emits the elements of an `Iterable`
   - `PublisherJust` : emits a single value
   - `PublisherNever` : doesn't emit any signal other than `onSubscribe`; use `instance()` to get its singleton instance with the proper type parameter
