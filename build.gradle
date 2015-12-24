@@ -24,7 +24,7 @@ targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
 group = "io.projectreactor"
-ext.githubProjectName = 'reactive-steams-commons'
+ext.githubProjectName = 'reactive-streams-commons'
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
