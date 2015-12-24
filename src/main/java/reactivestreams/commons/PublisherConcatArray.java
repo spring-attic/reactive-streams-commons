@@ -31,7 +31,13 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
             return;
         }
         if (a.length == 1) {
-            a[0].subscribe(s);
+            Publisher<? extends T> p = a[0];
+            
+            if (p == null) {
+                EmptySubscription.error(s, new NullPointerException("The single source Publisher is null"));
+            } else {
+                p.subscribe(s);
+            }
             return;
         }
     

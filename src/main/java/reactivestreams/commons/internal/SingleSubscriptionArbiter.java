@@ -19,7 +19,6 @@ public final class SingleSubscriptionArbiter implements Subscription {
     static final AtomicReferenceFieldUpdater<SingleSubscriptionArbiter, Subscription> S =
             AtomicReferenceFieldUpdater.newUpdater(SingleSubscriptionArbiter.class, Subscription.class, "s");
 
-    @SuppressWarnings("unused")
     volatile long requested;
     static final AtomicLongFieldUpdater<SingleSubscriptionArbiter> REQUESTED =
             AtomicLongFieldUpdater.newUpdater(SingleSubscriptionArbiter.class, "requested");

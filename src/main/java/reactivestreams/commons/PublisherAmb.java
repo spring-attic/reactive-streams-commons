@@ -101,7 +101,13 @@ public final class PublisherAmb<T> implements Publisher<T> {
             return;
         }
         if (n == 1) {
-            a[0].subscribe(s);
+            Publisher<? extends T> p = a[0];
+            
+            if (p == null) {
+                EmptySubscription.error(s, new NullPointerException("The single source Publisher is null"));
+            } else {
+                p.subscribe(s);
+            }
             return;
         }
         
@@ -141,7 +147,16 @@ public final class PublisherAmb<T> implements Publisher<T> {
                     return;
                 }
                 
-                sources[i].subscribe(a[i]);
+                Publisher<? extends T> p = sources[i];
+
+                if (p == null) {
+                    if (compareAndSet(Integer.MIN_VALUE, -1)) {
+                        actual.onError(new NullPointerException("The " + i + " th Publisher source is null"));
+                    }
+                    return;
+                }
+                
+                p.subscribe(a[i]);
             }
             
         }
@@ -150,7 +165,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 int w = get();
-                if (w != Integer.MIN_VALUE) {
+                if (w >= 0) {
                     subscribers[w].arbiter.request(n);
                 } else {
                     for (PublisherAmbSubscriber<T> s : subscribers) {
@@ -168,7 +183,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
             cancelled = true;
             
             int w = get();
-            if (w != Integer.MIN_VALUE) {
+            if (w >= 0) {
                 subscribers[w].arbiter.cancel();
             } else {
                 for (PublisherAmbSubscriber<T> s : subscribers) {

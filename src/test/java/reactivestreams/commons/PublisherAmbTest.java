@@ -1,5 +1,7 @@
 package reactivestreams.commons;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
@@ -62,4 +64,49 @@ public class PublisherAmbTest {
         .assertNotComplete()
         .assertError(ex);
     }
+    
+    @Test
+    public void singleArrayNullSource() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+        
+        new PublisherAmb<>((Publisher<Object>)null).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertError(NullPointerException.class);
+    }
+
+    @Test
+    public void arrayOneIsNullSource() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+        
+        new PublisherAmb<>(PublisherNever.instance(), (Publisher<Object>)null, PublisherNever.instance()).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertError(NullPointerException.class);
+    }
+
+    @Test
+    public void singleIterableNullSource() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+        
+        new PublisherAmb<>(Arrays.asList((Publisher<Object>)null)).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertError(NullPointerException.class);
+    }
+
+    @Test
+    public void iterableOneIsNullSource() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+        
+        new PublisherAmb<>(Arrays.asList(PublisherNever.instance(), (Publisher<Object>)null, PublisherNever.instance())).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertError(NullPointerException.class);
+    }
+
 }

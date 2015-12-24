@@ -65,4 +65,15 @@ public class PublisherConcatArrayTest {
         .assertError(NullPointerException.class);
     }
 
+    @Test
+    public void singleSourceIsNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherConcatArray<>((Publisher<Integer>)null).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertError(NullPointerException.class);
+    }
+
 }

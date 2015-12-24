@@ -67,4 +67,15 @@ public class PublisherConcatIterableTest {
         .assertError(NullPointerException.class);
     }
 
+    @Test
+    public void singleSourceIsNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherConcatIterable<>(Arrays.asList((Publisher<Integer>)null)).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertError(NullPointerException.class);
+    }
+
 }
