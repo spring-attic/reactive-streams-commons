@@ -251,9 +251,16 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription {
         return this;
     }
     
-    public final TestSubscriber<T> assertTerminated(T value) {
+    public final TestSubscriber<T> assertTerminated() {
         if (cdl.getCount() != 0) {
             assertionError("Not terminated", null);
+        }
+        return this;
+    }
+
+    public final TestSubscriber<T> assertNotTerminated() {
+        if (cdl.getCount() == 0) {
+            assertionError("Terminated", null);
         }
         return this;
     }

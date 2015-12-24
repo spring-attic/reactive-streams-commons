@@ -25,12 +25,16 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherAll` : emits a single true if all values of the source sequence match the predicate
   - `PublisherAny` : emits a single true if any value of the source sequence matches the predicate
   - `PublisherCount` : counts the number of elements the source sequence emits
+  - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
   - `PublisherFilter` : filters out values which doesn't pass a predicate
+  - `PublisherIsEmpty` : returns a single true if the source sequence is empty
   - `PublisherMap` : map values to other values via a function
   - `PublisherRepeat` : repeatedly streams the source sequence fixed or unlimited times
   - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
   - `PublisherSkip` : skips a specified amount of values
+  - `PublisherSwitchIfEmpty` : continues with another sequence if the first sequence turns out to be empty.
   - `PublisherTake` : takes a specified amount of values and completes
+  - `PublisherTakeUntil` : relays values until another Publisher signals
 
 ## Supported extractions
 
