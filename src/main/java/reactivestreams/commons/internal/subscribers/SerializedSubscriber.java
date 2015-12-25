@@ -16,7 +16,8 @@ import reactivestreams.commons.internal.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription {
+public final class SerializedSubscriber<T> implements Subscriber<T>, 
+Subscription, SubscriberSignalSerializerTrait<T> {
 
     final Subscriber<? super T> actual;
     
@@ -24,14 +25,13 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
     
     boolean missed;
     
-    
     volatile boolean done;
     
     volatile boolean cancelled;
     
-    ArrayNode<T> head;
+    LinkedArrayNode<T> head;
     
-    ArrayNode<T> tail;
+    LinkedArrayNode<T> tail;
     
     Throwable error;
 
@@ -52,159 +52,19 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
 
     @Override
     public void onNext(T t) {
-        if (cancelled || done) {
-            return;
-        }
-        
-        synchronized (this) {
-            if (cancelled || done) {
-                return;
-            }
-            
-            if (emitting) {
-                add(t);
-                missed = true;
-                return;
-            }
-            
-            emitting = true;
-        }
-        
-        actual.onNext(t);
-        
-        drain();
+        serOnNext(t);
     }
     
-    void add(T value) {
-        ArrayNode<T> t = tail;
-        
-        if (t == null) {
-            t = new ArrayNode<>(value);
-            
-            head = t;
-            tail = t;
-        } else {
-            if (t.count == ArrayNode.DEFAULT_CAPACITY) {
-                ArrayNode<T> n = new ArrayNode<>(value);
-                
-                t.next = n;
-                t = n;
-            } else {
-                t.array[t.count++] = value;
-            }
-        }
-    }
-
     @Override
     public void onError(Throwable t) {
-        if (cancelled || done) {
-            return;
-        }
-        
-        synchronized (this) {
-            if (cancelled || done) {
-                return;
-            }
-
-            done = true;
-            error = t;
-
-            if (emitting) {
-                missed = true;
-                return;
-            }
-        }
-        
-        actual.onError(t);
+        serOnError(t);
     }
 
     @Override
     public void onComplete() {
-        if (cancelled || done) {
-            return;
-        }
-        
-        synchronized (this) {
-            if (cancelled || done) {
-                return;
-            }
-
-            done = true;
-            if (emitting) {
-                missed = true;
-                return;
-            }
-        }
-        
-        actual.onComplete();
+        serOnComplete();
     }
 
-    void drain() {
-        
-        Subscriber<? super T> a = actual;
-        
-        for (;;) {
-            
-            if (cancelled) {
-                return;
-            }
-            
-            boolean d;
-            Throwable e;
-            ArrayNode<T> n;
-            
-            synchronized (this) {
-                if (cancelled) {
-                    return;
-                }
-
-                if (!missed) {
-                    emitting = false;
-                    return;
-                }
-                
-                missed = false;
-                
-                d = done;
-                e = error;
-                n = head;
-                
-                head = null;
-                tail = null;
-            }
-            
-            while (n != null) {
-
-                T[] arr = n.array;
-                int c = n.count;
-                
-                for (int i = 0; i < c; i++) {
-                    
-                    if (cancelled) {
-                        return;
-                    }
-                    
-                    a.onNext(arr[i]);
-                }
-                
-                n = n.next;
-            }
-            
-            if (cancelled) {
-                return;
-            }
-            
-            if (e != null) {
-                a.onError(e);
-                return;
-            } else
-            if (d) {
-                a.onComplete();
-                return;
-            }
-        }
-    }
-    
     @Override
     public void request(long n) {
         s.request(n);
@@ -215,20 +75,79 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         cancelled = true;
         s.cancel();
     }
-    
-    static final class ArrayNode<T> {
-        
-        static final int DEFAULT_CAPACITY = 16;
-        
-        final T[] array;
-        int count;
-        ArrayNode<T> next;
-        
-        @SuppressWarnings("unchecked")
-        public ArrayNode(T value) {
-            array = (T[])new Object[DEFAULT_CAPACITY];
-            array[0] = value;
-            count = 1;
-        }
+
+    @Override
+    public Subscriber<? super T> serGetSubscriber() {
+        return actual;
+    }
+
+    @Override
+    public Object serGuard() {
+        return this;
+    }
+
+    @Override
+    public boolean serIsEmitting() {
+        return emitting;
+    }
+
+    @Override
+    public void serSetEmitting(boolean emitting) {
+        this.emitting = emitting;
+    }
+
+    @Override
+    public boolean serIsMissed() {
+        return missed;
+    }
+
+    @Override
+    public void serSetMissed(boolean missed) {
+        this.missed = missed;
+    }
+
+    @Override
+    public boolean serIsCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public boolean serIsDone() {
+        return done;
+    }
+
+    @Override
+    public void serSetDone(boolean done) {
+        this.done = done;
+    }
+
+    @Override
+    public Throwable serGetError() {
+        return error;
+    }
+
+    @Override
+    public void serSetError(Throwable error) {
+        this.error = error;
+    }
+
+    @Override
+    public LinkedArrayNode<T> serGetHead() {
+        return head;
+    }
+
+    @Override
+    public void serSetHead(LinkedArrayNode<T> node) {
+        head = node;
+    }
+
+    @Override
+    public LinkedArrayNode<T> serGetTail() {
+        return tail;
+    }
+
+    @Override
+    public void serSetTail(LinkedArrayNode<T> node) {
+        tail = node;
     }
 }

@@ -1,6 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -10,7 +11,7 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscription;
+import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscriptionTrait;
 
 /**
  * Collects the values of the source sequence into a container returned by
@@ -54,35 +55,37 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
         source.subscribe(new PublisherCollectSubscriber<>(s, action, container));
     }
     
-    static final class PublisherCollectSubscriber<T, R> implements Subscriber<T>, Subscription {
+    static final class PublisherCollectSubscriber<T, R> 
+    extends AtomicInteger
+    implements Subscriber<T>, ScalarDelayedSubscriptionTrait<R> {
+        /** */
+        private static final long serialVersionUID = 6299923221147072942L;
+
         final Subscriber<? super R> actual;
 
         final BiConsumer<? super R, ? super T> action;
     
         final R container;
         
-        final ScalarDelayedSubscription<R> delayed;
-        
         Subscription s;
         
         boolean done;
-
+        
         public PublisherCollectSubscriber(Subscriber<? super R> actual, BiConsumer<? super R, ? super T> action,
                 R container) {
             this.actual = actual;
             this.action = action;
             this.container = container;
-            this.delayed = new ScalarDelayedSubscription<>(actual);
         }
 
         @Override
         public void request(long n) {
-            delayed.request(n);
+            ScalarDelayedSubscriptionTrait.super.request(n);
         }
 
         @Override
         public void cancel() {
-            delayed.cancel();
+            ScalarDelayedSubscriptionTrait.super.cancel();
             s.cancel();
         }
 
@@ -127,9 +130,37 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
                 return;
             }
             done = true;
-            delayed.set(container);
+            sdsSet(container);
         }
-        
-        
+
+        @Override
+        public int sdsGetState() {
+            return get();
+        }
+
+        @Override
+        public void sdsSetState(int updated) {
+            set(updated);
+        }
+
+        @Override
+        public boolean sdsCasState(int expected, int updated) {
+            return compareAndSet(expected, updated);
+        }
+
+        @Override
+        public R sdsGetValue() {
+            return container;
+        }
+
+        @Override
+        public void sdsSetValue(R value) {
+            // value is constant
+        }
+
+        @Override
+        public Subscriber<? super R> sdsGetSubscriber() {
+            return actual;
+        }
     }
 }
