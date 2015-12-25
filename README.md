@@ -39,10 +39,12 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
   - `PublisherScan` : aggregates the source values with the help of an accumulator function and emits the intermediate results
   - `PublisherSkip` : skips a specified amount of values
-  - `PublisherSkipWhile` skips values while the predicate returns true
+  - `PublisherSkipLast` : skips the last N elements
   - `PublisherSkipUntil` : skips values until another sequence signals a value or completes
+  - `PublisherSkipWhile` skips values while the predicate returns true
   - `PublisherSwitchIfEmpty` : continues with another sequence if the first sequence turns out to be empty.
   - `PublisherTake` : takes a specified amount of values and completes
+  - `PublisherTakeLast` : emits only the last N values the source emitted before its completion
   - `PublisherTakeWhile` : relays values while a predicate returns true for the values (checked before each value)
   - `PublisherTakeUntil` : relays values until another Publisher signals
   - `PublisherTakeUntilPredicate` : relays values until a predicate returns true (checked after each value)

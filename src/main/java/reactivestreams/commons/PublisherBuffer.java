@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
@@ -297,7 +298,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
     
     static final class PublisherBufferOverlappingSubscriber<T, C extends Collection<? super T>>
     extends AtomicLong
-    implements Subscriber<T>, Subscription {
+    implements Subscriber<T>, Subscription, BooleanSupplier {
         /** */
         private static final long serialVersionUID = 8971848569243655286L;
 
@@ -324,10 +325,6 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
         static final AtomicIntegerFieldUpdater<PublisherBufferOverlappingSubscriber> ONCE =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherBufferOverlappingSubscriber.class, "once");
         
-        static final long COMPLETED_MASK = 0x8000_0000_0000_0000L;
-        static final long REQUESTED_MASK = 0x7FFF_FFFF_FFFF_FFFFL;
-        
-        
         public PublisherBufferOverlappingSubscriber(Subscriber<? super C> actual, int size, int skip,
                 Supplier<C> bufferSupplier) {
             this.actual = actual;
@@ -337,6 +334,10 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
             this.buffers = new ArrayDeque<>();
         }
 
+        public boolean getAsBoolean() {
+            return cancelled;
+        }
+        
         @Override
         public void request(long n) {
 
@@ -344,26 +345,8 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
                 return;
             }
             
-            for (;;) {
-                long r = get();
-
-                // extract the current request amount
-                long r0 = r & REQUESTED_MASK;
-            
-                // preserve COMPLETED_MASK and calculate new requested amount
-                long u = (r & COMPLETED_MASK) | BackpressureHelper.addCap(r0, n);
-            
-                if (compareAndSet(r, u)) {
-                    // (complete, 0) -> (complete, n) transition then replay
-                    if (r == COMPLETED_MASK) {
-                        
-                        drain(n | COMPLETED_MASK);
-                        
-                        return;
-                    }
-                    // (active, r) -> (active, r + n) transition then continue with requesting from upstream
-                    break;
-                }
+            if (BackpressureHelper.postCompleteRequest(n, actual, buffers, this, this)) {
+                return;
             }
             
             if (once == 0 && ONCE.compareAndSet(this, 0, 1)) {
@@ -468,82 +451,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
             
             done = true;
 
-            final ArrayDeque<C> bs = buffers;
-            final Subscriber<? super C> a = actual;
-
-            if (bs.isEmpty()) {
-                a.onComplete();
-                return;
-            }
-
-            drain(get());
-
-            if (bs.isEmpty()) {
-                return;
-            }
-            
-            for (;;) {
-                long r = get();
-
-                long u = r | COMPLETED_MASK;
-                // (active, r) -> (complete, r) transition
-                if (compareAndSet(r, u)) {
-                    // if the requested amount was non-zero, drain the queue
-                    if (r != 0) {
-                        drain(u);
-                    }
-                    
-                    return;
-                }
-            }
-        }
-        
-        void drain(long n) {
-            final ArrayDeque<C> bs = buffers;
-            final Subscriber<? super C> a = actual;
-            
-            long e = n & COMPLETED_MASK;
-            
-            for (;;) {
-                
-                while (e != n) {
-                    if (cancelled) {
-                        return;
-                    }
-
-                    C b = bs.poll();
-                    
-                    if (b == null) {
-                        a.onComplete();
-                        return;
-                    }
-                    
-                    a.onNext(b);
-                    e++;
-                }
-
-                if (cancelled) {
-                    return;
-                }
-                
-                if (bs.isEmpty()) {
-                    a.onComplete();
-                    return;
-                }
-
-                n = get();
-                
-                if (n == e) {
-                    
-                    n = addAndGet(-(e & REQUESTED_MASK));
-                    
-                    if ((n & REQUESTED_MASK) == 0L) {
-                        return;
-                    }
-                    
-                    e = n & COMPLETED_MASK;
-                }
-            }
+            BackpressureHelper.postComplete(actual, buffers, this, this);
         }
     }
 }
