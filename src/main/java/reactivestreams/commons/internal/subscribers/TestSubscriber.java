@@ -77,7 +77,9 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription {
     public final void onSubscribe(Subscription s) {
         subscriptions++;
         if (!arbiter.set(s)) {
-            errors.add(new IllegalStateException("subscription already set"));
+            if (!arbiter.isCancelled()) {
+                errors.add(new IllegalStateException("subscription already set"));
+            }
         }
     }
 

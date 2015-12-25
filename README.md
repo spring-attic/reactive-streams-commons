@@ -20,6 +20,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherNever` : doesn't emit any signal other than `onSubscribe`; use `instance()` to get its singleton instance with the proper type parameter
   - `PublisherRange` : emits a range of integer values
   - `PublisherStream` : emits elements of a `Stream`
+  - `PublisherUsing` : create a resource, stream values in a Publisher derived from the resource and release the resource when the sequence completes or the Subscriber cancels
   
 ## Supported transformations
 
@@ -30,6 +31,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
   - `PublisherCount` : counts the number of elements the source sequence emits
   - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
+  - `PublisherDelaySubscription` : delays the subscription to the main source until the other source signals a value or completes.
   - `PublisherFilter` : filters out values which doesn't pass a predicate
   - `PublisherIsEmpty` : returns a single true if the source sequence is empty
   - `PublisherLift` : maps the downstream Subscriber into an upstream Subscriber which allows implementing custom operators via lambdas
@@ -37,6 +39,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherReduce` : aggregates the source values with the help of an accumulator function and emits the the final accumulated value
   - `PublisherRepeat` : repeatedly streams the source sequence fixed or unlimited times
   - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
+  - `PublisherSample` : samples the main source whenever the other Publisher signals a value
   - `PublisherScan` : aggregates the source values with the help of an accumulator function and emits the intermediate results
   - `PublisherSkip` : skips a specified amount of values
   - `PublisherSkipLast` : skips the last N elements
