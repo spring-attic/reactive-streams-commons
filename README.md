@@ -26,6 +26,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherAccumulate` : Accumulates the source values with an accumulator function and returns the intermediate results of this function application
   - `PublisherAll` : emits a single true if all values of the source sequence match the predicate
   - `PublisherAny` : emits a single true if any value of the source sequence matches the predicate
+  - `PublisherBuffer` : buffers certain number of subsequent elements and emits the buffers
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
   - `PublisherCount` : counts the number of elements the source sequence emits
   - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
@@ -33,6 +34,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherIsEmpty` : returns a single true if the source sequence is empty
   - `PublisherLift` : maps the downstream Subscriber into an upstream Subscriber which allows implementing custom operators via lambdas
   - `PublisherMap` : map values to other values via a function
+  - `PublisherReduce` : aggregates the source values with the help of an accumulator function and emits the the final accumulated value
   - `PublisherRepeat` : repeatedly streams the source sequence fixed or unlimited times
   - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
   - `PublisherScan` : aggregates the source values with the help of an accumulator function and emits the intermediate results
