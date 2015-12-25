@@ -2,6 +2,7 @@ package reactivestreams.commons;
 
 import java.util.ArrayDeque;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 
@@ -86,8 +87,8 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherTakeLastOneSubscriber> WIP =
-                AtomicLongFieldUpdater.newUpdater(PublisherTakeLastOneSubscriber.class, "wip");
+        static final AtomicIntegerFieldUpdater<PublisherTakeLastOneSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherTakeLastOneSubscriber.class, "wip");
         
         public PublisherTakeLastOneSubscriber(Subscriber<? super T> actual) {
             this.actual = actual;

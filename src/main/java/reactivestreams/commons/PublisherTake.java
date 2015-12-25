@@ -1,11 +1,12 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.SubscriptionHelper;
 
 /**
@@ -44,11 +45,7 @@ public final class PublisherTake<T> implements Publisher<T> {
     }
 
     static final class PublisherTakeSubscriber<T> 
-    extends AtomicBoolean
     implements Subscriber<T>, Subscription {
-        
-        /** */
-        private static final long serialVersionUID = 7425517180269716721L;
 
         final Subscriber<? super T> actual;
         
@@ -59,6 +56,11 @@ public final class PublisherTake<T> implements Publisher<T> {
         Subscription s;
         
         boolean done;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherTakeSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherTakeSubscriber.class, "wip");
 
         public PublisherTakeSubscriber(Subscriber<? super T> actual, long n) {
             this.actual = actual;
@@ -71,7 +73,7 @@ public final class PublisherTake<T> implements Publisher<T> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 actual.onSubscribe(this);
-                if (n == 0 && !get()) {
+                if (n == 0 && wip == 0) {
                     request(Long.MAX_VALUE);
                 }
             }
@@ -122,10 +124,10 @@ public final class PublisherTake<T> implements Publisher<T> {
 
         @Override
         public void request(long n) {
-            if (get()) {
+            if (wip != 0) {
                 s.request(n);
             } else
-            if (compareAndSet(false, true)) {
+            if (WIP.compareAndSet(this, 0, 1)) {
                 if (n >= this.n) {
                     s.request(Long.MAX_VALUE);
                 } else {

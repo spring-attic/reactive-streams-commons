@@ -1,7 +1,6 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Publisher;
@@ -58,19 +57,19 @@ public final class PublisherSkipUntil<T, U> implements Publisher<T> {
 
         @Override
         public void onNext(U t) {
-            if (main.get()) {
+            if (main.gate) {
                 return;
             }
             PublisherSkipUntilMainSubscriber<?> m = main;
             m.other.cancel();
-            m.set(true);
+            m.gate = true;
             m.other = CancelledSubscription.INSTANCE;
         }
 
         @Override
         public void onError(Throwable t) {
             PublisherSkipUntilMainSubscriber<?> m = main;
-            if (m.get()) {
+            if (m.gate) {
                 return;
             }
             m.onError(t);
@@ -79,10 +78,10 @@ public final class PublisherSkipUntil<T, U> implements Publisher<T> {
         @Override
         public void onComplete() {
             PublisherSkipUntilMainSubscriber<?> m = main;
-            if (m.get()) {
+            if (m.gate) {
                 return;
             }
-            m.set(true);
+            m.gate = true;
             m.other = CancelledSubscription.INSTANCE;
         }
 
@@ -90,10 +89,7 @@ public final class PublisherSkipUntil<T, U> implements Publisher<T> {
     }
     
     static final class PublisherSkipUntilMainSubscriber<T> 
-    extends AtomicBoolean
     implements Subscriber<T>, Subscription {
-        /** */
-        private static final long serialVersionUID = 2598676390483421138L;
 
         final SerializedSubscriber<T> actual;
         
@@ -106,7 +102,9 @@ public final class PublisherSkipUntil<T, U> implements Publisher<T> {
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSkipUntilMainSubscriber, Subscription> OTHER =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherSkipUntilMainSubscriber.class, Subscription.class, "other");
-        
+
+        volatile boolean gate;
+
         public PublisherSkipUntilMainSubscriber(Subscriber<? super T> actual) {
             this.actual = new SerializedSubscriber<>(actual);
         }
@@ -165,7 +163,7 @@ public final class PublisherSkipUntil<T, U> implements Publisher<T> {
 
         @Override
         public void onNext(T t) {
-            if (get()) {
+            if (gate) {
                 actual.onNext(t);
             } else {
                 main.request(1);

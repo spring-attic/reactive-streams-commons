@@ -2,7 +2,7 @@ package reactivestreams.commons;
 
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -129,8 +129,8 @@ public final class PublisherAmb<T> implements Publisher<T> {
         
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherAmbCoordinator> WIP =
-                AtomicLongFieldUpdater.newUpdater(PublisherAmbCoordinator.class, "wip");
+        static final AtomicIntegerFieldUpdater<PublisherAmbCoordinator> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherAmbCoordinator.class, "wip");
         
         @SuppressWarnings("unchecked")
         public PublisherAmbCoordinator(int n) {

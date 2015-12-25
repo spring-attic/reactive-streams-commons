@@ -47,7 +47,7 @@ public enum BackpressureHelper {
             }
             long u = addCap(r, n);
             if (updater.compareAndSet(instance, r, u)) {
-                return u;
+                return r;
             }
         }
     }

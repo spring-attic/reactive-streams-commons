@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -91,10 +91,7 @@ public final class PublisherUsing<T, S> implements Publisher<T> {
     }
     
     static final class PublisherUsingSubscriber<T, S> 
-    extends AtomicBoolean
     implements Subscriber<T>, Subscription {
-        /** */
-        private static final long serialVersionUID = 6664736529860049258L;
 
         final Subscriber<? super T> actual;
         
@@ -105,6 +102,11 @@ public final class PublisherUsing<T, S> implements Publisher<T> {
         final boolean eager;
         
         Subscription s;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherUsingSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherUsingSubscriber.class, "wip");
 
         public PublisherUsingSubscriber(Subscriber<? super T> actual, Consumer<? super S> resourceCleanup, S resource, boolean eager) {
             this.actual = actual;
@@ -120,7 +122,7 @@ public final class PublisherUsing<T, S> implements Publisher<T> {
 
         @Override
         public void cancel() {
-            if (compareAndSet(false, true)) {
+            if (WIP.compareAndSet(this, 0, 1)) {
                 s.cancel();
 
                 cleanup();

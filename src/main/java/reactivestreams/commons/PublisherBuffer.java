@@ -3,7 +3,6 @@ package reactivestreams.commons;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
@@ -166,10 +165,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
     }
 
     static final class PublisherBufferSkipSubscriber<T, C extends Collection<? super T>>
-    extends AtomicBoolean
     implements Subscriber<T>, Subscription {
-        /** */
-        private static final long serialVersionUID = 8971848569243655286L;
 
         final Subscriber<? super C> actual;
         
@@ -186,7 +182,12 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
         boolean done;
 
         long index;
-        
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherBufferSkipSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherBufferSkipSubscriber.class, "wip");
+
         public PublisherBufferSkipSubscriber(Subscriber<? super C> actual, int size, int skip,
                 Supplier<C> bufferSupplier) {
             this.actual = actual;
@@ -197,7 +198,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
 
         @Override
         public void request(long n) {
-            if (!get() && compareAndSet(false, true)) {
+            if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
                 // n full buffers
                 long u = BackpressureHelper.multiplyCap(n, size);
                 // + (n - 1) gaps

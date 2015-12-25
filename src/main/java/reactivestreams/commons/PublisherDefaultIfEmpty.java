@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -44,11 +44,10 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
         
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherDefaultIfEmptySubscriber> WIP =
-                AtomicLongFieldUpdater.newUpdater(PublisherDefaultIfEmptySubscriber.class, "wip");
+        static final AtomicIntegerFieldUpdater<PublisherDefaultIfEmptySubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherDefaultIfEmptySubscriber.class, "wip");
         
         public PublisherDefaultIfEmptySubscriber(Subscriber<? super T> actual, T value) {
-            super();
             this.actual = actual;
             this.value = value;
         }
@@ -56,6 +55,7 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
         @Override
         public void request(long n) {
             ScalarDelayedSubscriptionTrait.super.request(n);
+            s.request(n);
         }
 
         @Override

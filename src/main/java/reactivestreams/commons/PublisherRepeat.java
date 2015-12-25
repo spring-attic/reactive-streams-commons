@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -65,8 +65,8 @@ public final class PublisherRepeat<T> implements Publisher<T> {
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherRepeatSubscriber> WIP =
-                AtomicLongFieldUpdater.newUpdater(PublisherRepeatSubscriber.class, "wip");
+        static final AtomicIntegerFieldUpdater<PublisherRepeatSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherRepeatSubscriber.class, "wip");
 
         public PublisherRepeatSubscriber(Publisher<? extends T> source, Subscriber<? super T> actual, long remaining) {
             this.source = source;

@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -69,8 +69,8 @@ public final class PublisherReduce<T, R> implements Publisher<R> {
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherReduceSubscriber> WIP =
-                AtomicLongFieldUpdater.newUpdater(PublisherReduceSubscriber.class, "wip");
+        static final AtomicIntegerFieldUpdater<PublisherReduceSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherReduceSubscriber.class, "wip");
 
         public PublisherReduceSubscriber(Subscriber<? super R> actual, BiFunction<R, ? super T, R> accumulator,
                 R value) {

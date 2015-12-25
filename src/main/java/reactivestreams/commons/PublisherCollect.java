@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -70,8 +70,8 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherCollectSubscriber> WIP =
-                AtomicLongFieldUpdater.newUpdater(PublisherCollectSubscriber.class, "wip");
+        static final AtomicIntegerFieldUpdater<PublisherCollectSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherCollectSubscriber.class, "wip");
         
         public PublisherCollectSubscriber(Subscriber<? super R> actual, BiConsumer<? super R, ? super T> action,
                 R container) {
