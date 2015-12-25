@@ -1,12 +1,14 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscriptionTrait;
 
 /**
  * Emits a scalar value if the source sequence turns out to be empty.
@@ -30,11 +32,7 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
     }
     
     static final class PublisherDefaultIfEmptySubscriber<T> 
-    extends AtomicInteger
-    implements Subscriber<T>, Subscription {
-        
-        /** */
-        private static final long serialVersionUID = -1144745940026178027L;
+    implements Subscriber<T>, ScalarDelayedSubscriptionTrait<T> {
 
         final Subscriber<? super T> actual;
         
@@ -44,10 +42,10 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
         
         boolean hasValue;
         
-        static final int NO_REQUEST_NO_VALUE = 0;
-        static final int HAS_REQUEST_NO_VALUE = 1;
-        static final int NO_REQUEST_HAS_VALUE = 2;
-        static final int HAS_REQUEST_HAS_VALUE = 3;
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherDefaultIfEmptySubscriber> WIP =
+                AtomicLongFieldUpdater.newUpdater(PublisherDefaultIfEmptySubscriber.class, "wip");
         
         public PublisherDefaultIfEmptySubscriber(Subscriber<? super T> actual, T value) {
             super();
@@ -57,31 +55,12 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
 
         @Override
         public void request(long n) {
-            if (SubscriptionHelper.validate(n)) {
-                s.request(n);
-                
-                for (;;) {
-                    int state = get();
-                    if (state == HAS_REQUEST_NO_VALUE || state == HAS_REQUEST_HAS_VALUE) {
-                        return;
-                    }
-                    if (state == NO_REQUEST_HAS_VALUE) {
-                        if (compareAndSet(NO_REQUEST_HAS_VALUE, HAS_REQUEST_HAS_VALUE)) {
-                            actual.onNext(value);
-                            actual.onComplete();
-                        }
-                        return;
-                    }
-                    if (compareAndSet(NO_REQUEST_NO_VALUE, HAS_REQUEST_NO_VALUE)) {
-                        return;
-                    }
-                }
-            }
+            ScalarDelayedSubscriptionTrait.super.request(n);
         }
 
         @Override
         public void cancel() {
-            getAndSet(HAS_REQUEST_HAS_VALUE);
+            ScalarDelayedSubscriptionTrait.super.cancel();
             s.cancel();
         }
 
@@ -113,26 +92,41 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
             if (hasValue) {
                 actual.onComplete();
             } else {
-                for (;;) {
-                    int state = get();
-                    
-                    if (state == NO_REQUEST_HAS_VALUE || state == HAS_REQUEST_HAS_VALUE) {
-                        return;
-                    }
-                    if (state == HAS_REQUEST_NO_VALUE) {
-                        if (compareAndSet(HAS_REQUEST_NO_VALUE, HAS_REQUEST_HAS_VALUE)) {
-                            actual.onNext(value);
-                            actual.onComplete();
-                        }
-                        return;
-                    }
-                    if (compareAndSet(NO_REQUEST_NO_VALUE, NO_REQUEST_HAS_VALUE)) {
-                        return;
-                    }
-                }
+                sdsSet(value);
             }
         }
 
+        @Override
+        public int sdsGetState() {
+            return wip;
+        }
+
+        @Override
+        public void sdsSetState(int updated) {
+            wip = updated;
+        }
+
+        @Override
+        public boolean sdsCasState(int expected, int updated) {
+            return WIP.compareAndSet(this, expected, updated);
+        }
+
+        @Override
+        public T sdsGetValue() {
+            return value;
+        }
+
+        @Override
+        public void sdsSetValue(T value) {
+            // value is constant
+        }
+
+        @Override
+        public Subscriber<? super T> sdsGetSubscriber() {
+            return actual;
+        }
+
+        
         
     }
 }

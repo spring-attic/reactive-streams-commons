@@ -1,10 +1,11 @@
 package reactivestreams.commons;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.BackpressureHelper;
 import reactivestreams.commons.internal.SubscriptionHelper;
 
@@ -36,10 +37,7 @@ public final class PublisherRange implements Publisher<Integer> {
     }
     
     static final class PublisherRangeSubscription<T>
-    extends AtomicLong
     implements Subscription {
-        /** */
-        private static final long serialVersionUID = -6172005234485972676L;
 
         final Subscriber<? super Integer> actual;
         
@@ -48,7 +46,12 @@ public final class PublisherRange implements Publisher<Integer> {
         volatile boolean cancelled;
         
         long index;
-        
+
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherRangeSubscription> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherRangeSubscription.class, "requested");
+
         public PublisherRangeSubscription(Subscriber<? super Integer> actual, long start, long end) {
             this.actual = actual;
             this.index = start;
@@ -58,7 +61,7 @@ public final class PublisherRange implements Publisher<Integer> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (BackpressureHelper.add(this, n) == 0) {
+                if (BackpressureHelper.add(REQUESTED, this, n) == 0) {
                     if (n == Long.MAX_VALUE) {
                         fastPath();
                     } else {
@@ -126,10 +129,10 @@ public final class PublisherRange implements Publisher<Integer> {
                     return;
                 }
                 
-                n = get();
+                n = requested;
                 if (n == e) {
                     index = i;
-                    n = addAndGet(-e);
+                    n = REQUESTED.addAndGet(this, -e);
                     if (n == 0) {
                         return;
                     }

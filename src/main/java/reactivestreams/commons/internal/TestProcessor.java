@@ -1,7 +1,7 @@
 package reactivestreams.commons.internal;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Processor;
@@ -180,16 +180,17 @@ public final class TestProcessor<T> implements Processor<T, T> {
     }
     
     static final class TestProcessorSubscription<T>
-    extends AtomicLong
     implements Subscription {
-        /** */
-        private static final long serialVersionUID = 6145116375190850108L;
-
         final Subscriber<? super T> actual;
         
         final TestProcessor<T> parent;
         
         volatile boolean cancelled;
+        
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<TestProcessorSubscription> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(TestProcessorSubscription.class, "requested");
 
         public TestProcessorSubscription(Subscriber<? super T> actual, TestProcessor<T> parent) {
             this.actual = actual;
@@ -199,7 +200,7 @@ public final class TestProcessor<T> implements Processor<T, T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.add(this, n);
+                BackpressureHelper.add(REQUESTED, this, n);
             }
         }
         
@@ -212,10 +213,10 @@ public final class TestProcessor<T> implements Processor<T, T> {
         }
         
         void onNext(T value) {
-            if (get() != 0L) {
+            if (requested != 0L) {
                 actual.onNext(value);
-                if (get() != Long.MAX_VALUE) {
-                    decrementAndGet();
+                if (requested != Long.MAX_VALUE) {
+                    REQUESTED.decrementAndGet(this);
                 }
                 return;
             }

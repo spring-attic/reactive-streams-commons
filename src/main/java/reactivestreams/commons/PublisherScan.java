@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BiFunction;
 
 import org.reactivestreams.Publisher;
@@ -48,10 +48,7 @@ public final class PublisherScan<T, R> implements Publisher<R> {
     }
     
     static final class PublisherScanSubscriber<T, R> 
-    extends AtomicLong
     implements Subscriber<T>, Subscription {
-        /** */
-        private static final long serialVersionUID = 2102239139756409555L;
 
         final Subscriber<? super R> actual;
         
@@ -72,6 +69,11 @@ public final class PublisherScan<T, R> implements Publisher<R> {
         static final long COMPLETED_MASK = 0x8000_0000_0000_0000L;
 
         static final long REQUESTED_MASK = Long.MAX_VALUE;
+
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherScanSubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherScanSubscriber.class, "requested");
 
         public PublisherScanSubscriber(Subscriber<? super R> actual, BiFunction<R, ? super T, R> accumulator,
                 R initialValue) {
@@ -99,8 +101,8 @@ public final class PublisherScan<T, R> implements Publisher<R> {
             
             actual.onNext(r);
             
-            if (get() != Long.MAX_VALUE) {
-                decrementAndGet();
+            if (requested != Long.MAX_VALUE) {
+                REQUESTED.decrementAndGet(this);
             }
             
             try {
@@ -140,7 +142,7 @@ public final class PublisherScan<T, R> implements Publisher<R> {
             R v = value;
             
             for (;;) {
-                long r = get();
+                long r = requested;
                 
                 // if any request amount is still available, emit the value and complete
                 if ((r & REQUESTED_MASK) != 0L) {
@@ -149,7 +151,7 @@ public final class PublisherScan<T, R> implements Publisher<R> {
                     return;
                 }
                 // NO_REQUEST_NO_VALUE -> NO_REQUEST_HAS_VALUE
-                if (compareAndSet(0, COMPLETED_MASK)) {
+                if (REQUESTED.compareAndSet(this, 0, COMPLETED_MASK)) {
                     return;
                 }
             }
@@ -160,13 +162,13 @@ public final class PublisherScan<T, R> implements Publisher<R> {
             if (SubscriptionHelper.validate(n)) {
                 for (;;) {
                     
-                    long r = get();
+                    long r = requested;
 
                     // NO_REQUEST_HAS_VALUE 
                     if (r == COMPLETED_MASK) {
                         // any positive request value will do here
                         // transition to HAS_REQUEST_HAS_VALUE
-                        if (compareAndSet(COMPLETED_MASK, COMPLETED_MASK | 1)) {
+                        if (REQUESTED.compareAndSet(this, COMPLETED_MASK, COMPLETED_MASK | 1)) {
                             actual.onNext(value);
                             actual.onComplete();
                         }
@@ -180,7 +182,7 @@ public final class PublisherScan<T, R> implements Publisher<R> {
 
                     // transition to HAS_REQUEST_NO_VALUE
                     long u = BackpressureHelper.addCap(r, n);
-                    if (compareAndSet(r, u)) {
+                    if (REQUESTED.compareAndSet(this, r, u)) {
                         s.request(n);
                         return;
                     }

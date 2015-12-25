@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -87,10 +87,7 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
     }
     
     static final class PublisherGenerateSubscription<T, S>
-    extends AtomicLong
     implements Subscription, PublisherGenerateOutput<T> {
-        /** */
-        private static final long serialVersionUID = 686786417698615197L;
 
         final Subscriber<? super T> actual;
         
@@ -105,6 +102,11 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
         boolean terminate;
         
         boolean hasValue;
+
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherGenerateSubscription> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherGenerateSubscription.class, "requested");
 
         public PublisherGenerateSubscription(Subscriber<? super T> actual, S state,
                 BiFunction<S, PublisherGenerateOutput<T>, S> generator, Consumer<? super S> stateConsumer) {
@@ -160,7 +162,7 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (BackpressureHelper.add(this, n) == 0) {
+                if (BackpressureHelper.add(REQUESTED, this, n) == 0) {
                     if (n == Long.MAX_VALUE) {
                         fastPath();
                     } else {
@@ -243,11 +245,11 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
                     hasValue = false;
                 }
                 
-                n = get();
+                n = requested;
                 
                 if (n == e) {
                     state = s;
-                    n = addAndGet(-e);
+                    n = REQUESTED.addAndGet(this, -e);
                     if (n == 0L) {
                         return;
                     }
@@ -260,7 +262,7 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
             if (!cancelled) {
                 cancelled = true;
                 
-                if (getAndIncrement() == 0) {
+                if (REQUESTED.getAndIncrement(this) == 0) {
                     cleanup(state);
                 }
             }

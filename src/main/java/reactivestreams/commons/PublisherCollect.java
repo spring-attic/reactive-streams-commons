@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -56,10 +56,7 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
     }
     
     static final class PublisherCollectSubscriber<T, R> 
-    extends AtomicInteger
     implements Subscriber<T>, ScalarDelayedSubscriptionTrait<R> {
-        /** */
-        private static final long serialVersionUID = 6299923221147072942L;
 
         final Subscriber<? super R> actual;
 
@@ -70,6 +67,11 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
         Subscription s;
         
         boolean done;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherCollectSubscriber> WIP =
+                AtomicLongFieldUpdater.newUpdater(PublisherCollectSubscriber.class, "wip");
         
         public PublisherCollectSubscriber(Subscriber<? super R> actual, BiConsumer<? super R, ? super T> action,
                 R container) {
@@ -135,17 +137,17 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
 
         @Override
         public int sdsGetState() {
-            return get();
+            return wip;
         }
 
         @Override
         public void sdsSetState(int updated) {
-            set(updated);
+            wip = updated;
         }
 
         @Override
         public boolean sdsCasState(int expected, int updated) {
-            return compareAndSet(expected, updated);
+            return WIP.compareAndSet(this, expected, updated);
         }
 
         @Override

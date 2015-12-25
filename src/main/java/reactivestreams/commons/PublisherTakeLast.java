@@ -2,8 +2,7 @@ package reactivestreams.commons;
 
 import java.util.ArrayDeque;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 
 import org.reactivestreams.Publisher;
@@ -77,17 +76,18 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
     }
 
     static final class PublisherTakeLastOneSubscriber<T> 
-    extends AtomicInteger
     implements Subscriber<T>, ScalarDelayedSubscriptionTrait<T> {
-        
-        /** */
-        private static final long serialVersionUID = -988105476318512907L;
 
         final Subscriber<? super T> actual;
 
         T value;
         
         Subscription s;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherTakeLastOneSubscriber> WIP =
+                AtomicLongFieldUpdater.newUpdater(PublisherTakeLastOneSubscriber.class, "wip");
         
         public PublisherTakeLastOneSubscriber(Subscriber<? super T> actual) {
             this.actual = actual;
@@ -137,17 +137,17 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
 
         @Override
         public int sdsGetState() {
-            return get();
+            return wip;
         }
 
         @Override
         public void sdsSetState(int updated) {
-            set(updated);
+            wip = updated;
         }
 
         @Override
         public boolean sdsCasState(int expected, int updated) {
-            return compareAndSet(expected, updated);
+            return WIP.compareAndSet(this, expected, updated);
         }
 
         @Override
@@ -167,12 +167,8 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
     }
 
     static final class PublisherTakeLastManySubscriber<T> 
-    extends AtomicLong
     implements Subscriber<T>, Subscription, BooleanSupplier {
         
-        /** */
-        private static final long serialVersionUID = -4993452091482778670L;
-
         final Subscriber<? super T> actual;
         
         final int n;
@@ -183,8 +179,10 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
         
         final ArrayDeque<T> buffer;
         
-        static final long COMPLETED_MASK = 0x8000_0000_0000_0000L;
-        static final long REQUESTED_MASK = 0x7FFF_FFFF_FFFF_FFFFL;
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherTakeLastManySubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherTakeLastManySubscriber.class, "requested");
         
         public PublisherTakeLastManySubscriber(Subscriber<? super T> actual, int n) {
             this.actual = actual;
@@ -200,7 +198,7 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.postCompleteRequest(n, actual, buffer, this, this);
+                BackpressureHelper.postCompleteRequest(n, actual, buffer, REQUESTED, this, this);
             }
         }
 
@@ -239,7 +237,7 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
         @Override
         public void onComplete() {
             
-            BackpressureHelper.postComplete(actual, buffer, this, this);
+            BackpressureHelper.postComplete(actual, buffer, REQUESTED, this, this);
         }
     }
 }

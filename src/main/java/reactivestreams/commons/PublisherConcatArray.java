@@ -1,11 +1,12 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
@@ -52,12 +53,7 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
     }
     
     static final class PublisherConcatArraySubscriber<T> 
-    extends AtomicInteger
     implements Subscriber<T> {
-        /**
-         * 
-         */
-        private static final long serialVersionUID = 3990198597327692577L;
 
         final Subscriber<? super T> actual;
         
@@ -66,6 +62,11 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
         final MultiSubscriptionArbiter arbiter;
         
         int index;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherConcatArraySubscriber> WIP =
+                AtomicLongFieldUpdater.newUpdater(PublisherConcatArraySubscriber.class, "wip");
         
         public PublisherConcatArraySubscriber(Subscriber<? super T> actual, Publisher<? extends T>[] sources) {
             this.actual = actual;
@@ -92,7 +93,7 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
 
         @Override
         public void onComplete() {
-            if (getAndIncrement() == 0) {
+            if (WIP.getAndIncrement(this) == 0) {
                 Publisher<? extends T>[] a = sources;
                 do {
                     
@@ -120,7 +121,7 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
                     }
 
                     index = ++i;
-                } while (decrementAndGet() != 0);
+                } while (WIP.decrementAndGet(this) != 0);
             }
             
         }

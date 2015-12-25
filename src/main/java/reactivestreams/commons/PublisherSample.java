@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Publisher;
@@ -51,10 +51,7 @@ public final class PublisherSample<T, U> implements Publisher<T> {
     }
     
     static final class PublisherSampleMainSubscriber<T> 
-    extends AtomicLong
     implements Subscriber<T>, Subscription {
-        /** */
-        private static final long serialVersionUID = -1287778436774869727L;
 
         final Subscriber<? super T> actual;
         
@@ -73,7 +70,12 @@ public final class PublisherSample<T, U> implements Publisher<T> {
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSampleMainSubscriber, Subscription> OTHER =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, Subscription.class, "other");
-        
+
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherSampleMainSubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, "requested");
+
         public PublisherSampleMainSubscriber(Subscriber<? super T> actual) {
             this.actual = actual;
         }
@@ -124,7 +126,7 @@ public final class PublisherSample<T, U> implements Publisher<T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.add(this, n);
+                BackpressureHelper.add(REQUESTED, this, n);
             }
         }
         
@@ -157,6 +159,10 @@ public final class PublisherSample<T, U> implements Publisher<T> {
         T getAndNullValue() {
             return (T)VALUE.getAndSet(this, null);
         }
+        
+        void decrement() {
+            REQUESTED.decrementAndGet(this);
+        }
     }
     
     static final class PublisherSampleOtherSubscriber<T, U> implements Subscriber<U> {
@@ -178,11 +184,11 @@ public final class PublisherSample<T, U> implements Publisher<T> {
             T v = m.getAndNullValue();
             
             if (v != null) {
-                if (m.get() != 0L) {
+                if (m.requested != 0L) {
                     m.actual.onNext(v);
                     
-                    if (m.get() != Long.MAX_VALUE) {
-                        m.decrementAndGet();
+                    if (m.requested != Long.MAX_VALUE) {
+                        m.decrement();
                     }
                     return;
                 }

@@ -2,11 +2,12 @@ package reactivestreams.commons;
 
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
@@ -50,16 +51,18 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
     }
     
     static final class PublisherConcatIterableSubscriber<T> 
-    extends AtomicInteger
     implements Subscriber<T> {
-        /** */
-        private static final long serialVersionUID = 3990198597327692577L;
 
         final Subscriber<? super T> actual;
         
         final Iterator<? extends Publisher<? extends T>> it;
         
         final MultiSubscriptionArbiter arbiter;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherConcatIterableSubscriber> WIP =
+                AtomicLongFieldUpdater.newUpdater(PublisherConcatIterableSubscriber.class, "wip");
         
         public PublisherConcatIterableSubscriber(Subscriber<? super T> actual, Iterator<? extends Publisher<? extends T>> it) {
             this.actual = actual;
@@ -86,7 +89,7 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
 
         @Override
         public void onComplete() {
-            if (getAndIncrement() == 0) {
+            if (WIP.getAndIncrement(this) == 0) {
                 Iterator<? extends Publisher<? extends T>> a = this.it;
                 do {
                     if (arbiter.isCancelled()) {
@@ -136,7 +139,7 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
                         return;
                     }
                     
-                } while (decrementAndGet() != 0);
+                } while (WIP.decrementAndGet(this) != 0);
             }
             
         }

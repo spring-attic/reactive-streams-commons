@@ -2,11 +2,12 @@ package reactivestreams.commons;
 
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.BackpressureHelper;
 import reactivestreams.commons.internal.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
@@ -66,16 +67,18 @@ public final class PublisherIterable<T> implements Publisher<T> {
     }
 
     static final class PublisherIterableSubscription<T>
-            extends AtomicLong
     implements Subscription {
-        /** */
-        private static final long serialVersionUID = 5781366097814716112L;
 
         final Subscriber<? super T> actual;
 
         final Iterator<? extends T> iterator;
 
         volatile boolean cancelled;
+
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherIterableSubscription> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherIterableSubscription.class, "requested");
 
         public PublisherIterableSubscription(Subscriber<? super T> actual, Iterator<? extends T> iterator) {
             this.actual = actual;
@@ -85,7 +88,7 @@ public final class PublisherIterable<T> implements Publisher<T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (BackpressureHelper.add(this, n) == 0) {
+                if (BackpressureHelper.add(REQUESTED, this, n) == 0) {
                     if (n == Long.MAX_VALUE) {
                         fastPath();
                     } else {
@@ -149,10 +152,10 @@ public final class PublisherIterable<T> implements Publisher<T> {
                     e++;
                 }
 
-                n = get();
+                n = requested;
 
                 if (n == e) {
-                    n = addAndGet(-e);
+                    n = REQUESTED.addAndGet(this, -e);
                     if (n == 0L) {
                         return;
                     }

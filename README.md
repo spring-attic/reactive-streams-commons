@@ -30,6 +30,8 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherBuffer` : buffers certain number of subsequent elements and emits the buffers
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
   - `PublisherCount` : counts the number of elements the source sequence emits
+  - `PublisherDistinct` : filters out elements that have been seen previously according to a custom collection
+  - `PublisherDistinctUntilChanged` : filters out subsequent and repeated elements
   - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
   - `PublisherDelaySubscription` : delays the subscription to the main source until the other source signals a value or completes.
   - `PublisherFilter` : filters out values which doesn't pass a predicate

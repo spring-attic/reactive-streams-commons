@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -297,11 +297,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
 
     
     static final class PublisherBufferOverlappingSubscriber<T, C extends Collection<? super T>>
-    extends AtomicLong
     implements Subscriber<T>, Subscription, BooleanSupplier {
-        /** */
-        private static final long serialVersionUID = 8971848569243655286L;
-
         final Subscriber<? super C> actual;
         
         final Supplier<C> bufferSupplier;
@@ -324,6 +320,11 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherBufferOverlappingSubscriber> ONCE =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherBufferOverlappingSubscriber.class, "once");
+
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherBufferOverlappingSubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherBufferOverlappingSubscriber.class, "requested");
         
         public PublisherBufferOverlappingSubscriber(Subscriber<? super C> actual, int size, int skip,
                 Supplier<C> bufferSupplier) {
@@ -345,7 +346,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
                 return;
             }
             
-            if (BackpressureHelper.postCompleteRequest(n, actual, buffers, this, this)) {
+            if (BackpressureHelper.postCompleteRequest(n, actual, buffers, REQUESTED, this, this)) {
                 return;
             }
             
@@ -419,8 +420,8 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
                 
                 actual.onNext(b);
 
-                if (get() != Long.MAX_VALUE) {
-                    decrementAndGet();
+                if (requested != Long.MAX_VALUE) {
+                    REQUESTED.decrementAndGet(this);
                 }
             }
             
@@ -451,7 +452,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
             
             done = true;
 
-            BackpressureHelper.postComplete(actual, buffers, this, this);
+            BackpressureHelper.postComplete(actual, buffers, REQUESTED, this, this);
         }
     }
 }

@@ -1,11 +1,12 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
@@ -52,10 +53,7 @@ public final class PublisherRepeat<T> implements Publisher<T> {
     }
     
     static final class PublisherRepeatSubscriber<T> 
-    extends AtomicInteger
     implements Subscriber<T> {
-        /** */
-        private static final long serialVersionUID = -1140788335714788504L;
 
         final Subscriber<? super T> actual;
 
@@ -64,6 +62,11 @@ public final class PublisherRepeat<T> implements Publisher<T> {
         final MultiSubscriptionArbiter arbiter;
         
         long remaining;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherRepeatSubscriber> WIP =
+                AtomicLongFieldUpdater.newUpdater(PublisherRepeatSubscriber.class, "wip");
 
         public PublisherRepeatSubscriber(Publisher<? extends T> source, Subscriber<? super T> actual, long remaining) {
             this.source = source;
@@ -104,14 +107,14 @@ public final class PublisherRepeat<T> implements Publisher<T> {
         }
         
         void resubscribe() {
-            if (getAndIncrement() == 0) {
+            if (WIP.getAndIncrement(this) == 0) {
                 do {
                     if (arbiter.isCancelled()) {
                         return;
                     }
                     source.subscribe(this);
                     
-                } while (decrementAndGet() != 0);
+                } while (WIP.decrementAndGet(this) != 0);
             }
         }
     }

@@ -2,11 +2,12 @@ package reactivestreams.commons;
 
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.internal.SingleSubscriptionArbiter;
 import reactivestreams.commons.internal.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
@@ -120,20 +121,21 @@ public final class PublisherAmb<T> implements Publisher<T> {
     }
     
     static final class PublisherAmbCoordinator<T>
-    extends AtomicInteger
     implements Subscription {
-
-        /** */
-        private static final long serialVersionUID = 5137266795390425172L;
 
         final PublisherAmbSubscriber<T>[] subscribers;
         
         volatile boolean cancelled;
         
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherAmbCoordinator> WIP =
+                AtomicLongFieldUpdater.newUpdater(PublisherAmbCoordinator.class, "wip");
+        
         @SuppressWarnings("unchecked")
         public PublisherAmbCoordinator(int n) {
-            super(Integer.MIN_VALUE);
             subscribers = new PublisherAmbSubscriber[n];
+            wip = Integer.MIN_VALUE;
         }
         
         void subscribe(Publisher<? extends T>[] sources, int n, Subscriber<? super T> actual) {
@@ -146,14 +148,14 @@ public final class PublisherAmb<T> implements Publisher<T> {
             actual.onSubscribe(this);
             
             for (int i = 0; i < n; i++) {
-                if (cancelled || get() != Integer.MIN_VALUE) {
+                if (cancelled || wip != Integer.MIN_VALUE) {
                     return;
                 }
                 
                 Publisher<? extends T> p = sources[i];
 
                 if (p == null) {
-                    if (compareAndSet(Integer.MIN_VALUE, -1)) {
+                    if (WIP.compareAndSet(this, Integer.MIN_VALUE, -1)) {
                         actual.onError(new NullPointerException("The " + i + " th Publisher source is null"));
                     }
                     return;
@@ -167,7 +169,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                int w = get();
+                int w = wip;
                 if (w >= 0) {
                     subscribers[w].arbiter.request(n);
                 } else {
@@ -185,7 +187,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
             }
             cancelled = true;
             
-            int w = get();
+            int w = wip;
             if (w >= 0) {
                 subscribers[w].arbiter.cancel();
             } else {
@@ -196,8 +198,8 @@ public final class PublisherAmb<T> implements Publisher<T> {
         }
         
         boolean tryWin(int index) {
-            if (get() == Integer.MIN_VALUE) {
-                if (compareAndSet(Integer.MIN_VALUE, index)) {
+            if (wip == Integer.MIN_VALUE) {
+                if (WIP.compareAndSet(this, Integer.MIN_VALUE, index)) {
                     
                     PublisherAmbSubscriber<T>[] a = subscribers;
                     int n = a.length;
