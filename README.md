@@ -34,9 +34,11 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherDistinctUntilChanged` : filters out subsequent and repeated elements
   - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
   - `PublisherDelaySubscription` : delays the subscription to the main source until the other source signals a value or completes
+  - `PublisherDrop` : runs the source in unbounded mode and drops values if the downstream doesn't request fast enough
   - `PublisherElementAt` : emits the element at the specified index location
   - `PublisherFilter` : filters out values which doesn't pass a predicate
   - `PublisherIsEmpty` : returns a single true if the source sequence is empty
+  - `PublisherLatest` : runs the source in unbounded mode and emits the latest value if the downstream doesn't request fast enough
   - `PublisherLift` : maps the downstream Subscriber into an upstream Subscriber which allows implementing custom operators via lambdas
   - `PublisherMap` : map values to other values via a function
   - `PublisherPeek` : peek into the lifecycle and signals of a stream
