@@ -42,6 +42,11 @@ public final class TestProcessor<T> implements Processor<T, T> {
     @Override
     public void onSubscribe(Subscription s) {
         Objects.requireNonNull(s, "s");
+        if (subscribers != TERMINATED) {
+            s.request(Long.MAX_VALUE);
+        } else {
+            s.cancel();
+        }
     }
     
     @Override
