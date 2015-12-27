@@ -43,7 +43,7 @@ def reactorStream = ['api'        : 'reactor.rx.Stream',
 					 'api-package': 'reactor.rx.stream',
 					 'exclude'    : streamScope] + reactorCommon
 
-def defaultTarget = reactorStream
+def defaultTarget = reactorCore
 
 // ------------------------------------------
 // Generation Script
@@ -121,6 +121,11 @@ task generateTargetAPI(type: Sync) {
 
 	if(target['fn-backport']){
 	  l = l.replace('java\\.util\\.function', target['fn-backport'])
+	}
+
+	//Special case for just
+	if(line.contains('implements Supplier<T>, Publisher<T>')){
+	  return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClassName<T>")
 	}
 
 	if (target.TestProcessor) {
