@@ -15,35 +15,34 @@ def coreScope = ['amb',
 
 def excludedScope = ['generate', 'completablefuture'];
 
-def reactorCore = ['api'         : 'reactor.Composable',
-				   'api-package'           : 'reactor.core.publisher',
-				   'include'           : coreScope,
-				   'fn-backport'           : 'reactor.fn',
-				   'SubscriptionHelper': 'reactor.core.support.BackpressureUtils',
-				   'BackpressureHelper' : 'reactor.core.support.BackpressureUtils',
-				   'SubscriberBarrier' : 'reactor.core.subscriber.SubscriberBarrier',
-				   'SubscriberWithDemand' : 'reactor.core.subscriber.SubscriberWithDemand',
-				   'SubscriberWithMultiDemand' : 'reactor.core.subscriber.SubscriberWithMultiDemand',
-				   'SubscriberScalar' : 'reactor.core.subscriber.SubscriberScalar',
-				   'SubscriberScalarDelayed' : 'reactor.core.subscriber.SubscriberScalarDelayed',
-				   'TestProcessor' : 'reactor.core.processor.EmitterProcessor'
+def reactorCore = ['api'                      : 'reactor.Composable',
+				   'api-package'              : 'reactor.core.publisher',
+				   'include'                  : coreScope,
+				   'fn-backport'              : 'reactor.fn',
+				   'SubscriptionHelper'       : 'reactor.core.support.BackpressureUtils',
+				   'BackpressureHelper'       : 'reactor.core.support.BackpressureUtils',
+				   'SubscriberBarrier'        : 'reactor.core.subscriber.SubscriberBarrier',
+				   'SubscriberWithDemand'     : 'reactor.core.subscriber.SubscriberWithDemand',
+				   'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
+				   'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
+				   'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
+				   'TestProcessor'            : 'reactor.core.processor.EmitterProcessor'
 
 ]
 
 //A complete RS commons coverage minus the lite core
-def reactorStream = ['api'         : 'reactor.rx.Stream',
-					 'api-package'           : 'reactor.rx.stream',
-					 'exclude'           : coreScope + excludedScope,
-					 'fn-backport'           : 'reactor.fn',
-					 'SubscriptionHelper': 'reactor.core.support.BackpressureUtils',
-					 'BackpressureHelper' : 'reactor.core.support.BackpressureUtils',
-					 'SubscriberBarrier' : 'reactor.core.subscriber.SubscriberBarrier',
-					 'SubscriberWithDemand' : 'reactor.core.subscriber.SubscriberWithDemand',
-					 'SubscriberWithMultiDemand' : 'reactor.core.subscriber.SubscriberWithMultiDemand',
-					 'SubscriberScalar' : 'reactor.core.subscriber.SubscriberScalar',
-					 'SubscriberScalarDelayed' : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'TestProcessor' : 'reactor.core.processor.EmitterProcessor'
-]
+def reactorStream = ['api'                      : 'reactor.rx.Stream',
+					 'api-package'              : 'reactor.rx.stream',
+					 'exclude'                  : coreScope + excludedScope,
+					 'fn-backport'              : 'reactor.fn',
+					 'SubscriptionHelper'       : 'reactor.core.support.BackpressureUtils',
+					 'BackpressureHelper'       : 'reactor.core.support.BackpressureUtils',
+					 'SubscriberBarrier'        : 'reactor.core.subscriber.SubscriberBarrier',
+					 'SubscriberWithDemand'     : 'reactor.core.subscriber.SubscriberWithDemand',
+					 'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
+					 'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
+					 'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
+					 'TestProcessor'            : 'reactor.core.processor.EmitterProcessor']
 
 def defaultTarget = reactorStream
 
@@ -57,58 +56,57 @@ task generateTargetAPI(type: Sync) {
   def target = defaultTarget
 
   def apiClass = target['api']
-  def splitted =  apiClass.split('\\.')
+  def splitted = apiClass.split('\\.')
   def apiClassName = splitted[splitted.length - 1]
 
   from 'src/main/java/reactivestreams/commons'
   into 'build/generated_api'
 
   if (target.include) {
-	include { details -> !details.file.name
+	include { details ->
+	  !details.file.name
 			  .startsWith('Publisher') || details.file.name
 			  .replaceFirst('Publisher', '')
-			  .replaceAll(".java",'')
-			  .toLowerCase() in
-			  target.include
+			  .replaceAll(".java", '')
+			  .toLowerCase() in target.include
 	}
   }
   else if (target.exclude) {
-	exclude { details -> details.file.name
-				.startsWith('Publisher') && details.file.name
-					.replaceFirst('Publisher', '')
-					.replaceAll(".java",'')
-					.toLowerCase() in
-				target.exclude
+	exclude { details ->
+	  details.file.name
+			  .startsWith('Publisher') && details.file.name
+			  .replaceFirst('Publisher', '')
+			  .replaceAll(".java", '')
+			  .toLowerCase() in target.exclude
 	}
   }
 
-  if(target.TestProcessor){
+  if (target.TestProcessor) {
 	exclude '**/TestProcessor.java'
   }
 
-  rename { String fileName ->
-	fileName.replace('Publisher', apiClassName)
+  rename { String fileName -> fileName.replace('Publisher', apiClassName)
   }
 
   filter { String line ->
 
-	if(line.trim().startsWith('package')){
-	  if(target['api-package']) {
-		return line.replace('reactivestreams.commons',  target['api-package'])
+	if (line.trim().startsWith('package')) {
+	  if (target['api-package']) {
+		return line.replace('reactivestreams.commons', target['api-package'])
 	  }
 	  else {
 		return line
 	  }
 	}
 
-	if(line.trim().startsWith('import')){
+	if (line.trim().startsWith('import')) {
 	  def l = line
-	  if(target.TestProcessor) {
+	  if (target.TestProcessor) {
 		l = l.replace("reactivestreams.commons.internal.TestProcessor", target.TestProcessor)
 	  }
 
-	  if(target['api-package']) {
-		return line.replace('reactivestreams.commons',  target['api-package'])
+	  if (target['api-package']) {
+		return line.replace('reactivestreams.commons', target['api-package'])
 	  }
 	  else {
 		return line
@@ -116,11 +114,11 @@ task generateTargetAPI(type: Sync) {
 	}
 
 	def l = line.replace("implements Publisher", "extends $apiClass")
-		.replace('public final class Publisher', "public final class $apiClassName")
-		.replace('public Publisher', "public $apiClassName")
-		.replace('java.util.function', "reactor.fn")
+			.replace('public final class Publisher', "public final class $apiClassName")
+			.replace('public Publisher', "public $apiClassName")
+			.replace('java.util.function', "reactor.fn")
 
-	if(target.TestProcessor){
+	if (target.TestProcessor) {
 	  l = l.replace('TestProcessor', target.TestProcessor)
 	}
 
