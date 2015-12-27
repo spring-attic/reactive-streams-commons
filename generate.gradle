@@ -53,6 +53,8 @@ task generateTargetAPI(type: Sync) {
   description = 'Deploy Reactive Streams Commons source code to the target API, effectively generating source code in' +
 		  ' target directory.'
 
+  def license = "\n/**\n * @see https://github.com/reactor/reactive-streams-commons\n */"
+
   outputs.upToDateWhen { false }
 
   def target = defaultTarget
@@ -87,6 +89,10 @@ task generateTargetAPI(type: Sync) {
 	exclude '**/TestProcessor.java'
   }
 
+  if (target['fn-backport']){
+	exclude '**/*Trait.java'
+  }
+
   rename { String fileName -> fileName.replace('Publisher', apiClassName)
   }
 
@@ -116,7 +122,7 @@ task generateTargetAPI(type: Sync) {
 	}
 
 	def l = line.replace("implements Publisher", "extends $apiClass")
-			.replace('public final class Publisher', "public final class $apiClassName")
+			.replace('public final class Publisher', "$license\npublic final class $apiClassName")
 			.replace('public Publisher', "public $apiClassName")
 
 	if(target['fn-backport']){
