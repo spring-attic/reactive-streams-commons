@@ -2,40 +2,27 @@
 
 //A lite core
 def coreScope = ['amb',
-				 'concatarray',
-				 /*'flatmap' ,*/
+				 /*'concatarray' ,*/
+				 /*'concatiterable' ,*/
 				 'empty',
+				 /*'flatmap' ,*/
 				 'iterable',
 				 'just',
 				 'lift',
 				 'map',
 				 'never',
 				 'resume',
-				 'zip'];
-
-def excludedScope = ['generate', 'completablefuture', 'stream'];
-
-//A lite core
-def reactorCore = ['api'                      : 'reactor.Composable',
-				   'api-package'              : 'reactor.core.publisher',
-				   'include'                  : coreScope,
-				   'fn-backport'              : 'reactor.fn',
-				   'SubscriptionHelper'       : 'reactor.core.support.BackpressureUtils',
-				   'BackpressureHelper'       : 'reactor.core.support.BackpressureUtils',
-				   'SubscriberBarrier'        : 'reactor.core.subscriber.SubscriberBarrier',
-				   'SubscriberWithDemand'     : 'reactor.core.subscriber.SubscriberWithDemand',
-				   'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
-				   'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
-				   'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-				   'TestProcessor'            : 'reactor.core.processor.EmitterProcessor'
-
-]
+				 'zip']
 
 //A complete RS commons coverage minus the lite core
-def reactorStream = ['api'                      : 'reactor.rx.Stream',
-					 'api-package'              : 'reactor.rx.stream',
-					 'exclude'                  : coreScope + excludedScope,
-					 'fn-backport'              : 'reactor.fn',
+def streamScope = coreScope + ['generate',
+							   'completablefuture',
+							   'concatarray',
+							   'concatiterable',
+							   'stream']
+
+//Common reactor helper references
+def reactorCommon = ['fn-backport'              : 'reactor.fn',
 					 'SubscriptionHelper'       : 'reactor.core.support.BackpressureUtils',
 					 'BackpressureHelper'       : 'reactor.core.support.BackpressureUtils',
 					 'SubscriberBarrier'        : 'reactor.core.subscriber.SubscriberBarrier',
@@ -43,10 +30,24 @@ def reactorStream = ['api'                      : 'reactor.rx.Stream',
 					 'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
 					 'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
 					 'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'TestProcessor'            : 'reactor.core.processor.EmitterProcessor']
+					 'TestProcessor'            : 'reactor.core.processor.EmitterProcessor'
+]
+
+//Reactor Core configuration
+def reactorCore = ['api'        : 'reactor.Composable',
+				   'api-package': 'reactor.core.publisher',
+				   'include'    : coreScope] + reactorCommon
+
+//Reactor Stream configuration
+def reactorStream = ['api'        : 'reactor.rx.Stream',
+					 'api-package': 'reactor.rx.stream',
+					 'exclude'    : streamScope] + reactorCommon
 
 def defaultTarget = reactorStream
 
+// ------------------------------------------
+// Generation Script
+// ------------------------------------------
 
 task generateTargetAPI(type: Sync) {
   description = 'Deploy Reactive Streams Commons source code to the target API, effectively generating source code in' +
