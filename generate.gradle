@@ -13,8 +13,9 @@ def coreScope = ['amb',
 				 'resume',
 				 'zip'];
 
-def excludedScope = ['generate', 'completablefuture'];
+def excludedScope = ['generate', 'completablefuture', 'stream'];
 
+//A lite core
 def reactorCore = ['api'                      : 'reactor.Composable',
 				   'api-package'              : 'reactor.core.publisher',
 				   'include'                  : coreScope,
@@ -106,10 +107,10 @@ task generateTargetAPI(type: Sync) {
 	  }
 
 	  if (target['api-package']) {
-		return line.replace('reactivestreams.commons', target['api-package'])
+		return l.replace('reactivestreams.commons', target['api-package'])
 	  }
 	  else {
-		return line
+		return l
 	  }
 	}
 
