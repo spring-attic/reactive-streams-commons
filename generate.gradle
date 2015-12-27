@@ -118,7 +118,10 @@ task generateTargetAPI(type: Sync) {
 	def l = line.replace("implements Publisher", "extends $apiClass")
 			.replace('public final class Publisher', "public final class $apiClassName")
 			.replace('public Publisher', "public $apiClassName")
-			.replace('java.util.function', "reactor.fn")
+
+	if(target['fn-backport']){
+	  l = l.replace('java\\.util\\.function', target['fn-backport'])
+	}
 
 	if (target.TestProcessor) {
 	  l = l.replace('TestProcessor', target.TestProcessor)
