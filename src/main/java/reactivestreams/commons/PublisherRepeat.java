@@ -68,6 +68,8 @@ public final class PublisherRepeat<T> implements Publisher<T> {
         static final AtomicIntegerFieldUpdater<PublisherRepeatSubscriber> WIP =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherRepeatSubscriber.class, "wip");
 
+        long produced;
+        
         public PublisherRepeatSubscriber(Publisher<? extends T> source, Subscriber<? super T> actual, long remaining) {
             this.source = source;
             this.actual = actual;
@@ -82,9 +84,9 @@ public final class PublisherRepeat<T> implements Publisher<T> {
 
         @Override
         public void onNext(T t) {
-            actual.onNext(t);
+            produced++;
             
-            arbiter.producedOne();
+            actual.onNext(t);
         }
 
         @Override
@@ -112,6 +114,13 @@ public final class PublisherRepeat<T> implements Publisher<T> {
                     if (arbiter.isCancelled()) {
                         return;
                     }
+                    
+                    long c = produced;
+                    if (c != 0L) {
+                        produced = 0L;
+                        arbiter.produced(c);
+                    }
+
                     source.subscribe(this);
                     
                 } while (WIP.decrementAndGet(this) != 0);

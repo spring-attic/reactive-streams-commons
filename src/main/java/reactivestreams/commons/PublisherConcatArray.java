@@ -68,6 +68,8 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
         static final AtomicIntegerFieldUpdater<PublisherConcatArraySubscriber> WIP =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherConcatArraySubscriber.class, "wip");
         
+        long produced;
+        
         public PublisherConcatArraySubscriber(Subscriber<? super T> actual, Publisher<? extends T>[] sources) {
             this.actual = actual;
             this.sources = sources;
@@ -81,9 +83,9 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
 
         @Override
         public void onNext(T t) {
+            produced++;
+
             actual.onNext(t);
-            
-            arbiter.producedOne();
         }
 
         @Override
@@ -113,7 +115,12 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
                         actual.onError(new NullPointerException("The " + i  + "th source Publisher is null"));
                         return;
                     }
-                    
+            
+                    long c = produced;
+                    if (c != 0L) {
+                        produced = 0L;
+                        arbiter.produced(c);
+                    }
                     p.subscribe(this);
 
                     if (arbiter.isCancelled()) {

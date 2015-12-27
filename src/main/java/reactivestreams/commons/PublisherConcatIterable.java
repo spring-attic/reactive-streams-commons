@@ -64,6 +64,8 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
         static final AtomicIntegerFieldUpdater<PublisherConcatIterableSubscriber> WIP =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherConcatIterableSubscriber.class, "wip");
         
+        long produced;
+        
         public PublisherConcatIterableSubscriber(Subscriber<? super T> actual, Iterator<? extends Publisher<? extends T>> it) {
             this.actual = actual;
             this.it = it;
@@ -77,9 +79,9 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
 
         @Override
         public void onNext(T t) {
-            actual.onNext(t);
+            produced++;
             
-            arbiter.producedOne();
+            actual.onNext(t);
         }
 
         @Override
@@ -133,6 +135,12 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
                         return;
                     }
 
+                    long c = produced;
+                    if (c != 0L) {
+                        produced = 0L;
+                        arbiter.produced(c);
+                    }
+                    
                     p.subscribe(this);
                     
                     if (arbiter.isCancelled()) {
