@@ -5,8 +5,6 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
@@ -45,22 +43,18 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
     
         PublisherConcatArraySubscriber<T> parent = new PublisherConcatArraySubscriber<>(s, a);
     
-        s.onSubscribe(parent.arbiter);
+        s.onSubscribe(parent);
         
-        if (!parent.arbiter.isCancelled()) {
+        if (!parent.isCancelled()) {
             parent.onComplete();
         }
     }
     
     static final class PublisherConcatArraySubscriber<T> 
-    implements Subscriber<T> {
+    extends MultiSubscriptionArbiter<T> {
 
-        final Subscriber<? super T> actual;
-        
         final Publisher<? extends T>[] sources;
-        
-        final MultiSubscriptionArbiter arbiter;
-        
+
         int index;
 
         volatile int wip;
@@ -71,26 +65,15 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
         long produced;
         
         public PublisherConcatArraySubscriber(Subscriber<? super T> actual, Publisher<? extends T>[] sources) {
-            this.actual = actual;
+            super(actual);
             this.sources = sources;
-            this.arbiter = new MultiSubscriptionArbiter();
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            arbiter.set(s);
         }
 
         @Override
         public void onNext(T t) {
             produced++;
 
-            actual.onNext(t);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            actual.onError(t);
+            subscriber.onNext(t);
         }
 
         @Override
@@ -99,31 +82,31 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
                 Publisher<? extends T>[] a = sources;
                 do {
                     
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
 
                     int i = index;
                     if (i == a.length) {
-                        actual.onComplete();
+                        subscriber.onComplete();
                         return;
                     }
                     
                     Publisher<? extends T> p = a[i];
                     
                     if (p == null) {
-                        actual.onError(new NullPointerException("The " + i  + "th source Publisher is null"));
+                        subscriber.onError(new NullPointerException("The " + i  + "th source Publisher is null"));
                         return;
                     }
             
                     long c = produced;
                     if (c != 0L) {
                         produced = 0L;
-                        arbiter.produced(c);
+                        produced(c);
                     }
                     p.subscribe(this);
 
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
 

@@ -5,8 +5,6 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 
 /**
@@ -39,21 +37,17 @@ public final class PublisherRetry<T> implements Publisher<T> {
     public void subscribe(Subscriber<? super T> s) {
         PublisherRetrySubscriber<T> parent = new PublisherRetrySubscriber<>(source, s, times);
 
-        s.onSubscribe(parent.arbiter);
+        s.onSubscribe(parent);
         
-        if (!parent.arbiter.isCancelled()) {
+        if (!parent.isCancelled()) {
             parent.resubscribe();
         }
     }
     
     static final class PublisherRetrySubscriber<T> 
-    implements Subscriber<T> {
-
-        final Subscriber<? super T> actual;
+    extends MultiSubscriptionArbiter<T> {
 
         final Publisher<? extends T> source;
-        
-        final MultiSubscriptionArbiter arbiter;
         
         long remaining;
 
@@ -65,22 +59,16 @@ public final class PublisherRetry<T> implements Publisher<T> {
         long produced;
         
         public PublisherRetrySubscriber(Publisher<? extends T> source, Subscriber<? super T> actual, long remaining) {
+            super(actual);
             this.source = source;
-            this.actual = actual;
             this.remaining = remaining;
-            this.arbiter = new MultiSubscriptionArbiter();
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            arbiter.set(s);
         }
 
         @Override
         public void onNext(T t) {
             produced++;
             
-            actual.onNext(t);
+            subscriber.onNext(t);
         }
 
         @Override
@@ -88,7 +76,7 @@ public final class PublisherRetry<T> implements Publisher<T> {
             long r = remaining;
             if (r != Long.MAX_VALUE) {
                 if (r == 0) {
-                    actual.onError(t);
+                    subscriber.onError(t);
                     return;
                 }
                 remaining = r - 1;
@@ -97,22 +85,17 @@ public final class PublisherRetry<T> implements Publisher<T> {
             resubscribe();
         }
 
-        @Override
-        public void onComplete() {
-            actual.onComplete();
-        }
-        
         void resubscribe() {
             if (WIP.getAndIncrement(this) == 0) {
                 do {
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
                     
                     long c = produced;
                     if (c != 0L) {
                         produced = 0L;
-                        arbiter.produced(c);
+                        produced(c);
                     }
                     
                     source.subscribe(this);

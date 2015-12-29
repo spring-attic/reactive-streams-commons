@@ -44,7 +44,7 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
         PublisherRetryWhenMainSubscriber<T> main = new PublisherRetryWhenMainSubscriber<>(serial, other.completionSignal, source);
         other.main = main;
 
-        serial.onSubscribe(main.arbiter);
+        serial.onSubscribe(main);
 
         Publisher<? extends Object> p;
         
@@ -67,12 +67,8 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherRetryWhenMainSubscriber<T> implements Subscriber<T>, Subscription {
+    static final class PublisherRetryWhenMainSubscriber<T> extends MultiSubscriptionArbiter<T> {
         
-        final Subscriber<? super T> actual;
-        
-        final MultiSubscriptionArbiter arbiter;
-
         final SingleSubscriptionArbiter otherArbiter;
         
         final Subscriber<Throwable> signaller;
@@ -86,19 +82,11 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
 
         volatile boolean cancelled;
         
-        static final Object NEXT = new Object();
-        
         public PublisherRetryWhenMainSubscriber(Subscriber<? super T> actual, Subscriber<Throwable> signaller, Publisher<? extends T> source) {
-            this.actual = actual;
+            super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.arbiter = new MultiSubscriptionArbiter();
             this.otherArbiter = new SingleSubscriptionArbiter();
-        }
-
-        @Override
-        public void request(long n) {
-            arbiter.request(n);
         }
 
         @Override
@@ -110,7 +98,7 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
             
             cancelWhen();
             
-            arbiter.cancel();
+            super.cancel();
         }
 
         void cancelWhen() {
@@ -122,15 +110,10 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
         }
 
         @Override
-        public void onSubscribe(Subscription s) {
-            arbiter.set(s);
-        }
-
-        @Override
         public void onNext(T t) {
-            actual.onNext(t);
+            subscriber.onNext(t);
             
-            arbiter.producedOne();
+            producedOne();
         }
 
         @Override
@@ -144,7 +127,7 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
         public void onComplete() {
             otherArbiter.cancel();
             
-            actual.onComplete();
+            subscriber.onComplete();
         }
     
         void resubscribe() {
@@ -162,16 +145,16 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
         
         void whenError(Throwable e) {
             cancelled = true;
-            arbiter.cancel();
+            super.cancel();
             
-            actual.onError(e);
+            subscriber.onError(e);
         }
         
         void whenComplete() {
             cancelled = true;
-            arbiter.cancel();
+            super.cancel();
             
-            actual.onComplete();
+            subscriber.onComplete();
         }
     }
     

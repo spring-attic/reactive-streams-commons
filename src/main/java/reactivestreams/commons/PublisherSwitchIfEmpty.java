@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 
 /**
@@ -27,30 +26,20 @@ public final class PublisherSwitchIfEmpty<T> implements Publisher<T> {
     public void subscribe(Subscriber<? super T> s) {
         PublisherSwitchIfEmptySubscriber<T> parent = new PublisherSwitchIfEmptySubscriber<>(s, other);
         
-        s.onSubscribe(parent.arbiter);
+        s.onSubscribe(parent);
         
         source.subscribe(parent);
     }
     
-    static final class PublisherSwitchIfEmptySubscriber<T> implements Subscriber<T> {
-        
-        final Subscriber<? super T> actual;
+    static final class PublisherSwitchIfEmptySubscriber<T> extends MultiSubscriptionArbiter<T> {
         
         final Publisher<? extends T> other;
-
-        final MultiSubscriptionArbiter arbiter;
 
         boolean once;
         
         public PublisherSwitchIfEmptySubscriber(Subscriber<? super T> actual, Publisher<? extends T> other) {
-            this.actual = actual;
+            super(actual);
             this.other = other;
-            this.arbiter = new MultiSubscriptionArbiter();
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            arbiter.set(s);
         }
 
         @Override
@@ -59,12 +48,7 @@ public final class PublisherSwitchIfEmpty<T> implements Publisher<T> {
                 once = true;
             }
             
-            actual.onNext(t);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            actual.onError(t);
+            subscriber.onNext(t);
         }
 
         @Override
@@ -74,7 +58,7 @@ public final class PublisherSwitchIfEmpty<T> implements Publisher<T> {
                 
                 other.subscribe(this);
             } else {
-                actual.onComplete();
+                subscriber.onComplete();
             }
         }
         

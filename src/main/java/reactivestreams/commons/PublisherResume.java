@@ -32,37 +32,32 @@ public final class PublisherResume<T> implements Publisher<T> {
         source.subscribe(new PublisherResumeSubscriber<>(s, nextFactory));
     }
     
-    static final class PublisherResumeSubscriber<T> implements Subscriber<T> {
+    static final class PublisherResumeSubscriber<T> extends MultiSubscriptionArbiter<T> {
 
-        final Subscriber<? super T> actual;
-        
         final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 
-        final MultiSubscriptionArbiter arbiter;
-        
         boolean second;
 
         public PublisherResumeSubscriber(Subscriber<? super T> actual,
                 Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory) {
-            this.actual = actual;
+            super(actual);
             this.nextFactory = nextFactory;
-            this.arbiter = new MultiSubscriptionArbiter();
         }
 
         @Override
         public void onSubscribe(Subscription s) {
             if (!second) {
-                actual.onSubscribe(arbiter);
+                subscriber.onSubscribe(this);
             }
-            arbiter.set(s);
+            set(s);
         }
 
         @Override
         public void onNext(T t) {
-            actual.onNext(t);
+            subscriber.onNext(t);
             
             if (!second) {
-                arbiter.producedOne();
+                producedOne();
             }
         }
 
@@ -77,24 +72,19 @@ public final class PublisherResume<T> implements Publisher<T> {
                     p = nextFactory.apply(t);
                 } catch (Throwable e) {
                     e.addSuppressed(t);
-                    actual.onError(e);
+                    subscriber.onError(e);
                     return;
                 }
                 if (p == null) {
                     NullPointerException t2 = new NullPointerException("The nextFactory returned a null Publisher");
                     t2.addSuppressed(t);
-                    actual.onError(t2);
+                    subscriber.onError(t2);
                 } else {
                     p.subscribe(this);
                 }
             } else {
-                actual.onError(t);
+                subscriber.onError(t);
             }
-        }
-
-        @Override
-        public void onComplete() {
-            actual.onComplete();
         }
     }
 }

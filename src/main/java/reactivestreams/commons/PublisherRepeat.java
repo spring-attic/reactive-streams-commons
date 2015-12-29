@@ -45,21 +45,17 @@ public final class PublisherRepeat<T> implements Publisher<T> {
         
         PublisherRepeatSubscriber<T> parent = new PublisherRepeatSubscriber<>(source, s, times);
 
-        s.onSubscribe(parent.arbiter);
+        s.onSubscribe(parent);
         
-        if (!parent.arbiter.isCancelled()) {
+        if (!parent.isCancelled()) {
             parent.onComplete();
         }
     }
     
     static final class PublisherRepeatSubscriber<T> 
-    implements Subscriber<T> {
-
-        final Subscriber<? super T> actual;
+    extends MultiSubscriptionArbiter<T> {
 
         final Publisher<? extends T> source;
-        
-        final MultiSubscriptionArbiter arbiter;
         
         long remaining;
 
@@ -71,27 +67,16 @@ public final class PublisherRepeat<T> implements Publisher<T> {
         long produced;
         
         public PublisherRepeatSubscriber(Publisher<? extends T> source, Subscriber<? super T> actual, long remaining) {
+            super(actual);
             this.source = source;
-            this.actual = actual;
             this.remaining = remaining;
-            this.arbiter = new MultiSubscriptionArbiter();
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            arbiter.set(s);
         }
 
         @Override
         public void onNext(T t) {
             produced++;
             
-            actual.onNext(t);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            actual.onError(t);
+            subscriber.onNext(t);
         }
 
         @Override
@@ -99,7 +84,7 @@ public final class PublisherRepeat<T> implements Publisher<T> {
             long r = remaining;
             if (r != Long.MAX_VALUE) {
                 if (r == 0) {
-                    actual.onComplete();
+                    subscriber.onComplete();
                     return;
                 }
                 remaining = r - 1;
@@ -111,14 +96,14 @@ public final class PublisherRepeat<T> implements Publisher<T> {
         void resubscribe() {
             if (WIP.getAndIncrement(this) == 0) {
                 do {
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
                     
                     long c = produced;
                     if (c != 0L) {
                         produced = 0L;
-                        arbiter.produced(c);
+                        produced(c);
                     }
 
                     source.subscribe(this);

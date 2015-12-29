@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 /**
@@ -17,7 +18,9 @@ import org.reactivestreams.Subscription;
  * You should call {@link #produced(long)} or {@link #producedOne()} after each element has been delivered
  * to properly account the outstanding request amount in case a Subscription switch happens.
  */
-public final class MultiSubscriptionArbiter implements Subscription {
+public abstract class MultiSubscriptionArbiter<T> implements Subscription, Subscriber<T> {
+
+    protected final Subscriber<? super T> subscriber;
 
     /** The current subscription which may null if no Subscriptions have been set. */
     Subscription actual;
@@ -43,8 +46,27 @@ public final class MultiSubscriptionArbiter implements Subscription {
             AtomicIntegerFieldUpdater.newUpdater(MultiSubscriptionArbiter.class, "wip");
 
     volatile boolean cancelled;
-    
-    public void set(Subscription s) {
+
+    public MultiSubscriptionArbiter(Subscriber<? super T> subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    @Override
+    public void onSubscribe(Subscription s) {
+        set(s);
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        subscriber.onError(t);
+    }
+
+    @Override
+    public void onComplete() {
+        subscriber.onComplete();
+    }
+
+    public final void set(Subscription s) {
         if (cancelled) {
             return;
         }
@@ -59,7 +81,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
     }
     
     @Override
-    public void request(long n) {
+    public final void request(long n) {
         if (SubscriptionHelper.validate(n)) {
             
             if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
@@ -88,7 +110,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
         }
     }
 
-    public void producedOne() {
+    public final void producedOne() {
         if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
             long r = requested;
             
@@ -116,7 +138,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
     }
 
     
-    public void produced(long n) {
+    public final void produced(long n) {
         if (SubscriptionHelper.validate(n)) {
             if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
                 long r = requested;
@@ -154,18 +176,18 @@ public final class MultiSubscriptionArbiter implements Subscription {
         }
     }
     
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         return cancelled;
     }
 
-    void drain() {
+    final void drain() {
         if (WIP.getAndIncrement(this) != 0) {
             return;
         }
         drainLoop();
     }
     
-    void drainLoop() {
+    final void drainLoop() {
         int missed = 1;
         
         for (;;) {

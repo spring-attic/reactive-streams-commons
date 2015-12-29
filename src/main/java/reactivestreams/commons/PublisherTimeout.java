@@ -57,7 +57,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         
         SerializedSubscriber<T> serial = new SerializedSubscriber<>(s);
         
-        PublisherTimeoutMainSubscriber<T, U, V> main = new PublisherTimeoutMainSubscriber<>(serial, itemTimeout, other);
+        PublisherTimeoutMainSubscriber<T, V> main = new PublisherTimeoutMainSubscriber<>(serial, itemTimeout, other);
         
         serial.onSubscribe(main);
         
@@ -84,14 +84,11 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         source.subscribe(main);
     }
         
-    static final class PublisherTimeoutMainSubscriber<T, U, V> implements Subscriber<T>, Subscription {
-        final Subscriber<? super T> actual;
-        
+    static final class PublisherTimeoutMainSubscriber<T, V> extends MultiSubscriptionArbiter<T>  {
+
         final Function<? super T, ? extends Publisher<V>> itemTimeout;
         
         final Publisher<? extends T> other;
-        
-        final MultiSubscriptionArbiter arbiter;
         
         Subscription s;
         
@@ -108,10 +105,9 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         public PublisherTimeoutMainSubscriber(Subscriber<? super T> actual,
                 Function<? super T, ? extends Publisher<V>> itemTimeout,
                 Publisher<? extends T> other) {
-            this.actual = actual;
+            super(actual);
             this.itemTimeout = itemTimeout;
             this.other = other;
-            this.arbiter = new MultiSubscriptionArbiter();
         }
 
         @Override
@@ -119,7 +115,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
 
-                arbiter.set(s);
+                set(s);
             }
         }
 
@@ -137,9 +133,9 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
                 return;
             }
 
-            actual.onNext(t);
+            subscriber.onNext(t);
 
-            arbiter.producedOne();
+            producedOne();
 
             Publisher<? extends V> p;
             
@@ -147,15 +143,15 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
                 p = itemTimeout.apply(t);
             } catch (Throwable e) {
                 cancel();
-                
-                actual.onError(e);
+
+                subscriber.onError(e);
                 return;
             }
             
             if (p == null) {
                 cancel();
-                
-                actual.onError(new NullPointerException("The itemTimeout returned a null Publisher"));
+
+                subscriber.onError(new NullPointerException("The itemTimeout returned a null Publisher"));
                 return;
             }
             
@@ -179,8 +175,8 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
             }
 
             cancelTimeout();
-            
-            actual.onError(t);
+
+            subscriber.onError(t);
         }
 
         @Override
@@ -194,13 +190,8 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
             }
 
             cancelTimeout();
-            
-            actual.onComplete();
-        }
 
-        @Override
-        public void request(long n) {
-            arbiter.request(n);
+            subscriber.onComplete();
         }
 
         void cancelTimeout() {
@@ -217,7 +208,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         public void cancel() {
             index = Long.MIN_VALUE;
             cancelTimeout();
-            arbiter.cancel();
+            super.cancel();
         }
         
         boolean setTimeout(IndexedCancellable newTimeout) {
@@ -252,21 +243,21 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         
         void doError(long i, Throwable e) {
             if (index == i && INDEX.compareAndSet(this, i, Long.MIN_VALUE)) {
-                arbiter.cancel();
+                super.cancel();
                 
-                actual.onError(e);
+                subscriber.onError(e);
             } 
         }
         
         void handleTimeout() {
             if (other == null) {
-                arbiter.cancel();
+                super.cancel();
                 
-                actual.onError(new TimeoutException());
+                subscriber.onError(new TimeoutException());
             } else {
-                arbiter.set(EmptySubscription.INSTANCE);
+                set(EmptySubscription.INSTANCE);
                 
-                other.subscribe(new PublisherTimeoutOtherSubscriber<>(actual, arbiter));
+                other.subscribe(new PublisherTimeoutOtherSubscriber<>(subscriber, this));
             }
         }
     }
@@ -274,10 +265,10 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
     static final class PublisherTimeoutOtherSubscriber<T> implements Subscriber<T> {
         
         final Subscriber<? super T> actual;
-        
-        final MultiSubscriptionArbiter arbiter;
 
-        public PublisherTimeoutOtherSubscriber(Subscriber<? super T> actual, MultiSubscriptionArbiter arbiter) {
+        final MultiSubscriptionArbiter<T> arbiter;
+
+        public PublisherTimeoutOtherSubscriber(Subscriber<? super T> actual, MultiSubscriptionArbiter<T> arbiter) {
             this.actual = actual;
             this.arbiter = arbiter;
         }
@@ -326,7 +317,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
     
     static final class PublisherTimeoutTimeoutSubscriber implements Subscriber<Object>, IndexedCancellable {
         
-        final PublisherTimeoutMainSubscriber<?, ?, ?> main;
+        final PublisherTimeoutMainSubscriber<?, ?> main;
 
         final long index;
         
@@ -335,7 +326,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         static final AtomicReferenceFieldUpdater<PublisherTimeoutTimeoutSubscriber, Subscription> S =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherTimeoutTimeoutSubscriber.class, Subscription.class, "s");
         
-        public PublisherTimeoutTimeoutSubscriber(PublisherTimeoutMainSubscriber<?, ?, ?> main, long index) {
+        public PublisherTimeoutTimeoutSubscriber(PublisherTimeoutMainSubscriber<?, ?> main, long index) {
             this.main = main;
             this.index = index;
         }

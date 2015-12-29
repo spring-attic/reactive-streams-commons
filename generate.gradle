@@ -19,7 +19,9 @@ def streamScope = coreScope + ['generate',
 							   'completablefuture',
 							   'concatarray',
 							   'concatiterable',
-							   'stream']
+							   /*'flatmap' ,*/
+							   'stream'
+							   /*, 'zip'*/]
 
 //Common reactor helper references
 def reactorCommon = ['fn-backport'              : 'reactor.fn',
@@ -113,6 +115,10 @@ task generateTargetAPI(type: Sync) {
 		l = l.replace("reactivestreams.commons.internal.TestProcessor", target.TestProcessor)
 	  }
 
+	  if(target['fn-backport']){
+		l = l.replace('java.util.function', target['fn-backport'])
+	  }
+
 	  if (target['api-package']) {
 		return l.replace('reactivestreams.commons', target['api-package'])
 	  }
@@ -125,12 +131,8 @@ task generateTargetAPI(type: Sync) {
 			.replace('public final class Publisher', "$license\npublic final class $apiClassName")
 			.replace('public Publisher', "public $apiClassName")
 
-	if(target['fn-backport']){
-	  l = l.replace('java\\.util\\.function', target['fn-backport'])
-	}
-
 	//Special case for just
-	if(line.contains('implements Supplier<T>, Publisher<T>')){
+	if(l.contains('implements Supplier<T>, Publisher<T>')){
 	  return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClassName<T>")
 	}
 

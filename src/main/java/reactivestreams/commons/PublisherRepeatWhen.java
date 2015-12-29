@@ -7,7 +7,6 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.SingleSubscriptionArbiter;
 import reactivestreams.commons.internal.TestProcessor;
@@ -44,7 +43,7 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
         PublisherRepeatWhenMainSubscriber<T> main = new PublisherRepeatWhenMainSubscriber<>(serial, other.completionSignal, source);
         other.main = main;
 
-        serial.onSubscribe(main.arbiter);
+        serial.onSubscribe(main);
 
         Publisher<? extends Object> p;
         
@@ -67,12 +66,8 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherRepeatWhenMainSubscriber<T> implements Subscriber<T>, Subscription {
+    static final class PublisherRepeatWhenMainSubscriber<T> extends MultiSubscriptionArbiter<T> {
         
-        final Subscriber<? super T> actual;
-        
-        final MultiSubscriptionArbiter arbiter;
-
         final SingleSubscriptionArbiter otherArbiter;
         
         final Subscriber<Object> signaller;
@@ -89,16 +84,10 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
         static final Object NEXT = new Object();
         
         public PublisherRepeatWhenMainSubscriber(Subscriber<? super T> actual, Subscriber<Object> signaller, Publisher<? extends T> source) {
-            this.actual = actual;
+            super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.arbiter = new MultiSubscriptionArbiter();
             this.otherArbiter = new SingleSubscriptionArbiter();
-        }
-
-        @Override
-        public void request(long n) {
-            arbiter.request(n);
         }
 
         @Override
@@ -110,7 +99,7 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
             
             cancelWhen();
             
-            arbiter.cancel();
+            super.cancel();
         }
 
         void cancelWhen() {
@@ -123,21 +112,21 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            arbiter.set(s);
+            set(s);
         }
 
         @Override
         public void onNext(T t) {
-            actual.onNext(t);
+            subscriber.onNext(t);
             
-            arbiter.producedOne();
+            producedOne();
         }
 
         @Override
         public void onError(Throwable t) {
             otherArbiter.cancel();
             
-            actual.onError(t);
+            subscriber.onError(t);
         }
 
         @Override
@@ -162,16 +151,16 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
         
         void whenError(Throwable e) {
             cancelled = true;
-            arbiter.cancel();
+            super.cancel();
             
-            actual.onError(e);
+            subscriber.onError(e);
         }
         
         void whenComplete() {
             cancelled = true;
-            arbiter.cancel();
+            super.cancel();
             
-            actual.onComplete();
+            subscriber.onComplete();
         }
     }
     

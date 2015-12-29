@@ -6,8 +6,6 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.subscriptions.EmptySubscription;
 
@@ -43,22 +41,18 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
         
         PublisherConcatIterableSubscriber<T> parent = new PublisherConcatIterableSubscriber<>(s, it);
     
-        s.onSubscribe(parent.arbiter);
+        s.onSubscribe(parent);
         
-        if (!parent.arbiter.isCancelled()) {
+        if (!parent.isCancelled()) {
             parent.onComplete();
         }
     }
     
     static final class PublisherConcatIterableSubscriber<T> 
-    implements Subscriber<T> {
+    extends MultiSubscriptionArbiter<T> {
 
-        final Subscriber<? super T> actual;
-        
         final Iterator<? extends Publisher<? extends T>> it;
         
-        final MultiSubscriptionArbiter arbiter;
-
         volatile int wip;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherConcatIterableSubscriber> WIP =
@@ -67,26 +61,15 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
         long produced;
         
         public PublisherConcatIterableSubscriber(Subscriber<? super T> actual, Iterator<? extends Publisher<? extends T>> it) {
-            this.actual = actual;
+            super(actual);
             this.it = it;
-            this.arbiter = new MultiSubscriptionArbiter();
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            arbiter.set(s);
         }
 
         @Override
         public void onNext(T t) {
             produced++;
             
-            actual.onNext(t);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            actual.onError(t);
+            subscriber.onNext(t);
         }
 
         @Override
@@ -94,7 +77,7 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
             if (WIP.getAndIncrement(this) == 0) {
                 Iterator<? extends Publisher<? extends T>> a = this.it;
                 do {
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
                     
@@ -103,17 +86,17 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
                     try {
                         b = a.hasNext();
                     } catch (Throwable e) {
-                        actual.onError(e);
+                        onError(e);
                         return;
                     }
 
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
 
                     
                     if (!b) {
-                        actual.onComplete();
+                        subscriber.onComplete();
                         return;
                     }
 
@@ -122,28 +105,28 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
                     try {
                         p = it.next();
                     } catch (Throwable e) {
-                        actual.onError(e);
+                        subscriber.onError(e);
                         return;
                     }
 
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
 
                     if (p == null) {
-                        actual.onError(new NullPointerException("The Publisher returned by the iterator is null"));
+                        subscriber.onError(new NullPointerException("The Publisher returned by the iterator is null"));
                         return;
                     }
 
                     long c = produced;
                     if (c != 0L) {
                         produced = 0L;
-                        arbiter.produced(c);
+                        produced(c);
                     }
                     
                     p.subscribe(this);
                     
-                    if (arbiter.isCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
                     
