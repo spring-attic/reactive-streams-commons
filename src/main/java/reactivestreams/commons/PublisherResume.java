@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import reactivestreams.commons.internal.MultiSubscriptionArbiter;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 
 /**
  * Resumes the failed main sequence with another sequence returned by
@@ -32,7 +32,7 @@ public final class PublisherResume<T> implements Publisher<T> {
         source.subscribe(new PublisherResumeSubscriber<>(s, nextFactory));
     }
     
-    static final class PublisherResumeSubscriber<T> extends MultiSubscriptionArbiter<T, T> {
+    static final class PublisherResumeSubscriber<T> extends SubscriberMultiSubscription<T, T> {
 
         final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 

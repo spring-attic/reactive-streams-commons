@@ -8,9 +8,9 @@ import java.util.function.BooleanSupplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.BackpressureHelper;
-import reactivestreams.commons.internal.ScalarDelayedArbiter;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.support.BackpressureHelper;
+import reactivestreams.commons.internal.subscriber.SubscriberScalarDelayed;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Emits the last N values the source emitted before its completion.
@@ -75,7 +75,7 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
     }
 
     static final class PublisherTakeLastOneSubscriber<T>
-            extends ScalarDelayedArbiter<T, T> {
+            extends SubscriberScalarDelayed<T, T> {
 
         Subscription s;
 

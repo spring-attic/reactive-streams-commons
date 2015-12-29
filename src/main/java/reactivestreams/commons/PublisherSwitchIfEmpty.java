@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.MultiSubscriptionArbiter;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 
 /**
  * Switches to another source if the first source turns out to be empty.
@@ -31,7 +31,7 @@ public final class PublisherSwitchIfEmpty<T> implements Publisher<T> {
         source.subscribe(parent);
     }
     
-    static final class PublisherSwitchIfEmptySubscriber<T> extends MultiSubscriptionArbiter<T, T> {
+    static final class PublisherSwitchIfEmptySubscriber<T> extends SubscriberMultiSubscription<T, T> {
         
         final Publisher<? extends T> other;
 

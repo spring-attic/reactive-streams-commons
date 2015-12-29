@@ -11,8 +11,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import reactivestreams.commons.internal.MultiSubscriptionArbiter;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
@@ -84,7 +84,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         source.subscribe(main);
     }
         
-    static final class PublisherTimeoutMainSubscriber<T, V> extends MultiSubscriptionArbiter<T, T>  {
+    static final class PublisherTimeoutMainSubscriber<T, V> extends SubscriberMultiSubscription<T, T> {
 
         final Function<? super T, ? extends Publisher<V>> itemTimeout;
         
@@ -266,9 +266,9 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         
         final Subscriber<? super T> actual;
 
-        final MultiSubscriptionArbiter<T, T> arbiter;
+        final SubscriberMultiSubscription<T, T> arbiter;
 
-        public PublisherTimeoutOtherSubscriber(Subscriber<? super T> actual, MultiSubscriptionArbiter<T, T> arbiter) {
+        public PublisherTimeoutOtherSubscriber(Subscriber<? super T> actual, SubscriberMultiSubscription<T, T> arbiter) {
             this.actual = actual;
             this.arbiter = arbiter;
         }

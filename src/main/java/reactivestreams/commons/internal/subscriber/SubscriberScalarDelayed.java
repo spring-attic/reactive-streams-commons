@@ -1,12 +1,28 @@
-package reactivestreams.commons.internal;
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package reactivestreams.commons.internal.subscriber;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
-public class ScalarDelayedArbiter<I, O> implements Subscriber<I>, Subscription {
+public class SubscriberScalarDelayed<I, O> implements Subscriber<I>, Subscription {
 
 	static final int SDS_NO_REQUEST_NO_VALUE   = 0;
 	static final int SDS_NO_REQUEST_HAS_VALUE  = 1;
@@ -19,10 +35,10 @@ public class ScalarDelayedArbiter<I, O> implements Subscriber<I>, Subscription {
 
 	volatile int state;
 	@SuppressWarnings("rawtypes")
-	static final AtomicIntegerFieldUpdater<ScalarDelayedArbiter> STATE =
-			AtomicIntegerFieldUpdater.newUpdater(ScalarDelayedArbiter.class, "state");
+	static final AtomicIntegerFieldUpdater<SubscriberScalarDelayed> STATE =
+			AtomicIntegerFieldUpdater.newUpdater(SubscriberScalarDelayed.class, "state");
 
-	public ScalarDelayedArbiter(Subscriber<? super O> subscriber) {
+	public SubscriberScalarDelayed(Subscriber<? super O> subscriber) {
 		this.subscriber = subscriber;
 	}
 

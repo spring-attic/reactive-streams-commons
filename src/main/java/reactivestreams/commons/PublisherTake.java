@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Takes only the first N values from the source Publisher.

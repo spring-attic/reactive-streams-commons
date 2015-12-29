@@ -8,9 +8,9 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import reactivestreams.commons.internal.MultiSubscriptionArbiter;
-import reactivestreams.commons.internal.SingleSubscriptionArbiter;
-import reactivestreams.commons.internal.SimpleProcessor;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.internal.subscriber.SubscriberSubscription;
+import reactivestreams.commons.internal.processor.SimpleProcessor;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 
 /**
@@ -67,9 +67,9 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherRetryWhenMainSubscriber<T> extends MultiSubscriptionArbiter<T, T> {
+    static final class PublisherRetryWhenMainSubscriber<T> extends SubscriberMultiSubscription<T, T> {
         
-        final SingleSubscriptionArbiter<T, T> otherArbiter;
+        final SubscriberSubscription<T, T> otherArbiter;
         
         final Subscriber<Throwable> signaller;
         
@@ -86,7 +86,7 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
             super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.otherArbiter = new SingleSubscriptionArbiter<>(null);
+            this.otherArbiter = new SubscriberSubscription<>(null);
         }
 
         @Override

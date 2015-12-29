@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.ScalarArbiter;
+import reactivestreams.commons.internal.subscription.ScalarSubscription;
 
 public final class PublisherJust<T> implements Supplier<T>, Publisher<T> {
 
@@ -22,7 +22,7 @@ public final class PublisherJust<T> implements Supplier<T>, Publisher<T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        s.onSubscribe(new ScalarArbiter<>(s, value));
+        s.onSubscribe(new ScalarSubscription<>(s, value));
     }
     
 }

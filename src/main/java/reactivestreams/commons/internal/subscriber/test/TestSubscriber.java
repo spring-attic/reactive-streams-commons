@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.SingleSubscriptionArbiter;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriber.SubscriberSubscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.EmptySubscriber;
 
 /**
@@ -26,7 +26,7 @@ import reactivestreams.commons.internal.subscriber.EmptySubscriber;
  *
  * @param <T> the value type.
  */
-public class TestSubscriber<T> extends SingleSubscriptionArbiter<T, T> {
+public class TestSubscriber<T> extends SubscriberSubscription<T, T> {
 
 	final List<T> values;
 

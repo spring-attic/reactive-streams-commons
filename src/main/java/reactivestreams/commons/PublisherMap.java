@@ -6,7 +6,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.

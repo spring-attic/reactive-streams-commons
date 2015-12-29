@@ -7,8 +7,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.ScalarDelayedArbiter;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriber.SubscriberScalarDelayed;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
@@ -53,7 +53,7 @@ public final class PublisherReduce<T, R> implements Publisher<R> {
     }
     
     static final class PublisherReduceSubscriber<T, R>
-            extends ScalarDelayedArbiter<T, R> {
+            extends SubscriberScalarDelayed<T, R> {
 
         final BiFunction<R, ? super T, R> accumulator;
 

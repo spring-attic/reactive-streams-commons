@@ -7,8 +7,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.ScalarDelayedArbiter;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriber.SubscriberScalarDelayed;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Expects and emits a single item from the source or signals
@@ -38,7 +38,7 @@ public final class PublisherSingle<T> implements Publisher<T> {
         source.subscribe(new PublisherSingleSubscriber<>(s, defaultSupplier));
     }
     
-    static final class PublisherSingleSubscriber<T> extends ScalarDelayedArbiter<T, T> {
+    static final class PublisherSingleSubscriber<T> extends SubscriberScalarDelayed<T, T> {
         
         final Supplier<? extends T> defaultSupplier;
         

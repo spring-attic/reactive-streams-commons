@@ -3,7 +3,7 @@ package reactivestreams.commons;
 import org.junit.Assert;
 import org.junit.Test;
 
-import reactivestreams.commons.internal.SimpleProcessor;
+import reactivestreams.commons.internal.processor.SimpleProcessor;
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherSampleTest {

@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Filters out values that make a filter function return false.

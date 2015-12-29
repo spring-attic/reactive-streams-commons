@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.MultiSubscriptionArbiter;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 
 /**
  * Repeatedly subscribes to the source sequence if it signals any error
@@ -44,8 +44,8 @@ public final class PublisherRetry<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherRetrySubscriber<T> 
-    extends MultiSubscriptionArbiter<T, T> {
+    static final class PublisherRetrySubscriber<T>
+            extends SubscriberMultiSubscription<T, T> {
 
         final Publisher<? extends T> source;
         

@@ -1,4 +1,19 @@
-package reactivestreams.commons.internal;
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package reactivestreams.commons.internal.subscriber;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -7,6 +22,8 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.internal.support.BackpressureHelper;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * A subscription implementation that arbitrates request amounts between subsequent Subscriptions, including the
@@ -18,7 +35,7 @@ import org.reactivestreams.Subscription;
  * You should call {@link #produced(long)} or {@link #producedOne()} after each element has been delivered to properly
  * account the outstanding request amount in case a Subscription switch happens.
  */
-public abstract class MultiSubscriptionArbiter<I, O> implements Subscription, Subscriber<I> {
+public abstract class SubscriberMultiSubscription<I, O> implements Subscription, Subscriber<I> {
 
 	protected final Subscriber<? super O> subscriber;
 
@@ -33,26 +50,26 @@ public abstract class MultiSubscriptionArbiter<I, O> implements Subscription, Su
 	long requested;
 
 	volatile Subscription missedSubscription;
-	static final AtomicReferenceFieldUpdater<MultiSubscriptionArbiter, Subscription> MISSED_SUBSCRIPTION =
-			AtomicReferenceFieldUpdater.newUpdater(MultiSubscriptionArbiter.class,
+	static final AtomicReferenceFieldUpdater<SubscriberMultiSubscription, Subscription> MISSED_SUBSCRIPTION =
+			AtomicReferenceFieldUpdater.newUpdater(SubscriberMultiSubscription.class,
 					Subscription.class,
 					"missedSubscription");
 
 	volatile long missedRequested;
-	static final AtomicLongFieldUpdater<MultiSubscriptionArbiter> MISSED_REQUESTED =
-			AtomicLongFieldUpdater.newUpdater(MultiSubscriptionArbiter.class, "missedRequested");
+	static final AtomicLongFieldUpdater<SubscriberMultiSubscription> MISSED_REQUESTED =
+			AtomicLongFieldUpdater.newUpdater(SubscriberMultiSubscription.class, "missedRequested");
 
 	volatile long missedProduced;
-	static final AtomicLongFieldUpdater<MultiSubscriptionArbiter> MISSED_PRODUCED =
-			AtomicLongFieldUpdater.newUpdater(MultiSubscriptionArbiter.class, "missedProduced");
+	static final AtomicLongFieldUpdater<SubscriberMultiSubscription> MISSED_PRODUCED =
+			AtomicLongFieldUpdater.newUpdater(SubscriberMultiSubscription.class, "missedProduced");
 
 	volatile int wip;
-	static final AtomicIntegerFieldUpdater<MultiSubscriptionArbiter> WIP =
-			AtomicIntegerFieldUpdater.newUpdater(MultiSubscriptionArbiter.class, "wip");
+	static final AtomicIntegerFieldUpdater<SubscriberMultiSubscription> WIP =
+			AtomicIntegerFieldUpdater.newUpdater(SubscriberMultiSubscription.class, "wip");
 
 	volatile boolean cancelled;
 
-	public MultiSubscriptionArbiter(Subscriber<? super O> subscriber) {
+	public SubscriberMultiSubscription(Subscriber<? super O> subscriber) {
 		this.subscriber = subscriber;
 	}
 

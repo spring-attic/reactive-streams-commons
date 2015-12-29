@@ -1,4 +1,19 @@
-package reactivestreams.commons.internal;
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package reactivestreams.commons.internal.subscriber;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -6,29 +21,30 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.subscription.CancelledSubscription;
 
 /**
- * Arbitrates the requests and cancellation for a single Subscription that may be set later.
+ * Arbitrates the requests and cancellation for a Subscription that may be set onSubscribe once only.
  * <p>
  * Note that {@link #request(long)} doesn't validate the amount.
  */
-public class SingleSubscriptionArbiter<I, O> implements Subscription, Subscriber<I> {
+public class SubscriberSubscription<I, O> implements Subscription, Subscriber<I> {
 
 	protected final Subscriber<? super O> subscriber;
 
 	volatile Subscription s;
-	static final AtomicReferenceFieldUpdater<SingleSubscriptionArbiter, Subscription> S =
-			AtomicReferenceFieldUpdater.newUpdater(SingleSubscriptionArbiter.class, Subscription.class, "s");
+	static final AtomicReferenceFieldUpdater<SubscriberSubscription, Subscription> S =
+			AtomicReferenceFieldUpdater.newUpdater(SubscriberSubscription.class, Subscription.class, "s");
 
 	volatile long requested;
-	static final AtomicLongFieldUpdater<SingleSubscriptionArbiter> REQUESTED =
-			AtomicLongFieldUpdater.newUpdater(SingleSubscriptionArbiter.class, "requested");
+	static final AtomicLongFieldUpdater<SubscriberSubscription> REQUESTED =
+			AtomicLongFieldUpdater.newUpdater(SubscriberSubscription.class, "requested");
 
 	/**
 	 * Constructs a SingleSubscriptionArbiter with zero initial request.
 	 */
-	public SingleSubscriptionArbiter(Subscriber<? super O> subscriber) {
+	public SubscriberSubscription(Subscriber<? super O> subscriber) {
 		this.subscriber = subscriber;
 	}
 
@@ -39,7 +55,7 @@ public class SingleSubscriptionArbiter<I, O> implements Subscription, Subscriber
 	 *
 	 * @throws IllegalArgumentException if initialRequest is negative
 	 */
-	public SingleSubscriptionArbiter(Subscriber<? super O> subscriber, long initialRequest) {
+	public SubscriberSubscription(Subscriber<? super O> subscriber, long initialRequest) {
 		if (initialRequest < 0) {
 			throw new IllegalArgumentException("initialRequest >= required but it was " + initialRequest);
 		}

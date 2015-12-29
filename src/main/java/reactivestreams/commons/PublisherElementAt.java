@@ -6,8 +6,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.ScalarDelayedArbiter;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriber.SubscriberScalarDelayed;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Emits only the element at the given index position or signals a
@@ -47,7 +47,7 @@ public final class PublisherElementAt<T> implements Publisher<T> {
     }
     
     static final class PublisherElementAtSubscriber<T>
-            extends ScalarDelayedArbiter<T, T> {
+            extends SubscriberScalarDelayed<T, T> {
         final Supplier<? extends T> defaultSupplier;
         
         long index;

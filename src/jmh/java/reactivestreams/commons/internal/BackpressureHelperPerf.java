@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.*;
 
 import org.openjdk.jmh.annotations.*;
+import reactivestreams.commons.internal.support.BackpressureHelper;
 
 /**
  * Example benchmark. Run from command line as

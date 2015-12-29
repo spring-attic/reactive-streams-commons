@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.MultiSubscriptionArbiter;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
@@ -48,8 +48,8 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherConcatIterableSubscriber<T> 
-    extends MultiSubscriptionArbiter<T, T> {
+    static final class PublisherConcatIterableSubscriber<T>
+            extends SubscriberMultiSubscription<T, T> {
 
         final Iterator<? extends Publisher<? extends T>> it;
         

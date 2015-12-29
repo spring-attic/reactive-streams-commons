@@ -6,8 +6,8 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.ScalarDelayedArbiter;
-import reactivestreams.commons.internal.SubscriptionHelper;
+import reactivestreams.commons.internal.subscriber.SubscriberScalarDelayed;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Emits a single boolean true if all values of the source sequence match
@@ -34,7 +34,7 @@ public final class PublisherAll<T> implements Publisher<Boolean> {
         source.subscribe(new PublisherAllSubscriber<T>(s, predicate));
     }
     
-    static final class PublisherAllSubscriber<T> extends ScalarDelayedArbiter<T, Boolean> {
+    static final class PublisherAllSubscriber<T> extends SubscriberScalarDelayed<T, Boolean> {
         final Predicate<? super T> predicate;
 
         Subscription s;
