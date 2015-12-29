@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
+import reactivestreams.commons.internal.subscription.CancelledSubscription;
 
 /**
  * Arbitrates the requests and cancellation for a single Subscription that

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import reactivestreams.commons.internal.subscribers.TestSubscriber;
+import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherGenerateTest {
 

@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * Emits the contents of a Stream source.

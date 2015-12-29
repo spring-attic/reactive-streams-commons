@@ -10,7 +10,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscriptionTrait;
+import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Expects and emits a single item from the source or signals

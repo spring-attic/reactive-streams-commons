@@ -4,8 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.junit.Test;
 
-import reactivestreams.commons.PublisherCompletableFuture;
-import reactivestreams.commons.internal.subscribers.TestSubscriber;
+import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherCompletableFutureTest {
     

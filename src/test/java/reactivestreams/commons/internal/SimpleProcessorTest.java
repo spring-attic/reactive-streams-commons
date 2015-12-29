@@ -3,7 +3,7 @@ package reactivestreams.commons.internal;
 import org.junit.Assert;
 import org.junit.Test;
 
-import reactivestreams.commons.internal.subscribers.TestSubscriber;
+import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class SimpleProcessorTest {
 

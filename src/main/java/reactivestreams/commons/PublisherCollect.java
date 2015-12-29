@@ -10,8 +10,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscriptionTrait;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
+import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Collects the values of the source sequence into a container returned by

@@ -10,7 +10,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * For each subscriber, tracks the source values that have been seen and

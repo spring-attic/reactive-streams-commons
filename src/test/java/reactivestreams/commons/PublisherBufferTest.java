@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import reactivestreams.commons.internal.subscribers.TestSubscriber;
+import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherBufferTest {
     @Test(expected = NullPointerException.class)

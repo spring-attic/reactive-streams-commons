@@ -12,7 +12,7 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.BackpressureHelper;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscriptionTrait;
+import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Emits the last N values the source emitted before its completion.

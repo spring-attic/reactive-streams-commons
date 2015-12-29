@@ -8,7 +8,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscriptionTrait;
+import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Emits a scalar value if the source sequence turns out to be empty.

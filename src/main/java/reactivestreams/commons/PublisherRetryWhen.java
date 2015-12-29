@@ -11,7 +11,7 @@ import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.SingleSubscriptionArbiter;
 import reactivestreams.commons.internal.SimpleProcessor;
-import reactivestreams.commons.internal.subscribers.SerializedSubscriber;
+import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 
 /**
  * retries a source when a companion sequence signals 

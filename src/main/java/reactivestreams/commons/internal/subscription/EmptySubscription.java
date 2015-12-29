@@ -1,4 +1,4 @@
-package reactivestreams.commons.internal.subscriptions;
+package reactivestreams.commons.internal.subscription;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;

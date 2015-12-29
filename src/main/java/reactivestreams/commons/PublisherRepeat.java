@@ -5,10 +5,9 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * Repeatedly subscribes to the source and relays its values either

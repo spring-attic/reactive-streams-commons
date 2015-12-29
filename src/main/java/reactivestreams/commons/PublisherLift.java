@@ -6,7 +6,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * maps the downstream Subscriber into an upstream Subscriber 

@@ -5,8 +5,7 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import reactivestreams.commons.PublisherStream;
-import reactivestreams.commons.internal.subscribers.TestSubscriber;
+import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherStreamTest {
 

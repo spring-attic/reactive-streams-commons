@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscription;
+import reactivestreams.commons.internal.ScalarDelayedArbiter;
 
 public final class PublisherIsEmpty<T> implements Publisher<Boolean> {
 
@@ -24,13 +24,13 @@ public final class PublisherIsEmpty<T> implements Publisher<Boolean> {
     static final class PublisherIsEmptySubscriber<T> implements Subscriber<T>, Subscription {
         final Subscriber<? super Boolean> actual;
         
-        final ScalarDelayedSubscription<Boolean> delayed;
+        final ScalarDelayedArbiter<Boolean> delayed;
 
         Subscription s;
 
         public PublisherIsEmptySubscriber(Subscriber<? super Boolean> actual) {
             this.actual = actual;
-            this.delayed = new ScalarDelayedSubscription<>(actual);
+            this.delayed = new ScalarDelayedArbiter<>(actual);
         }
 
         @Override

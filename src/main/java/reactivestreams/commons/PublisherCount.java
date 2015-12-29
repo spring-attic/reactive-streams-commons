@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscription;
+import reactivestreams.commons.internal.ScalarDelayedArbiter;
 
 /**
  * Counts the number of values in the source sequence.
@@ -30,7 +30,7 @@ public final class PublisherCount<T> implements Publisher<Long> {
         
         final Subscriber<? super Long> actual;
         
-        final ScalarDelayedSubscription<Long> delayed;
+        final ScalarDelayedArbiter<Long> delayed;
         
         long counter;
         
@@ -38,7 +38,7 @@ public final class PublisherCount<T> implements Publisher<Long> {
 
         public PublisherCountSubscriber(Subscriber<? super Long> actual) {
             this.actual = actual;
-            this.delayed = new ScalarDelayedSubscription<>(actual);
+            this.delayed = new ScalarDelayedArbiter<>(actual);
         }
 
         @Override

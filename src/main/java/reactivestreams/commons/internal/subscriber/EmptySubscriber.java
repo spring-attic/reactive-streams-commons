@@ -1,9 +1,9 @@
-package reactivestreams.commons.internal.subscribers;
+package reactivestreams.commons.internal.subscriber;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public enum CancelledSubscriber implements Subscriber<Object> {
+public enum EmptySubscriber implements Subscriber<Object> {
     INSTANCE;
     
     @SuppressWarnings("unchecked")
@@ -13,7 +13,7 @@ public enum CancelledSubscriber implements Subscriber<Object> {
 
     @Override
     public void onSubscribe(Subscription s) {
-        s.cancel();
+        // deliberately no op
     }
 
     @Override

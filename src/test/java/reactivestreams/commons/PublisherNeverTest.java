@@ -2,7 +2,7 @@ package reactivestreams.commons;
 
 import org.junit.*;
 
-import reactivestreams.commons.internal.subscribers.TestSubscriber;
+import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherNeverTest {
 

@@ -10,8 +10,8 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.BackpressureHelper;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscribers.SerializedSubscriber;
-import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
+import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
+import reactivestreams.commons.internal.subscription.CancelledSubscription;
 
 /**
  * Samples the main source and emits its latest value whenever the other Publisher

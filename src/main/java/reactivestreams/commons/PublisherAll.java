@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.ScalarDelayedSubscription;
+import reactivestreams.commons.internal.ScalarDelayedArbiter;
 
 /**
  * Emits a single boolean true if all values of the source sequence match
@@ -39,7 +39,7 @@ public final class PublisherAll<T> implements Publisher<Boolean> {
         
         final Predicate<? super T> predicate;
 
-        final ScalarDelayedSubscription<Boolean> delayed;
+        final ScalarDelayedArbiter<Boolean> delayed;
         
         Subscription s;
         
@@ -48,7 +48,7 @@ public final class PublisherAll<T> implements Publisher<Boolean> {
         public PublisherAllSubscriber(Subscriber<? super Boolean> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
-            this.delayed = new ScalarDelayedSubscription<>(actual);
+            this.delayed = new ScalarDelayedArbiter<>(actual);
         }
 
         @Override

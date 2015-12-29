@@ -9,9 +9,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscribers.SerializedSubscriber;
-import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
+import reactivestreams.commons.internal.subscription.CancelledSubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * Combines values from a main Publisher with values from another

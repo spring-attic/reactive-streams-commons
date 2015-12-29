@@ -10,7 +10,7 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.SingleSubscriptionArbiter;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * Given a set of source Publishers the values of that Publisher is forwarded to the

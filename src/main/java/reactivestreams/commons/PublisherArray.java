@@ -9,7 +9,7 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.BackpressureHelper;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * Emits the contents of a wrapped (shared) array.

@@ -4,7 +4,7 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
-import reactivestreams.commons.internal.subscribers.TestSubscriber;
+import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherDistinctTest {
 

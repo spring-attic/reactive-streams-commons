@@ -13,9 +13,9 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscribers.SerializedSubscriber;
-import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
-import reactivestreams.commons.internal.subscriptions.EmptySubscription;
+import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
+import reactivestreams.commons.internal.subscription.CancelledSubscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 
 /**
  * Signals a timeout (or switches to another sequence) in case a per-item
