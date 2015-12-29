@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import reactivestreams.commons.internal.support.UnsignalledExceptions;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -99,7 +100,7 @@ public final class PublisherAccumulate<T> implements Publisher<T> {
         @Override
         public void onError(Throwable t) {
             if (done) {
-                RscUnsignalledExceptions.onError(t);
+                UnsignalledExceptions.onError(t);
                 return;
             }
             done = true;
