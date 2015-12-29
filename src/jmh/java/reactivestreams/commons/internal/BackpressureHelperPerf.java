@@ -5,9 +5,6 @@ import java.util.concurrent.atomic.*;
 
 import org.openjdk.jmh.annotations.*;
 
-import reactivestreams.commons.internal.BackpressureHelper;
-
-
 /**
  * Example benchmark. Run from command line as
  * <br>
@@ -92,21 +89,21 @@ public class BackpressureHelperPerf {
     
     @Benchmark
     public void request() {
-        BackpressureHelper.add(req, 1);
+        BackpressureHelper.addAndGet(req, 1);
     }
     
     @Benchmark
     public void requestField() {
-        BackpressureHelper.add(REQUESTED, this, 1);
+        BackpressureHelper.addAndGet(REQUESTED, this, 1);
     }
 
     @Benchmark
     public void requestMax() {
-        BackpressureHelper.add(reqMax, 1);
+        BackpressureHelper.addAndGet(reqMax, 1);
     }
     
     @Benchmark
     public void requestFieldMax() {
-        BackpressureHelper.add(REQUESTED_MAX, this, 1);
+        BackpressureHelper.addAndGet(REQUESTED_MAX, this, 1);
     }
 }

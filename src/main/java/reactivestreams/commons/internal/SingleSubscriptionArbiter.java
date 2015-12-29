@@ -91,7 +91,7 @@ public final class SingleSubscriptionArbiter implements Subscription {
         if (a != null) {
             a.request(n);
         } else {
-            BackpressureHelper.add(REQUESTED, this, n);
+            BackpressureHelper.addAndGet(REQUESTED, this, n);
             
             a = s;
             

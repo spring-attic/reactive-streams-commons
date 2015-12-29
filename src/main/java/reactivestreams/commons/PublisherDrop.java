@@ -61,7 +61,7 @@ public final class PublisherDrop<T> implements Publisher<T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.add(REQUESTED, this, n);
+                BackpressureHelper.addAndGet(REQUESTED, this, n);
             }
         }
 

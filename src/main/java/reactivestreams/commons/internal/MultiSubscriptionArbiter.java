@@ -82,7 +82,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
                 return;
             }
             
-            BackpressureHelper.add(MISSED_REQUESTED, this, n);
+            BackpressureHelper.addAndGet(MISSED_REQUESTED, this, n);
             
             drain();
         }
@@ -110,7 +110,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
             return;
         }
         
-        BackpressureHelper.add(MISSED_PRODUCED, this, 1L);
+        BackpressureHelper.addAndGet(MISSED_PRODUCED, this, 1L);
         
         drain();
     }
@@ -139,7 +139,7 @@ public final class MultiSubscriptionArbiter implements Subscription {
                 return;
             }
             
-            BackpressureHelper.add(MISSED_PRODUCED, this, n);
+            BackpressureHelper.addAndGet(MISSED_PRODUCED, this, n);
             
             drain();
         }

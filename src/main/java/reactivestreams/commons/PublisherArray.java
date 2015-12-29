@@ -56,7 +56,7 @@ public final class PublisherArray<T> implements Publisher<T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (BackpressureHelper.add(REQUESTED, this, n) == 0) {
+                if (BackpressureHelper.addAndGet(REQUESTED, this, n) == 0) {
                     if (n == Long.MAX_VALUE) {
                         fastPath();
                     } else {

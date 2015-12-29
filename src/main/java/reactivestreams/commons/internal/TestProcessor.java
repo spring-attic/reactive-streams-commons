@@ -205,7 +205,7 @@ public final class TestProcessor<T> implements Processor<T, T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.add(REQUESTED, this, n);
+                BackpressureHelper.addAndGet(REQUESTED, this, n);
             }
         }
         

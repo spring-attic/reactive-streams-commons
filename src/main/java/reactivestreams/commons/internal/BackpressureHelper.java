@@ -26,7 +26,7 @@ public enum BackpressureHelper {
         return u;
     }
     
-    public static long add(AtomicLong requested, long n) {
+    public static long addAndGet(AtomicLong requested, long n) {
         for (;;) {
             long r = requested.get();
             if (r == Long.MAX_VALUE) {
@@ -39,7 +39,7 @@ public enum BackpressureHelper {
         }
     }
     
-    public static <T> long add(AtomicLongFieldUpdater<T> updater, T instance, long n) {
+    public static <T> long addAndGet(AtomicLongFieldUpdater<T> updater, T instance, long n) {
         for (;;) {
             long r = updater.get(instance);
             if (r == Long.MAX_VALUE) {

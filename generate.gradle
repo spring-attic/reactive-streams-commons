@@ -12,7 +12,7 @@ def coreScope = ['amb',
 				 'map',
 				 'never',
 				 'resume',
-				 'zip']
+				 /*'zip'*/]
 
 //A complete RS commons coverage minus the lite core
 def streamScope = coreScope + ['generate',
@@ -34,7 +34,7 @@ def reactorCommon = ['fn-backport'              : 'reactor.fn',
 ]
 
 //Reactor Core configuration
-def reactorCore = ['api'        : 'reactor.Composable',
+def reactorCore = ['api'        : 'reactor.Flux',
 				   'api-package': 'reactor.core.publisher',
 				   'include'    : coreScope] + reactorCommon
 
@@ -43,7 +43,7 @@ def reactorStream = ['api'        : 'reactor.rx.Stream',
 					 'api-package': 'reactor.rx.stream',
 					 'exclude'    : streamScope] + reactorCommon
 
-def defaultTarget = reactorCore
+def defaultTarget = reactorStream
 
 // ------------------------------------------
 // Generation Script
