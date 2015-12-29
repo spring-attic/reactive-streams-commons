@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package reactivestreams.commons.internal;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -22,50 +23,50 @@ import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTr
 
 public final class ScalarDelayedArbiter<T> implements ScalarDelayedSubscriptionTrait<T> {
 
-    final Subscriber<? super T> actual;
-    
-    T value;
+	final Subscriber<? super T> actual;
 
-    volatile int state;
-    @SuppressWarnings("rawtypes")
-    static final AtomicIntegerFieldUpdater<ScalarDelayedArbiter> STATE =
-            AtomicIntegerFieldUpdater.newUpdater(ScalarDelayedArbiter.class, "state");
+	T value;
 
-    public ScalarDelayedArbiter(Subscriber<? super T> actual) {
-        this.actual = actual;
-    }
+	volatile int state;
+	@SuppressWarnings("rawtypes")
+	static final AtomicIntegerFieldUpdater<ScalarDelayedArbiter> STATE =
+			AtomicIntegerFieldUpdater.newUpdater(ScalarDelayedArbiter.class, "state");
 
-    @Override
-    public int sdsGetState() {
-        return state;
-    }
+	public ScalarDelayedArbiter(Subscriber<? super T> actual) {
+		this.actual = actual;
+	}
 
-    @Override
-    public void sdsSetState(int updated) {
-        state = updated;
-    }
+	@Override
+	public int sdsGetState() {
+		return state;
+	}
 
-    @Override
-    public boolean sdsCasState(int expected, int updated) {
-        return STATE.compareAndSet(this, expected, updated);
-    }
+	@Override
+	public void sdsSetState(int updated) {
+		state = updated;
+	}
 
-    @Override
-    public T sdsGetValue() {
-        return value;
-    }
+	@Override
+	public boolean sdsCasState(int expected, int updated) {
+		return STATE.compareAndSet(this, expected, updated);
+	}
 
-    @Override
-    public void sdsSetValue(T value) {
-        this.value = value;
-    }
+	@Override
+	public T sdsGetValue() {
+		return value;
+	}
 
-    @Override
-    public Subscriber<? super T> sdsGetSubscriber() {
-        return actual;
-    }
-    
-    public void set(T value) {
-        sdsSet(value);
-    }
+	@Override
+	public void sdsSetValue(T value) {
+		this.value = value;
+	}
+
+	@Override
+	public Subscriber<? super T> sdsGetSubscriber() {
+		return actual;
+	}
+
+	public void set(T value) {
+		sdsSet(value);
+	}
 }
