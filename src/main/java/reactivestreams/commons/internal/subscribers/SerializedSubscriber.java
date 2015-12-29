@@ -16,8 +16,7 @@ import reactivestreams.commons.internal.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public final class SerializedSubscriber<T> implements Subscriber<T>, 
-Subscription, SubscriberSignalSerializerTrait<T> {
+public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription {
 
     final Subscriber<? super T> actual;
     
@@ -76,77 +75,214 @@ Subscription, SubscriberSignalSerializerTrait<T> {
         s.cancel();
     }
 
-    @Override
+    public void serAdd(T value) {
+        LinkedArrayNode<T> t = serGetTail();
+
+        if (t == null) {
+            t = new LinkedArrayNode<>(value);
+
+            serSetHead(t);
+            serSetTail(t);
+        } else {
+            if (t.count == LinkedArrayNode.DEFAULT_CAPACITY) {
+                LinkedArrayNode<T> n = new LinkedArrayNode<>(value);
+
+                t.next = n;
+                serSetTail(n);
+            } else {
+                t.array[t.count++] = value;
+            }
+        }
+    }
+
+    public void serDrainLoop(Subscriber<? super T> actual) {
+        for (;;) {
+
+            if (serIsCancelled()) {
+                return;
+            }
+
+            boolean d;
+            Throwable e;
+            LinkedArrayNode<T> n;
+
+            synchronized (serGuard()) {
+                if (serIsCancelled()) {
+                    return;
+                }
+
+                if (!serIsMissed()) {
+                    serSetEmitting(false);
+                    return;
+                }
+
+                serSetMissed(false);
+
+                d = serIsDone();
+                e = serGetError();
+                n = serGetHead();
+
+                serSetHead(null);
+                serSetTail(null);
+            }
+
+            while (n != null) {
+
+                T[] arr = n.array;
+                int c = n.count;
+
+                for (int i = 0; i < c; i++) {
+
+                    if (serIsCancelled()) {
+                        return;
+                    }
+
+                    actual.onNext(arr[i]);
+                }
+
+                n = n.next;
+            }
+
+            if (serIsCancelled()) {
+                return;
+            }
+
+            if (e != null) {
+                actual.onError(e);
+                return;
+            } else
+            if (d) {
+                actual.onComplete();
+                return;
+            }
+        }
+    }
+
     public Subscriber<? super T> serGetSubscriber() {
         return actual;
     }
 
-    @Override
     public Object serGuard() {
         return this;
     }
 
-    @Override
     public boolean serIsEmitting() {
         return emitting;
     }
 
-    @Override
+    public void serOnComplete() {
+        if (serIsCancelled() || serIsDone()) {
+            return;
+        }
+
+        synchronized (this) {
+            if (serIsCancelled() || serIsDone()) {
+                return;
+            }
+
+            serSetDone(true);
+
+            if (serIsEmitting()) {
+                serSetMissed(true);
+                return;
+            }
+        }
+
+        serGetSubscriber().onComplete();
+    }
+
+    public void serOnError(Throwable e) {
+        if (serIsCancelled() || serIsDone()) {
+            return;
+        }
+
+        synchronized (serGuard()) {
+            if (serIsCancelled() || serIsDone()) {
+                return;
+            }
+
+            serSetDone(true);
+            serSetError(e);
+
+            if (serIsEmitting()) {
+                serSetMissed(true);
+                return;
+            }
+        }
+
+        serGetSubscriber().onError(e);
+    }
+
+    public void serOnNext(T t) {
+        if (serIsCancelled() || serIsDone()) {
+            return;
+        }
+
+        synchronized (serGuard()) {
+            if (serIsCancelled() || serIsDone()) {
+                return;
+            }
+
+            if (serIsEmitting()) {
+                serAdd(t);
+                serSetMissed(true);
+                return;
+            }
+
+            serSetEmitting(true);
+        }
+
+        Subscriber<? super T> actual = serGetSubscriber();
+
+        actual.onNext(t);
+
+        serDrainLoop(actual);
+    }
+
     public void serSetEmitting(boolean emitting) {
         this.emitting = emitting;
     }
 
-    @Override
     public boolean serIsMissed() {
         return missed;
     }
 
-    @Override
     public void serSetMissed(boolean missed) {
         this.missed = missed;
     }
 
-    @Override
     public boolean serIsCancelled() {
         return cancelled;
     }
 
-    @Override
     public boolean serIsDone() {
         return done;
     }
 
-    @Override
     public void serSetDone(boolean done) {
         this.done = done;
     }
 
-    @Override
     public Throwable serGetError() {
         return error;
     }
 
-    @Override
     public void serSetError(Throwable error) {
         this.error = error;
     }
 
-    @Override
     public LinkedArrayNode<T> serGetHead() {
         return head;
     }
 
-    @Override
     public void serSetHead(LinkedArrayNode<T> node) {
         head = node;
     }
 
-    @Override
     public LinkedArrayNode<T> serGetTail() {
         return tail;
     }
 
-    @Override
     public void serSetTail(LinkedArrayNode<T> node) {
         tail = node;
     }
