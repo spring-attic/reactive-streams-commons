@@ -106,7 +106,7 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
             if (v == null) {
                 subscriber.onComplete();
             }
-            sdsSet(v);
+            set(v);
         }
 
         @Override
@@ -116,7 +116,7 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
         }
 
         @Override
-        public void sdsSetValue(T value) {
+        public void setValue(T value) {
             // value is always in a field
         }
     }

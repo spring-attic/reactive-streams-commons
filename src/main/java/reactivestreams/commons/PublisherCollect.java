@@ -118,16 +118,16 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
                 return;
             }
             done = true;
-            sdsSet(container);
+            set(container);
         }
 
         @Override
-        public R sdsGetValue() {
+        public R getValue() {
             return container;
         }
 
         @Override
-        public void sdsSetValue(R value) {
+        public void setValue(R value) {
             // value is constant
         }
     }

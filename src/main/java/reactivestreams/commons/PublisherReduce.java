@@ -75,7 +75,7 @@ public final class PublisherReduce<T, R> implements Publisher<R> {
         }
 
         @Override
-        public void sdsSetValue(R value) {
+        public void setValue(R value) {
             // value already saved
         }
 
@@ -130,7 +130,7 @@ public final class PublisherReduce<T, R> implements Publisher<R> {
             }
             done = true;
 
-            sdsSet(value);
+            set(value);
         }
         
         

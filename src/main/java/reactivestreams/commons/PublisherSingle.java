@@ -67,12 +67,12 @@ public final class PublisherSingle<T> implements Publisher<T> {
             s.cancel();
         }
 
-        public T sdsGetValue() {
+        public T getValue() {
             return value;
         }
 
         @Override
-        public void sdsSetValue(T value) {
+        public void setValue(T value) {
             this.value = value;
         }
 
@@ -134,7 +134,7 @@ public final class PublisherSingle<T> implements Publisher<T> {
                         return;
                     }
                     
-                    sdsSet(t);
+                    set(t);
                 } else {
                     subscriber.onError(new NoSuchElementException("Source was empty"));
                 }

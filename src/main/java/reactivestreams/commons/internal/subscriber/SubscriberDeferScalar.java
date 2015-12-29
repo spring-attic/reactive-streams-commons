@@ -31,19 +31,19 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription 
 	public void request(long n) {
 		if (SubscriptionHelper.validate(n)) {
 			for (; ; ) {
-				int s = sdsGetState();
+				int s = getState();
 				if (s == SDS_HAS_REQUEST_NO_VALUE || s == SDS_HAS_REQUEST_HAS_VALUE) {
 					return;
 				}
 				if (s == SDS_NO_REQUEST_HAS_VALUE) {
-					if (sdsCasState(SDS_NO_REQUEST_HAS_VALUE, SDS_HAS_REQUEST_HAS_VALUE)) {
-						Subscriber<? super O> a = sdsGetSubscriber();
-						a.onNext(sdsGetValue());
+					if (compareAndSetState(SDS_NO_REQUEST_HAS_VALUE, SDS_HAS_REQUEST_HAS_VALUE)) {
+						Subscriber<? super O> a = downstream();
+						a.onNext(getValue());
 						a.onComplete();
 					}
 					return;
 				}
-				if (sdsCasState(SDS_NO_REQUEST_NO_VALUE, SDS_HAS_REQUEST_NO_VALUE)) {
+				if (compareAndSetState(SDS_NO_REQUEST_NO_VALUE, SDS_HAS_REQUEST_NO_VALUE)) {
 					return;
 				}
 			}
@@ -52,7 +52,7 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription 
 
 	@Override
 	public void cancel() {
-		sdsSetState(SDS_HAS_REQUEST_HAS_VALUE);
+		setState(SDS_HAS_REQUEST_HAS_VALUE);
 	}
 
 	@Override
@@ -76,57 +76,53 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription 
 		subscriber.onComplete();
 	}
 
-	public final void sdsSet(O value) {
+	public final boolean isCancelled() {
+		return getState() == SDS_HAS_REQUEST_HAS_VALUE;
+	}
+
+	public final int getState() {
+		return state;
+	}
+
+	public final void setState(int updated) {
+		state = updated;
+	}
+
+	public final boolean compareAndSetState(int expected, int updated) {
+		return STATE.compareAndSet(this, expected, updated);
+	}
+
+	public O getValue() {
+		return value;
+	}
+
+	public void setValue(O value) {
+		this.value = value;
+	}
+
+	public final Subscriber<? super O> downstream() {
+		return subscriber;
+	}
+
+	public final void set(O value) {
 		Objects.requireNonNull(value);
 		for (; ; ) {
-			int s = sdsGetState();
+			int s = getState();
 			if (s == SDS_NO_REQUEST_HAS_VALUE || s == SDS_HAS_REQUEST_HAS_VALUE) {
 				return;
 			}
 			if (s == SDS_HAS_REQUEST_NO_VALUE) {
-				if (sdsCasState(SDS_HAS_REQUEST_NO_VALUE, SDS_HAS_REQUEST_HAS_VALUE)) {
-					Subscriber<? super O> a = sdsGetSubscriber();
+				if (compareAndSetState(SDS_HAS_REQUEST_NO_VALUE, SDS_HAS_REQUEST_HAS_VALUE)) {
+					Subscriber<? super O> a = downstream();
 					a.onNext(value);
 					a.onComplete();
 				}
 				return;
 			}
-			sdsSetValue(value);
-			if (sdsCasState(SDS_NO_REQUEST_NO_VALUE, SDS_NO_REQUEST_HAS_VALUE)) {
+			setValue(value);
+			if (compareAndSetState(SDS_NO_REQUEST_NO_VALUE, SDS_NO_REQUEST_HAS_VALUE)) {
 				return;
 			}
 		}
-	}
-
-	public final boolean isCancelled() {
-		return sdsGetState() == SDS_HAS_REQUEST_HAS_VALUE;
-	}
-
-	public final int sdsGetState() {
-		return state;
-	}
-
-	public final void sdsSetState(int updated) {
-		state = updated;
-	}
-
-	public final boolean sdsCasState(int expected, int updated) {
-		return STATE.compareAndSet(this, expected, updated);
-	}
-
-	public O sdsGetValue() {
-		return value;
-	}
-
-	public void sdsSetValue(O value) {
-		this.value = value;
-	}
-
-	public final Subscriber<? super O> sdsGetSubscriber() {
-		return subscriber;
-	}
-
-	public final void set(O value) {
-		sdsSet(value);
 	}
 }

@@ -140,7 +140,7 @@ public final class PublisherElementAt<T> implements Publisher<T> {
                     return;
                 }
                 
-                sdsSet(t);
+                set(t);
             }
         }
 

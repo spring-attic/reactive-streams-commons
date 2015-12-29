@@ -78,17 +78,17 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
             if (hasValue) {
                 subscriber.onComplete();
             } else {
-                sdsSet(value);
+                set(value);
             }
         }
 
         @Override
-        public T sdsGetValue() {
+        public T getValue() {
             return value;
         }
 
         @Override
-        public void sdsSetValue(T value) {
+        public void setValue(T value) {
             // value is constant
         }
 
