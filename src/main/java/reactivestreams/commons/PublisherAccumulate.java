@@ -99,6 +99,7 @@ public final class PublisherAccumulate<T> implements Publisher<T> {
         @Override
         public void onError(Throwable t) {
             if (done) {
+                RscUnsignalledExceptions.onError(t);
                 return;
             }
             done = true;
