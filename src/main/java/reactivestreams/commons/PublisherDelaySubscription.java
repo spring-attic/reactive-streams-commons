@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import reactivestreams.commons.internal.subscriber.SubscriberSubscription;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -33,7 +33,7 @@ public final class PublisherDelaySubscription<T, U> implements Publisher<T> {
     }
     
     static final class PublisherDelaySubscriptionOtherSubscriber<T, U>
-            extends SubscriberSubscription<U, T> {
+            extends SubscriberDeferSubscription<U, T> {
 
         final Publisher<? extends T> source;
 
@@ -101,10 +101,10 @@ public final class PublisherDelaySubscription<T, U> implements Publisher<T> {
             
             final Subscriber<? super T> actual;
             
-            final SubscriberSubscription<?, ?> arbiter;
+            final SubscriberDeferSubscription<?, ?> arbiter;
 
             public PublisherDelaySubscriptionMainSubscriber(Subscriber<? super T> actual,
-                    SubscriberSubscription<?, ?> arbiter) {
+                    SubscriberDeferSubscription<?, ?> arbiter) {
                 this.actual = actual;
                 this.arbiter = arbiter;
             }

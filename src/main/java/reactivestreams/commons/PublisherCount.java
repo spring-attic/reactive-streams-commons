@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
-import reactivestreams.commons.internal.subscriber.SubscriberScalarDelayed;
+import reactivestreams.commons.internal.subscriber.SubscriberDelayedScalar;
 
 /**
  * Counts the number of values in the source sequence.
@@ -26,7 +26,7 @@ public final class PublisherCount<T> implements Publisher<Long> {
         source.subscribe(new PublisherCountSubscriber<>(s));
     }
     
-    static final class PublisherCountSubscriber<T> extends SubscriberScalarDelayed<T, Long> {
+    static final class PublisherCountSubscriber<T> extends SubscriberDelayedScalar<T, Long> {
         
         long counter;
         

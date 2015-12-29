@@ -14,22 +14,22 @@ import reactivestreams.commons.internal.subscription.CancelledSubscription;
  * <p>
  * Note that {@link #request(long)} doesn't validate the amount.
  */
-public class SubscriberSubscription<I, O> implements Subscription, Subscriber<I> {
+public class SubscriberDeferSubscription<I, O> implements Subscription, Subscriber<I> {
 
 	protected final Subscriber<? super O> subscriber;
 
 	volatile Subscription s;
-	static final AtomicReferenceFieldUpdater<SubscriberSubscription, Subscription> S =
-			AtomicReferenceFieldUpdater.newUpdater(SubscriberSubscription.class, Subscription.class, "s");
+	static final AtomicReferenceFieldUpdater<SubscriberDeferSubscription, Subscription> S =
+			AtomicReferenceFieldUpdater.newUpdater(SubscriberDeferSubscription.class, Subscription.class, "s");
 
 	volatile long requested;
-	static final AtomicLongFieldUpdater<SubscriberSubscription> REQUESTED =
-			AtomicLongFieldUpdater.newUpdater(SubscriberSubscription.class, "requested");
+	static final AtomicLongFieldUpdater<SubscriberDeferSubscription> REQUESTED =
+			AtomicLongFieldUpdater.newUpdater(SubscriberDeferSubscription.class, "requested");
 
 	/**
 	 * Constructs a SingleSubscriptionArbiter with zero initial request.
 	 */
-	public SubscriberSubscription(Subscriber<? super O> subscriber) {
+	public SubscriberDeferSubscription(Subscriber<? super O> subscriber) {
 		this.subscriber = subscriber;
 	}
 
@@ -40,7 +40,7 @@ public class SubscriberSubscription<I, O> implements Subscription, Subscriber<I>
 	 *
 	 * @throws IllegalArgumentException if initialRequest is negative
 	 */
-	public SubscriberSubscription(Subscriber<? super O> subscriber, long initialRequest) {
+	public SubscriberDeferSubscription(Subscriber<? super O> subscriber, long initialRequest) {
 		if (initialRequest < 0) {
 			throw new IllegalArgumentException("initialRequest >= required but it was " + initialRequest);
 		}

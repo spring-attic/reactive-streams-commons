@@ -7,7 +7,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
-public class SubscriberScalarDelayed<I, O> implements Subscriber<I>, Subscription {
+public class SubscriberDelayedScalar<I, O> implements Subscriber<I>, Subscription {
 
 	static final int SDS_NO_REQUEST_NO_VALUE   = 0;
 	static final int SDS_NO_REQUEST_HAS_VALUE  = 1;
@@ -20,10 +20,10 @@ public class SubscriberScalarDelayed<I, O> implements Subscriber<I>, Subscriptio
 
 	volatile int state;
 	@SuppressWarnings("rawtypes")
-	static final AtomicIntegerFieldUpdater<SubscriberScalarDelayed> STATE =
-			AtomicIntegerFieldUpdater.newUpdater(SubscriberScalarDelayed.class, "state");
+	static final AtomicIntegerFieldUpdater<SubscriberDelayedScalar> STATE =
+			AtomicIntegerFieldUpdater.newUpdater(SubscriberDelayedScalar.class, "state");
 
-	public SubscriberScalarDelayed(Subscriber<? super O> subscriber) {
+	public SubscriberDelayedScalar(Subscriber<? super O> subscriber) {
 		this.subscriber = subscriber;
 	}
 

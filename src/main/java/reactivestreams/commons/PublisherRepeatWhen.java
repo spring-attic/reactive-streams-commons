@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.internal.subscriber.SubscriberSubscription;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.internal.processor.SimpleProcessor;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 
@@ -68,7 +68,7 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
     
     static final class PublisherRepeatWhenMainSubscriber<T> extends SubscriberMultiSubscription<T, T> {
         
-        final SubscriberSubscription<T, T> otherArbiter;
+        final SubscriberDeferSubscription<T, T> otherArbiter;
         
         final Subscriber<Object> signaller;
         
@@ -87,7 +87,7 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
             super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.otherArbiter = new SubscriberSubscription<>(null);
+            this.otherArbiter = new SubscriberDeferSubscription<>(null);
         }
 
         @Override

@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import reactivestreams.commons.internal.subscriber.SubscriberSubscription;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 
@@ -217,7 +217,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherAmbSubscriber<T> extends SubscriberSubscription<T, T> {
+    static final class PublisherAmbSubscriber<T> extends SubscriberDeferSubscription<T, T> {
         final PublisherAmbCoordinator<T> parent;
         
         final int index;

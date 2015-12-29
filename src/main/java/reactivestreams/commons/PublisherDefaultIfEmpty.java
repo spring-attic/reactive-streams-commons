@@ -5,7 +5,7 @@ import java.util.Objects;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.subscriber.SubscriberScalarDelayed;
+import reactivestreams.commons.internal.subscriber.SubscriberDelayedScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -30,7 +30,7 @@ public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
     }
     
     static final class PublisherDefaultIfEmptySubscriber<T>
-            extends SubscriberScalarDelayed<T, T> {
+            extends SubscriberDelayedScalar<T, T> {
 
         final T value;
 
