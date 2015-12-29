@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.subscriber.SubscriberDelayedScalar;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 
 /**
  * Emits the value or error produced by the wrapped CompletableFuture.
@@ -25,7 +25,7 @@ public final class PublisherCompletableFuture<T> implements Publisher<T> {
     
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        SubscriberDelayedScalar<T, T> sds = new SubscriberDelayedScalar<>(s);
+        SubscriberDeferScalar<T, T> sds = new SubscriberDeferScalar<>(s);
         
         s.onSubscribe(sds);
         

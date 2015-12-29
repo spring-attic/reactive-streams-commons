@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.subscriber.SubscriberDelayedScalar;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -34,7 +34,7 @@ public final class PublisherAny<T> implements Publisher<Boolean> {
         source.subscribe(new PublisherAnySubscriber<T>(s, predicate));
     }
     
-    static final class PublisherAnySubscriber<T> extends SubscriberDelayedScalar<T, Boolean> {
+    static final class PublisherAnySubscriber<T> extends SubscriberDeferScalar<T, Boolean> {
         final Predicate<? super T> predicate;
 
         Subscription s;

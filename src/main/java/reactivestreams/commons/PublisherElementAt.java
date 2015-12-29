@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.subscriber.SubscriberDelayedScalar;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -47,7 +47,7 @@ public final class PublisherElementAt<T> implements Publisher<T> {
     }
     
     static final class PublisherElementAtSubscriber<T>
-            extends SubscriberDelayedScalar<T, T> {
+            extends SubscriberDeferScalar<T, T> {
         final Supplier<? extends T> defaultSupplier;
         
         long index;

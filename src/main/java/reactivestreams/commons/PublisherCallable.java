@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.subscriber.SubscriberDelayedScalar;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 
 /**
  * Executes a Callable function and emits a single value to each individual Subscriber.
@@ -26,7 +26,7 @@ public final class PublisherCallable<T> implements Publisher<T> {
     @Override
     public void subscribe(Subscriber<? super T> s) {
         
-        SubscriberDelayedScalar<T, T> sds = new SubscriberDelayedScalar<>(s);
+        SubscriberDeferScalar<T, T> sds = new SubscriberDeferScalar<>(s);
         
         s.onSubscribe(sds);
         

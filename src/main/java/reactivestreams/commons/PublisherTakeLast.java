@@ -9,7 +9,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.BackpressureHelper;
-import reactivestreams.commons.internal.subscriber.SubscriberDelayedScalar;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -75,7 +75,7 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
     }
 
     static final class PublisherTakeLastOneSubscriber<T>
-            extends SubscriberDelayedScalar<T, T> {
+            extends SubscriberDeferScalar<T, T> {
 
         Subscription s;
 
