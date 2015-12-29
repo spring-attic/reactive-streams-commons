@@ -32,7 +32,7 @@ public final class PublisherResume<T> implements Publisher<T> {
         source.subscribe(new PublisherResumeSubscriber<>(s, nextFactory));
     }
     
-    static final class PublisherResumeSubscriber<T> extends MultiSubscriptionArbiter<T> {
+    static final class PublisherResumeSubscriber<T> extends MultiSubscriptionArbiter<T, T> {
 
         final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 

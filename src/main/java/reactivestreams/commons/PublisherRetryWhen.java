@@ -67,9 +67,9 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherRetryWhenMainSubscriber<T> extends MultiSubscriptionArbiter<T> {
+    static final class PublisherRetryWhenMainSubscriber<T> extends MultiSubscriptionArbiter<T, T> {
         
-        final SingleSubscriptionArbiter otherArbiter;
+        final SingleSubscriptionArbiter<T, T> otherArbiter;
         
         final Subscriber<Throwable> signaller;
         
@@ -86,7 +86,7 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
             super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.otherArbiter = new SingleSubscriptionArbiter();
+            this.otherArbiter = new SingleSubscriptionArbiter<>(null);
         }
 
         @Override

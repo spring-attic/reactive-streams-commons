@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
 
@@ -13,8 +14,10 @@ import reactivestreams.commons.internal.subscriptions.CancelledSubscription;
  * <p>
  * Note that {@link #request(long)} doesn't validate the amount.
  */
-public final class SingleSubscriptionArbiter implements Subscription {
-    
+public class SingleSubscriptionArbiter<I, O> implements Subscription, Subscriber<I> {
+
+    protected final Subscriber<? super O> subscriber;
+
     volatile Subscription s;
     static final AtomicReferenceFieldUpdater<SingleSubscriptionArbiter, Subscription> S =
             AtomicReferenceFieldUpdater.newUpdater(SingleSubscriptionArbiter.class, Subscription.class, "s");
@@ -26,8 +29,8 @@ public final class SingleSubscriptionArbiter implements Subscription {
     /**
      * Constructs a SingleSubscriptionArbiter with zero initial request.
      */
-    public SingleSubscriptionArbiter() {
-        
+    public SingleSubscriptionArbiter(Subscriber<? super O> subscriber) {
+        this.subscriber = subscriber;
     }
     
     /**
@@ -35,10 +38,11 @@ public final class SingleSubscriptionArbiter implements Subscription {
      * @param initialRequest
      * @throws IllegalArgumentException if initialRequest is negative
      */
-    public SingleSubscriptionArbiter(long initialRequest) {
+    public SingleSubscriptionArbiter(Subscriber<? super O> subscriber, long initialRequest) {
         if (initialRequest < 0) {
             throw new IllegalArgumentException("initialRequest >= required but it was " + initialRequest);
         }
+        this.subscriber = subscriber;
         REQUESTED.lazySet(this, initialRequest);
     }
     /**
@@ -47,19 +51,15 @@ public final class SingleSubscriptionArbiter implements Subscription {
      * @param s
      * @return false if this arbiter is cancelled or there was a subscription already set
      */
-    public boolean set(Subscription s) {
+    public final boolean set(Subscription s) {
         Objects.requireNonNull(s, "s");
         Subscription a = this.s;
         if (a == CancelledSubscription.INSTANCE) {
-            if (s != null) {
-                s.cancel();
-            }
+               s.cancel();
             return false;
         }
         if (a != null) {
-            if (s != null) {
                 s.cancel();
-            }
             return false;
         }
         
@@ -77,9 +77,7 @@ public final class SingleSubscriptionArbiter implements Subscription {
         a = this.s;
         
         if (a != CancelledSubscription.INSTANCE) {
-            if (s != null) {
                 s.cancel();
-            }
         }
         
         return false;
@@ -120,7 +118,7 @@ public final class SingleSubscriptionArbiter implements Subscription {
      * Returns true if this arbiter has been cancelled.
      * @return true if this arbiter has been cancelled
      */
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         return s == CancelledSubscription.INSTANCE;
     }
     
@@ -130,7 +128,34 @@ public final class SingleSubscriptionArbiter implements Subscription {
      * Use {@link #isCancelled()} to distinguish between the two states.
      * @return true if a subscription has been set or the arbiter has been cancelled
      */
-    public boolean hasSubscription() {
+    public final boolean hasSubscription() {
         return s != null;
+    }
+
+    @Override
+    public void onSubscribe(Subscription s) {
+        set(s);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void onNext(I t) {
+        if(subscriber != null){
+            subscriber.onNext((O)t);
+        }
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        if(subscriber != null){
+            subscriber.onError(t);
+        }
+    }
+
+    @Override
+    public void onComplete() {
+        if(subscriber != null){
+            subscriber.onComplete();
+        }
     }
 }

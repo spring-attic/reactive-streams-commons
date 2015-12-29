@@ -51,7 +51,7 @@ public final class PublisherConcatArray<T> implements Publisher<T> {
     }
     
     static final class PublisherConcatArraySubscriber<T> 
-    extends MultiSubscriptionArbiter<T> {
+    extends MultiSubscriptionArbiter<T, T> {
 
         final Publisher<? extends T>[] sources;
 

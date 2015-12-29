@@ -84,7 +84,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         source.subscribe(main);
     }
         
-    static final class PublisherTimeoutMainSubscriber<T, V> extends MultiSubscriptionArbiter<T>  {
+    static final class PublisherTimeoutMainSubscriber<T, V> extends MultiSubscriptionArbiter<T, T>  {
 
         final Function<? super T, ? extends Publisher<V>> itemTimeout;
         
@@ -266,9 +266,9 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
         
         final Subscriber<? super T> actual;
 
-        final MultiSubscriptionArbiter<T> arbiter;
+        final MultiSubscriptionArbiter<T, T> arbiter;
 
-        public PublisherTimeoutOtherSubscriber(Subscriber<? super T> actual, MultiSubscriptionArbiter<T> arbiter) {
+        public PublisherTimeoutOtherSubscriber(Subscriber<? super T> actual, MultiSubscriptionArbiter<T, T> arbiter) {
             this.actual = actual;
             this.arbiter = arbiter;
         }

@@ -45,7 +45,7 @@ public final class PublisherRetry<T> implements Publisher<T> {
     }
     
     static final class PublisherRetrySubscriber<T> 
-    extends MultiSubscriptionArbiter<T> {
+    extends MultiSubscriptionArbiter<T, T> {
 
         final Publisher<? extends T> source;
         

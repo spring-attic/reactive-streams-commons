@@ -171,10 +171,10 @@ public final class PublisherAmb<T> implements Publisher<T> {
             if (SubscriptionHelper.validate(n)) {
                 int w = wip;
                 if (w >= 0) {
-                    subscribers[w].arbiter.request(n);
+                    subscribers[w].request(n);
                 } else {
                     for (PublisherAmbSubscriber<T> s : subscribers) {
-                        s.arbiter.request(n);
+                        s.request(n);
                     }
                 }
             }
@@ -189,10 +189,10 @@ public final class PublisherAmb<T> implements Publisher<T> {
             
             int w = wip;
             if (w >= 0) {
-                subscribers[w].arbiter.cancel();
+                subscribers[w].cancel();
             } else {
                 for (PublisherAmbSubscriber<T> s : subscribers) {
-                    s.arbiter.cancel();
+                    s.cancel();
                 }
             }
         }
@@ -206,7 +206,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
                     
                     for (int i = 0; i < n; i++) {
                         if (i != index) {
-                            a[i].arbiter.cancel();
+                            a[i].cancel();
                         }
                     }
                     
@@ -217,59 +217,49 @@ public final class PublisherAmb<T> implements Publisher<T> {
         }
     }
     
-    static final class PublisherAmbSubscriber<T> implements Subscriber<T> {
-        final Subscriber<? super T> actual;
-        
+    static final class PublisherAmbSubscriber<T> extends SingleSubscriptionArbiter<T, T> {
         final PublisherAmbCoordinator<T> parent;
         
         final int index;
-        
-        final SingleSubscriptionArbiter arbiter;
-        
+
         boolean won;
         
         public PublisherAmbSubscriber(Subscriber<? super T> actual, PublisherAmbCoordinator<T> parent, int index) {
-            this.actual = actual;
+            super(actual);
             this.parent = parent;
             this.index = index;
-            this.arbiter = new SingleSubscriptionArbiter();
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            arbiter.set(s);
         }
 
         @Override
         public void onNext(T t) {
             if (won) {
-                actual.onNext(t);
+                subscriber.onNext(t);
             } else
             if (parent.tryWin(index)) {
                 won = true;
-                actual.onNext(t);
+                subscriber.onNext(t);
             }
         }
 
         @Override
         public void onError(Throwable t) {
             if (won) {
-                actual.onError(t);
+                subscriber.onError(t);
             } else
             if (parent.tryWin(index)) {
                 won = true;
-                actual.onError(t);
+                subscriber.onError(t);
             }
         }
 
         @Override
         public void onComplete() {
             if (won) {
-                actual.onComplete();
+                subscriber.onComplete();
             } else
             if (parent.tryWin(index)) {
                 won = true;
-                actual.onComplete();
+                subscriber.onComplete();
             }
         }
     }

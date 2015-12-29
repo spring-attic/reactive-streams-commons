@@ -31,7 +31,7 @@ public final class PublisherSwitchIfEmpty<T> implements Publisher<T> {
         source.subscribe(parent);
     }
     
-    static final class PublisherSwitchIfEmptySubscriber<T> extends MultiSubscriptionArbiter<T> {
+    static final class PublisherSwitchIfEmptySubscriber<T> extends MultiSubscriptionArbiter<T, T> {
         
         final Publisher<? extends T> other;
 

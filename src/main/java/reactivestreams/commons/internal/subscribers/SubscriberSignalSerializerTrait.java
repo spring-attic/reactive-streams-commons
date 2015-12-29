@@ -30,13 +30,13 @@ public interface SubscriberSignalSerializerTrait<T> {
     
     void serSetError(Throwable error);
     
-    LinkedArrayNode<T> serGetHead();
+    SerializedSubscriber.LinkedArrayNode<T> serGetHead();
     
-    void serSetHead(LinkedArrayNode<T> node);
+    void serSetHead(SerializedSubscriber.LinkedArrayNode<T> node);
     
-    LinkedArrayNode<T> serGetTail();
+    SerializedSubscriber.LinkedArrayNode<T> serGetTail();
 
-    void serSetTail(LinkedArrayNode<T> node);
+    void serSetTail(SerializedSubscriber.LinkedArrayNode<T> node);
     
     default void serOnNext(T t) {
         if (serIsCancelled() || serIsDone()) {
@@ -116,7 +116,7 @@ public interface SubscriberSignalSerializerTrait<T> {
             
             boolean d;
             Throwable e;
-            LinkedArrayNode<T> n;
+            SerializedSubscriber.LinkedArrayNode<T> n;
             
             synchronized (serGuard()) {
                 if (serIsCancelled()) {
@@ -171,16 +171,16 @@ public interface SubscriberSignalSerializerTrait<T> {
     }
     
     default void serAdd(T value) {
-        LinkedArrayNode<T> t = serGetTail();
+        SerializedSubscriber.LinkedArrayNode<T> t = serGetTail();
         
         if (t == null) {
-            t = new LinkedArrayNode<>(value);
+            t = new SerializedSubscriber.LinkedArrayNode<>(value);
             
             serSetHead(t);
             serSetTail(t);
         } else {
-            if (t.count == LinkedArrayNode.DEFAULT_CAPACITY) {
-                LinkedArrayNode<T> n = new LinkedArrayNode<>(value);
+            if (t.count == SerializedSubscriber.LinkedArrayNode.DEFAULT_CAPACITY) {
+                SerializedSubscriber.LinkedArrayNode<T> n = new SerializedSubscriber.LinkedArrayNode<>(value);
                 
                 t.next = n;
                 serSetTail(n);

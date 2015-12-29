@@ -18,9 +18,9 @@ import org.reactivestreams.Subscription;
  * You should call {@link #produced(long)} or {@link #producedOne()} after each element has been delivered
  * to properly account the outstanding request amount in case a Subscription switch happens.
  */
-public abstract class MultiSubscriptionArbiter<T> implements Subscription, Subscriber<T> {
+public abstract class MultiSubscriptionArbiter<I, O> implements Subscription, Subscriber<I> {
 
-    protected final Subscriber<? super T> subscriber;
+    protected final Subscriber<? super O> subscriber;
 
     /** The current subscription which may null if no Subscriptions have been set. */
     Subscription actual;
@@ -47,7 +47,7 @@ public abstract class MultiSubscriptionArbiter<T> implements Subscription, Subsc
 
     volatile boolean cancelled;
 
-    public MultiSubscriptionArbiter(Subscriber<? super T> subscriber) {
+    public MultiSubscriptionArbiter(Subscriber<? super O> subscriber) {
         this.subscriber = subscriber;
     }
 

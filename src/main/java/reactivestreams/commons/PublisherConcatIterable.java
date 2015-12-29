@@ -49,7 +49,7 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
     }
     
     static final class PublisherConcatIterableSubscriber<T> 
-    extends MultiSubscriptionArbiter<T> {
+    extends MultiSubscriptionArbiter<T, T> {
 
         final Iterator<? extends Publisher<? extends T>> it;
         

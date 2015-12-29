@@ -53,7 +53,7 @@ public final class PublisherRepeat<T> implements Publisher<T> {
     }
     
     static final class PublisherRepeatSubscriber<T> 
-    extends MultiSubscriptionArbiter<T> {
+    extends MultiSubscriptionArbiter<T, T> {
 
         final Publisher<? extends T> source;
         

@@ -25,18 +25,14 @@ import reactivestreams.commons.internal.SubscriptionHelper;
  * 
  * @param <T> the value type.
  */
-public class TestSubscriber<T> implements Subscriber<T>, Subscription {
+public class TestSubscriber<T> extends SingleSubscriptionArbiter<T, T> {
 
-    final Subscriber<? super T> delegate;
-    
     final List<T> values;
     
     final List<Throwable> errors;
 
     final CountDownLatch cdl;
 
-    final SingleSubscriptionArbiter arbiter;
-    
     int completions;
     
     int subscriptions;
@@ -54,30 +50,17 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription {
     }
     
     public TestSubscriber(Subscriber<? super T> delegate, long initialRequest) {
-        this.delegate = delegate;
+        super(delegate, initialRequest);
         this.values = new ArrayList<>();
         this.errors = new ArrayList<>();
         this.cdl = new CountDownLatch(1);
-        this.arbiter = new SingleSubscriptionArbiter(initialRequest);
-    }
-
-    @Override
-    public final void request(long n) {
-        if (SubscriptionHelper.validate(n)) {
-            arbiter.request(n);
-        }
-    }
-
-    @Override
-    public final void cancel() {
-        arbiter.cancel();
     }
 
     @Override
     public final void onSubscribe(Subscription s) {
         subscriptions++;
-        if (!arbiter.set(s)) {
-            if (!arbiter.isCancelled()) {
+        if (!set(s)) {
+            if (!isCancelled()) {
                 errors.add(new IllegalStateException("subscription already set"));
             }
         }
@@ -86,27 +69,30 @@ public class TestSubscriber<T> implements Subscriber<T>, Subscription {
     @Override
     public void onNext(T t) {
         values.add(t);
-        delegate.onNext(t);
+        subscriber.onNext(t);
     }
 
     @Override
     public void onError(Throwable t) {
         errors.add(t);
-        delegate.onError(t);
+        subscriber.onError(t);
         cdl.countDown();
     }
 
     @Override
     public void onComplete() {
         completions++;
-        delegate.onComplete();
+        subscriber.onComplete();
         cdl.countDown();
     }
-    
-    public final boolean isCancelled() {
-        return arbiter.isCancelled();
+
+    @Override
+    public void request(long n) {
+        if (SubscriptionHelper.validate(n)) {
+            super.request(n);
+        }
     }
-    
+
     /**
      * Prepares and throws an AssertionError exception based on the message, cause,
      * the active state and the potential errors so far.

@@ -33,33 +33,23 @@ public final class PublisherDelaySubscription<T, U> implements Publisher<T> {
     }
     
     static final class PublisherDelaySubscriptionOtherSubscriber<T, U> 
-    implements Subscriber<U>, Subscription {
+    extends SingleSubscriptionArbiter<U, T> {
 
-        final Subscriber<? super T> actual;
-        
         final Publisher<? extends T> source;
-
-        final SingleSubscriptionArbiter arbiter;
 
         Subscription s;
         
         boolean done;
         
         public PublisherDelaySubscriptionOtherSubscriber(Subscriber<? super T> actual, Publisher<? extends T> source) {
-            this.actual = actual;
+            super(actual);
             this.source = source;
-            this.arbiter = new SingleSubscriptionArbiter();
         }
 
         @Override
-        public void request(long n) {
-            arbiter.request(n);
-        }
-        
-        @Override
         public void cancel() {
             s.cancel();
-            arbiter.cancel();
+            super.cancel();
         }
         
         @Override
@@ -67,7 +57,7 @@ public final class PublisherDelaySubscription<T, U> implements Publisher<T> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 
-                actual.onSubscribe(this);
+                subscriber.onSubscribe(this);
                 
                 s.request(Long.MAX_VALUE);
             }
@@ -90,7 +80,7 @@ public final class PublisherDelaySubscription<T, U> implements Publisher<T> {
                 return;
             }
             done = true;
-            actual.onError(t);
+            subscriber.onError(t);
         }
 
         @Override
@@ -104,17 +94,17 @@ public final class PublisherDelaySubscription<T, U> implements Publisher<T> {
         }
         
         void subscribeSource() {
-            source.subscribe(new PublisherDelaySubscriptionMainSubscriber<>(actual, arbiter));
+            source.subscribe(new PublisherDelaySubscriptionMainSubscriber<>(subscriber, this));
         }
         
         static final class PublisherDelaySubscriptionMainSubscriber<T> implements Subscriber<T> {
             
             final Subscriber<? super T> actual;
             
-            final SingleSubscriptionArbiter arbiter;
+            final SingleSubscriptionArbiter<?, ?> arbiter;
 
             public PublisherDelaySubscriptionMainSubscriber(Subscriber<? super T> actual,
-                    SingleSubscriptionArbiter arbiter) {
+                    SingleSubscriptionArbiter<?, ?> arbiter) {
                 this.actual = actual;
                 this.arbiter = arbiter;
             }
