@@ -1,15 +1,13 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
+import reactivestreams.commons.internal.ScalarDelayedArbiter;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Emits only the element at the given index position or signals a
@@ -48,10 +46,8 @@ public final class PublisherElementAt<T> implements Publisher<T> {
         source.subscribe(new PublisherElementAtSubscriber<>(s, index, defaultSupplier));
     }
     
-    static final class PublisherElementAtSubscriber<T> 
-    implements Subscriber<T>, ScalarDelayedSubscriptionTrait<T> {
-        final Subscriber<? super T> actual;
-        
+    static final class PublisherElementAtSubscriber<T>
+            extends ScalarDelayedArbiter<T, T> {
         final Supplier<? extends T> defaultSupplier;
         
         long index;
@@ -60,23 +56,16 @@ public final class PublisherElementAt<T> implements Publisher<T> {
 
         boolean done;
         
-        T value;
-        
-        volatile int wip;
-        @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherElementAtSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherElementAtSubscriber.class, "wip");
-        
         public PublisherElementAtSubscriber(Subscriber<? super T> actual, long index,
                 Supplier<? extends T> defaultSupplier) {
-            this.actual = actual;
+            super(actual);
             this.index = index;
             this.defaultSupplier = defaultSupplier;
         }
 
         @Override
         public void request(long n) {
-            ScalarDelayedSubscriptionTrait.super.request(n);
+            super.request(n);
             if (n > 0L) {
                 s.request(Long.MAX_VALUE);
             }
@@ -84,7 +73,7 @@ public final class PublisherElementAt<T> implements Publisher<T> {
 
         @Override
         public void cancel() {
-            ScalarDelayedSubscriptionTrait.super.cancel();
+            super.cancel();
             s.cancel();
         }
 
@@ -92,8 +81,8 @@ public final class PublisherElementAt<T> implements Publisher<T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
-                actual.onSubscribe(this);
+
+                subscriber.onSubscribe(this);
             }
         }
 
@@ -107,9 +96,9 @@ public final class PublisherElementAt<T> implements Publisher<T> {
             if (i == 0) {
                 done = true;
                 s.cancel();
-                
-                actual.onNext(t);
-                actual.onComplete();
+
+                subscriber.onNext(t);
+                subscriber.onComplete();
                 return;
             }
             index = i - 1;
@@ -121,8 +110,8 @@ public final class PublisherElementAt<T> implements Publisher<T> {
                 return;
             }
             done = true;
-            
-            actual.onError(t);
+
+            subscriber.onError(t);
         }
 
         @Override
@@ -135,19 +124,19 @@ public final class PublisherElementAt<T> implements Publisher<T> {
             Supplier<? extends T> ds = defaultSupplier;
             
             if (ds == null) {
-                actual.onError(new IndexOutOfBoundsException());
+                subscriber.onError(new IndexOutOfBoundsException());
             } else {
                 T t;
                 
                 try {
                     t = ds.get();
                 } catch (Throwable e) {
-                    actual.onError(e);
+                    subscriber.onError(e);
                     return;
                 }
                 
                 if (t == null) {
-                    actual.onError(new NullPointerException("The defaultSupplier returned a null value"));
+                    subscriber.onError(new NullPointerException("The defaultSupplier returned a null value"));
                     return;
                 }
                 
@@ -155,34 +144,5 @@ public final class PublisherElementAt<T> implements Publisher<T> {
             }
         }
 
-        @Override
-        public int sdsGetState() {
-            return wip;
-        }
-
-        @Override
-        public void sdsSetState(int updated) {
-            wip = updated;
-        }
-
-        @Override
-        public boolean sdsCasState(int expected, int updated) {
-            return WIP.compareAndSet(this, expected, updated);
-        }
-
-        @Override
-        public T sdsGetValue() {
-            return value;
-        }
-
-        @Override
-        public void sdsSetValue(T value) {
-            this.value = value;
-        }
-
-        @Override
-        public Subscriber<? super T> sdsGetSubscriber() {
-            return actual;
-        }
     }
 }

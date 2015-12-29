@@ -2,15 +2,13 @@ package reactivestreams.commons;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
+import reactivestreams.commons.internal.ScalarDelayedArbiter;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Expects and emits a single item from the source or signals
@@ -40,9 +38,7 @@ public final class PublisherSingle<T> implements Publisher<T> {
         source.subscribe(new PublisherSingleSubscriber<>(s, defaultSupplier));
     }
     
-    static final class PublisherSingleSubscriber<T> implements Subscriber<T>, ScalarDelayedSubscriptionTrait<T> {
-        
-        final Subscriber<? super T> actual;
+    static final class PublisherSingleSubscriber<T> extends ScalarDelayedArbiter<T, T> {
         
         final Supplier<? extends T> defaultSupplier;
         
@@ -52,22 +48,14 @@ public final class PublisherSingle<T> implements Publisher<T> {
         
         boolean done;
         
-        T value;
-        
-        volatile int wip;
-        @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherSingleSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherSingleSubscriber.class, "wip");
-
-
         public PublisherSingleSubscriber(Subscriber<? super T> actual, Supplier<? extends T> defaultSupplier) {
-            this.actual = actual;
+            super(actual);
             this.defaultSupplier = defaultSupplier;
         }
 
         @Override
         public void request(long n) {
-            ScalarDelayedSubscriptionTrait.super.request(n);
+            super.request(n);
             if (n > 0L) {
                 s.request(Long.MAX_VALUE);
             }
@@ -75,26 +63,10 @@ public final class PublisherSingle<T> implements Publisher<T> {
 
         @Override
         public void cancel() {
-            ScalarDelayedSubscriptionTrait.super.cancel();
+            super.cancel();
             s.cancel();
         }
 
-        @Override
-        public int sdsGetState() {
-            return wip;
-        }
-
-        @Override
-        public void sdsSetState(int updated) {
-            wip = updated;
-        }
-
-        @Override
-        public boolean sdsCasState(int expected, int updated) {
-            return WIP.compareAndSet(this, expected, updated);
-        }
-
-        @Override
         public T sdsGetValue() {
             return value;
         }
@@ -105,16 +77,11 @@ public final class PublisherSingle<T> implements Publisher<T> {
         }
 
         @Override
-        public Subscriber<? super T> sdsGetSubscriber() {
-            return actual;
-        }
-
-        @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 
-                actual.onSubscribe(this);
+                subscriber.onSubscribe(this);
             }
         }
 
@@ -138,8 +105,8 @@ public final class PublisherSingle<T> implements Publisher<T> {
                 return;
             }
             done = true;
-            
-            actual.onError(t);
+
+            subscriber.onError(t);
         }
 
         @Override
@@ -158,23 +125,23 @@ public final class PublisherSingle<T> implements Publisher<T> {
                     try {
                         t = ds.get();
                     } catch (Throwable e) {
-                        actual.onError(e);
+                        subscriber.onError(e);
                         return;
                     }
                     
                     if (t == null) {
-                        actual.onError(new NullPointerException("The defaultSupplier returned a null value"));
+                        subscriber.onError(new NullPointerException("The defaultSupplier returned a null value"));
                         return;
                     }
                     
                     sdsSet(t);
                 } else {
-                    actual.onError(new NoSuchElementException("Source was empty"));
+                    subscriber.onError(new NoSuchElementException("Source was empty"));
                 }
             } else
             if (c == 1) {
-                actual.onNext(value);
-                actual.onComplete();
+                subscriber.onNext(value);
+                subscriber.onComplete();
             }
         }
 

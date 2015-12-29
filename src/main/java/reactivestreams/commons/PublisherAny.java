@@ -6,8 +6,8 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.SubscriptionHelper;
 import reactivestreams.commons.internal.ScalarDelayedArbiter;
+import reactivestreams.commons.internal.SubscriptionHelper;
 
 /**
  * Emits a single boolean true if any of the values of the source sequence match
@@ -34,32 +34,22 @@ public final class PublisherAny<T> implements Publisher<Boolean> {
         source.subscribe(new PublisherAnySubscriber<T>(s, predicate));
     }
     
-    static final class PublisherAnySubscriber<T> implements Subscriber<T>, Subscription {
-        final Subscriber<? super Boolean> actual;
-        
+    static final class PublisherAnySubscriber<T> extends ScalarDelayedArbiter<T, Boolean> {
         final Predicate<? super T> predicate;
 
-        final ScalarDelayedArbiter<Boolean> delayed;
-        
         Subscription s;
         
         boolean done;
         
         public PublisherAnySubscriber(Subscriber<? super Boolean> actual, Predicate<? super T> predicate) {
-            this.actual = actual;
+            super(actual);
             this.predicate = predicate;
-            this.delayed = new ScalarDelayedArbiter<>(actual);
-        }
-
-        @Override
-        public void request(long n) {
-            delayed.request(n);
         }
 
         @Override
         public void cancel() {
             s.cancel();
-            delayed.cancel();
+            super.cancel();
         }
 
         @Override
@@ -67,7 +57,7 @@ public final class PublisherAny<T> implements Publisher<Boolean> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 
-                actual.onSubscribe(this);
+                subscriber.onSubscribe(this);
                 
                 s.request(Long.MAX_VALUE);
             }
@@ -88,14 +78,14 @@ public final class PublisherAny<T> implements Publisher<Boolean> {
                 done = true;
                 s.cancel();
                 
-                actual.onError(e);
+                subscriber.onError(e);
                 return;
             }
             if (b) {
                 done = true;
                 s.cancel();
                 
-                delayed.set(true);
+                set(true);
             }
         }
 
@@ -106,7 +96,7 @@ public final class PublisherAny<T> implements Publisher<Boolean> {
             }
             done = true;
 
-            actual.onError(t);
+            subscriber.onError(t);
         }
 
         @Override
@@ -115,7 +105,7 @@ public final class PublisherAny<T> implements Publisher<Boolean> {
                 return;
             }
             done = true;
-            delayed.set(false);
+            set(false);
         }
     }
 }

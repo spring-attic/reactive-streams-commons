@@ -2,17 +2,15 @@ package reactivestreams.commons;
 
 import java.util.ArrayDeque;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.BackpressureHelper;
+import reactivestreams.commons.internal.ScalarDelayedArbiter;
 import reactivestreams.commons.internal.SubscriptionHelper;
-import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Emits the last N values the source emitted before its completion.
@@ -76,22 +74,13 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
         }
     }
 
-    static final class PublisherTakeLastOneSubscriber<T> 
-    implements Subscriber<T>, ScalarDelayedSubscriptionTrait<T> {
+    static final class PublisherTakeLastOneSubscriber<T>
+            extends ScalarDelayedArbiter<T, T> {
 
-        final Subscriber<? super T> actual;
-
-        T value;
-        
         Subscription s;
 
-        volatile int wip;
-        @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherTakeLastOneSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherTakeLastOneSubscriber.class, "wip");
-        
-        public PublisherTakeLastOneSubscriber(Subscriber<? super T> actual) {
-            this.actual = actual;
+       public PublisherTakeLastOneSubscriber(Subscriber<? super T> actual) {
+            super(actual);
         }
 
         @Override
@@ -99,7 +88,7 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 
-                actual.onSubscribe(this);
+                subscriber.onSubscribe(this);
                 
                 s.request(Long.MAX_VALUE);
             }
@@ -112,58 +101,23 @@ public final class PublisherTakeLast<T> implements Publisher<T> {
         }
 
         @Override
-        public void onError(Throwable t) {
-            actual.onError(t);
-        }
-
-        @Override
         public void onComplete() {
             T v = value;
             if (v == null) {
-                actual.onComplete();
+                subscriber.onComplete();
             }
             sdsSet(v);
         }
 
         @Override
-        public void request(long n) {
-            ScalarDelayedSubscriptionTrait.super.request(n);
-        }
-
-        @Override
         public void cancel() {
-            ScalarDelayedSubscriptionTrait.super.cancel();
+            super.cancel();
             s.cancel();
-        }
-
-        @Override
-        public int sdsGetState() {
-            return wip;
-        }
-
-        @Override
-        public void sdsSetState(int updated) {
-            wip = updated;
-        }
-
-        @Override
-        public boolean sdsCasState(int expected, int updated) {
-            return WIP.compareAndSet(this, expected, updated);
-        }
-
-        @Override
-        public T sdsGetValue() {
-            return value;
         }
 
         @Override
         public void sdsSetValue(T value) {
             // value is always in a field
-        }
-
-        @Override
-        public Subscriber<? super T> sdsGetSubscriber() {
-            return actual;
         }
     }
 

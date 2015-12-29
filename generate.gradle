@@ -32,20 +32,21 @@ def reactorCommon = ['fn-backport'              : 'reactor.fn',
 					 'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
 					 'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
 					 'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'SimpleProcessor'            : 'reactor.core.processor.EmitterProcessor'
-]
+					 'SimpleProcessor'          : 'reactor.core.processor.EmitterProcessor']
 
 //Reactor Core configuration
 def reactorCore = ['api'        : 'reactor.Flux',
 				   'api-package': 'reactor.core.publisher',
+				   'internal-package'   : 'reactor.core',
 				   'include'    : coreScope] + reactorCommon
 
 //Reactor Stream configuration
 def reactorStream = ['api'        : 'reactor.rx.Stream',
 					 'api-package': 'reactor.rx.stream',
-					 'exclude'    : streamScope] + reactorCommon
+					 'exclude'    : streamScope,
+					 'internal'   : false] + reactorCommon
 
-def defaultTarget = reactorStream
+def defaultTarget = reactorCore
 
 // ------------------------------------------
 // Generation Script
@@ -87,11 +88,15 @@ task generateTargetAPI(type: Sync) {
 	}
   }
 
+  if(target.containsKey('internal') && !target.internal){
+	exclude '**/internal/**'
+  }
+
   if (target.TestProcessor) {
 	exclude '**/TestProcessor.java'
   }
 
-  if (target['fn-backport']){
+  if (target['fn-backport']) {
 	exclude '**/*Trait.java'
   }
 
@@ -101,7 +106,10 @@ task generateTargetAPI(type: Sync) {
   filter { String line ->
 
 	if (line.trim().startsWith('package')) {
-	  if (target['api-package']) {
+	  if(target['internal-package'] && line.contains("internal")){
+		return line.replace('reactivestreams.commons.internal', target['internal-package'])
+	  }
+	  else if (target['api-package']) {
 		return line.replace('reactivestreams.commons', target['api-package'])
 	  }
 	  else {
@@ -115,7 +123,7 @@ task generateTargetAPI(type: Sync) {
 		l = l.replace("reactivestreams.commons.internal.SimpleProcessor", target.SimpleProcessor)
 	  }
 
-	  if(target['fn-backport']){
+	  if (target['fn-backport']) {
 		l = l.replace('java.util.function', target['fn-backport'])
 	  }
 
@@ -132,7 +140,7 @@ task generateTargetAPI(type: Sync) {
 			.replace('public Publisher', "public $apiClassName")
 
 	//Special case for just
-	if(l.contains('implements Supplier<T>, Publisher<T>')){
+	if (l.contains('implements Supplier<T>, Publisher<T>')) {
 	  return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClassName<T>")
 	}
 

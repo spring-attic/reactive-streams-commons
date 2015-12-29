@@ -25,7 +25,7 @@ public final class PublisherCompletableFuture<T> implements Publisher<T> {
     
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        ScalarDelayedArbiter<T> sds = new ScalarDelayedArbiter<>(s);
+        ScalarDelayedArbiter<T, T> sds = new ScalarDelayedArbiter<>(s);
         
         s.onSubscribe(sds);
         

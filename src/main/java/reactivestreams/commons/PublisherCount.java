@@ -26,29 +26,19 @@ public final class PublisherCount<T> implements Publisher<Long> {
         source.subscribe(new PublisherCountSubscriber<>(s));
     }
     
-    static final class PublisherCountSubscriber<T> implements Subscriber<T>, Subscription {
-        
-        final Subscriber<? super Long> actual;
-        
-        final ScalarDelayedArbiter<Long> delayed;
+    static final class PublisherCountSubscriber<T> extends ScalarDelayedArbiter<T, Long>{
         
         long counter;
         
         Subscription s;
 
         public PublisherCountSubscriber(Subscriber<? super Long> actual) {
-            this.actual = actual;
-            this.delayed = new ScalarDelayedArbiter<>(actual);
-        }
-
-        @Override
-        public void request(long n) {
-            delayed.request(n);
+            super(actual);
         }
 
         @Override
         public void cancel() {
-            delayed.cancel();
+            super.cancel();
             s.cancel();
         }
 
@@ -57,7 +47,7 @@ public final class PublisherCount<T> implements Publisher<Long> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 
-                actual.onSubscribe(this);
+                subscriber.onSubscribe(this);
                 
                 s.request(Long.MAX_VALUE);
             }
@@ -69,13 +59,8 @@ public final class PublisherCount<T> implements Publisher<Long> {
         }
 
         @Override
-        public void onError(Throwable t) {
-            actual.onError(t);
-        }
-
-        @Override
         public void onComplete() {
-            delayed.set(counter);
+            set(counter);
         }
     };
 }

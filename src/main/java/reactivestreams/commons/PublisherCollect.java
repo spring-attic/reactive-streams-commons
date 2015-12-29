@@ -1,17 +1,15 @@
 package reactivestreams.commons;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
+import reactivestreams.commons.internal.ScalarDelayedArbiter;
 import reactivestreams.commons.internal.SubscriptionHelper;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
-import reactivestreams.commons.internal.subscription.ScalarDelayedSubscriptionTrait;
 
 /**
  * Collects the values of the source sequence into a container returned by
@@ -56,9 +54,7 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
     }
     
     static final class PublisherCollectSubscriber<T, R> 
-    implements Subscriber<T>, ScalarDelayedSubscriptionTrait<R> {
-
-        final Subscriber<? super R> actual;
+    extends ScalarDelayedArbiter<T, R> {
 
         final BiConsumer<? super R, ? super T> action;
     
@@ -68,26 +64,16 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
         
         boolean done;
 
-        volatile int wip;
-        @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherCollectSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherCollectSubscriber.class, "wip");
-        
         public PublisherCollectSubscriber(Subscriber<? super R> actual, BiConsumer<? super R, ? super T> action,
                 R container) {
-            this.actual = actual;
+            super(actual);
             this.action = action;
             this.container = container;
         }
 
         @Override
-        public void request(long n) {
-            ScalarDelayedSubscriptionTrait.super.request(n);
-        }
-
-        @Override
         public void cancel() {
-            ScalarDelayedSubscriptionTrait.super.cancel();
+            super.cancel();
             s.cancel();
         }
 
@@ -96,7 +82,7 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 
-                actual.onSubscribe(this);
+                subscriber.onSubscribe(this);
                 
                 s.request(Long.MAX_VALUE);
             }
@@ -123,7 +109,7 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
                 return;
             }
             done = true;
-            actual.onError(t);
+            subscriber.onError(t);
         }
 
         @Override
@@ -136,21 +122,6 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
         }
 
         @Override
-        public int sdsGetState() {
-            return wip;
-        }
-
-        @Override
-        public void sdsSetState(int updated) {
-            wip = updated;
-        }
-
-        @Override
-        public boolean sdsCasState(int expected, int updated) {
-            return WIP.compareAndSet(this, expected, updated);
-        }
-
-        @Override
         public R sdsGetValue() {
             return container;
         }
@@ -158,11 +129,6 @@ public final class PublisherCollect<T, R> implements Publisher<R> {
         @Override
         public void sdsSetValue(R value) {
             // value is constant
-        }
-
-        @Override
-        public Subscriber<? super R> sdsGetSubscriber() {
-            return actual;
         }
     }
 }

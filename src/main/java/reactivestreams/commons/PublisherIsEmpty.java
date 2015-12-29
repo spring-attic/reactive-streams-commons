@@ -21,26 +21,16 @@ public final class PublisherIsEmpty<T> implements Publisher<Boolean> {
         source.subscribe(new PublisherIsEmptySubscriber<>(s));
     }
     
-    static final class PublisherIsEmptySubscriber<T> implements Subscriber<T>, Subscription {
-        final Subscriber<? super Boolean> actual;
-        
-        final ScalarDelayedArbiter<Boolean> delayed;
-
+    static final class PublisherIsEmptySubscriber<T> extends ScalarDelayedArbiter<T, Boolean> {
         Subscription s;
 
         public PublisherIsEmptySubscriber(Subscriber<? super Boolean> actual) {
-            this.actual = actual;
-            this.delayed = new ScalarDelayedArbiter<>(actual);
-        }
-
-        @Override
-        public void request(long n) {
-            delayed.request(n);
+            super(actual);
         }
 
         @Override
         public void cancel() {
-            delayed.cancel();
+            super.cancel();
             s.cancel();
         }
 
@@ -48,7 +38,7 @@ public final class PublisherIsEmpty<T> implements Publisher<Boolean> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                actual.onSubscribe(this);
+                subscriber.onSubscribe(this);
                 
                 s.request(Long.MAX_VALUE);
             }
@@ -58,17 +48,12 @@ public final class PublisherIsEmpty<T> implements Publisher<Boolean> {
         public void onNext(T t) {
             s.cancel();
             
-            delayed.set(false);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            actual.onError(t);
+            set(false);
         }
 
         @Override
         public void onComplete() {
-            delayed.set(true);
+            set(true);
         }
     }
 }
