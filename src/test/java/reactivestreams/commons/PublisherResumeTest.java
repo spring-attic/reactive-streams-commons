@@ -2,7 +2,7 @@ package reactivestreams.commons;
 
 import org.junit.Test;
 
-import reactivestreams.commons.internal.TestProcessor;
+import reactivestreams.commons.internal.SimpleProcessor;
 import reactivestreams.commons.internal.subscribers.TestSubscriber;
 
 public class PublisherResumeTest {
@@ -99,7 +99,7 @@ public class PublisherResumeTest {
     
     @Test
     public void someFirst() {
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
@@ -119,7 +119,7 @@ public class PublisherResumeTest {
 
     @Test
     public void someFirstBackpressured() {
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>(10);
         

@@ -2,7 +2,7 @@ package reactivestreams.commons;
 
 import org.junit.Test;
 
-import reactivestreams.commons.internal.TestProcessor;
+import reactivestreams.commons.internal.SimpleProcessor;
 import reactivestreams.commons.internal.subscribers.TestSubscriber;
 
 public class PublisherLatestTest {
@@ -24,7 +24,7 @@ public class PublisherLatestTest {
     
     @Test
     public void backpressured() {
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
@@ -55,7 +55,7 @@ public class PublisherLatestTest {
     
     @Test
     public void error() {
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 

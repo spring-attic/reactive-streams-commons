@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import reactivestreams.commons.internal.TestProcessor;
+import reactivestreams.commons.internal.SimpleProcessor;
 import reactivestreams.commons.internal.subscribers.TestSubscriber;
 
 public class PublisherDropTest {
@@ -51,7 +51,7 @@ public class PublisherDropTest {
     
     @Test
     public void someDrops() {
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         

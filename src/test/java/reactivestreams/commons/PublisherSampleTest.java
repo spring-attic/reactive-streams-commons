@@ -3,7 +3,7 @@ package reactivestreams.commons;
 import org.junit.Assert;
 import org.junit.Test;
 
-import reactivestreams.commons.internal.TestProcessor;
+import reactivestreams.commons.internal.SimpleProcessor;
 import reactivestreams.commons.internal.subscribers.TestSubscriber;
 
 public class PublisherSampleTest {
@@ -19,9 +19,9 @@ public class PublisherSampleTest {
     }
 
     void sample(boolean complete, boolean which) {
-        TestProcessor<Integer> main = new TestProcessor<>();
+        SimpleProcessor<Integer> main = new SimpleProcessor<>();
         
-        TestProcessor<String> other = new TestProcessor<>();
+        SimpleProcessor<String> other = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
@@ -61,7 +61,7 @@ public class PublisherSampleTest {
         .assertNoError()
         .assertNotComplete();
 
-        TestProcessor<?> p = which ? main : other;
+        SimpleProcessor<?> p = which ? main : other;
         
         if (complete) {
             p.onComplete();
@@ -104,9 +104,9 @@ public class PublisherSampleTest {
     
     @Test
     public void subscriberCancels() {
-        TestProcessor<Integer> main = new TestProcessor<>();
+        SimpleProcessor<Integer> main = new SimpleProcessor<>();
         
-        TestProcessor<String> other = new TestProcessor<>();
+        SimpleProcessor<String> other = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
@@ -126,9 +126,9 @@ public class PublisherSampleTest {
     }
 
     public void completeImmediately(boolean which) {
-        TestProcessor<Integer> main = new TestProcessor<>();
+        SimpleProcessor<Integer> main = new SimpleProcessor<>();
         
-        TestProcessor<String> other = new TestProcessor<>();
+        SimpleProcessor<String> other = new SimpleProcessor<>();
         
         if (which) {
             main.onComplete();

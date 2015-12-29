@@ -32,7 +32,7 @@ def reactorCommon = ['fn-backport'              : 'reactor.fn',
 					 'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
 					 'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
 					 'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'TestProcessor'            : 'reactor.core.processor.EmitterProcessor'
+					 'SimpleProcessor'            : 'reactor.core.processor.EmitterProcessor'
 ]
 
 //Reactor Core configuration
@@ -111,8 +111,8 @@ task generateTargetAPI(type: Sync) {
 
 	if (line.trim().startsWith('import')) {
 	  def l = line
-	  if (target.TestProcessor) {
-		l = l.replace("reactivestreams.commons.internal.TestProcessor", target.TestProcessor)
+	  if (target.SimpleProcessor) {
+		l = l.replace("reactivestreams.commons.internal.SimpleProcessor", target.SimpleProcessor)
 	  }
 
 	  if(target['fn-backport']){
@@ -136,8 +136,8 @@ task generateTargetAPI(type: Sync) {
 	  return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClassName<T>")
 	}
 
-	if (target.TestProcessor) {
-	  l = l.replace('TestProcessor', target.TestProcessor)
+	if (target.SimpleProcessor) {
+	  l = l.replace('SimpleProcessor', target.SimpleProcessor)
 	}
 
 	return l

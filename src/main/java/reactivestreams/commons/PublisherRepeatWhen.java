@@ -9,7 +9,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.SingleSubscriptionArbiter;
-import reactivestreams.commons.internal.TestProcessor;
+import reactivestreams.commons.internal.SimpleProcessor;
 import reactivestreams.commons.internal.subscribers.SerializedSubscriber;
 
 /**
@@ -167,7 +167,7 @@ public final class PublisherRepeatWhen<T> implements Publisher<T> {
     static final class PublisherRepeatWhenOtherSubscriber implements Subscriber<Object>, Publisher<Object> {
         PublisherRepeatWhenMainSubscriber<?> main;
 
-        final TestProcessor<Object> completionSignal = new TestProcessor<>();
+        final SimpleProcessor<Object> completionSignal = new SimpleProcessor<>();
         
         @Override
         public void onSubscribe(Subscription s) {

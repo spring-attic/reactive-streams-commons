@@ -5,33 +5,33 @@ import org.junit.Test;
 
 import reactivestreams.commons.internal.subscribers.TestSubscriber;
 
-public class TestProcessorTest {
+public class SimpleProcessorTest {
 
     @Test(expected = NullPointerException.class) 
     public void onNextNull() {
-        new TestProcessor<Integer>().onNext(null);
+        new SimpleProcessor<Integer>().onNext(null);
     }
 
     @Test(expected = NullPointerException.class) 
     public void onErrorNull() {
-        new TestProcessor<Integer>().onError(null);
+        new SimpleProcessor<Integer>().onError(null);
     }
 
     @Test(expected = NullPointerException.class) 
     public void onSubscribeNull() {
-        new TestProcessor<Integer>().onSubscribe(null);
+        new SimpleProcessor<Integer>().onSubscribe(null);
     }
 
     @Test(expected = NullPointerException.class) 
     public void subscribeNull() {
-        new TestProcessor<Integer>().subscribe(null);
+        new SimpleProcessor<Integer>().subscribe(null);
     }
 
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         tp.subscribe(ts);
 
@@ -69,7 +69,7 @@ public class TestProcessorTest {
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         tp.subscribe(ts);
 
@@ -103,7 +103,7 @@ public class TestProcessorTest {
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         tp.subscribe(ts);
         
@@ -131,7 +131,7 @@ public class TestProcessorTest {
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         tp.subscribe(ts);
 
@@ -173,7 +173,7 @@ public class TestProcessorTest {
     public void terminatedWithError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         tp.onError(new RuntimeException("forced failure"));
         
         tp.subscribe(ts);
@@ -197,7 +197,7 @@ public class TestProcessorTest {
     public void terminatedNormally() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         tp.onComplete();
         
         tp.subscribe(ts);
@@ -217,7 +217,7 @@ public class TestProcessorTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         ts.cancel();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         tp.subscribe(ts);
 
@@ -235,7 +235,7 @@ public class TestProcessorTest {
     public void subscriberCancels() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         tp.subscribe(ts);
 

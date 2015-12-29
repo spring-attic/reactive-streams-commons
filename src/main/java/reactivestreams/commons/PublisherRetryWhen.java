@@ -10,7 +10,7 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.internal.MultiSubscriptionArbiter;
 import reactivestreams.commons.internal.SingleSubscriptionArbiter;
-import reactivestreams.commons.internal.TestProcessor;
+import reactivestreams.commons.internal.SimpleProcessor;
 import reactivestreams.commons.internal.subscribers.SerializedSubscriber;
 
 /**
@@ -161,7 +161,7 @@ public final class PublisherRetryWhen<T> implements Publisher<T> {
     static final class PublisherRetryWhenOtherSubscriber implements Subscriber<Object>, Publisher<Throwable> {
         PublisherRetryWhenMainSubscriber<?> main;
 
-        final TestProcessor<Throwable> completionSignal = new TestProcessor<>();
+        final SimpleProcessor<Throwable> completionSignal = new SimpleProcessor<>();
         
         @Override
         public void onSubscribe(Subscription s) {

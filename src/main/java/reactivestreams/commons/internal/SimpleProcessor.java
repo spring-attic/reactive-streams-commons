@@ -23,7 +23,7 @@ import org.reactivestreams.Subscription;
  * 
  * @param <T> the input and output value type
  */
-public final class TestProcessor<T> implements Processor<T, T> {
+public final class SimpleProcessor<T> implements Processor<T, T> {
 
     @SuppressWarnings("rawtypes")
     private static final TestProcessorSubscription[] EMPTY = new TestProcessorSubscription[0];
@@ -32,10 +32,10 @@ public final class TestProcessor<T> implements Processor<T, T> {
     private static final TestProcessorSubscription[] TERMINATED = new TestProcessorSubscription[0];
     
     @SuppressWarnings("unchecked")
-    private volatile TestProcessorSubscription<T>[] subscribers = EMPTY;
+    private volatile TestProcessorSubscription<T>[]                                                subscribers = EMPTY;
     @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<TestProcessor, TestProcessorSubscription[]> SUBSCRIBERS =
-            AtomicReferenceFieldUpdater.newUpdater(TestProcessor.class, TestProcessorSubscription[].class, "subscribers");
+    private static final AtomicReferenceFieldUpdater<SimpleProcessor, TestProcessorSubscription[]> SUBSCRIBERS =
+            AtomicReferenceFieldUpdater.newUpdater(SimpleProcessor.class, TestProcessorSubscription[].class, "subscribers");
     
     private Throwable error;
     
@@ -188,7 +188,7 @@ public final class TestProcessor<T> implements Processor<T, T> {
     implements Subscription {
         final Subscriber<? super T> actual;
         
-        final TestProcessor<T> parent;
+        final SimpleProcessor<T> parent;
         
         volatile boolean cancelled;
         
@@ -197,7 +197,7 @@ public final class TestProcessor<T> implements Processor<T, T> {
         static final AtomicLongFieldUpdater<TestProcessorSubscription> REQUESTED =
                 AtomicLongFieldUpdater.newUpdater(TestProcessorSubscription.class, "requested");
 
-        public TestProcessorSubscription(Subscriber<? super T> actual, TestProcessor<T> parent) {
+        public TestProcessorSubscription(Subscriber<? super T> actual, SimpleProcessor<T> parent) {
             this.actual = actual;
             this.parent = parent;
         }

@@ -5,7 +5,7 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import reactivestreams.commons.internal.TestProcessor;
+import reactivestreams.commons.internal.SimpleProcessor;
 import reactivestreams.commons.internal.subscribers.TestSubscriber;
 
 public class PublisherTimeoutTest {
@@ -102,9 +102,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutHasNoEffect() {
-        TestProcessor<Integer> source = new TestProcessor<>();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -125,9 +125,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutCompleteHasNoEffect() {
-        TestProcessor<Integer> source = new TestProcessor<>();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -148,9 +148,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutErrorHasNoEffect() {
-        TestProcessor<Integer> source = new TestProcessor<>();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        TestProcessor<Integer> tp = new TestProcessor<>();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
