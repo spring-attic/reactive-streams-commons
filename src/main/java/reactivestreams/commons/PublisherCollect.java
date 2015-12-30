@@ -19,17 +19,15 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the source value type
  * @param <R> the container value type
  */
-public final class PublisherCollect<T, R> implements Publisher<R> {
+public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
 
-    final Publisher<? extends T> source;
-    
     final Supplier<R> supplier;
     
     final BiConsumer<? super R, ? super T> action;
 
     public PublisherCollect(Publisher<? extends T> source, Supplier<R> supplier,
             BiConsumer<? super R, ? super T> action) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.supplier = Objects.requireNonNull(supplier, "supplier");
         this.action = Objects.requireNonNull(action);
     }

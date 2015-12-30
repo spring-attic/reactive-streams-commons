@@ -19,17 +19,15 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the source value type
  * @param <K> the key extacted from the source value to be used for duplicate testing
  */
-public final class PublisherDistinct<T, K, C extends Collection<? super K>> implements Publisher<T> {
+public final class PublisherDistinct<T, K, C extends Collection<? super K>> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Function<? super T, ? extends K> keyExtractor;
     
     final Supplier<C> collectionSupplier;
 
     public PublisherDistinct(Publisher<? extends T> source, Function<? super T, ? extends K> keyExtractor,
             Supplier<C> collectionSuppplier) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
         this.collectionSupplier = Objects.requireNonNull(collectionSuppplier, "collectionSupplier");
     }

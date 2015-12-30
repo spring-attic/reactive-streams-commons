@@ -1,12 +1,10 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -17,17 +15,15 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public final class PublisherTake<T> implements Publisher<T> {
+public final class PublisherTake<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final long n;
 
     public PublisherTake(Publisher<? extends T> source, long n) {
+        super(source);
         if (n < 0) {
             throw new IllegalArgumentException("n >= 0 required but it was " + n);
         }
-        this.source = Objects.requireNonNull(source);
         this.n = n;
     }
     

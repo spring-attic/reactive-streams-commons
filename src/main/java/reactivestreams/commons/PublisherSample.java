@@ -7,11 +7,10 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
-import reactivestreams.commons.internal.support.BackpressureHelper;
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 import reactivestreams.commons.internal.subscription.CancelledSubscription;
+import reactivestreams.commons.internal.support.BackpressureHelper;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Samples the main source and emits its latest value whenever the other Publisher
@@ -25,14 +24,12 @@ import reactivestreams.commons.internal.subscription.CancelledSubscription;
  * Both Publishers will run in unbounded mode because the backpressure
  * would interfere with the sampling precision.
  */
-public final class PublisherSample<T, U> implements Publisher<T> {
+public final class PublisherSample<T, U> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Publisher<U> other;
 
     public PublisherSample(Publisher<? extends T> source, Publisher<U> other) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.other = Objects.requireNonNull(other, "other");
     }
     

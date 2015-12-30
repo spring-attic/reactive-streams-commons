@@ -1,6 +1,5 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -8,7 +7,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
@@ -18,12 +16,10 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherLatest<T> implements Publisher<T> {
-
-    final Publisher<? extends T> source;
+public final class PublisherLatest<T> extends PublisherSource<T, T> {
 
     public PublisherLatest(Publisher<? extends T> source) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
     }
     
     @Override

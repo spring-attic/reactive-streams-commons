@@ -11,14 +11,12 @@ import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
  *
  * @param <T> the value type
  */
-public final class PublisherSwitchIfEmpty<T> implements Publisher<T> {
+public final class PublisherSwitchIfEmpty<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Publisher<? extends T> other;
 
     public PublisherSwitchIfEmpty(Publisher<? extends T> source, Publisher<? extends T> other) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.other = Objects.requireNonNull(other, "other");
     }
     

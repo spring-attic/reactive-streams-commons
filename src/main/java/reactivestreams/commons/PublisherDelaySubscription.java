@@ -5,7 +5,6 @@ import java.util.Objects;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
@@ -16,14 +15,12 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <T> the main source value type
  * @param <U> the other source type
  */
-public final class PublisherDelaySubscription<T, U> implements Publisher<T> {
-    
-    final Publisher<? extends T> source;
+public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T> {
     
     final Publisher<U> other;
 
     public PublisherDelaySubscription(Publisher<? extends T> source, Publisher<U> other) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.other = Objects.requireNonNull(other, "other");
     }
 

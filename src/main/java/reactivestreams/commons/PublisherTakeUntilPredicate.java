@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -16,21 +15,15 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherTakeUntilPredicate<T> implements Publisher<T> {
+public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Predicate<? super T> predicate;
 
     public PublisherTakeUntilPredicate(Publisher<? extends T> source, Predicate<? super T> predicate) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
-    
-    public Publisher<? extends T> source() {
-        return source;
-    }
-    
+
     public Predicate<? super T> predicate() {
         return predicate;
     }

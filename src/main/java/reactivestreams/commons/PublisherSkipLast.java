@@ -1,12 +1,10 @@
 package reactivestreams.commons;
 
 import java.util.ArrayDeque;
-import java.util.Objects;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -14,17 +12,15 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public final class PublisherSkipLast<T> implements Publisher<T> {
+public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final int n;
 
     public PublisherSkipLast(Publisher<? extends T> source, int n) {
+        super(source);
         if (n < 0) {
             throw new IllegalArgumentException("n >= 0 required but it was " + n);
         }
-        this.source = Objects.requireNonNull(source, "source");
         this.n = n;
     }
     

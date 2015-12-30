@@ -15,28 +15,26 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherElementAt<T> implements Publisher<T> {
+public final class PublisherElementAt<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final long index;
     
     final Supplier<? extends T> defaultSupplier;
 
     public PublisherElementAt(Publisher<? extends T> source, long index) {
+        super(source);
         if (index < 0) {
             throw new IndexOutOfBoundsException("index >= required but it was " + index);
         }
-        this.source = Objects.requireNonNull(source, "source");
         this.index = index;
         this.defaultSupplier = null;
     }
 
     public PublisherElementAt(Publisher<? extends T> source, long index, Supplier<? extends T> defaultSupplier) {
+        super(source);
         if (index < 0) {
             throw new IndexOutOfBoundsException("index >= required but it was " + index);
         }
-        this.source = Objects.requireNonNull(source, "source");
         this.index = index;
         this.defaultSupplier = Objects.requireNonNull(defaultSupplier, "defaultSupplier");
     }

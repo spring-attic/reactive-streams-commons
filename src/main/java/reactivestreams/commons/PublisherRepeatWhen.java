@@ -7,10 +7,10 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.internal.processor.SimpleProcessor;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
+import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 
 /**
  * Repeats a source when a companion sequence 
@@ -21,15 +21,13 @@ import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
  * 
  * @param <T> the source value type
  */
-public final class PublisherRepeatWhen<T> implements Publisher<T> {
+public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Function<Publisher<Object>, ? extends Publisher<? extends Object>> whenSourceFactory;
 
     public PublisherRepeatWhen(Publisher<? extends T> source,
             Function<Publisher<Object>, ? extends Publisher<? extends Object>> whenSourceFactory) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.whenSourceFactory = Objects.requireNonNull(whenSourceFactory, "whenSourceFactory");
     }
     

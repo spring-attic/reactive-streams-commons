@@ -10,12 +10,11 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
-import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
+import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Signals a timeout (or switches to another sequence) in case a per-item
@@ -26,10 +25,8 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <U> the value type for the timeout for the very first item
  * @param <V> the value type for the timeout for the subsequent items
  */
-public final class PublisherTimeout<T, U, V> implements Publisher<T> {
+public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Supplier<? extends Publisher<U>> firstTimeout;
     
     final Function<? super T, ? extends Publisher<V>> itemTimeout;
@@ -38,7 +35,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
 
     public PublisherTimeout(Publisher<? extends T> source, Supplier<? extends Publisher<U>> firstTimeout,
             Function<? super T, ? extends Publisher<V>> itemTimeout) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.firstTimeout = Objects.requireNonNull(firstTimeout, "firstTimeout");
         this.itemTimeout = Objects.requireNonNull(itemTimeout, "itemTimeout");
         this.other = null;
@@ -46,7 +43,7 @@ public final class PublisherTimeout<T, U, V> implements Publisher<T> {
 
     public PublisherTimeout(Publisher<? extends T> source, Supplier<? extends Publisher<U>> firstTimeout,
             Function<? super T, ? extends Publisher<V>> itemTimeout, Publisher<? extends T> other) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.firstTimeout = Objects.requireNonNull(firstTimeout, "firstTimeout");
         this.itemTimeout = Objects.requireNonNull(itemTimeout, "itemTimeout");
         this.other = Objects.requireNonNull(other, "other");

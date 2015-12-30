@@ -11,13 +11,14 @@ import org.reactivestreams.Subscription;
  *
  * @param <T> the value type
  */
-public final class PublisherSkip<T> implements Publisher<T> {
+public final class PublisherSkip<T> extends PublisherSource<T, T> {
     
     final Publisher<? extends T> source;
     
     final long n;
     
     public PublisherSkip(Publisher<? extends T> source, long n) {
+        super(source);
         if (n < 0) {
             throw new IllegalArgumentException("n >= 0 required but it was " + n);
         }
@@ -28,11 +29,7 @@ public final class PublisherSkip<T> implements Publisher<T> {
     public long n() {
         return n;
     }
-    
-    public Publisher<? extends T> source() {
-        return source;
-    }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (n == 0) {

@@ -8,8 +8,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Aggregates the source values with the help of an accumulator 
@@ -18,17 +18,15 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the source value type
  * @param <R> the accumulated result type
  */
-public final class PublisherReduce<T, R> implements Publisher<R> {
+public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
 
-    final Publisher<? extends T> source;
-    
     final Supplier<R> initialSupplier;
     
     final BiFunction<R, ? super T, R> accumulator;
 
     public PublisherReduce(Publisher<? extends T> source, Supplier<R> initialSupplier,
             BiFunction<R, ? super T, R> accumulator) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.initialSupplier = Objects.requireNonNull(initialSupplier, "initialSupplier");
         this.accumulator = Objects.requireNonNull(accumulator, "accumulator");
     }

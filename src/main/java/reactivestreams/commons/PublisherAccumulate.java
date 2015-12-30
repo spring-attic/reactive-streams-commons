@@ -6,9 +6,8 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
-import reactivestreams.commons.internal.support.UnsignalledExceptions;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+import reactivestreams.commons.internal.support.UnsignalledExceptions;
 
 /**
  * Accumulates the source values with an accumulator function and
@@ -28,14 +27,12 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the input and accumulated value type
  */
-public final class PublisherAccumulate<T> implements Publisher<T> {
+public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final BiFunction<T, ? super T, T> accumulator;
 
     public PublisherAccumulate(Publisher<? extends T> source, BiFunction<T, ? super T, T> accumulator) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.accumulator = Objects.requireNonNull(accumulator, "accumulator");
     }
     

@@ -13,14 +13,12 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherDefaultIfEmpty<T> implements Publisher<T> {
+public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final T value;
 
     public PublisherDefaultIfEmpty(Publisher<? extends T> source, T value) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.value = Objects.requireNonNull(value, "value");
     }
     

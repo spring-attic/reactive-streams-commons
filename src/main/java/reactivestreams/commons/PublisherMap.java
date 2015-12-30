@@ -14,10 +14,8 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <T> the source value type
  * @param <R> the result value type
  */
-public final class PublisherMap<T, R> implements Publisher<R> {
+public final class PublisherMap<T, R> extends PublisherSource<T, R> {
 
-    final Publisher<? extends T> source;
-    
     final Function<? super T, ? extends R> mapper;
     
     /**
@@ -27,12 +25,8 @@ public final class PublisherMap<T, R> implements Publisher<R> {
      * @throws NullPointerException if either {@code source} or {@code mapper} is null.
      */
     public PublisherMap(Publisher<? extends T> source, Function<? super T, ? extends R> mapper) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.mapper = Objects.requireNonNull(mapper, "mapper");
-    }
-    
-    public Publisher<? extends T> source() {
-        return source;
     }
     
     public Function<? super T, ? extends R> mapper() {

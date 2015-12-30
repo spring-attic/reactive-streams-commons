@@ -7,7 +7,6 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
@@ -27,23 +26,20 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <T> the source value type
  * @param <R> the aggregate type
  */
-public final class PublisherScan<T, R> implements Publisher<R> {
+public final class PublisherScan<T, R> extends PublisherSource<T, R> {
 
-    final Publisher<? extends T> source;
-    
     final BiFunction<R, ? super T, R> accumulator;
 
     final R initialValue;
 
     public PublisherScan(Publisher<? extends T> source, R initialValue, BiFunction<R, ? super T, R> accumulator) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.accumulator = Objects.requireNonNull(accumulator, "accumulator");
         this.initialValue = Objects.requireNonNull(initialValue, "initialValue");
     }
 
     @Override
     public void subscribe(Subscriber<? super R> s) {
-        
         source.subscribe(new PublisherScanSubscriber<>(s, accumulator, initialValue));
     }
     

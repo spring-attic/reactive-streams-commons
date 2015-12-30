@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -15,14 +14,12 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherSkipWhile<T> implements Publisher<T> {
-
-    final Publisher<? extends T> source;
+public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
     
     final Predicate<? super T> predicate;
 
     public PublisherSkipWhile(Publisher<? extends T> source, Predicate<? super T> predicate) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
     

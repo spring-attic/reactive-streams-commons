@@ -22,15 +22,13 @@ import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
  * 
  * @param <T> the source value type
  */
-public final class PublisherRetryWhen<T> implements Publisher<T> {
+public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Function<Publisher<Throwable>, ? extends Publisher<? extends Object>> whenSourceFactory;
 
     public PublisherRetryWhen(Publisher<? extends T> source,
             Function<Publisher<Throwable>, ? extends Publisher<? extends Object>> whenSourceFactory) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.whenSourceFactory = Objects.requireNonNull(whenSourceFactory, "whenSourceFactory");
     }
     

@@ -11,7 +11,6 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
@@ -21,10 +20,8 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <T> the source value type
  * @param <C> the buffer collection type
  */
-public final class PublisherBuffer<T, C extends Collection<? super T>> implements Publisher<C> {
+public final class PublisherBuffer<T, C extends Collection<? super T>> extends PublisherSource<T, C> {
 
-    final Publisher<? extends T> source;
-    
     final int size;
     
     final int skip;
@@ -36,6 +33,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
     }
 
     public PublisherBuffer(Publisher<? extends T> source, int size, int skip, Supplier<C> bufferSupplier) {
+        super(source);
         if (size <= 0) {
             throw new IllegalArgumentException("size > 0 required but it was " + size);
         }
@@ -44,7 +42,6 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> implement
             throw new IllegalArgumentException("skip > 0 required but it was " + size);
         }
         
-        this.source = Objects.requireNonNull(source, "source");
         this.size = size;
         this.skip = skip;
         this.bufferSupplier = Objects.requireNonNull(bufferSupplier, "bufferSupplier");

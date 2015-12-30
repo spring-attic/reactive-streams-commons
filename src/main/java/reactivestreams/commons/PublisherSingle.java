@@ -17,19 +17,17 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherSingle<T> implements Publisher<T> {
+public final class PublisherSingle<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Supplier<? extends T> defaultSupplier;
     
     public PublisherSingle(Publisher<? extends T> source) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.defaultSupplier = null;
     }
     
     public PublisherSingle(Publisher<? extends T> source, Supplier<? extends T> defaultSupplier) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.defaultSupplier = Objects.requireNonNull(defaultSupplier, "defaultSupplier");
     }
     

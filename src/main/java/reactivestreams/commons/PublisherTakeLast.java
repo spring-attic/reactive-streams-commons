@@ -1,15 +1,14 @@
 package reactivestreams.commons;
 
 import java.util.ArrayDeque;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
@@ -17,17 +16,15 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherTakeLast<T> implements Publisher<T> {
+public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final int n;
 
     public PublisherTakeLast(Publisher<? extends T> source, int n) {
+        super(source);
         if (n < 0) {
             throw new IllegalArgumentException("n >= required but it was " + n);
         }
-        this.source = Objects.requireNonNull(source, "source");
         this.n = n;
     }
     

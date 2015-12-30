@@ -1,24 +1,20 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Counts the number of values in the source sequence.
  *
  * @param <T> the source value type
  */
-public final class PublisherCount<T> implements Publisher<Long> {
+public final class PublisherCount<T> extends PublisherSource<T, Long> {
     
-    final Publisher<? extends T> source;
-
     public PublisherCount(Publisher<? extends T> source) {
-        this.source = Objects.requireNonNull(source);
+        super(source);
     }
     
     @Override

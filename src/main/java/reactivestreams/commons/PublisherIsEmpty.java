@@ -1,19 +1,15 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
-public final class PublisherIsEmpty<T> implements Publisher<Boolean> {
-
-    final Publisher<? extends T> source;
+public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
 
     public PublisherIsEmpty(Publisher<? extends T> source) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
     }
     
     @Override

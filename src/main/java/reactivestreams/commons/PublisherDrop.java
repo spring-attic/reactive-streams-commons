@@ -16,20 +16,18 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherDrop<T> implements Publisher<T> {
+public final class PublisherDrop<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Consumer<? super T> onDrop;
 
     public PublisherDrop(Publisher<? extends T> source) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.onDrop = v -> { };
     }
 
     
     public PublisherDrop(Publisher<? extends T> source, Consumer<? super T> onDrop) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.onDrop = Objects.requireNonNull(onDrop, "onDrop");
     }
     

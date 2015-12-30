@@ -7,11 +7,10 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Combines values from a main Publisher with values from another
@@ -27,16 +26,14 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <U> the alternate source type
  * @param <R> the output type
  */
-public final class PublisherWithLatestFrom<T, U, R> implements Publisher<R> {
-    final Publisher<? extends T> source;
-    
+public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R> {
     final Publisher<? extends U> other;
     
     final BiFunction<? super T, ? super U, ? extends R> combiner;
 
     public PublisherWithLatestFrom(Publisher<? extends T> source, Publisher<? extends U> other,
             BiFunction<? super T, ? super U, ? extends R> combiner) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.other = Objects.requireNonNull(other, "other");
         this.combiner = Objects.requireNonNull(combiner, "combiner");
     }

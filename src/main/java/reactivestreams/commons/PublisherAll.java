@@ -18,14 +18,12 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * 
  * @param <T> the source value type
  */
-public final class PublisherAll<T> implements Publisher<Boolean> {
+public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
 
-    final Publisher<? extends T> source;
-    
     final Predicate<? super T> predicate;
 
     public PublisherAll(Publisher<? extends T> source, Predicate<? super T> predicate) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
     

@@ -15,14 +15,12 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <T> the value type
  * @param <K> the key type used for comparing subsequent elements
  */
-public final class PublisherDistinctUntilChanged<T, K> implements Publisher<T> {
+public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Function<? super T, K> keyExtractor;
 
     public PublisherDistinctUntilChanged(Publisher<? extends T> source, Function<? super T, K> keyExtractor) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
     }
     

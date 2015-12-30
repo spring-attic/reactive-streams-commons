@@ -1,6 +1,5 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 
@@ -19,10 +18,8 @@ import org.reactivestreams.Subscription;
  * 
  * @param <T> the value type
  */
-public final class PublisherPeek<T> implements Publisher<T> {
+public final class PublisherPeek<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final Consumer<? super Subscription> onSubscribeCall;
     
     final Consumer<? super T> onNextCall;
@@ -40,7 +37,7 @@ public final class PublisherPeek<T> implements Publisher<T> {
     public PublisherPeek(Publisher<? extends T> source, Consumer<? super Subscription> onSubscribeCall,
             Consumer<? super T> onNextCall, Consumer<? super Throwable> onErrorCall, Runnable onCompleteCall,
             Runnable onAfterTerminateCall, LongConsumer onRequestCall, Runnable onCancelCall) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.onSubscribeCall = onSubscribeCall;
         this.onNextCall = onNextCall;
         this.onErrorCall = onErrorCall;

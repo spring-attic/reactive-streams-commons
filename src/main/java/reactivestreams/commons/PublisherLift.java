@@ -15,23 +15,17 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the upstream value type
  * @param <R> the downstream value type
  */
-public final class PublisherLift<T, R> implements Publisher<R> {
+public final class PublisherLift<T, R> extends PublisherSource<T, R> {
 
-    final Publisher<? extends T> source;
-    
     final Function<Subscriber<? super R>, Subscriber<? super T>> lifter;
 
     public PublisherLift(Publisher<? extends T> source, Function<Subscriber<? super R>, Subscriber<? super T>> lifter) {
-        this.source = Objects.requireNonNull(source, "source");
-        this.lifter = Objects.requireNonNull(lifter, "lifter");
+        super(source);
+        this.lifter = Objects.requireNonNull(lifter, "operator");
     }
     
-    public Function<Subscriber<? super R>, Subscriber<? super T>> lifter() {
+    public Function<Subscriber<? super R>, Subscriber<? super T>> operator() {
         return lifter;
-    }
-    
-    public Publisher<? extends T> source() {
-        return source;
     }
     
     @Override
@@ -46,7 +40,7 @@ public final class PublisherLift<T, R> implements Publisher<R> {
         }
         
         if (ts == null) {
-            EmptySubscription.error(s, new NullPointerException("The lifter returned a null Subscriber"));
+            EmptySubscription.error(s, new NullPointerException("The operator returned a null Subscriber"));
             return;
         }
         

@@ -6,11 +6,10 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
 
 /**
  * Relays values from the main Publisher until another Publisher signals an event.
@@ -18,14 +17,12 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the value type of the main Publisher
  * @param <U> the value type of the other Publisher
  */
-public final class PublisherTakeUntil<T, U> implements Publisher<T> {
-    
-    final Publisher<? extends T> source;
+public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
     
     final Publisher<U> other;
 
     public PublisherTakeUntil(Publisher<? extends T> source, Publisher<U> other) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.other = Objects.requireNonNull(other, "other");
     }
     

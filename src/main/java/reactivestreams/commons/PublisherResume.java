@@ -6,7 +6,6 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 
 /**
@@ -15,15 +14,13 @@ import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
  *
  * @param <T> the value type
  */
-public final class PublisherResume<T> implements Publisher<T> {
-    
-    final Publisher<? extends T> source;
-    
+public final class PublisherResume<T> extends PublisherSource<T, T> {
+
     final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 
     public PublisherResume(Publisher<? extends T> source,
             Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory) {
-        this.source = Objects.requireNonNull(source, "source");
+        super(source);
         this.nextFactory = Objects.requireNonNull(nextFactory, "nextFactory");
     }
     

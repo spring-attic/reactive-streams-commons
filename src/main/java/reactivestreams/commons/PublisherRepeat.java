@@ -1,11 +1,9 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-
 import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 
@@ -17,10 +15,8 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  *
  * @param <T> the value type
  */
-public final class PublisherRepeat<T> implements Publisher<T> {
+public final class PublisherRepeat<T> extends PublisherSource<T, T> {
 
-    final Publisher<? extends T> source;
-    
     final long times;
 
     public PublisherRepeat(Publisher<? extends T> source) {
@@ -28,10 +24,10 @@ public final class PublisherRepeat<T> implements Publisher<T> {
     }
 
     public PublisherRepeat(Publisher<? extends T> source, long times) {
+        super(source);
         if (times < 0L) {
             throw new IllegalArgumentException("times >= 0 required");
         }
-        this.source = Objects.requireNonNull(source, "source");
         this.times = times;
     }
     
