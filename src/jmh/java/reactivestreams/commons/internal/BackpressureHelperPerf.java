@@ -1,7 +1,7 @@
 package reactivestreams.commons.internal;
 
 import org.openjdk.jmh.annotations.*;
-import reactivestreams.commons.internal.support.BackpressureHelper;
+import reactivestreams.commons.support.BackpressureHelper;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;

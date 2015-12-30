@@ -4,6 +4,8 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 import reactivestreams.commons.internal.PerfSubscriber;
+import reactivestreams.commons.publisher.PublisherArray;
+import reactivestreams.commons.publisher.PublisherRetry;
 
 import java.util.concurrent.TimeUnit;
 

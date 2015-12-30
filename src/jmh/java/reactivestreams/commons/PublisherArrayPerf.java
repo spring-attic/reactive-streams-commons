@@ -5,6 +5,7 @@ import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 import reactivestreams.commons.internal.PerfSlowPathSubscriber;
 import reactivestreams.commons.internal.PerfSubscriber;
+import reactivestreams.commons.publisher.PublisherArray;
 
 import java.util.concurrent.TimeUnit;
 
