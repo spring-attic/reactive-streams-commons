@@ -13,21 +13,21 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the upstream value type
  * @param <R> the downstream value type
  */
-public class PublisherSource<T, R> implements Publisher<R> {
+public abstract class PublisherSource<T, R> implements Publisher<R> {
 
-    final Publisher<? extends T> source;
+    final protected Publisher<? extends T> source;
 
     public PublisherSource(Publisher<? extends T> source) {
         this.source = Objects.requireNonNull(source, "source");
     }
-    
+
+	/**
+     * The upstream source
+     *
+     * @return
+     */
     public final Publisher<? extends T> upstream() {
         return source;
     }
-    
-    @Override
-    @SuppressWarnings("unchecked")
-    public void subscribe(Subscriber<? super R> s) {
-        source.subscribe((Subscriber<? super T>) s);
-    }
+
 }
