@@ -1,15 +1,15 @@
 package reactivestreams.commons;
 
-import java.util.ArrayDeque;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.ArrayDeque;
+
 /**
  * Skips the last N elements from the source stream.
- * 
+ *
  * @param <T> the value type
  */
 public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
@@ -23,7 +23,7 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         }
         this.n = n;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (n == 0) {
@@ -32,16 +32,16 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
             source.subscribe(new PublisherSkipLastSubscriber<>(s, n));
         }
     }
-    
+
     static final class PublisherSkipLastSubscriber<T> implements Subscriber<T> {
         final Subscriber<? super T> actual;
-        
+
         final int n;
-        
+
         final ArrayDeque<T> buffer;
 
         Subscription s;
-        
+
         public PublisherSkipLastSubscriber(Subscriber<? super T> actual, int n) {
             this.actual = actual;
             this.n = n;
@@ -52,9 +52,9 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 actual.onSubscribe(s);
-            
+
                 s.request(n);
             }
         }
@@ -63,14 +63,14 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         public void onNext(T t) {
 
             ArrayDeque<T> bs = buffer;
-            
+
             if (bs.size() == n) {
                 T v = bs.poll();
-                
+
                 actual.onNext(v);
             }
             bs.offer(t);
-            
+
         }
 
         @Override
@@ -82,6 +82,6 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         public void onComplete() {
             actual.onComplete();
         }
-        
+
     }
 }

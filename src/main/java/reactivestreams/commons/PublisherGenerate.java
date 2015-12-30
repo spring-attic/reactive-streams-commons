@@ -1,26 +1,25 @@
 package reactivestreams.commons;
 
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
+import reactivestreams.commons.internal.support.BackpressureHelper;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
+
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
-import reactivestreams.commons.internal.support.BackpressureHelper;
-import reactivestreams.commons.internal.support.SubscriptionHelper;
-import reactivestreams.commons.internal.subscription.EmptySubscription;
-
 /**
  * Generate signals one-by-one via a function callback.
- *
+ * <p>
  * <p>
  * The {@code stateSupplier} may return {@code null} but your {@code stateConsumer} should be prepared to
  * handle it.
- * 
+ *
  * @param <T> the value type emitted
  * @param <S> the custom state per subscriber
  */
@@ -32,17 +31,17 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
      * Methods of this interface should be called at most once per invocation
      * of the generator function. In addition, at least one of the methods
      * should be called per invocation of the generator function
-     * 
+     *
      * @param <T> the output value type
      */
     public interface PublisherGenerateOutput<T> {
-        
+
         void onNext(T t);
-        
+
         void onError(Throwable e);
-        
+
         void onComplete();
-        
+
         /**
          * Indicate there won't be any further signals delivered by
          * the generator and the operator will stop calling it.
@@ -51,32 +50,34 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
          */
         void stop();
     }
-    
+
     final Supplier<S> stateSupplier;
-    
+
     final BiFunction<S, PublisherGenerateOutput<T>, S> generator;
-    
+
     final Consumer<? super S> stateConsumer;
 
     public PublisherGenerate(BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
-        this(() -> null, generator, s -> { });
+        this(() -> null, generator, s -> {
+        });
     }
 
     public PublisherGenerate(Supplier<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
-        this(stateSupplier, generator, s -> { });
+        this(stateSupplier, generator, s -> {
+        });
     }
-    
+
     public PublisherGenerate(Supplier<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator,
-            Consumer<? super S> stateConsumer) {
+                             Consumer<? super S> stateConsumer) {
         this.stateSupplier = Objects.requireNonNull(stateSupplier, "stateSupplier");
         this.generator = Objects.requireNonNull(generator, "generator");
         this.stateConsumer = Objects.requireNonNull(stateConsumer, "stateConsumer");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         S state;
-        
+
         try {
             state = stateSupplier.get();
         } catch (Throwable e) {
@@ -85,31 +86,32 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
         }
         s.onSubscribe(new PublisherGenerateSubscription<>(s, state, generator, stateConsumer));
     }
-    
+
     static final class PublisherGenerateSubscription<T, S>
-    implements Subscription, PublisherGenerateOutput<T> {
+      implements Subscription, PublisherGenerateOutput<T> {
 
         final Subscriber<? super T> actual;
-        
+
         final BiFunction<S, PublisherGenerateOutput<T>, S> generator;
-        
+
         final Consumer<? super S> stateConsumer;
-        
+
         volatile boolean cancelled;
-        
+
         S state;
-        
+
         boolean terminate;
-        
+
         boolean hasValue;
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherGenerateSubscription> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherGenerateSubscription.class, "requested");
+          AtomicLongFieldUpdater.newUpdater(PublisherGenerateSubscription.class, "requested");
 
         public PublisherGenerateSubscription(Subscriber<? super T> actual, S state,
-                BiFunction<S, PublisherGenerateOutput<T>, S> generator, Consumer<? super S> stateConsumer) {
+                                             BiFunction<S, PublisherGenerateOutput<T>, S> generator, Consumer<? super
+          S> stateConsumer) {
             this.actual = actual;
             this.state = state;
             this.generator = generator;
@@ -177,18 +179,18 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
 
             final BiFunction<S, PublisherGenerateOutput<T>, S> g = generator;
 
-            for (;;) {
-                
+            for (; ; ) {
+
                 if (cancelled) {
                     cleanup(s);
                     return;
                 }
-                
+
                 try {
                     s = g.apply(s, this);
                 } catch (Throwable e) {
                     cleanup(s);
-                    
+
                     actual.onError(e);
                     return;
                 }
@@ -198,23 +200,24 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
                 }
                 if (!hasValue) {
                     cleanup(s);
-                    
-                    actual.onError(new IllegalStateException("The generator didn't call any of the PublisherGenerateOutput method"));
+
+                    actual.onError(new IllegalStateException("The generator didn't call any of the " +
+                      "PublisherGenerateOutput method"));
                     return;
                 }
 
                 hasValue = false;
             }
         }
-        
+
         void slowPath(long n) {
             S s = state;
 
             long e = 0L;
 
             final BiFunction<S, PublisherGenerateOutput<T>, S> g = generator;
-            
-            for (;;) {
+
+            for (; ; ) {
                 while (e != n) {
 
                     if (cancelled) {
@@ -226,7 +229,7 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
                         s = g.apply(s, this);
                     } catch (Throwable ex) {
                         cleanup(s);
-                        
+
                         actual.onError(ex);
                         return;
                     }
@@ -236,17 +239,18 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
                     }
                     if (!hasValue) {
                         cleanup(s);
-                        
-                        actual.onError(new IllegalStateException("The generator didn't call any of the PublisherGenerateOutput method"));
+
+                        actual.onError(new IllegalStateException("The generator didn't call any of the " +
+                          "PublisherGenerateOutput method"));
                         return;
                     }
 
                     e++;
                     hasValue = false;
                 }
-                
+
                 n = requested;
-                
+
                 if (n == e) {
                     state = s;
                     n = REQUESTED.addAndGet(this, -e);
@@ -256,22 +260,22 @@ public final class PublisherGenerate<T, S> implements Publisher<T> {
                 }
             }
         }
-        
+
         @Override
         public void cancel() {
             if (!cancelled) {
                 cancelled = true;
-                
+
                 if (REQUESTED.getAndIncrement(this) == 0) {
                     cleanup(state);
                 }
             }
         }
-        
+
         void cleanup(S s) {
             try {
                 state = null;
-                
+
                 stateConsumer.accept(s);
             } catch (Throwable e) {
                 // FIXME this exception has nowhere to go

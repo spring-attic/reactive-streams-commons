@@ -1,18 +1,18 @@
 package reactivestreams.commons;
 
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.function.Supplier;
+
 /**
  * Expects and emits a single item from the source or signals
- * NoSuchElementException (or a default generated value) for empty source, 
+ * NoSuchElementException (or a default generated value) for empty source,
  * IndexOutOfBoundsException for a multi-item source.
  *
  * @param <T> the value type
@@ -20,32 +20,32 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
 public final class PublisherSingle<T> extends PublisherSource<T, T> {
 
     final Supplier<? extends T> defaultSupplier;
-    
+
     public PublisherSingle(Publisher<? extends T> source) {
         super(source);
         this.defaultSupplier = null;
     }
-    
+
     public PublisherSingle(Publisher<? extends T> source, Supplier<? extends T> defaultSupplier) {
         super(source);
         this.defaultSupplier = Objects.requireNonNull(defaultSupplier, "defaultSupplier");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherSingleSubscriber<>(s, defaultSupplier));
     }
-    
+
     static final class PublisherSingleSubscriber<T> extends SubscriberDeferScalar<T, T> {
-        
+
         final Supplier<? extends T> defaultSupplier;
-        
+
         Subscription s;
-        
+
         int count;
-        
+
         boolean done;
-        
+
         public PublisherSingleSubscriber(Subscriber<? super T> actual, Supplier<? extends T> defaultSupplier) {
             super(actual);
             this.defaultSupplier = defaultSupplier;
@@ -78,7 +78,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 subscriber.onSubscribe(this);
             }
         }
@@ -89,10 +89,10 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
                 return;
             }
             value = t;
-            
+
             if (++count > 1) {
                 cancel();
-                
+
                 onError(new IndexOutOfBoundsException("Source emitted more than one item"));
             }
         }
@@ -119,30 +119,29 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
                 Supplier<? extends T> ds = defaultSupplier;
                 if (ds != null) {
                     T t;
-                    
+
                     try {
                         t = ds.get();
                     } catch (Throwable e) {
                         subscriber.onError(e);
                         return;
                     }
-                    
+
                     if (t == null) {
                         subscriber.onError(new NullPointerException("The defaultSupplier returned a null value"));
                         return;
                     }
-                    
+
                     set(t);
                 } else {
                     subscriber.onError(new NoSuchElementException("Source was empty"));
                 }
-            } else
-            if (c == 1) {
+            } else if (c == 1) {
                 subscriber.onNext(value);
                 subscriber.onComplete();
             }
         }
 
-        
+
     }
 }

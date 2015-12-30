@@ -2,7 +2,6 @@ package reactivestreams.commons;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import reactivestreams.commons.internal.processor.SimpleProcessor;
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
@@ -20,68 +19,68 @@ public class PublisherSampleTest {
 
     void sample(boolean complete, boolean which) {
         SimpleProcessor<Integer> main = new SimpleProcessor<>();
-        
+
         SimpleProcessor<String> other = new SimpleProcessor<>();
-        
+
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherSample<>(main, other).subscribe(ts);
-    
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertNoError();
-        
+          .assertNotComplete()
+          .assertNoError();
+
         main.onNext(1);
 
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertNoError();
+          .assertNotComplete()
+          .assertNoError();
 
         other.onNext("first");
-        
+
         ts.assertValue(1)
-        .assertNoError()
-        .assertNotComplete();
-        
+          .assertNoError()
+          .assertNotComplete();
+
         other.onNext("second");
 
         ts.assertValue(1)
-        .assertNoError()
-        .assertNotComplete();
-    
+          .assertNoError()
+          .assertNotComplete();
+
         main.onNext(2);
 
         ts.assertValue(1)
-        .assertNoError()
-        .assertNotComplete();
-        
+          .assertNoError()
+          .assertNotComplete();
+
         other.onNext("third");
 
         ts.assertValues(1, 2)
-        .assertNoError()
-        .assertNotComplete();
+          .assertNoError()
+          .assertNotComplete();
 
         SimpleProcessor<?> p = which ? main : other;
-        
+
         if (complete) {
             p.onComplete();
-            
+
             ts.assertValues(1, 2)
-            .assertComplete()
-            .assertNoError();
+              .assertComplete()
+              .assertNoError();
         } else {
             p.onError(new RuntimeException("forced failure"));
 
             ts.assertValues(1, 2)
-            .assertNotComplete()
-            .assertError(RuntimeException.class)
-            .assertErrorMessage("forced failure");
+              .assertNotComplete()
+              .assertError(RuntimeException.class)
+              .assertErrorMessage("forced failure");
         }
-        
+
         Assert.assertFalse("Main has subscribers?", main.hasSubscribers());
         Assert.assertFalse("Other has subscribers?", other.hasSubscribers());
     }
-    
+
     @Test
     public void normal1() {
         sample(true, false);
@@ -101,53 +100,53 @@ public class PublisherSampleTest {
     public void error2() {
         sample(false, true);
     }
-    
+
     @Test
     public void subscriberCancels() {
         SimpleProcessor<Integer> main = new SimpleProcessor<>();
-        
+
         SimpleProcessor<String> other = new SimpleProcessor<>();
-        
+
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherSample<>(main, other).subscribe(ts);
 
         Assert.assertTrue("Main no subscriber?", main.hasSubscribers());
         Assert.assertTrue("Other no subscriber?", other.hasSubscribers());
-        
+
         ts.cancel();
-        
+
         Assert.assertFalse("Main no subscriber?", main.hasSubscribers());
         Assert.assertFalse("Other no subscriber?", other.hasSubscribers());
 
         ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
+          .assertNoError()
+          .assertNotComplete();
     }
 
     public void completeImmediately(boolean which) {
         SimpleProcessor<Integer> main = new SimpleProcessor<>();
-        
+
         SimpleProcessor<String> other = new SimpleProcessor<>();
-        
+
         if (which) {
             main.onComplete();
         } else {
             other.onComplete();
         }
-        
+
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherSample<>(main, other).subscribe(ts);
 
         Assert.assertFalse("Main subscriber?", main.hasSubscribers());
         Assert.assertFalse("Other subscriber?", other.hasSubscribers());
 
         ts.assertNoValues()
-        .assertNoError()
-        .assertComplete();
+          .assertNoError()
+          .assertComplete();
     }
-    
+
     @Test
     public void mainCompletesImmediately() {
         completeImmediately(true);

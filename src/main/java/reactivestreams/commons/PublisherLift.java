@@ -1,15 +1,14 @@
 package reactivestreams.commons;
 
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.internal.subscription.EmptySubscription;
+
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-
-import reactivestreams.commons.internal.subscription.EmptySubscription;
-
 /**
- * maps the downstream Subscriber into an upstream Subscriber 
+ * maps the downstream Subscriber into an upstream Subscriber
  * which allows implementing custom operators via lambdas.
  *
  * @param <T> the upstream value type
@@ -23,11 +22,11 @@ public final class PublisherLift<T, R> extends PublisherSource<T, R> {
         super(source);
         this.lifter = Objects.requireNonNull(lifter, "operator");
     }
-    
+
     public Function<Subscriber<? super R>, Subscriber<? super T>> operator() {
         return lifter;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super R> s) {
 
@@ -38,12 +37,12 @@ public final class PublisherLift<T, R> extends PublisherSource<T, R> {
             EmptySubscription.error(s, e);
             return;
         }
-        
+
         if (ts == null) {
             EmptySubscription.error(s, new NullPointerException("The operator returned a null Subscriber"));
             return;
         }
-        
+
         source.subscribe(ts);
     }
 }

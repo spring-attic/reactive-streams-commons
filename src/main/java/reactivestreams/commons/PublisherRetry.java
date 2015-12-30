@@ -1,10 +1,10 @@
 package reactivestreams.commons;
 
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
+
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Repeatedly subscribes to the source sequence if it signals any error
@@ -29,32 +29,32 @@ public final class PublisherRetry<T> extends PublisherSource<T, T> {
         }
         this.times = times;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         PublisherRetrySubscriber<T> parent = new PublisherRetrySubscriber<>(source, s, times);
 
         s.onSubscribe(parent);
-        
+
         if (!parent.isCancelled()) {
             parent.resubscribe();
         }
     }
-    
+
     static final class PublisherRetrySubscriber<T>
-            extends SubscriberMultiSubscription<T, T> {
+      extends SubscriberMultiSubscription<T, T> {
 
         final Publisher<? extends T> source;
-        
+
         long remaining;
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherRetrySubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherRetrySubscriber.class, "wip");
+          AtomicIntegerFieldUpdater.newUpdater(PublisherRetrySubscriber.class, "wip");
 
         long produced;
-        
+
         public PublisherRetrySubscriber(Publisher<? extends T> source, Subscriber<? super T> actual, long remaining) {
             super(actual);
             this.source = source;
@@ -64,7 +64,7 @@ public final class PublisherRetry<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             produced++;
-            
+
             subscriber.onNext(t);
         }
 
@@ -78,7 +78,7 @@ public final class PublisherRetry<T> extends PublisherSource<T, T> {
                 }
                 remaining = r - 1;
             }
-            
+
             resubscribe();
         }
 
@@ -88,15 +88,15 @@ public final class PublisherRetry<T> extends PublisherSource<T, T> {
                     if (isCancelled()) {
                         return;
                     }
-                    
+
                     long c = produced;
                     if (c != 0L) {
                         produced = 0L;
                         produced(c);
                     }
-                    
+
                     source.subscribe(this);
-                    
+
                 } while (WIP.decrementAndGet(this) != 0);
             }
         }

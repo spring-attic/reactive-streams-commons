@@ -1,8 +1,5 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -11,6 +8,9 @@ import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 /**
  * Relays values from the main Publisher until another Publisher signals an event.
  *
@@ -18,30 +18,30 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <U> the value type of the other Publisher
  */
 public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
-    
+
     final Publisher<U> other;
 
     public PublisherTakeUntil(Publisher<? extends T> source, Publisher<U> other) {
         super(source);
         this.other = Objects.requireNonNull(other, "other");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         PublisherTakeUntilMainSubscriber<T> mainSubscriber = new PublisherTakeUntilMainSubscriber<>(s);
-        
+
         PublisherTakeUntilOtherSubscriber<U> otherSubscriber = new PublisherTakeUntilOtherSubscriber<>(mainSubscriber);
-        
+
         other.subscribe(otherSubscriber);
-        
+
         source.subscribe(mainSubscriber);
     }
-    
+
     static final class PublisherTakeUntilOtherSubscriber<U> implements Subscriber<U> {
         final PublisherTakeUntilMainSubscriber<?> main;
 
         boolean once;
-        
+
         public PublisherTakeUntilOtherSubscriber(PublisherTakeUntilMainSubscriber<?> main) {
             this.main = main;
         }
@@ -49,7 +49,7 @@ public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
         @Override
         public void onSubscribe(Subscription s) {
             main.setOther(s);
-            
+
             s.request(Long.MAX_VALUE);
         }
 
@@ -76,26 +76,26 @@ public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
             main.onComplete();
         }
 
-        
+
     }
-    
+
     static final class PublisherTakeUntilMainSubscriber<T> implements Subscriber<T>, Subscription {
         final SerializedSubscriber<T> actual;
-        
+
         volatile Subscription main;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherTakeUntilMainSubscriber, Subscription> MAIN =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherTakeUntilMainSubscriber.class, Subscription.class, "main");
-        
+          AtomicReferenceFieldUpdater.newUpdater(PublisherTakeUntilMainSubscriber.class, Subscription.class, "main");
+
         volatile Subscription other;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherTakeUntilMainSubscriber, Subscription> OTHER =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherTakeUntilMainSubscriber.class, Subscription.class, "other");
-        
+          AtomicReferenceFieldUpdater.newUpdater(PublisherTakeUntilMainSubscriber.class, Subscription.class, "other");
+
         public PublisherTakeUntilMainSubscriber(Subscriber<? super T> actual) {
             this.actual = new SerializedSubscriber<>(actual);
         }
-        
+
         void setOther(Subscription s) {
             if (!OTHER.compareAndSet(this, null, s)) {
                 s.cancel();
@@ -129,7 +129,7 @@ public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
                 }
             }
         }
-        
+
         @Override
         public void cancel() {
             cancelMain();
@@ -155,7 +155,7 @@ public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
 
         @Override
         public void onError(Throwable t) {
-            
+
             if (main == null) {
                 if (MAIN.compareAndSet(this, null, CancelledSubscription.INSTANCE)) {
                     EmptySubscription.error(actual, t);
@@ -163,7 +163,7 @@ public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
                 }
             }
             cancel();
-            
+
             actual.onError(t);
         }
 
@@ -177,7 +177,7 @@ public final class PublisherTakeUntil<T, U> extends PublisherSource<T, T> {
                 }
             }
             cancel();
-            
+
             actual.onComplete();
         }
     }

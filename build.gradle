@@ -1,17 +1,17 @@
 buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-        maven { url "http://repo.spring.io/plugins-release" }
-    }
+	repositories {
+		mavenCentral()
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+		maven { url "http://repo.spring.io/plugins-release" }
+	}
 
-    dependencies {
-        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.9.0'
-        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
-        classpath "me.champeau.gradle:jmh-gradle-plugin:0.2.0"
-    }
+	dependencies {
+		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.9.0'
+		classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
+		classpath "me.champeau.gradle:jmh-gradle-plugin:0.2.0"
+	}
 }
 
 apply from: file('generate.gradle')
@@ -30,7 +30,7 @@ ext.githubProjectName = 'reactive-streams-commons'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 if (!hasProperty('mainClass')) {
-    ext.mainClass = ''
+	ext.mainClass = ''
 }
 
 
@@ -38,8 +38,8 @@ if (!hasProperty('mainClass')) {
 apply from: file('gradle/maven.gradle')
 
 repositories {
-    mavenCentral()
-	
+	mavenCentral()
+
 //    maven { url 'https://oss.jfrog.org/libs-snapshot' }
 //    maven { url 'http://repo.spring.io/libs-snapshot' }
 }
@@ -48,43 +48,43 @@ apply plugin: 'maven'
 apply plugin: 'osgi'
 
 dependencies {
-    compile 'org.reactivestreams:reactive-streams:1.0.0'
-    //testCompile 'org.openjdk.jmh:jmh-core:1.1.11'
-    testCompile 'org.reactivestreams:reactive-streams-tck:1.0.0'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile 'org.mockito:mockito-core:1.10.19'
+	compile 'org.reactivestreams:reactive-streams:1.0.0'
+	//testCompile 'org.openjdk.jmh:jmh-core:1.1.11'
+	testCompile 'org.reactivestreams:reactive-streams-tck:1.0.0'
+	testCompile group: 'junit', name: 'junit', version: '4.12'
+	testCompile 'org.mockito:mockito-core:1.10.19'
 }
 
 processResources {
-  from ('src/main/java') {
-    include '**/*.conf'
-  }
+	from('src/main/java') {
+		include '**/*.conf'
+	}
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+	classifier = 'sources'
+	from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
+	classifier = 'javadoc'
+	from javadoc.destinationDir
 }
 
 artifacts {
 	archives jar
-    archives sourcesJar
-    archives javadocJar
+	archives sourcesJar
+	archives javadocJar
 }
 
 jar {
-    manifest {
-        name = 'reactive-streams-commons'
-        instruction 'Bundle-Vendor', 'reactor'
-        instruction 'Bundle-DocURL', 'https://github.com/reactor/reactive-streams-commons'
-        instruction 'Import-Package', '!org.junit,!junit.framework,!org.mockito.*,*'
-        instruction 'Eclipse-ExtensibleAPI', 'true'
-    }
+	manifest {
+		name = 'reactive-streams-commons'
+		instruction 'Bundle-Vendor', 'reactor'
+		instruction 'Bundle-DocURL', 'https://github.com/reactor/reactive-streams-commons'
+		instruction 'Import-Package', '!org.junit,!junit.framework,!org.mockito.*,*'
+		instruction 'Eclipse-ExtensibleAPI', 'true'
+	}
 }
 
 apply plugin: 'license'
@@ -92,27 +92,27 @@ apply plugin: 'license'
 apply from: file('gradle/license.gradle')
 
 jmh {
-    jmhVersion = '1.11.1'
-    humanOutputFile = null
-    if (project.hasProperty('jmh')) {
-        include = ".*" + project.jmh + ".*"
-    } else {
-        include = ".*"
-    }
+	jmhVersion = '1.11.1'
+	humanOutputFile = null
+	if (project.hasProperty('jmh')) {
+		include = ".*" + project.jmh + ".*"
+	} else {
+		include = ".*"
+	}
 }
 
 plugins.withType(EclipsePlugin) {
-    project.eclipse.classpath.plusConfigurations += [ configurations.jmh ]
+	project.eclipse.classpath.plusConfigurations += [configurations.jmh]
 }
 
 javadoc {
-    failOnError = false
+	failOnError = false
 }
 
 test {
-    maxHeapSize = "2g"
-    testLogging  {
-        events "started", "failed" // "skipped", "passed"
-    //    showStandardStreams = true
-    }
+	maxHeapSize = "2g"
+	testLogging {
+		events "started", "failed" // "skipped", "passed"
+		//    showStandardStreams = true
+	}
 }

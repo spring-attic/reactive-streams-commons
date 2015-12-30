@@ -1,12 +1,12 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Function;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
+
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Resumes the failed main sequence with another sequence returned by
@@ -19,16 +19,16 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
     final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 
     public PublisherResume(Publisher<? extends T> source,
-            Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory) {
+                           Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory) {
         super(source);
         this.nextFactory = Objects.requireNonNull(nextFactory, "nextFactory");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherResumeSubscriber<>(s, nextFactory));
     }
-    
+
     static final class PublisherResumeSubscriber<T> extends SubscriberMultiSubscription<T, T> {
 
         final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
@@ -36,7 +36,7 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
         boolean second;
 
         public PublisherResumeSubscriber(Subscriber<? super T> actual,
-                Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory) {
+                                         Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory) {
             super(actual);
             this.nextFactory = nextFactory;
         }
@@ -52,7 +52,7 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             subscriber.onNext(t);
-            
+
             if (!second) {
                 producedOne();
             }
@@ -62,7 +62,7 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
         public void onError(Throwable t) {
             if (!second) {
                 second = true;
-                
+
                 Publisher<? extends T> p;
 
                 try {

@@ -1,9 +1,5 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -11,8 +7,12 @@ import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+
 /**
- * Aggregates the source values with the help of an accumulator 
+ * Aggregates the source values with the help of an accumulator
  * function and emits the the final accumulated value.
  *
  * @param <T> the source value type
@@ -21,46 +21,46 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
 public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
 
     final Supplier<R> initialSupplier;
-    
+
     final BiFunction<R, ? super T, R> accumulator;
 
     public PublisherReduce(Publisher<? extends T> source, Supplier<R> initialSupplier,
-            BiFunction<R, ? super T, R> accumulator) {
+                           BiFunction<R, ? super T, R> accumulator) {
         super(source);
         this.initialSupplier = Objects.requireNonNull(initialSupplier, "initialSupplier");
         this.accumulator = Objects.requireNonNull(accumulator, "accumulator");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super R> s) {
         R initialValue;
 
         try {
-        initialValue = initialSupplier.get();
+            initialValue = initialSupplier.get();
         } catch (Throwable e) {
             EmptySubscription.error(s, e);
             return;
         }
-        
+
         if (initialValue == null) {
             EmptySubscription.error(s, new NullPointerException("The initial value supplied is null"));
             return;
         }
-        
+
         source.subscribe(new PublisherReduceSubscriber<>(s, accumulator, initialValue));
     }
-    
+
     static final class PublisherReduceSubscriber<T, R>
-            extends SubscriberDeferScalar<T, R> {
+      extends SubscriberDeferScalar<T, R> {
 
         final BiFunction<R, ? super T, R> accumulator;
 
         Subscription s;
-        
+
         boolean done;
 
         public PublisherReduceSubscriber(Subscriber<? super R> actual, BiFunction<R, ? super T, R> accumulator,
-                R value) {
+                                         R value) {
             super(actual);
             this.accumulator = accumulator;
             this.value = value;
@@ -83,7 +83,7 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
                 this.s = s;
 
                 subscriber.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -91,23 +91,23 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
         @Override
         public void onNext(T t) {
             R v;
-            
+
             try {
                 v = accumulator.apply(value, t);
             } catch (Throwable e) {
                 cancel();
-                
+
                 onError(e);
                 return;
             }
-            
+
             if (v == null) {
                 cancel();
-                
+
                 onError(new NullPointerException("The accumulator returned a null value"));
                 return;
             }
-            
+
             value = v;
         }
 
@@ -130,7 +130,7 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
 
             set(value);
         }
-        
-        
+
+
     }
 }

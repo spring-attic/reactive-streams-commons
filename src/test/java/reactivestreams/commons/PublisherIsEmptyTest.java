@@ -1,7 +1,6 @@
 package reactivestreams.commons;
 
 import org.junit.Test;
-
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherIsEmptyTest {
@@ -10,60 +9,60 @@ public class PublisherIsEmptyTest {
     public void sourceNull() {
         new PublisherIsEmpty<>(null);
     }
-    
+
     @Test
     public void emptySource() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>();
-        
+
         new PublisherIsEmpty<>(PublisherEmpty.instance()).subscribe(ts);
-        
+
         ts.assertValue(true)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
 
     @Test
     public void emptySourceBackpressured() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>(0);
-        
+
         new PublisherIsEmpty<>(PublisherEmpty.instance()).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertNoError();
-        
+          .assertNotComplete()
+          .assertNoError();
+
         ts.request(1);
-        
+
         ts.assertValue(true)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
 
     @Test
     public void nonEmptySource() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>();
-        
+
         new PublisherIsEmpty<>(new PublisherRange(1, 10)).subscribe(ts);
-        
+
         ts.assertValue(false)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
 
     @Test
     public void nonEmptySourceBackpressured() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>(0);
-        
+
         new PublisherIsEmpty<>(new PublisherRange(1, 10)).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertNoError();
-        
+          .assertNotComplete()
+          .assertNoError();
+
         ts.request(1);
-        
+
         ts.assertValue(false)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
 }

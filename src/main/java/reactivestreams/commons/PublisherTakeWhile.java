@@ -1,15 +1,15 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Predicate;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.Objects;
+import java.util.function.Predicate;
+
 /**
- * Relays values while a predicate returns 
+ * Relays values while a predicate returns
  * true for the values (checked before each value is delivered).
  *
  * @param <T> the value type
@@ -26,21 +26,21 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
     public Predicate<? super T> predicate() {
         return predicate;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherTakeWhileSubscriber<>(s, predicate));
     }
-    
+
     static final class PublisherTakeWhileSubscriber<T> implements Subscriber<T> {
         final Subscriber<? super T> actual;
-        
+
         final Predicate<? super T> predicate;
 
         Subscription s;
-        
+
         boolean done;
-        
+
         public PublisherTakeWhileSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
@@ -59,27 +59,27 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
             if (done) {
                 return;
             }
-            
+
             boolean b;
-            
+
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
                 s.cancel();
-                
+
                 onError(e);
-                
+
                 return;
             }
-            
+
             if (!b) {
                 s.cancel();
-                
+
                 onComplete();
-                
+
                 return;
             }
-            
+
             actual.onNext(t);
         }
 
@@ -89,7 +89,7 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
                 return;
             }
             done = true;
-            
+
             actual.onError(t);
         }
 
@@ -99,10 +99,10 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
                 return;
             }
             done = true;
-            
+
             actual.onComplete();
         }
-        
-        
+
+
     }
 }

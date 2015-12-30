@@ -1,8 +1,5 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -10,6 +7,9 @@ import reactivestreams.commons.internal.subscriber.SerializedSubscriber;
 import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * Skips values from the main publisher until the other publisher signals
@@ -19,25 +19,25 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <U> the value type of the other Publisher
  */
 public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
-    
+
     final Publisher<U> other;
 
     public PublisherSkipUntil(Publisher<? extends T> source, Publisher<U> other) {
         super(source);
         this.other = Objects.requireNonNull(other, "other");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         PublisherSkipUntilMainSubscriber<T> mainSubscriber = new PublisherSkipUntilMainSubscriber<>(s);
-        
+
         PublisherSkipUntilOtherSubscriber<U> otherSubscriber = new PublisherSkipUntilOtherSubscriber<>(mainSubscriber);
-        
+
         other.subscribe(otherSubscriber);
-        
+
         source.subscribe(mainSubscriber);
     }
-    
+
     static final class PublisherSkipUntilOtherSubscriber<U> implements Subscriber<U> {
         final PublisherSkipUntilMainSubscriber<?> main;
 
@@ -48,7 +48,7 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
         @Override
         public void onSubscribe(Subscription s) {
             main.setOther(s);
-            
+
             s.request(Long.MAX_VALUE);
         }
 
@@ -82,30 +82,30 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
             m.other = CancelledSubscription.INSTANCE;
         }
 
-        
+
     }
-    
-    static final class PublisherSkipUntilMainSubscriber<T> 
-    implements Subscriber<T>, Subscription {
+
+    static final class PublisherSkipUntilMainSubscriber<T>
+      implements Subscriber<T>, Subscription {
 
         final SerializedSubscriber<T> actual;
-        
+
         volatile Subscription main;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSkipUntilMainSubscriber, Subscription> MAIN =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherSkipUntilMainSubscriber.class, Subscription.class, "main");
-        
+          AtomicReferenceFieldUpdater.newUpdater(PublisherSkipUntilMainSubscriber.class, Subscription.class, "main");
+
         volatile Subscription other;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSkipUntilMainSubscriber, Subscription> OTHER =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherSkipUntilMainSubscriber.class, Subscription.class, "other");
+          AtomicReferenceFieldUpdater.newUpdater(PublisherSkipUntilMainSubscriber.class, Subscription.class, "other");
 
         volatile boolean gate;
 
         public PublisherSkipUntilMainSubscriber(Subscriber<? super T> actual) {
             this.actual = new SerializedSubscriber<>(actual);
         }
-        
+
         void setOther(Subscription s) {
             if (!OTHER.compareAndSet(this, null, s)) {
                 s.cancel();
@@ -139,7 +139,7 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
                 }
             }
         }
-        
+
         @Override
         public void cancel() {
             cancelMain();
@@ -176,14 +176,14 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
                 }
             }
             cancel();
-            
+
             actual.onError(t);
         }
 
         @Override
         public void onComplete() {
             cancelOther();
-            
+
             actual.onComplete();
         }
     }

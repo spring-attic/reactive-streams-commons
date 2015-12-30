@@ -1,13 +1,13 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Predicate;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Emits a single boolean true if all values of the source sequence match
@@ -15,7 +15,7 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * <p>
  * The implementation uses short-circuit logic and completes with false if
  * the predicate doesn't match a value.
- * 
+ *
  * @param <T> the source value type
  */
 public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
@@ -26,19 +26,19 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
         super(source);
         this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super Boolean> s) {
         source.subscribe(new PublisherAllSubscriber<T>(s, predicate));
     }
-    
+
     static final class PublisherAllSubscriber<T> extends SubscriberDeferScalar<T, Boolean> {
         final Predicate<? super T> predicate;
 
         Subscription s;
-        
+
         boolean done;
-        
+
         public PublisherAllSubscriber(Subscriber<? super Boolean> actual, Predicate<? super T> predicate) {
             super(actual);
             this.predicate = predicate;
@@ -55,7 +55,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 subscriber.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -66,7 +66,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
             if (done) {
                 return;
             }
-            
+
             boolean b;
 
             try {
@@ -81,7 +81,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
             if (!b) {
                 done = true;
                 s.cancel();
-                
+
                 set(false);
             }
         }
@@ -104,7 +104,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
             done = true;
             set(true);
         }
-        
-        
+
+
     }
 }

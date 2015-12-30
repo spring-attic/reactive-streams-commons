@@ -1,12 +1,12 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
 
 /**
  * Emits a scalar value if the source sequence turns out to be empty.
@@ -21,21 +21,21 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
         super(source);
         this.value = Objects.requireNonNull(value, "value");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherDefaultIfEmptySubscriber<>(s, value));
     }
-    
+
     static final class PublisherDefaultIfEmptySubscriber<T>
-            extends SubscriberDeferScalar<T, T> {
+      extends SubscriberDeferScalar<T, T> {
 
         final T value;
 
         Subscription s;
-        
+
         boolean hasValue;
-        
+
         public PublisherDefaultIfEmptySubscriber(Subscriber<? super T> actual, T value) {
             super(actual);
             this.value = value;
@@ -90,6 +90,6 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
             // value is constant
         }
 
-        
+
     }
 }

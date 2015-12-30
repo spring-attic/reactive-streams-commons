@@ -1,12 +1,12 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Predicate;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Filters out values that make a filter function return false.
@@ -16,12 +16,12 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
 public final class PublisherFilter<T> extends PublisherSource<T, T> {
 
     final Predicate<? super T> predicate;
-    
+
     public PublisherFilter(Publisher<? extends T> source, Predicate<? super T> predicate) {
         super(source);
         this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
-    
+
     public Predicate<? super T> predicate() {
         return predicate;
     }
@@ -30,16 +30,16 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherFilterSubscriber<>(s, predicate));
     }
-    
+
     static final class PublisherFilterSubscriber<T> implements Subscriber<T> {
         final Subscriber<? super T> actual;
-        
+
         final Predicate<? super T> predicate;
 
         Subscription s;
-        
+
         boolean done;
-        
+
         public PublisherFilterSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
@@ -58,14 +58,14 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             if (done) {
                 return;
             }
-            
+
             boolean b;
-            
+
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
                 s.cancel();
-                
+
                 onError(e);
                 return;
             }
@@ -93,7 +93,7 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             done = true;
             actual.onComplete();
         }
-        
-        
+
+
     }
 }

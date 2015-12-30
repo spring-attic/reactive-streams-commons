@@ -1,11 +1,11 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
+
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Emits the value or error produced by the wrapped CompletableFuture.
@@ -18,26 +18,25 @@ import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 public final class PublisherCompletableFuture<T> implements Publisher<T> {
 
     final CompletableFuture<? extends T> future;
-    
+
     public PublisherCompletableFuture(CompletableFuture<? extends T> future) {
         this.future = Objects.requireNonNull(future, "future");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         SubscriberDeferScalar<T, T> sds = new SubscriberDeferScalar<>(s);
-        
+
         s.onSubscribe(sds);
-        
+
         if (sds.isCancelled()) {
             return;
         }
-        
+
         future.whenComplete((v, e) -> {
             if (e != null) {
                 s.onError(e);
-            } else 
-            if (v != null) {
+            } else if (v != null) {
                 sds.set(v);
             } else {
                 s.onError(new NullPointerException("The future produced a null value"));

@@ -10,9 +10,9 @@ import org.reactivestreams.Subscription;
 public final class PerfSlowPathSubscriber implements Subscriber<Object> {
 
     final Blackhole bh;
-    
+
     final long initialRequest;
-    
+
     public PerfSlowPathSubscriber(Blackhole bh, long initialRequest) {
         this.bh = bh;
         this.initialRequest = initialRequest;

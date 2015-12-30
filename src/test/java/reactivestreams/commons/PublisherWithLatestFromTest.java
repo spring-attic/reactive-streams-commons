@@ -1,12 +1,11 @@
 package reactivestreams.commons;
 
 import org.junit.Test;
-
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherWithLatestFromTest {
 
-    
+
     @Test(expected = NullPointerException.class)
     public void sourceNull() {
         new PublisherWithLatestFrom<>(null, PublisherNever.instance(), (a, b) -> a);
@@ -25,87 +24,94 @@ public class PublisherWithLatestFromTest {
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), new PublisherJust<>(10), (a, b) -> a + b).subscribe(ts);
-    
+
+        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), new PublisherJust<>(10), (a, b) -> a + b).subscribe
+          (ts);
+
         ts.assertValues(11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
 
     @Test
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
-        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), new PublisherJust<>(10), (a, b) -> a + b).subscribe(ts);
-    
+
+        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), new PublisherJust<>(10), (a, b) -> a + b).subscribe
+          (ts);
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertNoError();
-        
+          .assertNotComplete()
+          .assertNoError();
+
         ts.request(2);
-        
+
         ts.assertValues(11, 12)
-        .assertNotComplete()
-        .assertNoError();
-        
+          .assertNotComplete()
+          .assertNoError();
+
         ts.request(5);
 
         ts.assertValues(11, 12, 13, 14, 15, 16, 17)
-        .assertNotComplete()
-        .assertNoError();
+          .assertNotComplete()
+          .assertNoError();
 
         ts.request(10);
-        
+
         ts.assertValues(11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
-    
+
     @Test
     public void otherIsNever() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), PublisherNever.<Integer>instance(), (a, b) -> a + b).subscribe(ts);
-    
+
+        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), PublisherNever.<Integer>instance(), (a, b) -> a + b)
+          .subscribe(ts);
+
         ts.assertNoValues()
-        .assertNoError()
-        .assertComplete();
-    }    
+          .assertNoError()
+          .assertComplete();
+    }
 
     @Test
     public void otherIsEmpty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
-        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), PublisherEmpty.<Integer>instance(), (a, b) -> a + b).subscribe(ts);
-    
+
+        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), PublisherEmpty.<Integer>instance(), (a, b) -> a + b)
+          .subscribe(ts);
+
         ts.assertNoValues()
-        .assertNoError()
-        .assertComplete();
-    }    
+          .assertNoError()
+          .assertComplete();
+    }
 
     @Test
     public void combinerReturnsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), new PublisherJust<>(10), (a, b) -> (Integer)null).subscribe(ts);
-    
+
+        new PublisherWithLatestFrom<>(new PublisherRange(1, 10), new PublisherJust<>(10), (a, b) -> (Integer) null)
+          .subscribe(ts);
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertError(NullPointerException.class);
+          .assertNotComplete()
+          .assertError(NullPointerException.class);
     }
-    
+
     @Test
     public void combinerThrows() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherWithLatestFrom<Integer, Integer, Integer>(
-                new PublisherRange(1, 10), new PublisherJust<>(10), 
-                (a, b) -> { throw new RuntimeException("forced failure");}).subscribe(ts);
-    
+          new PublisherRange(1, 10), new PublisherJust<>(10),
+          (a, b) -> {
+              throw new RuntimeException("forced failure");
+          }).subscribe(ts);
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertError(RuntimeException.class)
-        .assertErrorMessage("forced failure");
+          .assertNotComplete()
+          .assertError(RuntimeException.class)
+          .assertErrorMessage("forced failure");
     }
 }

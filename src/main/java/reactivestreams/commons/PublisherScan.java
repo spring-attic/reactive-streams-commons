@@ -1,14 +1,14 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.BiFunction;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.function.BiFunction;
 
 /**
  * Aggregates the source values with the help of an accumulator function
@@ -42,21 +42,21 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
     public void subscribe(Subscriber<? super R> s) {
         source.subscribe(new PublisherScanSubscriber<>(s, accumulator, initialValue));
     }
-    
-    static final class PublisherScanSubscriber<T, R> 
-    implements Subscriber<T>, Subscription {
+
+    static final class PublisherScanSubscriber<T, R>
+      implements Subscriber<T>, Subscription {
 
         final Subscriber<? super R> actual;
-        
+
         final BiFunction<R, ? super T, R> accumulator;
 
         Subscription s;
-        
+
         R value;
-        
+
         boolean done;
-        
-        /** 
+
+        /**
          * Indicates the source completed and the value field is ready to be emitted.
          * <p>
          * The AtomicLong (this) holds the requested amount in bits 0..62 so there is room
@@ -69,10 +69,10 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherScanSubscriber> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherScanSubscriber.class, "requested");
+          AtomicLongFieldUpdater.newUpdater(PublisherScanSubscriber.class, "requested");
 
         public PublisherScanSubscriber(Subscriber<? super R> actual, BiFunction<R, ? super T, R> accumulator,
-                R initialValue) {
+                                       R initialValue) {
             this.actual = actual;
             this.accumulator = accumulator;
             this.value = initialValue;
@@ -82,7 +82,7 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 actual.onSubscribe(this);
             }
         }
@@ -92,30 +92,30 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
             if (done) {
                 return;
             }
-            
+
             R r = value;
-            
+
             actual.onNext(r);
-            
+
             if (requested != Long.MAX_VALUE) {
                 REQUESTED.decrementAndGet(this);
             }
-            
+
             try {
                 r = accumulator.apply(r, t);
             } catch (Throwable e) {
                 s.cancel();
-                
+
                 onError(e);
             }
-            
+
             if (r == null) {
                 s.cancel();
-                
+
                 onError(new NullPointerException("The accumulator returned a null value"));
                 return;
             }
-            
+
             value = r;
         }
 
@@ -136,10 +136,10 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
             done = true;
 
             R v = value;
-            
-            for (;;) {
+
+            for (; ; ) {
                 long r = requested;
-                
+
                 // if any request amount is still available, emit the value and complete
                 if ((r & REQUESTED_MASK) != 0L) {
                     actual.onNext(v);
@@ -156,8 +156,8 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                for (;;) {
-                    
+                for (; ; ) {
+
                     long r = requested;
 
                     // NO_REQUEST_HAS_VALUE 

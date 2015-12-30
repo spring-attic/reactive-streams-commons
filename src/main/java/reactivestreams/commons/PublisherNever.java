@@ -13,22 +13,23 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
 public final class PublisherNever implements Publisher<Object> {
 
     private static final Publisher<Object> INSTANCE = new PublisherNever();
-    
+
     private PublisherNever() {
         // deliberately no op
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super Object> s) {
         s.onSubscribe(EmptySubscription.INSTANCE);
     }
-    
+
     /**
      * Returns a properly parametrized instance of this never Publisher.
+     *
      * @return a properly parametrized instance of this never Publisher
      */
     @SuppressWarnings("unchecked")
     public static <T> Publisher<T> instance() {
-        return (Publisher<T>)INSTANCE;
+        return (Publisher<T>) INSTANCE;
     }
 }

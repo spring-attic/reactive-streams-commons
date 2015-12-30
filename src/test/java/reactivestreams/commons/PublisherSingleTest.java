@@ -1,18 +1,17 @@
 package reactivestreams.commons;
 
-import java.util.NoSuchElementException;
-
 import org.junit.Test;
-
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
+import java.util.NoSuchElementException;
+
 public class PublisherSingleTest {
-    
+
     @Test(expected = NullPointerException.class)
     public void source1Null() {
         new PublisherSingle<>(null);
     }
-    
+
     @Test(expected = NullPointerException.class)
     public void source2Null() {
         new PublisherSingle<>(null, () -> 1);
@@ -26,24 +25,26 @@ public class PublisherSingleTest {
     @Test
     public void defaultReturnsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-    
+
         new PublisherSingle<>(PublisherEmpty.<Integer>instance(), () -> null).subscribe(ts);
-    
+
         ts.assertNoValues()
-        .assertError(NullPointerException.class)
-        .assertNotComplete();
+          .assertError(NullPointerException.class)
+          .assertNotComplete();
     }
 
     @Test
     public void defaultThrows() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-    
-        new PublisherSingle<>(PublisherEmpty.<Integer>instance(), () -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
-    
+
+        new PublisherSingle<>(PublisherEmpty.<Integer>instance(), () -> {
+            throw new RuntimeException("forced failure");
+        }).subscribe(ts);
+
         ts.assertNoValues()
-        .assertError(RuntimeException.class)
-        .assertErrorMessage("forced failure")
-        .assertNotComplete();
+          .assertError(RuntimeException.class)
+          .assertErrorMessage("forced failure")
+          .assertNotComplete();
     }
 
     @Test
@@ -52,10 +53,10 @@ public class PublisherSingleTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherSingle<>(new PublisherJust<>(1)).subscribe(ts);
-        
+
         ts.assertValue(1)
-        .assertNoError()
-        .assertComplete();
+          .assertNoError()
+          .assertComplete();
     }
 
     @Test
@@ -63,16 +64,16 @@ public class PublisherSingleTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
         new PublisherSingle<>(new PublisherJust<>(1)).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
+          .assertNoError()
+          .assertNotComplete();
+
         ts.request(1);
-        
+
         ts.assertValue(1)
-        .assertNoError()
-        .assertComplete();
+          .assertNoError()
+          .assertComplete();
     }
 
     @Test
@@ -81,10 +82,10 @@ public class PublisherSingleTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherSingle<>(PublisherEmpty.<Integer>instance()).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertError(NoSuchElementException.class)
-        .assertNotComplete();
+          .assertError(NoSuchElementException.class)
+          .assertNotComplete();
     }
 
     @Test
@@ -92,10 +93,10 @@ public class PublisherSingleTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherSingle<>(PublisherEmpty.<Integer>instance(), () -> 1).subscribe(ts);
-        
+
         ts.assertValue(1)
-        .assertNoError()
-        .assertComplete();
+          .assertNoError()
+          .assertComplete();
     }
 
     @Test
@@ -103,16 +104,16 @@ public class PublisherSingleTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
         new PublisherSingle<>(PublisherEmpty.<Integer>instance(), () -> 1).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
+          .assertNoError()
+          .assertNotComplete();
+
         ts.request(1);
-        
+
         ts.assertValue(1)
-        .assertNoError()
-        .assertComplete();
+          .assertNoError()
+          .assertComplete();
     }
 
     @Test
@@ -121,10 +122,10 @@ public class PublisherSingleTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherSingle<>(new PublisherRange(1, 10)).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertError(IndexOutOfBoundsException.class)
-        .assertNotComplete();
+          .assertError(IndexOutOfBoundsException.class)
+          .assertNotComplete();
     }
 
     @Test
@@ -133,16 +134,16 @@ public class PublisherSingleTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
         new PublisherSingle<>(new PublisherRange(1, 10)).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
+          .assertNoError()
+          .assertNotComplete();
+
         ts.request(1);
 
         ts.assertNoValues()
-        .assertError(IndexOutOfBoundsException.class)
-        .assertNotComplete();
+          .assertError(IndexOutOfBoundsException.class)
+          .assertNotComplete();
     }
 
 }

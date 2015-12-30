@@ -1,11 +1,11 @@
 package reactivestreams.commons;
 
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
+
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Repeatedly subscribes to the source and relays its values either
@@ -30,37 +30,37 @@ public final class PublisherRepeat<T> extends PublisherSource<T, T> {
         }
         this.times = times;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (times == 0) {
             EmptySubscription.complete(s);
             return;
         }
-        
+
         PublisherRepeatSubscriber<T> parent = new PublisherRepeatSubscriber<>(source, s, times);
 
         s.onSubscribe(parent);
-        
+
         if (!parent.isCancelled()) {
             parent.onComplete();
         }
     }
-    
+
     static final class PublisherRepeatSubscriber<T>
-            extends SubscriberMultiSubscription<T, T> {
+      extends SubscriberMultiSubscription<T, T> {
 
         final Publisher<? extends T> source;
-        
+
         long remaining;
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherRepeatSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherRepeatSubscriber.class, "wip");
+          AtomicIntegerFieldUpdater.newUpdater(PublisherRepeatSubscriber.class, "wip");
 
         long produced;
-        
+
         public PublisherRepeatSubscriber(Publisher<? extends T> source, Subscriber<? super T> actual, long remaining) {
             super(actual);
             this.source = source;
@@ -70,7 +70,7 @@ public final class PublisherRepeat<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             produced++;
-            
+
             subscriber.onNext(t);
         }
 
@@ -84,17 +84,17 @@ public final class PublisherRepeat<T> extends PublisherSource<T, T> {
                 }
                 remaining = r - 1;
             }
-            
+
             resubscribe();
         }
-        
+
         void resubscribe() {
             if (WIP.getAndIncrement(this) == 0) {
                 do {
                     if (isCancelled()) {
                         return;
                     }
-                    
+
                     long c = produced;
                     if (c != 0L) {
                         produced = 0L;
@@ -102,7 +102,7 @@ public final class PublisherRepeat<T> extends PublisherSource<T, T> {
                     }
 
                     source.subscribe(this);
-                    
+
                 } while (WIP.decrementAndGet(this) != 0);
             }
         }

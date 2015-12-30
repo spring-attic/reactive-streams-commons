@@ -1,15 +1,15 @@
 package reactivestreams.commons;
 
-import java.util.ArrayDeque;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.BooleanSupplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.ArrayDeque;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.function.BooleanSupplier;
 
 /**
  * Emits the last N values the source emitted before its completion.
@@ -27,21 +27,20 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         }
         this.n = n;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (n == 0) {
             source.subscribe(new PublisherTakeLastZeroSubscriber<>(s));
-        } else
-        if (n == 1) {
+        } else if (n == 1) {
             source.subscribe(new PublisherTakeLastOneSubscriber<>(s));
         } else {
             source.subscribe(new PublisherTakeLastManySubscriber<>(s, n));
         }
     }
-    
+
     static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T> {
-        
+
         final Subscriber<? super T> actual;
 
         public PublisherTakeLastZeroSubscriber(Subscriber<? super T> actual) {
@@ -51,7 +50,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         @Override
         public void onSubscribe(Subscription s) {
             actual.onSubscribe(s);
-            
+
             s.request(Long.MAX_VALUE);
         }
 
@@ -72,11 +71,11 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeLastOneSubscriber<T>
-            extends SubscriberDeferScalar<T, T> {
+      extends SubscriberDeferScalar<T, T> {
 
         Subscription s;
 
-       public PublisherTakeLastOneSubscriber(Subscriber<? super T> actual) {
+        public PublisherTakeLastOneSubscriber(Subscriber<? super T> actual) {
             super(actual);
         }
 
@@ -84,12 +83,12 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 subscriber.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
-            
+
         }
 
         @Override
@@ -118,24 +117,24 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherTakeLastManySubscriber<T> 
-    implements Subscriber<T>, Subscription, BooleanSupplier {
-        
+    static final class PublisherTakeLastManySubscriber<T>
+      implements Subscriber<T>, Subscription, BooleanSupplier {
+
         final Subscriber<? super T> actual;
-        
+
         final int n;
-        
+
         volatile boolean cancelled;
-        
+
         Subscription s;
-        
+
         final ArrayDeque<T> buffer;
-        
+
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherTakeLastManySubscriber> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherTakeLastManySubscriber.class, "requested");
-        
+          AtomicLongFieldUpdater.newUpdater(PublisherTakeLastManySubscriber.class, "requested");
+
         public PublisherTakeLastManySubscriber(Subscriber<? super T> actual, int n) {
             this.actual = actual;
             this.n = n;
@@ -146,7 +145,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         public boolean getAsBoolean() {
             return cancelled;
         }
-        
+
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
@@ -159,14 +158,14 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
             cancelled = true;
             s.cancel();
         }
-        
+
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 actual.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -174,7 +173,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             ArrayDeque<T> bs = buffer;
-            
+
             if (bs.size() == n) {
                 bs.poll();
             }
@@ -188,7 +187,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
 
         @Override
         public void onComplete() {
-            
+
             BackpressureHelper.postComplete(actual, buffer, REQUESTED, this, this);
         }
     }

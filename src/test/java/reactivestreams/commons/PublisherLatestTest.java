@@ -1,7 +1,6 @@
 package reactivestreams.commons;
 
 import org.junit.Test;
-
 import reactivestreams.commons.internal.processor.SimpleProcessor;
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
@@ -10,32 +9,32 @@ public class PublisherLatestTest {
     public void sourceNull() {
         new PublisherLatest<>(null);
     }
-    
+
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherLatest<>(new PublisherRange(1, 10)).subscribe(ts);
-        
+
         ts.assertValues(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        .assertNoError()
-        .assertComplete();
+          .assertNoError()
+          .assertComplete();
     }
-    
+
     @Test
     public void backpressured() {
         SimpleProcessor<Integer> tp = new SimpleProcessor<>();
-        
+
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
         new PublisherLatest<>(tp).subscribe(ts);
-        
+
         tp.onNext(1);
-        
+
         ts.assertNoValues().assertNoError().assertNotComplete();
-        
+
         tp.onNext(2);
-        
+
         ts.request(1);
 
         ts.assertValue(2).assertNoError().assertNotComplete();
@@ -49,23 +48,23 @@ public class PublisherLatestTest {
 
         tp.onNext(5);
         tp.onComplete();
-        
+
         ts.assertValues(2, 4, 5).assertNoError().assertComplete();
     }
-    
+
     @Test
     public void error() {
         SimpleProcessor<Integer> tp = new SimpleProcessor<>();
-        
+
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
         new PublisherLatest<>(tp).subscribe(ts);
 
         tp.onError(new RuntimeException("forced failure"));
-        
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertError(RuntimeException.class)
-        .assertErrorMessage("forced failure");
+          .assertNotComplete()
+          .assertError(RuntimeException.class)
+          .assertErrorMessage("forced failure");
     }
 }

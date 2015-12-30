@@ -11,12 +11,12 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
     public PublisherIsEmpty(Publisher<? extends T> source) {
         super(source);
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super Boolean> s) {
         source.subscribe(new PublisherIsEmptySubscriber<>(s));
     }
-    
+
     static final class PublisherIsEmptySubscriber<T> extends SubscriberDeferScalar<T, Boolean> {
         Subscription s;
 
@@ -35,7 +35,7 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
                 subscriber.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -43,7 +43,7 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
         @Override
         public void onNext(T t) {
             s.cancel();
-            
+
             set(false);
         }
 

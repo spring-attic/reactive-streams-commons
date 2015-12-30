@@ -1,25 +1,24 @@
 package reactivestreams.commons;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class PublisherPeekTest {
     @Test(expected = NullPointerException.class)
     public void nullSource() {
         new PublisherPeek<>(null, null, null, null, null, null, null, null);
     }
-    
+
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
@@ -27,19 +26,19 @@ public class PublisherPeekTest {
         AtomicLong onRequest = new AtomicLong();
         AtomicBoolean onAfterComplete = new AtomicBoolean();
         AtomicBoolean onCancel = new AtomicBoolean();
-        
+
         new PublisherPeek<>(new PublisherJust<>(1),
-                onSubscribe::set,
-                onNext::set,
-                onError::set,
-                () -> onComplete.set(true),
-                () -> onAfterComplete.set(true),
-                onRequest::set,
-                () -> onCancel.set(true)
+          onSubscribe::set,
+          onNext::set,
+          onError::set,
+          () -> onComplete.set(true),
+          () -> onAfterComplete.set(true),
+          onRequest::set,
+          () -> onCancel.set(true)
         ).subscribe(ts);
-        
+
         Assert.assertNotNull(onSubscribe.get());
-        Assert.assertEquals((Integer)1, onNext.get());
+        Assert.assertEquals((Integer) 1, onNext.get());
         Assert.assertNull(onError.get());
         Assert.assertTrue(onComplete.get());
         Assert.assertTrue(onAfterComplete.get());
@@ -50,7 +49,7 @@ public class PublisherPeekTest {
     @Test
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
@@ -58,17 +57,17 @@ public class PublisherPeekTest {
         AtomicLong onRequest = new AtomicLong();
         AtomicBoolean onAfterComplete = new AtomicBoolean();
         AtomicBoolean onCancel = new AtomicBoolean();
-        
+
         new PublisherPeek<>(new PublisherError<Integer>(new RuntimeException("forced failure")),
-                onSubscribe::set,
-                onNext::set,
-                onError::set,
-                () -> onComplete.set(true),
-                () -> onAfterComplete.set(true),
-                onRequest::set,
-                () -> onCancel.set(true)
+          onSubscribe::set,
+          onNext::set,
+          onError::set,
+          () -> onComplete.set(true),
+          () -> onAfterComplete.set(true),
+          onRequest::set,
+          () -> onCancel.set(true)
         ).subscribe(ts);
-        
+
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
         Assert.assertTrue(onError.get() instanceof RuntimeException);
@@ -81,7 +80,7 @@ public class PublisherPeekTest {
     @Test
     public void empty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
@@ -89,17 +88,17 @@ public class PublisherPeekTest {
         AtomicLong onRequest = new AtomicLong();
         AtomicBoolean onAfterComplete = new AtomicBoolean();
         AtomicBoolean onCancel = new AtomicBoolean();
-        
+
         new PublisherPeek<>(PublisherEmpty.instance(),
-                onSubscribe::set,
-                onNext::set,
-                onError::set,
-                () -> onComplete.set(true),
-                () -> onAfterComplete.set(true),
-                onRequest::set,
-                () -> onCancel.set(true)
+          onSubscribe::set,
+          onNext::set,
+          onError::set,
+          () -> onComplete.set(true),
+          () -> onAfterComplete.set(true),
+          onRequest::set,
+          () -> onCancel.set(true)
         ).subscribe(ts);
-        
+
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
         Assert.assertNull(onError.get());
@@ -112,7 +111,7 @@ public class PublisherPeekTest {
     @Test
     public void never() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
@@ -120,17 +119,17 @@ public class PublisherPeekTest {
         AtomicLong onRequest = new AtomicLong();
         AtomicBoolean onAfterComplete = new AtomicBoolean();
         AtomicBoolean onCancel = new AtomicBoolean();
-        
+
         new PublisherPeek<>(PublisherNever.instance(),
-                onSubscribe::set,
-                onNext::set,
-                onError::set,
-                () -> onComplete.set(true),
-                () -> onAfterComplete.set(true),
-                onRequest::set,
-                () -> onCancel.set(true)
+          onSubscribe::set,
+          onNext::set,
+          onError::set,
+          () -> onComplete.set(true),
+          () -> onAfterComplete.set(true),
+          onRequest::set,
+          () -> onCancel.set(true)
         ).subscribe(ts);
-        
+
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
         Assert.assertNull(onError.get());
@@ -143,7 +142,7 @@ public class PublisherPeekTest {
     @Test
     public void neverCancel() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
@@ -151,17 +150,17 @@ public class PublisherPeekTest {
         AtomicLong onRequest = new AtomicLong();
         AtomicBoolean onAfterComplete = new AtomicBoolean();
         AtomicBoolean onCancel = new AtomicBoolean();
-        
+
         new PublisherPeek<>(PublisherNever.instance(),
-                onSubscribe::set,
-                onNext::set,
-                onError::set,
-                () -> onComplete.set(true),
-                () -> onAfterComplete.set(true),
-                onRequest::set,
-                () -> onCancel.set(true)
+          onSubscribe::set,
+          onNext::set,
+          onError::set,
+          () -> onComplete.set(true),
+          () -> onAfterComplete.set(true),
+          onRequest::set,
+          () -> onCancel.set(true)
         ).subscribe(ts);
-        
+
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
         Assert.assertNull(onError.get());
@@ -169,7 +168,7 @@ public class PublisherPeekTest {
         Assert.assertFalse(onAfterComplete.get());
         Assert.assertEquals(Long.MAX_VALUE, onRequest.get());
         Assert.assertFalse(onCancel.get());
-        
+
         ts.cancel();
 
         Assert.assertTrue(onCancel.get());

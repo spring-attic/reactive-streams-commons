@@ -12,20 +12,20 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
  * @param <T> the source value type
  */
 public final class PublisherCount<T> extends PublisherSource<T, Long> {
-    
+
     public PublisherCount(Publisher<? extends T> source) {
         super(source);
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super Long> s) {
         source.subscribe(new PublisherCountSubscriber<>(s));
     }
-    
+
     static final class PublisherCountSubscriber<T> extends SubscriberDeferScalar<T, Long> {
-        
+
         long counter;
-        
+
         Subscription s;
 
         public PublisherCountSubscriber(Subscriber<? super Long> actual) {
@@ -42,9 +42,9 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 subscriber.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -58,5 +58,7 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> {
         public void onComplete() {
             set(counter);
         }
-    };
+    }
+
+    ;
 }

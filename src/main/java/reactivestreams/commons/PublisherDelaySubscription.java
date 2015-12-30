@@ -1,22 +1,22 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.Objects;
+
 /**
  * Delays the subscription to the main source until another Publisher
  * signals a value or completes.
- * 
+ *
  * @param <T> the main source value type
  * @param <U> the other source type
  */
 public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T> {
-    
+
     final Publisher<U> other;
 
     public PublisherDelaySubscription(Publisher<? extends T> source, Publisher<U> other) {
@@ -28,16 +28,16 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
     public void subscribe(Subscriber<? super T> s) {
         other.subscribe(new PublisherDelaySubscriptionOtherSubscriber<>(s, source));
     }
-    
+
     static final class PublisherDelaySubscriptionOtherSubscriber<T, U>
-            extends SubscriberDeferSubscription<U, T> {
+      extends SubscriberDeferSubscription<U, T> {
 
         final Publisher<? extends T> source;
 
         Subscription s;
-        
+
         boolean done;
-        
+
         public PublisherDelaySubscriptionOtherSubscriber(Subscriber<? super T> actual, Publisher<? extends T> source) {
             super(actual);
             this.source = source;
@@ -48,14 +48,14 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
             s.cancel();
             super.cancel();
         }
-        
+
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 subscriber.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -67,7 +67,7 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
             }
             done = true;
             s.cancel();
-            
+
             subscribeSource();
         }
 
@@ -86,22 +86,22 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
                 return;
             }
             done = true;
-            
+
             subscribeSource();
         }
-        
+
         void subscribeSource() {
             source.subscribe(new PublisherDelaySubscriptionMainSubscriber<>(subscriber, this));
         }
-        
+
         static final class PublisherDelaySubscriptionMainSubscriber<T> implements Subscriber<T> {
-            
+
             final Subscriber<? super T> actual;
-            
+
             final SubscriberDeferSubscription<?, ?> arbiter;
 
             public PublisherDelaySubscriptionMainSubscriber(Subscriber<? super T> actual,
-                    SubscriberDeferSubscription<?, ?> arbiter) {
+                                                            SubscriberDeferSubscription<?, ?> arbiter) {
                 this.actual = actual;
                 this.arbiter = arbiter;
             }
@@ -125,8 +125,8 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
             public void onComplete() {
                 actual.onComplete();
             }
-            
-            
+
+
         }
     }
 }

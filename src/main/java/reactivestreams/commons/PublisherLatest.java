@@ -1,14 +1,14 @@
 package reactivestreams.commons;
 
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * Runs the source in unbounded mode and emits only the latest value
@@ -21,7 +21,7 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
     public PublisherLatest(Publisher<? extends T> source) {
         super(source);
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherLatestSubscriber<>(s));
@@ -34,25 +34,25 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherLatestSubscriber> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherLatestSubscriber.class, "requested");
+          AtomicLongFieldUpdater.newUpdater(PublisherLatestSubscriber.class, "requested");
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherLatestSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherLatestSubscriber.class, "wip");
+          AtomicIntegerFieldUpdater.newUpdater(PublisherLatestSubscriber.class, "wip");
 
         Subscription s;
-        
+
         Throwable error;
         volatile boolean done;
-        
+
         volatile boolean cancelled;
-        
+
         volatile T value;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherLatestSubscriber, Object> VALUE =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherLatestSubscriber.class, Object.class, "value");
-        
+          AtomicReferenceFieldUpdater.newUpdater(PublisherLatestSubscriber.class, Object.class, "value");
+
         public PublisherLatestSubscriber(Subscriber<? super T> actual) {
             this.actual = actual;
         }
@@ -61,7 +61,7 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 BackpressureHelper.addAndGet(REQUESTED, this, n);
-                
+
                 drain();
             }
         }
@@ -69,9 +69,9 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
         @Override
         public void cancel() {
             if (!cancelled) {
-                
+
                 cancelled = true;
-                
+
                 s.cancel();
 
                 if (WIP.getAndIncrement(this) == 0) {
@@ -84,9 +84,9 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 actual.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -109,41 +109,41 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
             done = true;
             drain();
         }
-        
+
         void drain() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
             final Subscriber<? super T> a = actual;
-            
+
             int missed = 1;
-            
-            for (;;) {
-                
+
+            for (; ; ) {
+
                 if (checkTerminated(done, value == null, a)) {
                     return;
                 }
-                
+
                 long r = requested;
-                
+
                 while (r != 0L) {
                     boolean d = done;
-                    
+
                     @SuppressWarnings("unchecked")
-                    T v = (T)VALUE.getAndSet(this, null);
-                    
+                    T v = (T) VALUE.getAndSet(this, null);
+
                     boolean empty = v == null;
-                    
+
                     if (checkTerminated(d, empty, a)) {
                         return;
                     }
-                    
+
                     if (empty) {
                         break;
                     }
-                    
+
                     a.onNext(v);
-                    
+
                     if (r != Long.MAX_VALUE) {
                         REQUESTED.decrementAndGet(this);
                     }
@@ -159,13 +159,13 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
                 }
             }
         }
-        
+
         boolean checkTerminated(boolean d, boolean empty, Subscriber<? super T> a) {
             if (cancelled) {
                 VALUE.lazySet(this, null);
                 return true;
             }
-            
+
             if (d) {
                 Throwable e = error;
                 if (e != null) {
@@ -173,13 +173,12 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
 
                     a.onError(e);
                     return true;
-                } else
-                if (empty) {
+                } else if (empty) {
                     a.onComplete();
                     return true;
                 }
             }
-            
+
             return false;
         }
     }

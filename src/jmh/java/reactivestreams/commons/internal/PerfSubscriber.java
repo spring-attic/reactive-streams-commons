@@ -10,7 +10,7 @@ import org.reactivestreams.Subscription;
 public final class PerfSubscriber implements Subscriber<Object> {
 
     final Blackhole bh;
-    
+
     public PerfSubscriber(Blackhole bh) {
         this.bh = bh;
     }

@@ -1,12 +1,12 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Function;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
@@ -17,9 +17,10 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
 public final class PublisherMap<T, R> extends PublisherSource<T, R> {
 
     final Function<? super T, ? extends R> mapper;
-    
+
     /**
      * Constructs a PublisherMap instance with the given source and mapper.
+     *
      * @param source the source Publisher instance
      * @param mapper the mapper function
      * @throws NullPointerException if either {@code source} or {@code mapper} is null.
@@ -28,22 +29,22 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         super(source);
         this.mapper = Objects.requireNonNull(mapper, "mapper");
     }
-    
+
     public Function<? super T, ? extends R> mapper() {
         return mapper;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super R> s) {
         source.subscribe(new PublisherMapSubscriber<>(s, mapper));
     }
-    
+
     static final class PublisherMapSubscriber<T, R> implements Subscriber<T> {
-        final Subscriber<? super R> actual;
+        final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
-        
+
         boolean done;
-        
+
         Subscription s;
 
         public PublisherMapSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
@@ -55,7 +56,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 actual.onSubscribe(s);
             }
         }
@@ -65,9 +66,9 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
             if (done) {
                 return;
             }
-            
+
             R v;
-            
+
             try {
                 v = mapper.apply(t);
             } catch (Throwable e) {
@@ -76,14 +77,14 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
                 actual.onError(e);
                 return;
             }
-            
+
             if (v == null) {
                 done = true;
                 s.cancel();
                 actual.onError(new NullPointerException("The mapper returned a null value."));
                 return;
             }
-            
+
             actual.onNext(v);
         }
 
@@ -93,9 +94,9 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
                 t.printStackTrace();
                 return;
             }
-            
+
             done = true;
-            
+
             actual.onError(t);
         }
 
@@ -105,7 +106,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
                 return;
             }
             done = true;
-            
+
             actual.onComplete();
         }
     }

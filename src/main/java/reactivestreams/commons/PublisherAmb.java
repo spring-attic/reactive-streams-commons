@@ -1,16 +1,15 @@
 package reactivestreams.commons;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.subscriber.SubscriberDeferSubscription;
-import reactivestreams.commons.internal.support.SubscriptionHelper;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
+import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Given a set of source Publishers the values of that Publisher is forwarded to the
@@ -19,22 +18,22 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the value type
  */
 public final class PublisherAmb<T> implements Publisher<T> {
-    
+
     final Publisher<? extends T>[] array;
-    
+
     final Iterable<? extends Publisher<? extends T>> iterable;
-    
+
     @SafeVarargs
     public PublisherAmb(Publisher<? extends T>... array) {
         this.array = Objects.requireNonNull(array, "array");
         this.iterable = null;
     }
-    
+
     public PublisherAmb(Iterable<? extends Publisher<? extends T>> iterable) {
         this.array = null;
         this.iterable = Objects.requireNonNull(iterable);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public void subscribe(Subscriber<? super T> s) {
@@ -43,51 +42,52 @@ public final class PublisherAmb<T> implements Publisher<T> {
         if (a == null) {
             n = 0;
             a = new Publisher[8];
-            
+
             Iterator<? extends Publisher<? extends T>> it;
-            
+
             try {
                 it = iterable.iterator();
             } catch (Throwable e) {
                 EmptySubscription.error(s, e);
                 return;
             }
-            
+
             if (it == null) {
                 EmptySubscription.error(s, new NullPointerException("The iterator returned is null"));
                 return;
             }
-            
-            
-            for (;;) {
-                
+
+
+            for (; ; ) {
+
                 boolean b;
-                
+
                 try {
                     b = it.hasNext();
                 } catch (Throwable e) {
                     EmptySubscription.error(s, e);
                     return;
                 }
-                
+
                 if (!b) {
                     break;
                 }
-                
+
                 Publisher<? extends T> p;
-                
+
                 try {
                     p = it.next();
                 } catch (Throwable e) {
                     EmptySubscription.error(s, e);
                     return;
                 }
-                
+
                 if (p == null) {
-                    EmptySubscription.error(s, new NullPointerException("The Publisher returned by the iterator is null"));
+                    EmptySubscription.error(s, new NullPointerException("The Publisher returned by the iterator is " +
+                      "null"));
                     return;
                 }
-                
+
                 if (n == a.length) {
                     Publisher<? extends T>[] c = new Publisher[n + (n >> 2)];
                     System.arraycopy(a, 0, c, 0, n);
@@ -95,18 +95,18 @@ public final class PublisherAmb<T> implements Publisher<T> {
                 }
                 a[n++] = p;
             }
-            
+
         } else {
             n = a.length;
         }
-        
+
         if (n == 0) {
             EmptySubscription.complete(s);
             return;
         }
         if (n == 1) {
             Publisher<? extends T> p = a[0];
-            
+
             if (p == null) {
                 EmptySubscription.error(s, new NullPointerException("The single source Publisher is null"));
             } else {
@@ -114,44 +114,44 @@ public final class PublisherAmb<T> implements Publisher<T> {
             }
             return;
         }
-        
+
         PublisherAmbCoordinator<T> coordinator = new PublisherAmbCoordinator<>(n);
-        
+
         coordinator.subscribe(a, n, s);
     }
-    
+
     static final class PublisherAmbCoordinator<T>
-    implements Subscription {
+      implements Subscription {
 
         final PublisherAmbSubscriber<T>[] subscribers;
-        
+
         volatile boolean cancelled;
-        
+
         volatile int wip;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherAmbCoordinator> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherAmbCoordinator.class, "wip");
-        
+          AtomicIntegerFieldUpdater.newUpdater(PublisherAmbCoordinator.class, "wip");
+
         @SuppressWarnings("unchecked")
         public PublisherAmbCoordinator(int n) {
             subscribers = new PublisherAmbSubscriber[n];
             wip = Integer.MIN_VALUE;
         }
-        
+
         void subscribe(Publisher<? extends T>[] sources, int n, Subscriber<? super T> actual) {
             PublisherAmbSubscriber<T>[] a = subscribers;
-            
+
             for (int i = 0; i < n; i++) {
                 a[i] = new PublisherAmbSubscriber<>(actual, this, i);
             }
-            
+
             actual.onSubscribe(this);
-            
+
             for (int i = 0; i < n; i++) {
                 if (cancelled || wip != Integer.MIN_VALUE) {
                     return;
                 }
-                
+
                 Publisher<? extends T> p = sources[i];
 
                 if (p == null) {
@@ -160,12 +160,12 @@ public final class PublisherAmb<T> implements Publisher<T> {
                     }
                     return;
                 }
-                
+
                 p.subscribe(a[i]);
             }
-            
+
         }
-        
+
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
@@ -186,7 +186,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
                 return;
             }
             cancelled = true;
-            
+
             int w = wip;
             if (w >= 0) {
                 subscribers[w].cancel();
@@ -196,34 +196,34 @@ public final class PublisherAmb<T> implements Publisher<T> {
                 }
             }
         }
-        
+
         boolean tryWin(int index) {
             if (wip == Integer.MIN_VALUE) {
                 if (WIP.compareAndSet(this, Integer.MIN_VALUE, index)) {
-                    
+
                     PublisherAmbSubscriber<T>[] a = subscribers;
                     int n = a.length;
-                    
+
                     for (int i = 0; i < n; i++) {
                         if (i != index) {
                             a[i].cancel();
                         }
                     }
-                    
+
                     return true;
                 }
             }
             return false;
         }
     }
-    
+
     static final class PublisherAmbSubscriber<T> extends SubscriberDeferSubscription<T, T> {
         final PublisherAmbCoordinator<T> parent;
-        
+
         final int index;
 
         boolean won;
-        
+
         public PublisherAmbSubscriber(Subscriber<? super T> actual, PublisherAmbCoordinator<T> parent, int index) {
             super(actual);
             this.parent = parent;
@@ -234,8 +234,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
         public void onNext(T t) {
             if (won) {
                 subscriber.onNext(t);
-            } else
-            if (parent.tryWin(index)) {
+            } else if (parent.tryWin(index)) {
                 won = true;
                 subscriber.onNext(t);
             }
@@ -245,8 +244,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
         public void onError(Throwable t) {
             if (won) {
                 subscriber.onError(t);
-            } else
-            if (parent.tryWin(index)) {
+            } else if (parent.tryWin(index)) {
                 won = true;
                 subscriber.onError(t);
             }
@@ -256,8 +254,7 @@ public final class PublisherAmb<T> implements Publisher<T> {
         public void onComplete() {
             if (won) {
                 subscriber.onComplete();
-            } else
-            if (parent.tryWin(index)) {
+            } else if (parent.tryWin(index)) {
                 won = true;
                 subscriber.onComplete();
             }

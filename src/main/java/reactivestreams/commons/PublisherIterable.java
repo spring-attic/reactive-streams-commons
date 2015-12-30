@@ -1,16 +1,15 @@
 package reactivestreams.commons;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
+import reactivestreams.commons.internal.subscription.EmptySubscription;
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
-import reactivestreams.commons.internal.subscription.EmptySubscription;
+
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 /**
  * Emits the contents of an Iterable source.
@@ -41,6 +40,7 @@ public final class PublisherIterable<T> implements Publisher<T> {
 
     /**
      * Common method to take an Iterator as a source of values.
+     *
      * @param s
      * @param it
      */
@@ -67,7 +67,7 @@ public final class PublisherIterable<T> implements Publisher<T> {
     }
 
     static final class PublisherIterableSubscription<T>
-    implements Subscription {
+      implements Subscription {
 
         final Subscriber<? super T> actual;
 
@@ -78,7 +78,7 @@ public final class PublisherIterable<T> implements Publisher<T> {
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherIterableSubscription> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherIterableSubscription.class, "requested");
+          AtomicLongFieldUpdater.newUpdater(PublisherIterableSubscription.class, "requested");
 
         public PublisherIterableSubscription(Subscriber<? super T> actual, Iterator<? extends T> iterator) {
             this.actual = actual;
@@ -104,7 +104,7 @@ public final class PublisherIterable<T> implements Publisher<T> {
 
             long e = 0L;
 
-            for (;;) {
+            for (; ; ) {
 
                 while (e != n) {
                     T t;
@@ -168,7 +168,7 @@ public final class PublisherIterable<T> implements Publisher<T> {
             final Iterator<? extends T> a = iterator;
             final Subscriber<? super T> s = actual;
 
-            for (;;) {
+            for (; ; ) {
 
                 if (cancelled) {
                     return;

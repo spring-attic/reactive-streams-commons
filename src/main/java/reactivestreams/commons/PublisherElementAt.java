@@ -1,13 +1,13 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Emits only the element at the given index position or signals a
@@ -18,7 +18,7 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
 public final class PublisherElementAt<T> extends PublisherSource<T, T> {
 
     final long index;
-    
+
     final Supplier<? extends T> defaultSupplier;
 
     public PublisherElementAt(Publisher<? extends T> source, long index) {
@@ -38,24 +38,24 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> {
         this.index = index;
         this.defaultSupplier = Objects.requireNonNull(defaultSupplier, "defaultSupplier");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherElementAtSubscriber<>(s, index, defaultSupplier));
     }
-    
+
     static final class PublisherElementAtSubscriber<T>
-            extends SubscriberDeferScalar<T, T> {
+      extends SubscriberDeferScalar<T, T> {
         final Supplier<? extends T> defaultSupplier;
-        
+
         long index;
-        
+
         Subscription s;
 
         boolean done;
-        
+
         public PublisherElementAtSubscriber(Subscriber<? super T> actual, long index,
-                Supplier<? extends T> defaultSupplier) {
+                                            Supplier<? extends T> defaultSupplier) {
             super(actual);
             this.index = index;
             this.defaultSupplier = defaultSupplier;
@@ -89,7 +89,7 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> {
             if (done) {
                 return;
             }
-            
+
             long i = index;
             if (i == 0) {
                 done = true;
@@ -120,24 +120,24 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> {
             done = true;
 
             Supplier<? extends T> ds = defaultSupplier;
-            
+
             if (ds == null) {
                 subscriber.onError(new IndexOutOfBoundsException());
             } else {
                 T t;
-                
+
                 try {
                     t = ds.get();
                 } catch (Throwable e) {
                     subscriber.onError(e);
                     return;
                 }
-                
+
                 if (t == null) {
                     subscriber.onError(new NullPointerException("The defaultSupplier returned a null value"));
                     return;
                 }
-                
+
                 set(t);
             }
         }

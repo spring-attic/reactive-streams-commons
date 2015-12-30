@@ -1,7 +1,6 @@
 package reactivestreams.commons;
 
 import org.junit.Test;
-
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherDeferTest {
@@ -10,40 +9,42 @@ public class PublisherDeferTest {
     public void supplierNull() {
         new PublisherDefer<Integer>(null);
     }
-    
+
     @Test
     public void supplierReturnsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherDefer<Integer>(() -> null).subscribe(ts);
-        
+
         ts
-        .assertNoValues()
-        .assertNotComplete()
-        .assertError(NullPointerException.class);
+          .assertNoValues()
+          .assertNotComplete()
+          .assertError(NullPointerException.class);
     }
-    
+
     @Test
     public void supplierThrows() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        new PublisherDefer<Integer>(() -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
-        
+
+        new PublisherDefer<Integer>(() -> {
+            throw new RuntimeException("forced failure");
+        }).subscribe(ts);
+
         ts
-        .assertNoValues()
-        .assertNotComplete()
-        .assertError(RuntimeException.class)
-        .assertErrorMessage("forced failure");
+          .assertNoValues()
+          .assertNotComplete()
+          .assertError(RuntimeException.class)
+          .assertErrorMessage("forced failure");
     }
-    
+
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherDefer<>(() -> new PublisherJust<>(1)).subscribe(ts);
-        
+
         ts.assertValue(1)
-        .assertNoError()
-        .assertComplete();
+          .assertNoError()
+          .assertComplete();
     }
 }

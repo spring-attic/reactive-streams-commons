@@ -1,9 +1,5 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.BiFunction;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -12,65 +8,69 @@ import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.BiFunction;
+
 /**
  * Combines values from a main Publisher with values from another
  * Publisher through a bi-function and emits the result.
- * 
+ * <p>
  * <p>
  * The operator will drop values from the main source until the other
  * Publisher produces any value.
  * <p>
  * If the other Publisher completes without any value, the sequence is completed.
- * 
+ *
  * @param <T> the main source type
  * @param <U> the alternate source type
  * @param <R> the output type
  */
 public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R> {
     final Publisher<? extends U> other;
-    
+
     final BiFunction<? super T, ? super U, ? extends R> combiner;
 
     public PublisherWithLatestFrom(Publisher<? extends T> source, Publisher<? extends U> other,
-            BiFunction<? super T, ? super U, ? extends R> combiner) {
+                                   BiFunction<? super T, ? super U, ? extends R> combiner) {
         super(source);
         this.other = Objects.requireNonNull(other, "other");
         this.combiner = Objects.requireNonNull(combiner, "combiner");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super R> s) {
         SerializedSubscriber<R> serial = new SerializedSubscriber<>(s);
-        
+
         PublisherWithLatestFromSubscriber<T, U, R> main = new PublisherWithLatestFromSubscriber<>(serial, combiner);
-        
+
         PublisherWithLatestFromOtherSubscriber<U> secondary = new PublisherWithLatestFromOtherSubscriber<>(main);
-        
+
         other.subscribe(secondary);
-        
+
         source.subscribe(main);
     }
-    
+
     static final class PublisherWithLatestFromSubscriber<T, U, R>
-    implements Subscriber<T>, Subscription {
+      implements Subscriber<T>, Subscription {
         final Subscriber<? super R> actual;
-        
+
         final BiFunction<? super T, ? super U, ? extends R> combiner;
 
         volatile Subscription main;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherWithLatestFromSubscriber, Subscription> MAIN =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherWithLatestFromSubscriber.class, Subscription.class, "main");
-        
+          AtomicReferenceFieldUpdater.newUpdater(PublisherWithLatestFromSubscriber.class, Subscription.class, "main");
+
         volatile Subscription other;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherWithLatestFromSubscriber, Subscription> OTHER =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherWithLatestFromSubscriber.class, Subscription.class, "other");
+          AtomicReferenceFieldUpdater.newUpdater(PublisherWithLatestFromSubscriber.class, Subscription.class, "other");
 
         volatile U otherValue;
-        
+
         public PublisherWithLatestFromSubscriber(Subscriber<? super R> actual,
-                BiFunction<? super T, ? super U, ? extends R> combiner) {
+                                                 BiFunction<? super T, ? super U, ? extends R> combiner) {
             this.actual = actual;
             this.combiner = combiner;
         }
@@ -108,7 +108,7 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
                 }
             }
         }
-        
+
         @Override
         public void cancel() {
             cancelMain();
@@ -130,22 +130,22 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
         @Override
         public void onNext(T t) {
             U u = otherValue;
-            
+
             if (u != null) {
                 R r;
-                
+
                 try {
                     r = combiner.apply(t, u);
                 } catch (Throwable e) {
                     onError(e);
                     return;
                 }
-                
+
                 if (r == null) {
                     onError(new NullPointerException("The combiner returned a null value"));
                     return;
                 }
-                
+
                 actual.onNext(r);
             } else {
                 main.request(1);
@@ -161,7 +161,7 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
                 }
             }
             cancel();
-            
+
             otherValue = null;
             actual.onError(t);
         }
@@ -169,13 +169,13 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
         @Override
         public void onComplete() {
             cancelOther();
-            
+
             otherValue = null;
             actual.onComplete();
         }
 
     }
-    
+
     static final class PublisherWithLatestFromOtherSubscriber<U> implements Subscriber<U> {
         final PublisherWithLatestFromSubscriber<?, U, ?> main;
 
@@ -186,7 +186,7 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
         @Override
         public void onSubscribe(Subscription s) {
             main.setOther(s);
-            
+
             s.request(Long.MAX_VALUE);
         }
 
@@ -205,11 +205,11 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
             PublisherWithLatestFromSubscriber<?, U, ?> m = main;
             if (m.otherValue == null) {
                 m.cancelMain();
-                
+
                 m.onComplete();
             }
         }
-        
-        
+
+
     }
 }

@@ -2,58 +2,58 @@ apply plugin: 'propdeps-maven'
 apply plugin: 'maven'
 
 install {
-  repositories.mavenInstaller {
-	customizePom(pom, rootProject)
-  }
+	repositories.mavenInstaller {
+		customizePom(pom, rootProject)
+	}
 }
 
 def customizePom(def pom, def gradleProject) {
-  pom.whenConfigured { generatedPom ->
-	// eliminate test-scoped dependencies (no need in maven central poms)
-	generatedPom.dependencies.removeAll { dep -> dep.scope == "test"
-	}
+	pom.whenConfigured { generatedPom ->
+		// eliminate test-scoped dependencies (no need in maven central poms)
+		generatedPom.dependencies.removeAll { dep -> dep.scope == "test"
+		}
 
-	// sort to make pom dependencies order consistent to ease comparison of older poms
-	generatedPom.dependencies = generatedPom.dependencies.sort { dep -> "$dep.scope:$dep.groupId:$dep.artifactId"
-	}
+		// sort to make pom dependencies order consistent to ease comparison of older poms
+		generatedPom.dependencies = generatedPom.dependencies.sort { dep -> "$dep.scope:$dep.groupId:$dep.artifactId"
+		}
 
-	// add all items necessary for maven central publication
-	generatedPom.project {
-	  name = gradleProject.description
-	  description = gradleProject.description
-	  url = "https://github.com/reactor/${rootProject.githubProjectName}"
-	  organization {
-		name = 'reactor'
-		url = 'http://github.com/reactor'
-	  }
-	  licenses {
-		license {
-		  name 'The Apache Software License, Version 2.0'
-		  url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-		  distribution 'repo'
+		// add all items necessary for maven central publication
+		generatedPom.project {
+			name = gradleProject.description
+			description = gradleProject.description
+			url = "https://github.com/reactor/${rootProject.githubProjectName}"
+			organization {
+				name = 'reactor'
+				url = 'http://github.com/reactor'
+			}
+			licenses {
+				license {
+					name 'The Apache Software License, Version 2.0'
+					url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					distribution 'repo'
+				}
+			}
+			scm {
+				url = "https://github.com/reactor/${rootProject.githubProjectName}"
+				connection = "scm:git:git://github.com/reactor/${rootProject.githubProjectName}"
+				developerConnection = "scm:git:git://github.com/reactor/${rootProject.githubProjectName}"
+			}
+			developers {
+				developer {
+					id 'akarnokd'
+					name 'David Karnok'
+					email 'akarnokd@gmail.com'
+				}
+				developer {
+					id = 'smaldini'
+					name = 'Stephane Maldini'
+					email = 'smaldini@pivotal.io'
+				}
+			}
+			issueManagement {
+				system = "GitHub Issues"
+				url = "https://github.com/reactor/${rootProject.githubProjectName}/issues"
+			}
 		}
-	  }
-	  scm {
-		url = "https://github.com/reactor/${rootProject.githubProjectName}"
-		connection = "scm:git:git://github.com/reactor/${rootProject.githubProjectName}"
-		developerConnection = "scm:git:git://github.com/reactor/${rootProject.githubProjectName}"
-	  }
-	  developers {
-		developer {
-		  id 'akarnokd'
-		  name 'David Karnok'
-		  email 'akarnokd@gmail.com'
-		}
-		developer {
-		  id = 'smaldini'
-		  name = 'Stephane Maldini'
-		  email = 'smaldini@pivotal.io'
-		}
-	  }
-	  issueManagement {
-		system = "GitHub Issues"
-		url = "https://github.com/reactor/${rootProject.githubProjectName}/issues"
-	  }
 	}
-  }
 }

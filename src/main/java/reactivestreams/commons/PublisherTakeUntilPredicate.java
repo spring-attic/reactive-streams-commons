@@ -1,16 +1,16 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Predicate;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.Objects;
+import java.util.function.Predicate;
+
 /**
- * Relays values until a predicate returns 
- * true, indicating the sequence should stop 
+ * Relays values until a predicate returns
+ * true, indicating the sequence should stop
  * (checked after each value has been delivered).
  *
  * @param <T> the value type
@@ -27,21 +27,21 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
     public Predicate<? super T> predicate() {
         return predicate;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherTakeUntilPredicateSubscriber<>(s, predicate));
     }
-    
+
     static final class PublisherTakeUntilPredicateSubscriber<T> implements Subscriber<T> {
         final Subscriber<? super T> actual;
-        
+
         final Predicate<? super T> predicate;
 
         Subscription s;
-        
+
         boolean done;
-        
+
         public PublisherTakeUntilPredicateSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
@@ -64,22 +64,22 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
             actual.onNext(t);
 
             boolean b;
-            
+
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
                 s.cancel();
-                
+
                 onError(e);
-                
+
                 return;
             }
-            
+
             if (b) {
                 s.cancel();
-                
+
                 onComplete();
-                
+
                 return;
             }
         }
@@ -90,7 +90,7 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
                 return;
             }
             done = true;
-            
+
             actual.onError(t);
         }
 
@@ -100,10 +100,10 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
                 return;
             }
             done = true;
-            
+
             actual.onComplete();
         }
-        
-        
+
+
     }
 }

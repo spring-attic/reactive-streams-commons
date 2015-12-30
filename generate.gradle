@@ -2,49 +2,49 @@
 
 //A lite core
 def coreScope = ['amb',
-				 /*'concatarray' ,*/
-				 /*'concatiterable' ,*/
-				 'empty',
-				 /*'flatmap' ,*/
-				 'iterable',
-				 'just',
-				 'lift',
-				 'map',
-				 'never',
-				 'resume',
-				 /*'zip'*/]
+                 /*'concatarray' ,*/
+                 /*'concatiterable' ,*/
+                 'empty',
+                 /*'flatmap' ,*/
+                 'iterable',
+                 'just',
+                 'lift',
+                 'map',
+                 'never',
+                 'resume',
+                 /*'zip'*/]
 
 //A complete RS commons coverage minus the lite core
 def streamScope = coreScope + ['generate',
-							   'completablefuture',
-							   'concatarray',
-							   'concatiterable',
-							   /*'flatmap' ,*/
-							   'stream'
-							   /*, 'zip'*/]
+                               'completablefuture',
+                               'concatarray',
+                               'concatiterable',
+                               /*'flatmap' ,*/
+                               'stream'
+                               /*, 'zip'*/]
 
 //Common reactor helper references
 def reactorCommon = ['fn-backport'              : 'reactor.fn',
-					 'SubscriptionHelper'       : 'reactor.core.support.BackpressureUtils',
-					 'BackpressureHelper'       : 'reactor.core.support.BackpressureUtils',
-					 'SubscriberBarrier'        : 'reactor.core.subscriber.SubscriberBarrier',
-					 'SubscriberWithDemand'     : 'reactor.core.subscriber.SubscriberWithDemand',
-					 'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
-					 'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
-					 'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'SimpleProcessor'          : 'reactor.core.processor.EmitterProcessor']
+                     'SubscriptionHelper'       : 'reactor.core.support.BackpressureUtils',
+                     'BackpressureHelper'       : 'reactor.core.support.BackpressureUtils',
+                     'SubscriberBarrier'        : 'reactor.core.subscriber.SubscriberBarrier',
+                     'SubscriberWithDemand'     : 'reactor.core.subscriber.SubscriberWithDemand',
+                     'SubscriberWithMultiDemand': 'reactor.core.subscriber.SubscriberWithMultiDemand',
+                     'SubscriberScalar'         : 'reactor.core.subscriber.SubscriberScalar',
+                     'SubscriberScalarDelayed'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
+                     'SimpleProcessor'          : 'reactor.core.processor.EmitterProcessor']
 
 //Reactor Core configuration
-def reactorCore = ['api'        : 'reactor.Flux',
-				   'api-package': 'reactor.core.publisher',
-				   'internal-package'   : 'reactor.core',
-				   'include'    : coreScope] + reactorCommon
+def reactorCore = ['api'             : 'reactor.Flux',
+                   'api-package'     : 'reactor.core.publisher',
+                   'internal-package': 'reactor.core',
+                   'include'         : coreScope] + reactorCommon
 
 //Reactor Stream configuration
 def reactorStream = ['api'        : 'reactor.rx.Stream',
-					 'api-package': 'reactor.rx.stream',
-					 'exclude'    : streamScope,
-					 'internal'   : false] + reactorCommon
+                     'api-package': 'reactor.rx.stream',
+                     'exclude'    : streamScope,
+                     'internal'   : false] + reactorCommon
 
 def defaultTarget = reactorCore
 
@@ -53,102 +53,98 @@ def defaultTarget = reactorCore
 // ------------------------------------------
 
 task generateTargetAPI(type: Sync) {
-  description = 'Deploy Reactive Streams Commons source code to the target API, effectively generating source code in' +
-		  ' target directory.'
+	description = 'Deploy Reactive Streams Commons source code to the target API, effectively generating source code in' +
+			' target directory.'
 
-  def license = "\n/**\n * @see https://github.com/reactor/reactive-streams-commons\n */"
+	def license = "\n/**\n * @see https://github.com/reactor/reactive-streams-commons\n */"
 
-  outputs.upToDateWhen { false }
+	outputs.upToDateWhen { false }
 
-  def target = defaultTarget
+	def target = defaultTarget
 
-  def apiClass = target['api']
-  def splitted = apiClass.split('\\.')
-  def apiClassName = splitted[splitted.length - 1]
+	def apiClass = target['api']
+	def splitted = apiClass.split('\\.')
+	def apiClassName = splitted[splitted.length - 1]
 
-  from 'src/main/java/reactivestreams/commons'
-  into 'build/generated_api'
+	from 'src/main/java/reactivestreams/commons'
+	into 'build/generated_api'
 
-  if (target.include) {
-	include { details ->
-	  !details.file.name
-			  .startsWith('Publisher') || details.file.name
-			  .replaceFirst('Publisher', '')
-			  .replaceAll(".java", '')
-			  .toLowerCase() in target.include
-	}
-  }
-  else if (target.exclude) {
-	exclude { details ->
-	  details.file.name
-			  .startsWith('Publisher') && details.file.name
-			  .replaceFirst('Publisher', '')
-			  .replaceAll(".java", '')
-			  .toLowerCase() in target.exclude
-	}
-  }
-
-  if(target.containsKey('internal') && !target.internal){
-	exclude '**/internal/**'
-  }
-
-  if (target.TestProcessor) {
-	exclude '**/TestProcessor.java'
-  }
-
-  if (target['fn-backport']) {
-	exclude '**/*Trait.java'
-  }
-
-  rename { String fileName -> fileName.replace('Publisher', apiClassName)
-  }
-
-  filter { String line ->
-
-	if (line.trim().startsWith('package')) {
-	  if(target['internal-package'] && line.contains("internal")){
-		return line.replace('reactivestreams.commons.internal', target['internal-package'])
-	  }
-	  else if (target['api-package']) {
-		return line.replace('reactivestreams.commons', target['api-package'])
-	  }
-	  else {
-		return line
-	  }
+	if (target.include) {
+		include { details ->
+			!details.file.name
+					.startsWith('Publisher') || details.file.name
+					.replaceFirst('Publisher', '')
+					.replaceAll(".java", '')
+					.toLowerCase() in target.include
+		}
+	} else if (target.exclude) {
+		exclude { details ->
+			details.file.name
+					.startsWith('Publisher') && details.file.name
+					.replaceFirst('Publisher', '')
+					.replaceAll(".java", '')
+					.toLowerCase() in target.exclude
+		}
 	}
 
-	if (line.trim().startsWith('import')) {
-	  def l = line
-	  if (target.SimpleProcessor) {
-		l = l.replace("reactivestreams.commons.internal.SimpleProcessor", target.SimpleProcessor)
-	  }
+	if (target.containsKey('internal') && !target.internal) {
+		exclude '**/internal/**'
+	}
 
-	  if (target['fn-backport']) {
-		l = l.replace('java.util.function', target['fn-backport'])
-	  }
+	if (target.TestProcessor) {
+		exclude '**/TestProcessor.java'
+	}
 
-	  if (target['api-package']) {
-		return l.replace('reactivestreams.commons', target['api-package'])
-	  }
-	  else {
+	if (target['fn-backport']) {
+		exclude '**/*Trait.java'
+	}
+
+	rename { String fileName -> fileName.replace('Publisher', apiClassName)
+	}
+
+	filter { String line ->
+
+		if (line.trim().startsWith('package')) {
+			if (target['internal-package'] && line.contains("internal")) {
+				return line.replace('reactivestreams.commons.internal', target['internal-package'])
+			} else if (target['api-package']) {
+				return line.replace('reactivestreams.commons', target['api-package'])
+			} else {
+				return line
+			}
+		}
+
+		if (line.trim().startsWith('import')) {
+			def l = line
+			if (target.SimpleProcessor) {
+				l = l.replace("reactivestreams.commons.internal.SimpleProcessor", target.SimpleProcessor)
+			}
+
+			if (target['fn-backport']) {
+				l = l.replace('java.util.function', target['fn-backport'])
+			}
+
+			if (target['api-package']) {
+				return l.replace('reactivestreams.commons', target['api-package'])
+			} else {
+				return l
+			}
+		}
+
+		def l = line.replace("implements Publisher", "extends $apiClass")
+				.replace('public final class Publisher', "$license\npublic final class $apiClassName")
+				.replace('public Publisher', "public $apiClassName")
+
+		//Special case for just
+		if (l.contains('implements Supplier<T>, Publisher<T>')) {
+			return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClassName<T>")
+		}
+
+		if (target.SimpleProcessor) {
+			l = l.replace('SimpleProcessor', target.SimpleProcessor)
+		}
+
 		return l
-	  }
 	}
-
-	def l = line.replace("implements Publisher", "extends $apiClass")
-			.replace('public final class Publisher', "$license\npublic final class $apiClassName")
-			.replace('public Publisher', "public $apiClassName")
-
-	//Special case for just
-	if (l.contains('implements Supplier<T>, Publisher<T>')) {
-	  return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClassName<T>")
-	}
-
-	if (target.SimpleProcessor) {
-	  l = l.replace('SimpleProcessor', target.SimpleProcessor)
-	}
-
-	return l
-  }
 
 }

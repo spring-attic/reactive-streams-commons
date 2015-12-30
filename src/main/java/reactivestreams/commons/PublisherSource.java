@@ -1,11 +1,8 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.function.Function;
-
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.internal.subscription.EmptySubscription;
+
+import java.util.Objects;
 
 /**
  * Keep reference to the upstream Publisher in order to apply operator Subscribers
@@ -21,7 +18,7 @@ public abstract class PublisherSource<T, R> implements Publisher<R> {
         this.source = Objects.requireNonNull(source, "source");
     }
 
-	/**
+    /**
      * The upstream source
      *
      * @return

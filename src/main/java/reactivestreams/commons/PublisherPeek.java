@@ -1,42 +1,43 @@
 package reactivestreams.commons;
 
-import java.util.function.Consumer;
-import java.util.function.LongConsumer;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
+
 /**
  * Peek into the lifecycle events and signals of a sequence.
- *
+ * <p>
  * <p>
  * The callbacks are all optional.
- * 
+ * <p>
  * <p>
  * Crashes by the lambdas are ignored.
- * 
+ *
  * @param <T> the value type
  */
 public final class PublisherPeek<T> extends PublisherSource<T, T> {
 
     final Consumer<? super Subscription> onSubscribeCall;
-    
+
     final Consumer<? super T> onNextCall;
-    
+
     final Consumer<? super Throwable> onErrorCall;
-    
+
     final Runnable onCompleteCall;
-    
+
     final Runnable onAfterTerminateCall;
-    
+
     final LongConsumer onRequestCall;
-    
+
     final Runnable onCancelCall;
 
     public PublisherPeek(Publisher<? extends T> source, Consumer<? super Subscription> onSubscribeCall,
-            Consumer<? super T> onNextCall, Consumer<? super Throwable> onErrorCall, Runnable onCompleteCall,
-            Runnable onAfterTerminateCall, LongConsumer onRequestCall, Runnable onCancelCall) {
+                         Consumer<? super T> onNextCall, Consumer<? super Throwable> onErrorCall, Runnable
+                           onCompleteCall,
+                         Runnable onAfterTerminateCall, LongConsumer onRequestCall, Runnable onCancelCall) {
         super(source);
         this.onSubscribeCall = onSubscribeCall;
         this.onNextCall = onNextCall;
@@ -46,18 +47,18 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
         this.onRequestCall = onRequestCall;
         this.onCancelCall = onCancelCall;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherPeekSubscriber<>(s, this));
     }
-    
+
     static final class PublisherPeekSubscriber<T> implements Subscriber<T>, Subscription {
-        
+
         final Subscriber<? super T> actual;
-        
+
         final PublisherPeek<T> parent;
-        
+
         Subscription s;
 
         public PublisherPeekSubscriber(Subscriber<? super T> actual, PublisherPeek<T> parent) {
@@ -80,7 +81,7 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onCancelCall.run();
             } catch (Throwable e) {
-             // FIXME nowhere to go
+                // FIXME nowhere to go
             }
             s.cancel();
         }
@@ -90,7 +91,7 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onSubscribeCall.accept(s);
             } catch (Throwable e) {
-             // FIXME nowhere to go
+                // FIXME nowhere to go
             }
             this.s = s;
             actual.onSubscribe(this);
@@ -101,7 +102,7 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onNextCall.accept(t);
             } catch (Throwable e) {
-             // FIXME nowhere to go
+                // FIXME nowhere to go
             }
             actual.onNext(t);
         }
@@ -111,15 +112,15 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onErrorCall.accept(t);
             } catch (Throwable e) {
-             // FIXME nowhere to go
+                // FIXME nowhere to go
             }
-            
+
             actual.onError(t);
 
             try {
                 parent.onAfterTerminateCall.run();
             } catch (Throwable e) {
-             // FIXME nowhere to go
+                // FIXME nowhere to go
             }
         }
 
@@ -128,17 +129,17 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onCompleteCall.run();
             } catch (Throwable e) {
-             // FIXME nowhere to go
+                // FIXME nowhere to go
             }
-            
+
             actual.onComplete();
 
             try {
                 parent.onAfterTerminateCall.run();
             } catch (Throwable e) {
-             // FIXME nowhere to go
+                // FIXME nowhere to go
             }
         }
-        
+
     }
 }

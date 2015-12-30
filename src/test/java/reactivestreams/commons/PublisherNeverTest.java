@@ -1,7 +1,7 @@
 package reactivestreams.commons;
 
-import org.junit.*;
-
+import org.junit.Assert;
+import org.junit.Test;
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherNeverTest {
@@ -10,17 +10,17 @@ public class PublisherNeverTest {
     public void singleInstance() {
         Assert.assertSame(PublisherNever.instance(), PublisherNever.instance());
     }
-    
+
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         PublisherNever.<Integer>instance().subscribe(ts);
-        
+
         ts
-        .assertSubscribed()
-        .assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
+          .assertSubscribed()
+          .assertNoValues()
+          .assertNoError()
+          .assertNotComplete();
     }
 }

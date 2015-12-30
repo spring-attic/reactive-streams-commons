@@ -1,7 +1,6 @@
 package reactivestreams.commons;
 
 import org.junit.Test;
-
 import reactivestreams.commons.internal.subscriber.test.TestSubscriber;
 
 public class PublisherTakeTest {
@@ -19,45 +18,45 @@ public class PublisherTakeTest {
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
+
         new PublisherTake<>(new PublisherRange(1, 10), 5).subscribe(ts);
-        
+
         ts.assertValues(1, 2, 3, 4, 5)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
 
     @Test
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
+
         new PublisherTake<>(new PublisherRange(1, 10), 5).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertNotComplete()
-        .assertNoError();
-        
+          .assertNotComplete()
+          .assertNoError();
+
         ts.request(2);
 
         ts.assertValues(1, 2)
-        .assertNotComplete()
-        .assertNoError();
+          .assertNotComplete()
+          .assertNoError();
 
         ts.request(10);
 
         ts.assertValues(1, 2, 3, 4, 5)
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
-    
+
     @Test
     public void takeZero() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
+
         new PublisherTake<>(new PublisherRange(1, 10), 0).subscribe(ts);
-        
+
         ts.assertNoValues()
-        .assertComplete()
-        .assertNoError();
+          .assertComplete()
+          .assertNoError();
     }
 }

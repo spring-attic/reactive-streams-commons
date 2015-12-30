@@ -1,13 +1,12 @@
 package reactivestreams.commons;
 
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 /**
  * Emits a range of integer values.
@@ -15,49 +14,49 @@ import reactivestreams.commons.internal.support.SubscriptionHelper;
 public final class PublisherRange implements Publisher<Integer> {
 
     final long start;
-    
+
     final long end;
-    
+
     public PublisherRange(int start, int count) {
         if (count < 0) {
             throw new IllegalArgumentException("count >= required but it was " + count);
         }
-        long e = (long)start + count;
+        long e = (long) start + count;
         if (e - 1 > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("start + count must be less than Integer.MAX_VALUE + 1");
         }
-        
+
         this.start = start;
         this.end = e;
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super Integer> s) {
         s.onSubscribe(new PublisherRangeSubscription<>(s, start, end));
     }
-    
+
     static final class PublisherRangeSubscription<T>
-    implements Subscription {
+      implements Subscription {
 
         final Subscriber<? super Integer> actual;
-        
+
         final long end;
 
         volatile boolean cancelled;
-        
+
         long index;
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherRangeSubscription> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherRangeSubscription.class, "requested");
+          AtomicLongFieldUpdater.newUpdater(PublisherRangeSubscription.class, "requested");
 
         public PublisherRangeSubscription(Subscriber<? super Integer> actual, long start, long end) {
             this.actual = actual;
             this.index = start;
             this.end = end;
         }
-        
+
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
@@ -75,34 +74,34 @@ public final class PublisherRange implements Publisher<Integer> {
         public void cancel() {
             cancelled = true;
         }
-        
+
         void fastPath() {
             final long e = end;
             final Subscriber<? super Integer> a = actual;
-            
+
             for (long i = index; i != e; i++) {
                 if (cancelled) {
                     return;
                 }
-                
-                a.onNext((int)i);
+
+                a.onNext((int) i);
             }
 
             if (cancelled) {
                 return;
             }
-            
+
             a.onComplete();
         }
-        
+
         void slowPath(long n) {
             final Subscriber<? super Integer> a = actual;
-            
+
             long f = end;
             long e = 0;
             long i = index;
-            
-            for (;;) {
+
+            for (; ; ) {
 
                 if (cancelled) {
                     return;
@@ -110,25 +109,25 @@ public final class PublisherRange implements Publisher<Integer> {
 
                 while (e != n && i != f) {
 
-                    a.onNext((int)i);
-                    
+                    a.onNext((int) i);
+
                     if (cancelled) {
                         return;
                     }
-                    
+
                     e++;
                     i++;
                 }
-                
+
                 if (cancelled) {
                     return;
                 }
-                
+
                 if (i == f) {
                     a.onComplete();
                     return;
                 }
-                
+
                 n = requested;
                 if (n == e) {
                     index = i;
@@ -140,6 +139,6 @@ public final class PublisherRange implements Publisher<Integer> {
                 }
             }
         }
-        
+
     }
 }

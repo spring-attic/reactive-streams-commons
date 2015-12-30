@@ -9,16 +9,16 @@ import org.reactivestreams.Subscription;
  * otherwise.
  */
 public enum CancelledSubscription implements Subscription {
-	INSTANCE;
+    INSTANCE;
 
-	@Override
-	public void request(long n) {
-		// deliberately no op
-	}
+    @Override
+    public void request(long n) {
+        // deliberately no op
+    }
 
-	@Override
-	public void cancel() {
-		// deliberately no op
-	}
+    @Override
+    public void cancel() {
+        // deliberately no op
+    }
 
 }

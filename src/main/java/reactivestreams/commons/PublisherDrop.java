@@ -1,15 +1,14 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.Consumer;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
+
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.function.Consumer;
 
 /**
  * Drops values if the subscriber doesn't request fast enough.
@@ -22,35 +21,36 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
 
     public PublisherDrop(Publisher<? extends T> source) {
         super(source);
-        this.onDrop = v -> { };
+        this.onDrop = v -> {
+        };
     }
 
-    
+
     public PublisherDrop(Publisher<? extends T> source, Consumer<? super T> onDrop) {
         super(source);
         this.onDrop = Objects.requireNonNull(onDrop, "onDrop");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherDropSubscriber<>(s, onDrop));
     }
-    
+
     static final class PublisherDropSubscriber<T> implements Subscriber<T>, Subscription {
-        
+
         final Subscriber<? super T> actual;
-        
+
         final Consumer<? super T> onDrop;
-        
+
         Subscription s;
-        
+
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherDropSubscriber> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherDropSubscriber.class, "requested");
-        
+          AtomicLongFieldUpdater.newUpdater(PublisherDropSubscriber.class, "requested");
+
         boolean done;
-        
+
         public PublisherDropSubscriber(Subscriber<? super T> actual, Consumer<? super T> onDrop) {
             this.actual = actual;
             this.onDrop = onDrop;
@@ -72,9 +72,9 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
+
                 actual.onSubscribe(this);
-                
+
                 s.request(Long.MAX_VALUE);
             }
         }
@@ -85,21 +85,21 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
             if (done) {
                 return;
             }
-            
+
             if (requested != 0L) {
-                
+
                 actual.onNext(t);
-                
+
                 if (requested != Long.MAX_VALUE) {
                     REQUESTED.decrementAndGet(this);
                 }
-                
+
             } else {
                 try {
                     onDrop.accept(t);
                 } catch (Throwable e) {
                     cancel();
-                    
+
                     onError(e);
                 }
             }
@@ -111,7 +111,7 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
                 return;
             }
             done = true;
-            
+
             actual.onError(t);
         }
 
@@ -121,11 +121,10 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
                 return;
             }
             done = true;
-            
+
             actual.onComplete();
         }
 
-        
-        
+
     }
 }

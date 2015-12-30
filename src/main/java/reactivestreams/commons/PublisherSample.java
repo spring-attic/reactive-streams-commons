@@ -1,9 +1,5 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -12,14 +8,18 @@ import reactivestreams.commons.internal.subscription.CancelledSubscription;
 import reactivestreams.commons.internal.support.BackpressureHelper;
 import reactivestreams.commons.internal.support.SubscriptionHelper;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 /**
  * Samples the main source and emits its latest value whenever the other Publisher
  * signals a value.
- * 
+ * <p>
  * <p>
  * Termination of either Publishers will result in termination for the Subscriber
  * as well.
- * 
+ * <p>
  * <p>
  * Both Publishers will run in unbounded mode because the backpressure
  * would interfere with the sampling precision.
@@ -32,46 +32,46 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
         super(source);
         this.other = Objects.requireNonNull(other, "other");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
 
         Subscriber<T> serial = new SerializedSubscriber<>(s);
-        
+
         PublisherSampleMainSubscriber<T> main = new PublisherSampleMainSubscriber<>(serial);
-        
+
         s.onSubscribe(main);
 
         other.subscribe(new PublisherSampleOtherSubscriber<>(main));
-        
+
         source.subscribe(main);
     }
-    
-    static final class PublisherSampleMainSubscriber<T> 
-    implements Subscriber<T>, Subscription {
+
+    static final class PublisherSampleMainSubscriber<T>
+      implements Subscriber<T>, Subscription {
 
         final Subscriber<? super T> actual;
-        
+
         volatile T value;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSampleMainSubscriber, Object> VALUE =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, Object.class, "value");
+          AtomicReferenceFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, Object.class, "value");
 
         volatile Subscription main;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSampleMainSubscriber, Subscription> MAIN =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, Subscription.class, "main");
+          AtomicReferenceFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, Subscription.class, "main");
 
-        
+
         volatile Subscription other;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSampleMainSubscriber, Subscription> OTHER =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, Subscription.class, "other");
+          AtomicReferenceFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, Subscription.class, "other");
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherSampleMainSubscriber> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, "requested");
+          AtomicLongFieldUpdater.newUpdater(PublisherSampleMainSubscriber.class, "requested");
 
         public PublisherSampleMainSubscriber(Subscriber<? super T> actual) {
             this.actual = actual;
@@ -98,7 +98,7 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
                 }
             }
         }
-        
+
         void cancelOther() {
             Subscription s = other;
             if (s != CancelledSubscription.INSTANCE) {
@@ -108,7 +108,7 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
                 }
             }
         }
-        
+
         void setOther(Subscription s) {
             if (!OTHER.compareAndSet(this, null, s)) {
                 s.cancel();
@@ -119,20 +119,20 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
             }
             s.request(Long.MAX_VALUE);
         }
-        
+
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 BackpressureHelper.addAndGet(REQUESTED, this, n);
             }
         }
-        
+
         @Override
         public void cancel() {
             cancelMain();
             cancelOther();
         }
-        
+
         @Override
         public void onNext(T t) {
             value = t;
@@ -141,27 +141,27 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
         @Override
         public void onError(Throwable t) {
             cancelOther();
-            
+
             actual.onError(t);
         }
 
         @Override
         public void onComplete() {
             cancelOther();
-            
+
             actual.onComplete();
         }
-        
+
         @SuppressWarnings("unchecked")
         T getAndNullValue() {
-            return (T)VALUE.getAndSet(this, null);
+            return (T) VALUE.getAndSet(this, null);
         }
-        
+
         void decrement() {
             REQUESTED.decrementAndGet(this);
         }
     }
-    
+
     static final class PublisherSampleOtherSubscriber<T, U> implements Subscriber<U> {
         final PublisherSampleMainSubscriber<T> main;
 
@@ -179,41 +179,41 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
             PublisherSampleMainSubscriber<T> m = main;
 
             T v = m.getAndNullValue();
-            
+
             if (v != null) {
                 if (m.requested != 0L) {
                     m.actual.onNext(v);
-                    
+
                     if (m.requested != Long.MAX_VALUE) {
                         m.decrement();
                     }
                     return;
                 }
-                
+
                 m.cancel();
-                
+
                 m.actual.onError(new IllegalStateException("Can't signal value due to lack of requests"));
             }
         }
-        
+
         @Override
         public void onError(Throwable t) {
             PublisherSampleMainSubscriber<T> m = main;
-            
+
             m.cancelMain();
-            
+
             m.actual.onError(t);
         }
 
         @Override
         public void onComplete() {
             PublisherSampleMainSubscriber<T> m = main;
-            
+
             m.cancelMain();
-            
+
             m.actual.onComplete();
         }
-        
-        
+
+
     }
 }

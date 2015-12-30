@@ -1,13 +1,13 @@
 package reactivestreams.commons;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.internal.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.internal.subscription.EmptySubscription;
+
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Concatenates a fixed array of Publishers' values.
@@ -15,13 +15,13 @@ import reactivestreams.commons.internal.subscription.EmptySubscription;
  * @param <T> the value type
  */
 public final class PublisherConcatIterable<T> implements Publisher<T> {
-    
+
     final Iterable<? extends Publisher<? extends T>> iterable;
-    
+
     public PublisherConcatIterable(Iterable<? extends Publisher<? extends T>> iterable) {
         this.iterable = Objects.requireNonNull(iterable, "iterable");
     }
-    
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
 
@@ -33,34 +33,35 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
             EmptySubscription.error(s, e);
             return;
         }
-        
+
         if (it == null) {
             EmptySubscription.error(s, new NullPointerException("The Iterator returned is null"));
             return;
         }
-        
+
         PublisherConcatIterableSubscriber<T> parent = new PublisherConcatIterableSubscriber<>(s, it);
-    
+
         s.onSubscribe(parent);
-        
+
         if (!parent.isCancelled()) {
             parent.onComplete();
         }
     }
-    
+
     static final class PublisherConcatIterableSubscriber<T>
-            extends SubscriberMultiSubscription<T, T> {
+      extends SubscriberMultiSubscription<T, T> {
 
         final Iterator<? extends Publisher<? extends T>> it;
-        
+
         volatile int wip;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherConcatIterableSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherConcatIterableSubscriber.class, "wip");
-        
+          AtomicIntegerFieldUpdater.newUpdater(PublisherConcatIterableSubscriber.class, "wip");
+
         long produced;
-        
-        public PublisherConcatIterableSubscriber(Subscriber<? super T> actual, Iterator<? extends Publisher<? extends T>> it) {
+
+        public PublisherConcatIterableSubscriber(Subscriber<? super T> actual, Iterator<? extends Publisher<? extends
+          T>> it) {
             super(actual);
             this.it = it;
         }
@@ -68,7 +69,7 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
         @Override
         public void onNext(T t) {
             produced++;
-            
+
             subscriber.onNext(t);
         }
 
@@ -80,9 +81,9 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
                     if (isCancelled()) {
                         return;
                     }
-                    
+
                     boolean b;
-                    
+
                     try {
                         b = a.hasNext();
                     } catch (Throwable e) {
@@ -94,7 +95,7 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
                         return;
                     }
 
-                    
+
                     if (!b) {
                         subscriber.onComplete();
                         return;
@@ -123,16 +124,16 @@ public final class PublisherConcatIterable<T> implements Publisher<T> {
                         produced = 0L;
                         produced(c);
                     }
-                    
+
                     p.subscribe(this);
-                    
+
                     if (isCancelled()) {
                         return;
                     }
-                    
+
                 } while (WIP.decrementAndGet(this) != 0);
             }
-            
+
         }
     }
 }

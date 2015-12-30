@@ -1,10 +1,10 @@
 package reactivestreams.commons;
 
-import java.util.Objects;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
+import java.util.Objects;
 
 /**
  * Skips the first N elements from a reactive stream.
@@ -12,11 +12,11 @@ import org.reactivestreams.Subscription;
  * @param <T> the value type
  */
 public final class PublisherSkip<T> extends PublisherSource<T, T> {
-    
+
     final Publisher<? extends T> source;
-    
+
     final long n;
-    
+
     public PublisherSkip(Publisher<? extends T> source, long n) {
         super(source);
         if (n < 0) {
@@ -25,7 +25,7 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         this.source = Objects.requireNonNull(source, "source");
         this.n = n;
     }
-    
+
     public long n() {
         return n;
     }
@@ -38,15 +38,15 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
             source.subscribe(new PublisherSkipSubscriber<>(s, n));
         }
     }
-    
+
     static final class PublisherSkipSubscriber<T> implements Subscriber<T> {
-        
+
         final Subscriber<? super T> actual;
-        
+
         final long n;
-        
+
         long remaining;
-        
+
         public PublisherSkipSubscriber(Subscriber<? super T> actual, long n) {
             this.actual = actual;
             this.n = n;
@@ -56,7 +56,7 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         @Override
         public void onSubscribe(Subscription s) {
             actual.onSubscribe(s);
-            
+
             s.request(n);
         }
 
