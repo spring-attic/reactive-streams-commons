@@ -2,7 +2,7 @@ package reactivestreams.commons.publisher;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.publisher.*;
+
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherRetryWhenTest {

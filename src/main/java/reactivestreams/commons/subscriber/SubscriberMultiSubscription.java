@@ -35,20 +35,24 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
     long requested;
 
     volatile Subscription missedSubscription;
+    @SuppressWarnings("rawtypes")
     static final AtomicReferenceFieldUpdater<SubscriberMultiSubscription, Subscription> MISSED_SUBSCRIPTION =
       AtomicReferenceFieldUpdater.newUpdater(SubscriberMultiSubscription.class,
         Subscription.class,
         "missedSubscription");
 
     volatile long missedRequested;
+    @SuppressWarnings("rawtypes")
     static final AtomicLongFieldUpdater<SubscriberMultiSubscription> MISSED_REQUESTED =
       AtomicLongFieldUpdater.newUpdater(SubscriberMultiSubscription.class, "missedRequested");
 
     volatile long missedProduced;
+    @SuppressWarnings("rawtypes")
     static final AtomicLongFieldUpdater<SubscriberMultiSubscription> MISSED_PRODUCED =
       AtomicLongFieldUpdater.newUpdater(SubscriberMultiSubscription.class, "missedProduced");
 
     volatile int wip;
+    @SuppressWarnings("rawtypes")
     static final AtomicIntegerFieldUpdater<SubscriberMultiSubscription> WIP =
       AtomicIntegerFieldUpdater.newUpdater(SubscriberMultiSubscription.class, "wip");
 

@@ -19,11 +19,12 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
     protected final Subscriber<? super O> subscriber;
 
     volatile Subscription s;
+    @SuppressWarnings("rawtypes")
     static final AtomicReferenceFieldUpdater<SubscriberDeferSubscription, Subscription> S =
       AtomicReferenceFieldUpdater.newUpdater(SubscriberDeferSubscription.class, Subscription.class, "s");
 
-    @SuppressWarnings("unused")
     volatile long requested;
+    @SuppressWarnings("rawtypes")
     static final AtomicLongFieldUpdater<SubscriberDeferSubscription> REQUESTED =
       AtomicLongFieldUpdater.newUpdater(SubscriberDeferSubscription.class, "requested");
 

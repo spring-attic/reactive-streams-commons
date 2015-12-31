@@ -1,10 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.*;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.NoSuchElementException;
+
+import org.junit.Test;
+
+import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherSingleTest {
 

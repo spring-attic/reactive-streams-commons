@@ -1,12 +1,12 @@
 package reactivestreams.commons.publisher;
 
+import java.util.concurrent.TimeoutException;
+
 import org.junit.Assert;
 import org.junit.Test;
-import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.publisher.*;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
 
-import java.util.concurrent.TimeoutException;
+import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherTimeoutTest {
 

@@ -1,14 +1,14 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.publisher.*;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.reactivestreams.Subscription;
+
+import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherPeekTest {
     @Test(expected = NullPointerException.class)

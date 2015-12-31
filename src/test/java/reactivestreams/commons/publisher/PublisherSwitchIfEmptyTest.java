@@ -1,7 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import reactivestreams.commons.publisher.*;
+
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherSwitchIfEmptyTest {
