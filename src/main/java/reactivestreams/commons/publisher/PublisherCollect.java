@@ -120,7 +120,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public R getValue() {
+        public R get() {
             return container;
         }
 

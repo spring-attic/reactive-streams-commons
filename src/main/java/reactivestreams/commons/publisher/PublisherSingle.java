@@ -65,7 +65,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
             s.cancel();
         }
 
-        public T getValue() {
+        public T get() {
             return value;
         }
 

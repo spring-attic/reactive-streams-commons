@@ -6,8 +6,9 @@ import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.function.Supplier;
 
-public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription {
+public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription, Supplier<O> {
 
     static final int SDS_NO_REQUEST_NO_VALUE   = 0;
     static final int SDS_NO_REQUEST_HAS_VALUE  = 1;
@@ -38,7 +39,7 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription 
                 if (s == SDS_NO_REQUEST_HAS_VALUE) {
                     if (compareAndSetState(SDS_NO_REQUEST_HAS_VALUE, SDS_HAS_REQUEST_HAS_VALUE)) {
                         Subscriber<? super O> a = downstream();
-                        a.onNext(getValue());
+                        a.onNext(get());
                         a.onComplete();
                     }
                     return;
@@ -92,16 +93,17 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription 
         return STATE.compareAndSet(this, expected, updated);
     }
 
-    public O getValue() {
+    @Override
+    public O get() {
         return value;
-    }
-
-    public void setValue(O value) {
-        this.value = value;
     }
 
     public final Subscriber<? super O> downstream() {
         return subscriber;
+    }
+
+    public void setValue(O value) {
+        this.value = value;
     }
 
     public final void set(O value) {

@@ -81,7 +81,7 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public T getValue() {
+        public T get() {
             return value;
         }
 

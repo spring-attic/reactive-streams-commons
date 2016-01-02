@@ -226,7 +226,7 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 
   //Special case for just
   if (l.contains('implements Supplier<T>, Publisher<T>')) {
-	return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClassName<T>")
+	return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClass<T>")
   }
 
 
