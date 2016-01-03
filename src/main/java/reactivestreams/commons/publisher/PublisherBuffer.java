@@ -332,6 +332,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
             this.buffers = new ArrayDeque<>();
         }
 
+        @Override
         public boolean getAsBoolean() {
             return cancelled;
         }

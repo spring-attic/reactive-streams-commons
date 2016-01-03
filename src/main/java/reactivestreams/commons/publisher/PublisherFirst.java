@@ -16,10 +16,9 @@ public final class PublisherFirst<T> extends PublisherSource<T, T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherSingle.PublisherSingleSubscriber<>(s, PublisherSingle
-                .COMPLETE_ON_EMPTY_SEQUENCE));
+                .completeOnEmptySequence()));
     }
 
 }

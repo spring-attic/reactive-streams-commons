@@ -19,12 +19,17 @@ import java.util.function.Supplier;
  */
 public final class PublisherSingle<T> extends PublisherSource<T, T> {
 
-    static final Supplier COMPLETE_ON_EMPTY_SEQUENCE = new Supplier() {
+    private static final Supplier<Object> COMPLETE_ON_EMPTY_SEQUENCE = new Supplier<Object>() {
         @Override
         public Object get() {
             return null; // Purposedly leave noop
         }
     };
+    
+    @SuppressWarnings("unchecked")
+    static <T> Supplier<T> completeOnEmptySequence() {
+        return (Supplier<T>)COMPLETE_ON_EMPTY_SEQUENCE;
+    }
 
     final Supplier<? extends T> defaultSupplier;
 
@@ -72,6 +77,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
             s.cancel();
         }
 
+        @Override
         public T get() {
             return value;
         }
