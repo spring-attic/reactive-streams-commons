@@ -65,7 +65,7 @@ public final class UnsignalledExceptions {
      *
      * @param e the exception to handle, if null, a new NullPointerException is instantiated
      */
-    public static void onError(Throwable e) {
+    public static void onErrorDropped(Throwable e) {
         if (e == null) {
             e = new NullPointerException();
         }

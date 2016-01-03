@@ -22,6 +22,8 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
                                                       ReactiveState.Downstream,
                                                       ReactiveState.ActiveDownstream,
                                                       ReactiveState.Upstream,
+                                                      ReactiveState.Trace,
+                                                      ReactiveState.Buffering,
                                                       ReactiveState.FailState{
 
     final Subscriber<? super T> actual;
@@ -304,6 +306,20 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
     @Override
     public Subscription upstream() {
         return s;
+    }
+
+    @Override
+    public long pending() {
+        LinkedArrayNode<T> node = serGetTail();
+        if(node != null){
+            return node.count;
+        }
+        return 0;
+    }
+
+    @Override
+    public long getCapacity() {
+        return LinkedArrayNode.DEFAULT_CAPACITY;
     }
 
     /**

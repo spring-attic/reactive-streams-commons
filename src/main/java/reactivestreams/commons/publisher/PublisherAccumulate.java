@@ -96,7 +96,7 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
         @Override
         public void onError(Throwable t) {
             if (done) {
-                UnsignalledExceptions.onError(t);
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;
