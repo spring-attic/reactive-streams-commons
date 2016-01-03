@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -15,12 +16,19 @@ import java.util.function.Supplier;
  *
  * @param <T> the returned value type
  */
-public final class PublisherCallable<T> implements Publisher<T> {
+public final class PublisherCallable<T> implements Publisher<T>,
+                                                   ReactiveState.Factory,
+                                                   ReactiveState.Upstream {
 
     final Callable<? extends T> callable;
 
     public PublisherCallable(Callable<? extends T> callable) {
         this.callable = Objects.requireNonNull(callable, "callable");
+    }
+
+    @Override
+    public Object upstream() {
+        return callable;
     }
 
     @Override

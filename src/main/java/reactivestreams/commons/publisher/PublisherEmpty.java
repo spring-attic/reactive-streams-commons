@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ReactiveState;
 
 /**
  * Represents an empty publisher which only calls onSubscribe and onComplete.
@@ -10,12 +11,24 @@ import reactivestreams.commons.subscription.EmptySubscription;
  * This Publisher is effectively stateless and only a single instance exists.
  * Use the {@link #instance()} method to obtain a properly type-parametrized view of it.
  */
-public final class PublisherEmpty implements Publisher<Object> {
+public final class PublisherEmpty implements Publisher<Object>,
+                                             ReactiveState.Factory,
+                                             ReactiveState.ActiveUpstream {
 
     private static final Publisher<Object> INSTANCE = new PublisherEmpty();
 
     private PublisherEmpty() {
         // deliberately no op
+    }
+
+    @Override
+    public boolean isStarted() {
+        return false;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return true;
     }
 
     @Override

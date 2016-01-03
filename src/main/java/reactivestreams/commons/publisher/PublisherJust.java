@@ -3,11 +3,13 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscription.ScalarSubscription;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public final class PublisherJust<T> implements Supplier<T>, Publisher<T> {
+public final class PublisherJust<T> implements Supplier<T>, Publisher<T>,
+                                               ReactiveState.Factory  {
 
     final T value;
 

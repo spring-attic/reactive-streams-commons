@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -12,7 +13,9 @@ import java.util.function.Supplier;
  *
  * @param <T> the value type
  */
-public final class PublisherError<T> implements Publisher<T> {
+public final class PublisherError<T> implements Publisher<T>,
+                                                ReactiveState.Factory,
+                                                ReactiveState.FailState {
 
     final Supplier<? extends Throwable> supplier;
 
@@ -32,6 +35,11 @@ public final class PublisherError<T> implements Publisher<T> {
 
     public PublisherError(Supplier<? extends Throwable> supplier) {
         this.supplier = Objects.requireNonNull(supplier);
+    }
+
+    @Override
+    public Throwable getError() {
+        return supplier.get();
     }
 
     @Override

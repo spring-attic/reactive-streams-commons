@@ -1,6 +1,7 @@
 package reactivestreams.commons.subscription;
 
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.support.ReactiveState;
 
 /**
  * A singleton Subscription that represents a cancelled subscription instance and should not be leaked to clients as it
@@ -8,8 +9,14 @@ import org.reactivestreams.Subscription;
  * EmptySubscription#INSTANCE} because there is no standard way to tell if a Subscription is cancelled or not
  * otherwise.
  */
-public enum CancelledSubscription implements Subscription {
+public enum CancelledSubscription implements Subscription,
+                                             ReactiveState.ActiveDownstream {
     INSTANCE;
+
+    @Override
+    public boolean isCancelled() {
+        return true;
+    }
 
     @Override
     public void request(long n) {
@@ -20,5 +27,6 @@ public enum CancelledSubscription implements Subscription {
     public void cancel() {
         // deliberately no op
     }
+
 
 }

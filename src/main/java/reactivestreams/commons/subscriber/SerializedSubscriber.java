@@ -2,6 +2,7 @@ package reactivestreams.commons.subscriber;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -16,7 +17,14 @@ import reactivestreams.commons.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription {
+public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription,
+                                                      ReactiveState.ActiveUpstream,
+                                                      ReactiveState.Downstream,
+                                                      ReactiveState.ActiveDownstream,
+                                                      ReactiveState.Upstream,
+                                                      ReactiveState.Trace,
+                                                      ReactiveState.Buffering,
+                                                      ReactiveState.FailState{
 
     final Subscriber<? super T> actual;
 
@@ -98,7 +106,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
     public void serDrainLoop(Subscriber<? super T> actual) {
         for (; ; ) {
 
-            if (serIsCancelled()) {
+            if (isCancelled()) {
                 return;
             }
 
@@ -107,7 +115,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
             LinkedArrayNode<T> n;
 
             synchronized (serGuard()) {
-                if (serIsCancelled()) {
+                if (isCancelled()) {
                     return;
                 }
 
@@ -118,8 +126,8 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
 
                 serSetMissed(false);
 
-                d = serIsDone();
-                e = serGetError();
+                d = isTerminated();
+                e = getError();
                 n = serGetHead();
 
                 serSetHead(null);
@@ -133,7 +141,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
 
                 for (int i = 0; i < c; i++) {
 
-                    if (serIsCancelled()) {
+                    if (isCancelled()) {
                         return;
                     }
 
@@ -143,7 +151,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
                 n = n.next;
             }
 
-            if (serIsCancelled()) {
+            if (isCancelled()) {
                 return;
             }
 
@@ -157,7 +165,8 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         }
     }
 
-    public Subscriber<? super T> serGetSubscriber() {
+    @Override
+    public Subscriber<? super T> downstream() {
         return actual;
     }
 
@@ -170,12 +179,12 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
     }
 
     public void serOnComplete() {
-        if (serIsCancelled() || serIsDone()) {
+        if (isCancelled() || isTerminated()) {
             return;
         }
 
         synchronized (this) {
-            if (serIsCancelled() || serIsDone()) {
+            if (isCancelled() || isTerminated()) {
                 return;
             }
 
@@ -187,16 +196,16 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
             }
         }
 
-        serGetSubscriber().onComplete();
+        downstream().onComplete();
     }
 
     public void serOnError(Throwable e) {
-        if (serIsCancelled() || serIsDone()) {
+        if (isCancelled() || isTerminated()) {
             return;
         }
 
         synchronized (serGuard()) {
-            if (serIsCancelled() || serIsDone()) {
+            if (isCancelled() || isTerminated()) {
                 return;
             }
 
@@ -209,16 +218,16 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
             }
         }
 
-        serGetSubscriber().onError(e);
+        downstream().onError(e);
     }
 
     public void serOnNext(T t) {
-        if (serIsCancelled() || serIsDone()) {
+        if (isCancelled() || isTerminated()) {
             return;
         }
 
         synchronized (serGuard()) {
-            if (serIsCancelled() || serIsDone()) {
+            if (isCancelled() || isTerminated()) {
                 return;
             }
 
@@ -231,7 +240,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
             serSetEmitting(true);
         }
 
-        Subscriber<? super T> actual = serGetSubscriber();
+        Subscriber<? super T> actual = downstream();
 
         actual.onNext(t);
 
@@ -250,11 +259,13 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         this.missed = missed;
     }
 
-    public boolean serIsCancelled() {
+    @Override
+    public boolean isCancelled() {
         return cancelled;
     }
 
-    public boolean serIsDone() {
+    @Override
+    public boolean isTerminated() {
         return done;
     }
 
@@ -262,7 +273,8 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         this.done = done;
     }
 
-    public Throwable serGetError() {
+    @Override
+    public Throwable getError() {
         return error;
     }
 
@@ -284,6 +296,30 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
 
     public void serSetTail(LinkedArrayNode<T> node) {
         tail = node;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return s != null || !cancelled;
+    }
+
+    @Override
+    public Subscription upstream() {
+        return s;
+    }
+
+    @Override
+    public long pending() {
+        LinkedArrayNode<T> node = serGetTail();
+        if(node != null){
+            return node.count;
+        }
+        return 0;
+    }
+
+    @Override
+    public long getCapacity() {
+        return LinkedArrayNode.DEFAULT_CAPACITY;
     }
 
     /**

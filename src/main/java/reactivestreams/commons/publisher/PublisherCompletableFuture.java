@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -15,12 +16,19 @@ import java.util.concurrent.CompletableFuture;
  *
  * @param <T> the value type
  */
-public final class PublisherCompletableFuture<T> implements Publisher<T> {
+public final class PublisherCompletableFuture<T> implements Publisher<T>,
+                                                            ReactiveState.Factory,
+                                                            ReactiveState.Upstream{
 
     final CompletableFuture<? extends T> future;
 
     public PublisherCompletableFuture(CompletableFuture<? extends T> future) {
         this.future = Objects.requireNonNull(future, "future");
+    }
+
+    @Override
+    public Object upstream() {
+        return future;
     }
 
     @Override

@@ -30,42 +30,58 @@ def excludingStreamScope = includingCoreScope + ['generate',
 												 'zip']
 
 //Common reactor helper references
-def reactorCommon = ['fn-backport'        : 'reactor.fn',
-					 'api-single'         : 'reactor.Mono',
-					 'api-single-operator': 'reactor.Mono.MonoBarrier',
-					 'test-type'          : false,
-					 'header'             : '@since 2.5',
-					 'SubscriptionHelper' : 'BackpressureUtils',
-					 'BackpressureHelper' : 'BackpressureUtils',
+def reactorCommon = ['fn-backport'          : 'reactor.fn',
+					 'api-single'           : 'reactor.Mono',
+					 'api-single-operator'  : 'reactor.Mono.MonoBarrier',
+					 'test-type'            : false,
+					 'header'               : '@since 2.5',
+					 'SubscriptionHelper'   : 'BackpressureUtils',
+					 'BackpressureHelper'   : 'BackpressureUtils',
+					 'UnsignalledExceptions': 'BackpressureUtils',
 					 //'SubscriberDeferSubscription'     : 'reactor.core.subscriber.SubscriberDeferSubscription',
 					 //'SubscriberMultiSubscription': 'reactor.core.subscriber.SubscriberMultiSubscription',
 					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
 					 //'SubscriberDeferScalar'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'SimpleProcessor'    : 'reactor.core.processor.EmitterProcessor']
+					 'SimpleProcessor'      : 'reactor.core.processor.EmitterProcessor']
 
 //Reactor Core configuration
 def reactorCore = ['api'                 : 'reactor.Flux',
 				   'api-package'         : 'reactor.core.publisher',
 				   'api-operator'        : 'reactor.Flux.FluxBarrier',
-				   'serializedSubscriber': false,
+				   'serializedSubscriber': true,
 				   'extra-packages'      : 'reactor.core',
 				   'include'             : includingCoreScope] + reactorCommon
 
 //Reactor Stream configuration
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'api-package'         : 'reactor.rx.stream',
-					 'api-operator'        : 'reactor.rx.stream.StreamBarrier',
-					 'serializedSubscriber': true,
+					 'api-operator'        : 'StreamBarrier',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
 
-def defaultTarget = reactorCore
+def defaultTarget = reactorStream
 
-// ------------------------------------------
-// Generation Script
-// ------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
+// Generation Script - Inlining Reactive Streams Commons
+// ----------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
 
-def defaultSingleAPI = ['empty', 'just', 'error', 'single', 'first','reduce','all', 'any', 'count']
+def defaultSingleAPI = ['empty',
+						'just',
+						'error',
+						'single',
+						'first',
+						'reduce',
+						'all',
+						'any',
+						'count',
+						'elementAt',
+						'isEmpty',
+						'takeLast',
+						'reduce',
+
+]
 
 task generateTargetAPI(type: Sync) {
   description = 'Deploy Reactive Streams Commons source code to the target API, effectively generating source code in' +
@@ -97,15 +113,15 @@ task generateTargetAPI(type: Sync) {
   }
 
 
-	exclude { details ->
-	  def name = details.file.name
-			  .replaceFirst('Publisher', '')
-			  .replaceAll(".java", '')
-			  .toLowerCase()
+  exclude { details ->
+	def name = details.file.name
+			.replaceFirst('Publisher', '')
+			.replaceAll(".java", '')
+			.toLowerCase()
 
-	  details.file.name
-			  .startsWith('Publisher') && (name in target.exclude || name in defaultSingleAPI)
-	}
+	details.file.name
+			.startsWith('Publisher') && (name in target.exclude || name in defaultSingleAPI)
+  }
 
   rename { String fileName -> fileName.replace('Publisher', apiClassName)
   }
@@ -138,7 +154,18 @@ task generateTargetSingleAPI(type: Copy) {
 			.replaceAll(".java", '')
 			.toLowerCase()
 	!details.file.name
-			.startsWith('Publisher') || (name in target.include && name in defaultSingleAPI)
+			.startsWith('Publisher') || (( !target.include || name in target.include) && name in defaultSingleAPI)
+  }
+
+
+  exclude { details ->
+	def name = details.file.name
+			.replaceFirst('Publisher', '')
+			.replaceAll(".java", '')
+			.toLowerCase()
+
+	details.file.name
+			.startsWith('Publisher') && (name in target.exclude)
   }
 
   rename { String fileName -> fileName.replace('Publisher', apiSingleClassName)
@@ -155,7 +182,7 @@ task generateExtra(type: Copy) {
   includeEmptyDirs = false
 
   from 'src/main/java/reactivestreams/commons'
-  into "build/generated_api/${target['extra-packages'].replaceAll('\\.', '/')}"
+  into "build/generated_api/${target['extra-packages']?.replaceAll('\\.', '/')}"
 
   exclude '**/publisher/**'
 
@@ -163,9 +190,22 @@ task generateExtra(type: Copy) {
 	exclude '**/subscriber/test/**'
   }
 
-  if (target.SimpleProcessor) {
-	exclude '**/SimpleProcessor.java'
+  if (target.containsKey('serializedSubscriber') && !target['serializedSubscriber']) {
+	exclude '**/subscriber/SerializedSubscriber.java'
   }
+
+  if (target.SubscriptionHelper) {
+	exclude '**/SubscriptionHelper.java'
+  }
+
+  if (target.BackpressureHelper) {
+	exclude '**/BackpressureHelper.java'
+  }
+
+  if (target.UnsignalledExceptions) {
+	exclude '**/UnsignalledExceptions.java'
+  }
+
 }
 
 task inlineCommons {
@@ -243,6 +283,9 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
   else if (l.contains('SubscriptionHelper') && target['SubscriptionHelper']) {
 	l = l.replace('SubscriptionHelper', target['SubscriptionHelper'])
+  }
+  else if (l.contains('UnsignalledExceptions') && target['UnsignalledExceptions']) {
+	l = l.replace('UnsignalledExceptions', target['UnsignalledExceptions'])
   }
 
   if (target.SimpleProcessor) {

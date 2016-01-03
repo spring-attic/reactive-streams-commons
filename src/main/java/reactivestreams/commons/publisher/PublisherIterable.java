@@ -5,6 +5,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Iterator;
@@ -16,7 +17,8 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
  *
  * @param <T> the value type
  */
-public final class PublisherIterable<T> implements Publisher<T> {
+public final class PublisherIterable<T> implements Publisher<T>,
+                                                   ReactiveState.Factory {
 
     final Iterable<? extends T> iterable;
 

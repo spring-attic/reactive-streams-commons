@@ -5,6 +5,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Objects;
@@ -23,7 +24,7 @@ import java.util.function.Supplier;
  * @param <T> the value type emitted
  * @param <S> the custom state per subscriber
  */
-public final class PublisherGenerate<T, S> implements Publisher<T> {
+public final class PublisherGenerate<T, S> implements Publisher<T>, ReactiveState.Factory {
 
     /**
      * Interface to receive generated signals from the callback function.
