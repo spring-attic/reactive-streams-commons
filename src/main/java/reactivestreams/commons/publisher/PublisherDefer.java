@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -12,12 +13,19 @@ import java.util.function.Supplier;
  *
  * @param <T> the value type
  */
-public final class PublisherDefer<T> implements Publisher<T> {
+public final class PublisherDefer<T> implements Publisher<T>,
+                                                ReactiveState.Factory,
+                                                ReactiveState.Upstream {
 
     final Supplier<? extends Publisher<? extends T>> supplier;
 
     public PublisherDefer(Supplier<? extends Publisher<? extends T>> supplier) {
         this.supplier = Objects.requireNonNull(supplier, "supplier");
+    }
+
+    @Override
+    public Object upstream() {
+        return supplier;
     }
 
     @Override

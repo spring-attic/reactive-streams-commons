@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -14,12 +15,24 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
  *
  * @param <T> the value type
  */
-public final class PublisherConcatIterable<T> implements Publisher<T> {
+public final class PublisherConcatIterable<T> implements Publisher<T>,
+                                                         ReactiveState.Factory,
+                                                         ReactiveState.LinkedUpstreams {
 
     final Iterable<? extends Publisher<? extends T>> iterable;
 
     public PublisherConcatIterable(Iterable<? extends Publisher<? extends T>> iterable) {
         this.iterable = Objects.requireNonNull(iterable, "iterable");
+    }
+
+    @Override
+    public Iterator<?> upstreams() {
+        return iterable.iterator();
+    }
+
+    @Override
+    public long upstreamsCount() {
+        return -1L;
     }
 
     @Override

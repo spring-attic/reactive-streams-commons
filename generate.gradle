@@ -61,11 +61,27 @@ def reactorStream = ['api'                 : 'reactor.rx.Stream',
 
 def defaultTarget = reactorCore
 
-// ------------------------------------------
-// Generation Script
-// ------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
+// Generation Script - Inlining Reactive Streams Commons
+// ----------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
 
-def defaultSingleAPI = ['empty', 'just', 'error', 'single', 'first','reduce','all', 'any', 'count']
+def defaultSingleAPI = ['empty',
+						'just',
+						'error',
+						'single',
+						'first',
+						'reduce',
+						'all',
+						'any',
+						'count',
+						'elementAt',
+						'isEmpty',
+						'takeLast',
+						'reduce',
+
+]
 
 task generateTargetAPI(type: Sync) {
   description = 'Deploy Reactive Streams Commons source code to the target API, effectively generating source code in' +
@@ -97,15 +113,15 @@ task generateTargetAPI(type: Sync) {
   }
 
 
-	exclude { details ->
-	  def name = details.file.name
-			  .replaceFirst('Publisher', '')
-			  .replaceAll(".java", '')
-			  .toLowerCase()
+  exclude { details ->
+	def name = details.file.name
+			.replaceFirst('Publisher', '')
+			.replaceAll(".java", '')
+			.toLowerCase()
 
-	  details.file.name
-			  .startsWith('Publisher') && (name in target.exclude || name in defaultSingleAPI)
-	}
+	details.file.name
+			.startsWith('Publisher') && (name in target.exclude || name in defaultSingleAPI)
+  }
 
   rename { String fileName -> fileName.replace('Publisher', apiClassName)
   }

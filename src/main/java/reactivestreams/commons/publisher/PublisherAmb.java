@@ -5,8 +5,10 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -17,7 +19,9 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
  *
  * @param <T> the value type
  */
-public final class PublisherAmb<T> implements Publisher<T> {
+public final class PublisherAmb<T> implements Publisher<T>,
+                                              ReactiveState.Factory,
+                                              ReactiveState.LinkedUpstreams{
 
     final Publisher<? extends T>[] array;
 
@@ -32,6 +36,16 @@ public final class PublisherAmb<T> implements Publisher<T> {
     public PublisherAmb(Iterable<? extends Publisher<? extends T>> iterable) {
         this.array = null;
         this.iterable = Objects.requireNonNull(iterable);
+    }
+
+    @Override
+    public Iterator<?> upstreams() {
+        return iterable != null ? iterable.iterator() : Arrays.asList(array).iterator();
+    }
+
+    @Override
+    public long upstreamsCount() {
+        return array != null ? array.length : -1L;
     }
 
     @SuppressWarnings("unchecked")

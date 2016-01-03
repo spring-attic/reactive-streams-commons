@@ -2,13 +2,18 @@ package reactivestreams.commons.subscriber;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Supplier;
 
-public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription, Supplier<O> {
+public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
+                                                    Supplier<O>,
+                                                    ReactiveState.ActiveUpstream,
+                                                    ReactiveState.ActiveDownstream,
+                                                    ReactiveState.Downstream {
 
     static final int SDS_NO_REQUEST_NO_VALUE   = 0;
     static final int SDS_NO_REQUEST_HAS_VALUE  = 1;
@@ -77,6 +82,7 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
         subscriber.onComplete();
     }
 
+    @Override
     public final boolean isCancelled() {
         return getState() == SDS_HAS_REQUEST_HAS_VALUE;
     }
@@ -98,6 +104,7 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
         return value;
     }
 
+    @Override
     public final Subscriber<? super O> downstream() {
         return subscriber;
     }
@@ -126,5 +133,15 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
                 return;
             }
         }
+    }
+
+    @Override
+    public boolean isStarted() {
+        return state != SDS_NO_REQUEST_NO_VALUE;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return isCancelled();
     }
 }

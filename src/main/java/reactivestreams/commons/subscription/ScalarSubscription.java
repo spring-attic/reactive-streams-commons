@@ -2,12 +2,14 @@ package reactivestreams.commons.subscription;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
-public final class ScalarSubscription<T> implements Subscription {
+public final class ScalarSubscription<T> implements Subscription,
+                                                    ReactiveState.Downstream {
 
     final Subscriber<? super T> actual;
 
@@ -21,6 +23,11 @@ public final class ScalarSubscription<T> implements Subscription {
     public ScalarSubscription(Subscriber<? super T> actual, T value) {
         this.value = Objects.requireNonNull(value, "value");
         this.actual = Objects.requireNonNull(actual, "actual");
+    }
+
+    @Override
+    public final Subscriber<? super T> downstream() {
+        return actual;
     }
 
     @Override

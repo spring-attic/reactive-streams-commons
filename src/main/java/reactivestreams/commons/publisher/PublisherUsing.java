@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Objects;
@@ -26,7 +27,9 @@ import java.util.function.Supplier;
  * @param <T> the value type streamed
  * @param <S> the resource type
  */
-public final class PublisherUsing<T, S> implements Publisher<T> {
+public final class PublisherUsing<T, S> implements Publisher<T>,
+                                                   ReactiveState.Factory,
+                                                   ReactiveState.Upstream {
 
     final Supplier<S> resourceSupplier;
 
@@ -44,6 +47,11 @@ public final class PublisherUsing<T, S> implements Publisher<T> {
         this.sourceFactory = Objects.requireNonNull(sourceFactory, "sourceFactory");
         this.resourceCleanup = Objects.requireNonNull(resourceCleanup, "resourceCleanup");
         this.eager = eager;
+    }
+
+    @Override
+    public Object upstream() {
+        return resourceSupplier;
     }
 
     @Override

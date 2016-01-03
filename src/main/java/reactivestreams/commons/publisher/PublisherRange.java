@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -11,7 +12,8 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 /**
  * Emits a range of integer values.
  */
-public final class PublisherRange implements Publisher<Integer> {
+public final class PublisherRange implements Publisher<Integer>,
+                                             ReactiveState.Factory {
 
     final long start;
 

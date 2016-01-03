@@ -3,6 +3,7 @@ package reactivestreams.commons.subscriber;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Objects;
@@ -20,7 +21,11 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * You should call {@link #produced(long)} or {@link #producedOne()} after each element has been delivered to properly
  * account the outstanding request amount in case a Subscription switch happens.
  */
-public abstract class SubscriberMultiSubscription<I, O> implements Subscription, Subscriber<I> {
+public abstract class SubscriberMultiSubscription<I, O> implements Subscription, Subscriber<I>,
+                                                                   ReactiveState.Downstream,
+                                                                   ReactiveState.ActiveDownstream,
+                                                                   ReactiveState.DownstreamDemand,
+                                                                   ReactiveState.Upstream  {
 
     protected final Subscriber<? super O> subscriber;
 
@@ -186,6 +191,7 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
         }
     }
 
+    @Override
     public final boolean isCancelled() {
         return cancelled;
     }
@@ -264,5 +270,20 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
                 return;
             }
         }
+    }
+
+    @Override
+    public final Subscriber<? super O> downstream() {
+        return subscriber;
+    }
+
+    @Override
+    public final Subscription upstream() {
+        return actual;
+    }
+
+    @Override
+    public final long requestedFromDownstream() {
+        return requested + missedRequested;
     }
 }

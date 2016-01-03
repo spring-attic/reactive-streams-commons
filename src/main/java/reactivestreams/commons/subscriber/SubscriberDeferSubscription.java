@@ -4,6 +4,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscription.CancelledSubscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -14,7 +15,12 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * <p>
  * Note that {@link #request(long)} doesn't validate the amount.
  */
-public class SubscriberDeferSubscription<I, O> implements Subscription, Subscriber<I> {
+public class SubscriberDeferSubscription<I, O> implements Subscription, Subscriber<I>,
+                                                          ReactiveState.DownstreamDemand,
+                                                          ReactiveState.ActiveUpstream,
+                                                          ReactiveState.ActiveDownstream,
+                                                          ReactiveState.Downstream,
+                                                          ReactiveState.Upstream {
 
     protected final Subscriber<? super O> subscriber;
 
@@ -123,6 +129,7 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
      *
      * @return true if this arbiter has been cancelled
      */
+    @Override
     public final boolean isCancelled() {
         return s == CancelledSubscription.INSTANCE;
     }
@@ -134,8 +141,29 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
      *
      * @return true if a subscription has been set or the arbiter has been cancelled
      */
-    public final boolean hasSubscription() {
+    @Override
+    public final boolean isStarted() {
         return s != null;
+    }
+
+    @Override
+    public final boolean isTerminated() {
+        return isCancelled();
+    }
+
+    @Override
+    public final Subscriber<? super O> downstream() {
+        return subscriber;
+    }
+
+    @Override
+    public long requestedFromDownstream() {
+        return requested;
+    }
+
+    @Override
+    public Subscription upstream() {
+        return s;
     }
 
     @Override

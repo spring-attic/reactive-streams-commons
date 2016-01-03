@@ -1,6 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import org.reactivestreams.Publisher;
+import reactivestreams.commons.support.ReactiveState;
 
 import java.util.Objects;
 
@@ -10,7 +11,9 @@ import java.util.Objects;
  * @param <T> the upstream value type
  * @param <R> the downstream value type
  */
-public abstract class PublisherSource<T, R> implements Publisher<R> {
+public abstract class PublisherSource<T, R> implements Publisher<R>,
+                                                       ReactiveState.Upstream,
+                                                       ReactiveState.Factory {
 
     final protected Publisher<? extends T> source;
 
@@ -23,6 +26,7 @@ public abstract class PublisherSource<T, R> implements Publisher<R> {
      *
      * @return
      */
+    @Override
     public final Publisher<? extends T> upstream() {
         return source;
     }
