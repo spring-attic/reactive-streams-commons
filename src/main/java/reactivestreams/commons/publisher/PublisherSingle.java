@@ -12,12 +12,19 @@ import java.util.function.Supplier;
 
 /**
  * Expects and emits a single item from the source or signals
- * NoSuchElementException (or a default generated value) for empty source,
+ * NoSuchElementException(or a default generated value) for empty source,
  * IndexOutOfBoundsException for a multi-item source.
  *
  * @param <T> the value type
  */
 public final class PublisherSingle<T> extends PublisherSource<T, T> {
+
+    static final Supplier COMPLETE_ON_EMPTY_SEQUENCE = new Supplier() {
+        @Override
+        public Object get() {
+            return null; // Purposedly leave noop
+        }
+    };
 
     final Supplier<? extends T> defaultSupplier;
 
@@ -118,6 +125,12 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
             if (c == 0) {
                 Supplier<? extends T> ds = defaultSupplier;
                 if (ds != null) {
+
+                    if (ds == COMPLETE_ON_EMPTY_SEQUENCE){
+                        subscriber.onComplete();
+                        return;
+                    }
+
                     T t;
 
                     try {
