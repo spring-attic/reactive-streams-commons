@@ -8,6 +8,7 @@ import org.reactivestreams.*;
 
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.error.*;
 import reactivestreams.commons.support.*;
 
 /**

@@ -18,7 +18,7 @@ public final class PublisherIgnoreElements<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherIgnoreElementsSubscriber<>(s));
     }
     
-    static final class PublisherIgnoreElementsSubscriber<T> implements Subscriber<T> {
+    static final class PublisherIgnoreElementsSubscriber<T> implements Subscriber<T>, Downstream {
         final Subscriber<? super T> actual;
         
         public PublisherIgnoreElementsSubscriber(Subscriber<? super T> actual) {
@@ -44,6 +44,11 @@ public final class PublisherIgnoreElements<T> extends PublisherSource<T, T> {
         @Override
         public void onComplete() {
             actual.onComplete();
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
         }
     }
 }
