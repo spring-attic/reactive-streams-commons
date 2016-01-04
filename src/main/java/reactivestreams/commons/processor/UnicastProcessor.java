@@ -205,16 +205,7 @@ public final class UnicastProcessor<T> implements Processor<T, T> {
                 drain();
             }
         } else {
-            if (done) {
-                Throwable e = error;
-                if (e != null) {
-                    s.onError(e);
-                } else {
-                    s.onComplete();
-                }
-            } else {
-                s.onError(new IllegalStateException("This processor allows only a single Subscriber"));
-            }
+            s.onError(new IllegalStateException("This processor allows only a single Subscriber"));
         }
     }
     

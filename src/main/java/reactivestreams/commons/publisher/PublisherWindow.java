@@ -157,6 +157,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                 
                 w = new UnicastProcessor<>(q, this::doneInner);
                 window = w;
+                
+                actual.onNext(w);
             }
             
             i++;
@@ -309,6 +311,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                 
                 w = new UnicastProcessor<>(q, this::doneInner);
                 window = w;
+                
+                actual.onNext(w);
             }
             
             i++;
@@ -363,7 +367,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 if (firstRequest == 0 && FIRST_REQUEST.compareAndSet(this, 0, 1)) {
-                    long u = BackpressureHelper.multiplyCap(size, n - 1);
+                    long u = BackpressureHelper.multiplyCap(size, n);
                     long v = BackpressureHelper.multiplyCap(skip - size, n - 1);
                     long w = BackpressureHelper.addCap(u, v);
                     s.request(w);
@@ -400,6 +404,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         final int skip;
 
+        final ArrayDeque<Processor<T, T>> windows;
+
         volatile int wip;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherWindowOverlap> WIP =
@@ -431,8 +437,6 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         Subscription s;
         
-        ArrayDeque<Processor<T, T>> windows;
-        
         volatile boolean done;
         Throwable error;
         
@@ -447,6 +451,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
             this.processorQueueSupplier = processorQueueSupplier;
             this.wip = 1;
             this.queue = overflowQueue;
+            this.windows = new ArrayDeque<>();
         }
         
         @Override
@@ -634,10 +639,9 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 if (firstRequest == 0 && FIRST_REQUEST.compareAndSet(this, 0, 1)) {
-                    long u = BackpressureHelper.multiplyCap(size, n - 1);
-                    long v = BackpressureHelper.multiplyCap(skip - size, n - 1);
-                    long w = BackpressureHelper.addCap(u, v);
-                    s.request(w);
+                    long u = BackpressureHelper.multiplyCap(skip, n - 1);
+                    long v = BackpressureHelper.addCap(size, u);
+                    s.request(v);
                 } else {
                     long u = BackpressureHelper.multiplyCap(skip, n);
                     s.request(u);
