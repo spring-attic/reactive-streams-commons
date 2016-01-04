@@ -24,7 +24,7 @@ public abstract class PublisherSource<T, R> implements Publisher<R>,
     /**
      * The upstream source
      *
-     * @return
+     * @return the upstream source
      */
     @Override
     public final Publisher<? extends T> upstream() {

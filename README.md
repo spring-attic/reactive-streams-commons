@@ -37,6 +37,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherDrop` : runs the source in unbounded mode and drops values if the downstream doesn't request fast enough
   - `PublisherElementAt` : emits the element at the specified index location
   - `PublisherFilter` : filters out values which doesn't pass a predicate
+  - `PublisherIgnoreElements` : ignores values and passes only the terminal signals along
   - `PublisherIsEmpty` : returns a single true if the source sequence is empty
   - `PublisherLatest` : runs the source in unbounded mode and emits the latest value if the downstream doesn't request fast enough
   - `PublisherLift` : maps the downstream Subscriber into an upstream Subscriber which allows implementing custom operators via lambdas
