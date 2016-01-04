@@ -51,7 +51,8 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherReduceSubscriber<T, R>
-      extends SubscriberDeferScalar<T, R> {
+      extends SubscriberDeferScalar<T, R>
+    implements Upstream {
 
         final BiFunction<R, ? super T, R> accumulator;
 
@@ -131,6 +132,19 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
             set(value);
         }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
 
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return accumulator;
+        }
     }
 }

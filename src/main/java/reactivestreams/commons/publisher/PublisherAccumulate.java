@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.SubscriptionHelper;
-import reactivestreams.commons.support.UnsignalledExceptions;
+import reactivestreams.commons.error.UnsignalledExceptions;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -40,7 +40,8 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherAccumulateSubscriber<>(s, accumulator));
     }
 
-    static final class PublisherAccumulateSubscriber<T> implements Subscriber<T> {
+    static final class PublisherAccumulateSubscriber<T> implements Subscriber<T>, Downstream, Upstream, FeedbackLoop,
+                                                                   ActiveUpstream {
         final Subscriber<? super T> actual;
 
         final BiFunction<T, ? super T, T> accumulator;
@@ -112,6 +113,34 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
             actual.onComplete();
         }
 
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return accumulator;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return value;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

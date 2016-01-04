@@ -17,7 +17,8 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
         source.subscribe(new PublisherIsEmptySubscriber<>(s));
     }
 
-    static final class PublisherIsEmptySubscriber<T> extends SubscriberDeferScalar<T, Boolean> {
+    static final class PublisherIsEmptySubscriber<T> extends SubscriberDeferScalar<T, Boolean>
+    implements Upstream {
         Subscription s;
 
         public PublisherIsEmptySubscriber(Subscriber<? super Boolean> actual) {
@@ -50,6 +51,11 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
         @Override
         public void onComplete() {
             set(true);
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 }

@@ -27,7 +27,9 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherLatestSubscriber<>(s));
     }
 
-    static final class PublisherLatestSubscriber<T> implements Subscriber<T>, Subscription {
+    static final class PublisherLatestSubscriber<T>
+            implements Subscriber<T>, Subscription, ActiveUpstream, ActiveDownstream, FailState, Upstream,
+                       Downstream, DownstreamDemand {
 
         final Subscriber<? super T> actual;
 
@@ -180,6 +182,41 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
             }
 
             return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !cancelled && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 }

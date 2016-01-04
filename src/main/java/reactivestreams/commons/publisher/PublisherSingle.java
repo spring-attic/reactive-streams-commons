@@ -48,7 +48,8 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherSingleSubscriber<>(s, defaultSupplier));
     }
 
-    static final class PublisherSingleSubscriber<T> extends SubscriberDeferScalar<T, T> {
+    static final class PublisherSingleSubscriber<T> extends SubscriberDeferScalar<T, T>
+    implements Upstream {
 
         final Supplier<? extends T> defaultSupplier;
 
@@ -161,6 +162,20 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
             }
         }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return defaultSupplier != COMPLETE_ON_EMPTY_SEQUENCE ? defaultSupplier : null;
+        }
 
     }
 }

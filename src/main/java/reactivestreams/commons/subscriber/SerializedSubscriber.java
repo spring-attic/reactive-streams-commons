@@ -44,6 +44,17 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
 
     Subscription s;
 
+	/**
+     * Safely gate a subscriber subject concurrent Reactive Stream signals, thus serializing as a single sequence.
+     * Note that serialization uses Thread Stealing and is vulnerable to cpu starving issues.
+     * @param actual the subscriber to gate
+     * @param <T>
+     * @return a safe subscriber
+     */
+    public static <T> Subscriber<T> create(Subscriber<T> actual){
+        return new SerializedSubscriber<>(actual);
+    }
+
     public SerializedSubscriber(Subscriber<? super T> actual) {
         this.actual = actual;
     }

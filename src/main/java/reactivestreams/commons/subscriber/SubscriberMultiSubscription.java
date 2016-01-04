@@ -279,7 +279,7 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
 
     @Override
     public final Subscription upstream() {
-        return actual;
+        return actual != null ? actual : missedSubscription;
     }
 
     @Override

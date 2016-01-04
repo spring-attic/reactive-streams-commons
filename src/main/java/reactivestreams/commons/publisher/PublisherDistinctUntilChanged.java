@@ -28,7 +28,8 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
         source.subscribe(new PublisherDistinctUntilChangedSubscriber<>(s, keyExtractor));
     }
 
-    static final class PublisherDistinctUntilChangedSubscriber<T, K> implements Subscriber<T> {
+    static final class PublisherDistinctUntilChangedSubscriber<T, K>
+            implements Subscriber<T>, Downstream, FeedbackLoop, Upstream, ActiveUpstream {
         final Subscriber<? super T> actual;
 
         final Function<? super T, K> keyExtractor;
@@ -101,6 +102,34 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
             actual.onComplete();
         }
 
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return keyExtractor;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return lastKey;
+        }
+
+        @Override
+        public Object upstream() {
+            return null;
+        }
     }
 }

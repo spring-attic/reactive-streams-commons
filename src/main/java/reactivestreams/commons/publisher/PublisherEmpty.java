@@ -1,5 +1,7 @@
 package reactivestreams.commons.publisher;
 
+import java.util.function.Supplier;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscription.EmptySubscription;
@@ -11,7 +13,7 @@ import reactivestreams.commons.support.ReactiveState;
  * This Publisher is effectively stateless and only a single instance exists.
  * Use the {@link #instance()} method to obtain a properly type-parametrized view of it.
  */
-public final class PublisherEmpty implements Publisher<Object>,
+public final class PublisherEmpty implements Publisher<Object>, Supplier<Object>,
                                              ReactiveState.Factory,
                                              ReactiveState.ActiveUpstream {
 
@@ -45,5 +47,10 @@ public final class PublisherEmpty implements Publisher<Object>,
     @SuppressWarnings("unchecked")
     public static <T> Publisher<T> instance() {
         return (Publisher<T>) INSTANCE;
+    }
+
+    @Override
+    public Object get() {
+        return null; /* Scalar optimizations on empty */
     }
 }

@@ -9,7 +9,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 public final class PublisherJust<T> implements Supplier<T>, Publisher<T>,
-                                               ReactiveState.Factory  {
+                                               ReactiveState.Factory,
+                                               ReactiveState.Upstream {
 
     final T value;
 
@@ -27,4 +28,8 @@ public final class PublisherJust<T> implements Supplier<T>, Publisher<T>,
         s.onSubscribe(new ScalarSubscription<>(s, value));
     }
 
+    @Override
+    public Object upstream() {
+        return value;
+    }
 }

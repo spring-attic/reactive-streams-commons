@@ -22,7 +22,8 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> {
         source.subscribe(new PublisherCountSubscriber<>(s));
     }
 
-    static final class PublisherCountSubscriber<T> extends SubscriberDeferScalar<T, Long> {
+    static final class PublisherCountSubscriber<T> extends SubscriberDeferScalar<T, Long>
+    implements Upstream {
 
         long counter;
 
@@ -58,7 +59,11 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> {
         public void onComplete() {
             set(counter);
         }
-    }
 
-    ;
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+    }
 }

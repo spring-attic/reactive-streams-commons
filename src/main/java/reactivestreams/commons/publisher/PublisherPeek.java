@@ -3,6 +3,8 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
@@ -53,7 +55,8 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherPeekSubscriber<>(s, this));
     }
 
-    static final class PublisherPeekSubscriber<T> implements Subscriber<T>, Subscription {
+    static final class PublisherPeekSubscriber<T> implements Subscriber<T>, Subscription,
+                                                             Upstream, Downstream {
 
         final Subscriber<? super T> actual;
 
@@ -71,7 +74,9 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onRequestCall.accept(n);
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                cancel();
+                onError(e);
+                return;
             }
             s.request(n);
         }
@@ -81,7 +86,9 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onCancelCall.run();
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                cancel();
+                onError(e);
+                return;
             }
             s.cancel();
         }
@@ -91,7 +98,9 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onSubscribeCall.accept(s);
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                onError(e);
+                EmptySubscription.error(actual, e);
+                return;
             }
             this.s = s;
             actual.onSubscribe(this);
@@ -102,17 +111,21 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onNextCall.accept(t);
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                cancel();
+                onError(e);
+                return;
             }
             actual.onNext(t);
         }
 
         @Override
         public void onError(Throwable t) {
+            UnsignalledExceptions.throwIfFatal(t);
             try {
                 parent.onErrorCall.accept(t);
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                UnsignalledExceptions.onErrorDropped(e);
+                return;
             }
 
             actual.onError(t);
@@ -120,7 +133,9 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onAfterTerminateCall.run();
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                UnsignalledExceptions.throwIfFatal(e);
+                parent.onErrorCall.accept(t);
+                actual.onError(e);
             }
         }
 
@@ -129,7 +144,8 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onCompleteCall.run();
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                onError(e);
+                return;
             }
 
             actual.onComplete();
@@ -137,9 +153,20 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
             try {
                 parent.onAfterTerminateCall.run();
             } catch (Throwable e) {
-                // FIXME nowhere to go
+                UnsignalledExceptions.throwIfFatal(e);
+                parent.onErrorCall.accept(e);
+                actual.onError(e);
             }
         }
 
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

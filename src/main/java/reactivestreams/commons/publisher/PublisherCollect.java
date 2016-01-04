@@ -52,7 +52,8 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherCollectSubscriber<T, R>
-      extends SubscriberDeferScalar<T, R> {
+      extends SubscriberDeferScalar<T, R>
+    implements Upstream {
 
         final BiConsumer<? super R, ? super T> action;
 
@@ -127,6 +128,28 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
         @Override
         public void setValue(R value) {
             // value is constant
+        }
+
+
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return action;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return container;
         }
     }
 }

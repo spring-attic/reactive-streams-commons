@@ -32,7 +32,8 @@ public final class PublisherAny<T> extends PublisherSource<T, Boolean> {
         source.subscribe(new PublisherAnySubscriber<T>(s, predicate));
     }
 
-    static final class PublisherAnySubscriber<T> extends SubscriberDeferScalar<T, Boolean> {
+    static final class PublisherAnySubscriber<T> extends SubscriberDeferScalar<T, Boolean>
+    implements Upstream {
         final Predicate<? super T> predicate;
 
         Subscription s;
@@ -104,6 +105,21 @@ public final class PublisherAny<T> extends PublisherSource<T, Boolean> {
             }
             done = true;
             set(false);
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return predicate;
         }
     }
 }

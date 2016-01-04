@@ -1,4 +1,4 @@
-package reactivestreams.commons.support;
+package reactivestreams.commons.error;
 
 import java.util.function.Consumer;
 
@@ -61,11 +61,44 @@ public final class UnsignalledExceptions {
     }
 
     /**
+     * Take an unsignalled data and handle it.
+     *
+     * @param t the dropped data
+     */
+    public static <T> void onNextDropped(T t) {
+    }
+
+    /**
+     * Throws a particular {@code Throwable} only if it belongs to a set of "fatal" error varieties. These
+     * varieties are as follows:
+     * <ul>
+     * <li>{@code StackOverflowError}</li>
+     * <li>{@code VirtualMachineError}</li>
+     * <li>{@code ThreadDeath}</li>
+     * <li>{@code LinkageError}</li>
+     * </ul>
+     *
+     * @param t
+     */
+    public static void throwIfFatal(Throwable t) {
+        if (t instanceof StackOverflowError) {
+            throw (StackOverflowError) t;
+        } else if (t instanceof VirtualMachineError) {
+            throw (VirtualMachineError) t;
+        } else if (t instanceof ThreadDeath) {
+            throw (ThreadDeath) t;
+        } else if (t instanceof LinkageError) {
+            throw (LinkageError) t;
+        }
+    }
+
+    /**
      * Take an unsignalled exception and handle it.
      *
      * @param e the exception to handle, if null, a new NullPointerException is instantiated
      */
     public static void onErrorDropped(Throwable e) {
+        throwIfFatal(e);
         if (e == null) {
             e = new NullPointerException();
         }

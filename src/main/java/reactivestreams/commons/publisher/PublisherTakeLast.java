@@ -39,7 +39,8 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T> {
+    static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T>,
+                                                                     Downstream {
 
         final Subscriber<? super T> actual;
 
@@ -68,10 +69,16 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         public void onComplete() {
             actual.onComplete();
         }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
     }
 
     static final class PublisherTakeLastOneSubscriber<T>
-      extends SubscriberDeferScalar<T, T> {
+      extends SubscriberDeferScalar<T, T>
+    implements Upstream {
 
         Subscription s;
 
@@ -115,10 +122,15 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         public void setValue(T value) {
             // value is always in a field
         }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 
     static final class PublisherTakeLastManySubscriber<T>
-      implements Subscriber<T>, Subscription, BooleanSupplier {
+      implements Subscriber<T>, Subscription, BooleanSupplier, Downstream, ActiveDownstream, Upstream, Buffering {
 
         final Subscriber<? super T> actual;
 
@@ -189,6 +201,31 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         public void onComplete() {
 
             BackpressureHelper.postComplete(actual, buffer, REQUESTED, this, this);
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public long pending() {
+            return buffer.size();
+        }
+
+        @Override
+        public long getCapacity() {
+            return n;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
         }
     }
 }

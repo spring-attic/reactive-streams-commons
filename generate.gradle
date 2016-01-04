@@ -3,12 +3,14 @@
 //A lite core
 def includingCoreScope = ['amb',
 						  'array',
+						  'callable',
 						  /*'concatarray' ,*/ //managed by reactor-core
 						  /*'concatiterable' ,*/ //managed by reactor-core
 						  'error',
 						  'empty',
-						  'first',
+						  'next',
 						  /*'flatmap' ,*/ //managed by reactor-core
+						  'ignoreElements',
 						  'iterable',
 						  'just',
 						  /*'lift',*/ //managed by reactor-core
@@ -37,7 +39,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'header'               : '@since 2.5',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
-					 'UnsignalledExceptions': 'BackpressureUtils',
+					 'UnsignalledExceptions': 'Exceptions',
 					 //'SubscriberDeferSubscription'     : 'reactor.core.subscriber.SubscriberDeferSubscription',
 					 //'SubscriberMultiSubscription': 'reactor.core.subscriber.SubscriberMultiSubscription',
 					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
@@ -71,14 +73,16 @@ def defaultSingleAPI = ['empty',
 						'just',
 						'error',
 						'single',
+						'ignoreElements',
+						'callable',
 						'first',
+						'collect',
 						'reduce',
 						'all',
 						'any',
 						'count',
-						'elementAt',
-						'isEmpty',
-						'takeLast',
+						'elementat',
+						'isempty',
 						'reduce',
 
 ]
@@ -93,7 +97,7 @@ task generateTargetAPI(type: Sync) {
   def target = defaultTarget
 
 
-  def license = "\n/**\n * {@see https://github.com/reactor/reactive-streams-commons}\n * $target.header\n */"
+  def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
   def apiBarrierClass = target['api-operator']
   def apiClass = target['api']
   def splitted = apiClass.split('\\.')
@@ -181,6 +185,12 @@ task generateExtra(type: Copy) {
   def target = defaultTarget
   includeEmptyDirs = false
 
+  def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
+  def apiBarrierClass = target['api-operator']
+  def apiClass = target['api']
+  def splitted = apiClass.split('\\.')
+  def apiClassName = splitted[splitted.length - 1]
+
   from 'src/main/java/reactivestreams/commons'
   into "build/generated_api/${target['extra-packages']?.replaceAll('\\.', '/')}"
 
@@ -192,6 +202,10 @@ task generateExtra(type: Copy) {
 
   if (target.containsKey('serializedSubscriber') && !target['serializedSubscriber']) {
 	exclude '**/subscriber/SerializedSubscriber.java'
+  }
+
+  if (target.SimpleProcessor) {
+	exclude '**/SimpleProcessor.java'
   }
 
   if (target.SubscriptionHelper) {
@@ -206,6 +220,8 @@ task generateExtra(type: Copy) {
 	exclude '**/UnsignalledExceptions.java'
   }
 
+  filter { line -> replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass)
+  }
 }
 
 task inlineCommons {
@@ -260,12 +276,16 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	else if (l.contains('SubscriptionHelper') && target['SubscriptionHelper']) {
 	  l = l.replace('SubscriptionHelper', target['SubscriptionHelper'])
 	}
+	else if (l.contains('UnsignalledExceptions') && target['UnsignalledExceptions']) {
+	  l = l.replace('UnsignalledExceptions', target['UnsignalledExceptions'])
+	}
 
 	return l;
   }
 
   def l = line
 		  .replace("extends PublisherSource", "extends $apiBarrierClass")
+		  .replaceAll("implements Publisher([^,]*),", "extends $apiClass\$1 implements")
 		  .replace("implements Publisher", "extends $apiClass")
 		  .replace('public final class Publisher', "$license\npublic final class $apiClassName")
 

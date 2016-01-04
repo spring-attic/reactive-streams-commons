@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.ArrayDeque;
@@ -20,7 +21,8 @@ import java.util.function.Supplier;
  * @param <T> the source value type
  * @param <C> the buffer collection type
  */
-public final class PublisherBuffer<T, C extends Collection<? super T>> extends PublisherSource<T, C> {
+public final class PublisherBuffer<T, C extends Collection<? super T>> extends PublisherSource<T, C>
+        implements ReactiveState.Bounded {
 
     final int size;
 
@@ -58,8 +60,13 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
     }
 
+    @Override
+    public long getCapacity() {
+        return size;
+    }
+
     static final class PublisherBufferExactSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription {
+      implements Subscriber<T>, Subscription, Downstream, FeedbackLoop, Upstream, ActiveUpstream, Buffering {
 
         final Subscriber<? super C> actual;
 
@@ -158,10 +165,51 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
             }
             actual.onComplete();
         }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return bufferSupplier;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return buffer;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public long pending() {
+            C b = buffer;
+            return b != null ? b.size() : 0L;
+        }
+
+        @Override
+        public long getCapacity() {
+            return size;
+        }
     }
 
     static final class PublisherBufferSkipSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription {
+      implements Subscriber<T>, Subscription, Downstream, FeedbackLoop, Upstream, ActiveUpstream, Buffering {
 
         final Subscriber<? super C> actual;
 
@@ -290,11 +338,53 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
 
             actual.onComplete();
         }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return bufferSupplier;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return buffer;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public long pending() {
+            C b = buffer;
+            return b != null ? b.size() : 0L;
+        }
+
+        @Override
+        public long getCapacity() {
+            return size;
+        }
     }
 
 
     static final class PublisherBufferOverlappingSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription, BooleanSupplier {
+      implements Subscriber<T>, Subscription, BooleanSupplier, Downstream, Upstream, ActiveUpstream,
+                 ActiveDownstream, FeedbackLoop, Buffering, DownstreamDemand {
         final Subscriber<? super C> actual;
 
         final Supplier<C> bufferSupplier;
@@ -451,6 +541,56 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
             done = true;
 
             BackpressureHelper.postComplete(actual, buffers, REQUESTED, this, this);
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && (!cancelled && !done);
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public long pending() {
+            return buffers.size()*size; //rounded max
+        }
+
+        @Override
+        public long getCapacity() {
+            return Long.MAX_VALUE;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return bufferSupplier;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return buffers;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 }

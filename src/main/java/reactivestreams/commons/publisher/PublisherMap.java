@@ -39,7 +39,8 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         source.subscribe(new PublisherMapSubscriber<>(s, mapper));
     }
 
-    static final class PublisherMapSubscriber<T, R> implements Subscriber<T> {
+    static final class PublisherMapSubscriber<T, R> implements Subscriber<T>,
+                                                               Upstream, Downstream, FeedbackLoop, ActiveUpstream{
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
@@ -108,6 +109,36 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
             done = true;
 
             actual.onComplete();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return mapper;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 }

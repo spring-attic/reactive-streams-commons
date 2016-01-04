@@ -18,7 +18,8 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
  * @param <T> the value type
  */
 public final class PublisherIterable<T> implements Publisher<T>,
-                                                   ReactiveState.Factory {
+                                                   ReactiveState.Factory,
+                                                   ReactiveState.Upstream {
 
     final Iterable<? extends T> iterable;
 
@@ -38,6 +39,11 @@ public final class PublisherIterable<T> implements Publisher<T>,
         }
 
         subscribe(s, it);
+    }
+
+    @Override
+    public Object upstream() {
+        return iterable;
     }
 
     /**
@@ -69,7 +75,7 @@ public final class PublisherIterable<T> implements Publisher<T>,
     }
 
     static final class PublisherIterableSubscription<T>
-      implements Subscription {
+      implements Downstream, Upstream, DownstreamDemand, ActiveDownstream, ActiveUpstream, Subscription {
 
         final Subscriber<? super T> actual;
 
@@ -223,6 +229,36 @@ public final class PublisherIterable<T> implements Publisher<T>,
         @Override
         public void cancel() {
             cancelled = true;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return !iterator.hasNext();
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Object upstream() {
+            return iterator;
         }
     }
 }

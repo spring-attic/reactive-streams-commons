@@ -1,15 +1,16 @@
 package reactivestreams.commons.subscription;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-
 public final class ScalarSubscription<T> implements Subscription,
-                                                    ReactiveState.Downstream {
+                                                    ReactiveState.Downstream,
+                                                    ReactiveState.Upstream {
 
     final Subscriber<? super T> actual;
 
@@ -44,5 +45,10 @@ public final class ScalarSubscription<T> implements Subscription,
     @Override
     public void cancel() {
         ONCE.lazySet(this, 1);
+    }
+
+    @Override
+    public Object upstream() {
+        return value;
     }
 }

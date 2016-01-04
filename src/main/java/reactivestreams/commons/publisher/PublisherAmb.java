@@ -135,7 +135,7 @@ public final class PublisherAmb<T> implements Publisher<T>,
     }
 
     static final class PublisherAmbCoordinator<T>
-      implements Subscription {
+      implements Subscription, LinkedUpstreams, ActiveDownstream {
 
         final PublisherAmbSubscriber<T>[] subscribers;
 
@@ -229,9 +229,25 @@ public final class PublisherAmb<T> implements Publisher<T>,
             }
             return false;
         }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return Arrays.asList(subscribers).iterator();
+        }
+
+        @Override
+        public long upstreamsCount() {
+            return subscribers.length;
+        }
     }
 
-    static final class PublisherAmbSubscriber<T> extends SubscriberDeferSubscription<T, T> {
+    static final class PublisherAmbSubscriber<T> extends SubscriberDeferSubscription<T, T>
+    implements Inner {
         final PublisherAmbCoordinator<T> parent;
 
         final int index;

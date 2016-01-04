@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.ArrayDeque;
@@ -33,7 +34,8 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T> {
+    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Upstream, Downstream,
+                                                                 Buffering {
         final Subscriber<? super T> actual;
 
         final int n;
@@ -83,5 +85,24 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
             actual.onComplete();
         }
 
+        @Override
+        public long pending() {
+            return buffer.size();
+        }
+
+        @Override
+        public long getCapacity() {
+            return n;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

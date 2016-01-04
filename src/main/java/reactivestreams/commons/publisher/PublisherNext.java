@@ -9,9 +9,9 @@ import org.reactivestreams.Subscriber;
  *
  * @param <T> the value type
  */
-public final class PublisherFirst<T> extends PublisherSource<T, T> {
+public final class PublisherNext<T> extends PublisherSource<T, T> {
 
-    public PublisherFirst(Publisher<? extends T> source) {
+    public PublisherNext(Publisher<? extends T> source) {
         super(source);
     }
 

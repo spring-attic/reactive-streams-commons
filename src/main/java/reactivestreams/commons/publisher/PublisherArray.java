@@ -8,6 +8,8 @@ import reactivestreams.commons.support.BackpressureHelper;
 import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
@@ -35,7 +37,7 @@ public final class PublisherArray<T> implements Publisher<T>,
     }
 
     static final class PublisherArraySubscription<T>
-      implements Subscription {
+      implements Subscription, Downstream, DownstreamDemand, ActiveDownstream, LinkedUpstreams {
         final Subscriber<? super T> actual;
 
         final T[] array;
@@ -144,6 +146,31 @@ public final class PublisherArray<T> implements Publisher<T>,
         @Override
         public void cancel() {
             cancelled = true;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return array instanceof Publisher[] ? Arrays.asList(array).iterator() : null;
+        }
+
+        @Override
+        public long upstreamsCount() {
+            return array instanceof Publisher[] ? array.length : -1;
         }
     }
 }

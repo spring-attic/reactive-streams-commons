@@ -32,7 +32,8 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherTakeWhileSubscriber<>(s, predicate));
     }
 
-    static final class PublisherTakeWhileSubscriber<T> implements Subscriber<T> {
+    static final class PublisherTakeWhileSubscriber<T> implements Subscriber<T>, Downstream, Upstream,
+                                                                  ActiveUpstream, FeedbackLoop {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -103,6 +104,34 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
             actual.onComplete();
         }
 
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return predicate;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

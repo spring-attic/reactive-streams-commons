@@ -38,7 +38,7 @@ public final class PublisherRange implements Publisher<Integer>,
     }
 
     static final class PublisherRangeSubscription<T>
-      implements Subscription {
+      implements Subscription, ActiveDownstream, DownstreamDemand, ActiveUpstream, Downstream {
 
         final Subscriber<? super Integer> actual;
 
@@ -142,5 +142,29 @@ public final class PublisherRange implements Publisher<Integer>,
             }
         }
 
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return end != index;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return end == index;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
     }
 }

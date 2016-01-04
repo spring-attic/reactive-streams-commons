@@ -31,7 +31,8 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherFilterSubscriber<>(s, predicate));
     }
 
-    static final class PublisherFilterSubscriber<T> implements Subscriber<T> {
+    static final class PublisherFilterSubscriber<T> implements Subscriber<T>, Downstream, FeedbackLoop,
+                                                               ActiveUpstream, Upstream {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -94,6 +95,34 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             actual.onComplete();
         }
 
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return predicate;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

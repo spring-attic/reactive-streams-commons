@@ -33,7 +33,8 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
         source.subscribe(new PublisherTakeUntilPredicateSubscriber<>(s, predicate));
     }
 
-    static final class PublisherTakeUntilPredicateSubscriber<T> implements Subscriber<T> {
+    static final class PublisherTakeUntilPredicateSubscriber<T>
+            implements Subscriber<T>, Downstream, Upstream, FeedbackLoop, ActiveUpstream{
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -104,6 +105,34 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
             actual.onComplete();
         }
 
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return predicate;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

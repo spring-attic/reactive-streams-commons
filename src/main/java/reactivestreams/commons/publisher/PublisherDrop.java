@@ -36,7 +36,9 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherDropSubscriber<>(s, onDrop));
     }
 
-    static final class PublisherDropSubscriber<T> implements Subscriber<T>, Subscription {
+    static final class PublisherDropSubscriber<T>
+            implements Subscriber<T>, Subscription, Downstream, Upstream, ActiveUpstream,
+                       DownstreamDemand, FeedbackLoop {
 
         final Subscriber<? super T> actual;
 
@@ -125,6 +127,39 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
             actual.onComplete();
         }
 
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return onDrop;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

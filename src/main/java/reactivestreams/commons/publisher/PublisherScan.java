@@ -44,7 +44,7 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherScanSubscriber<T, R>
-      implements Subscriber<T>, Subscription {
+      implements Subscriber<T>, Subscription, Downstream, DownstreamDemand, FeedbackLoop, Upstream, ActiveUpstream {
 
         final Subscriber<? super R> actual;
 
@@ -189,6 +189,41 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
         @Override
         public void cancel() {
             s.cancel();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return accumulator;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 }

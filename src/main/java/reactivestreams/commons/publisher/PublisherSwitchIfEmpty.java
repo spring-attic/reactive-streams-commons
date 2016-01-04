@@ -29,7 +29,8 @@ public final class PublisherSwitchIfEmpty<T> extends PublisherSource<T, T> {
         source.subscribe(parent);
     }
 
-    static final class PublisherSwitchIfEmptySubscriber<T> extends SubscriberMultiSubscription<T, T> {
+    static final class PublisherSwitchIfEmptySubscriber<T> extends SubscriberMultiSubscription<T, T>
+    implements FeedbackLoop {
 
         final Publisher<? extends T> other;
 
@@ -60,6 +61,14 @@ public final class PublisherSwitchIfEmpty<T> extends PublisherSource<T, T> {
             }
         }
 
+        @Override
+        public Object delegateInput() {
+            return null;
+        }
 
+        @Override
+        public Object delegateOutput() {
+            return other;
+        }
     }
 }

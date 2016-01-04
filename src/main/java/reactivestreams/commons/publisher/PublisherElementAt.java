@@ -45,7 +45,8 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherElementAtSubscriber<T>
-      extends SubscriberDeferScalar<T, T> {
+      extends SubscriberDeferScalar<T, T>
+    implements Upstream {
         final Supplier<? extends T> defaultSupplier;
 
         long index;
@@ -142,5 +143,20 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> {
             }
         }
 
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return defaultSupplier;
+        }
     }
 }

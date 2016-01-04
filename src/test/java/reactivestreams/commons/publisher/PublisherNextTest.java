@@ -3,11 +3,11 @@ package reactivestreams.commons.publisher;
 import org.junit.Test;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 
-public class PublisherFirstTest {
+public class PublisherNextTest {
 
     @Test(expected = NullPointerException.class)
     public void source1Null() {
-        new PublisherFirst<>(null);
+        new PublisherNext<>(null);
     }
 
     @Test
@@ -15,7 +15,7 @@ public class PublisherFirstTest {
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherFirst<>(new PublisherJust<>(1)).subscribe(ts);
+        new PublisherNext<>(new PublisherJust<>(1)).subscribe(ts);
 
         ts.assertValue(1)
           .assertNoError()
@@ -26,7 +26,7 @@ public class PublisherFirstTest {
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        new PublisherFirst<>(new PublisherJust<>(1)).subscribe(ts);
+        new PublisherNext<>(new PublisherJust<>(1)).subscribe(ts);
 
         ts.assertNoValues()
           .assertNoError()
@@ -44,7 +44,7 @@ public class PublisherFirstTest {
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherFirst<>(PublisherEmpty.<Integer>instance()).subscribe(ts);
+        new PublisherNext<>(PublisherEmpty.<Integer>instance()).subscribe(ts);
 
         ts.assertNoValues()
           .assertComplete();
@@ -54,7 +54,7 @@ public class PublisherFirstTest {
     public void emptyDefault() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherFirst<>(PublisherEmpty.<Integer>instance()).subscribe(ts);
+        new PublisherNext<>(PublisherEmpty.<Integer>instance()).subscribe(ts);
 
         ts.assertNoError()
           .assertComplete();
@@ -65,7 +65,7 @@ public class PublisherFirstTest {
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherFirst<>(new PublisherRange(1, 10)).subscribe(ts);
+        new PublisherNext<>(new PublisherRange(1, 10)).subscribe(ts);
 
         ts.assertNoValues()
           .assertError(IndexOutOfBoundsException.class)
@@ -77,7 +77,7 @@ public class PublisherFirstTest {
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        new PublisherFirst<>(new PublisherRange(1, 10)).subscribe(ts);
+        new PublisherNext<>(new PublisherRange(1, 10)).subscribe(ts);
 
         ts.assertNoValues()
           .assertNoError()

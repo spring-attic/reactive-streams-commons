@@ -9,8 +9,16 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Supplier;
 
+/**
+ * A Subscriber/Subscription barrier that holds a single value at most and properly gates asynchronous behaviors
+ * resulting from concurrent request or cancel and onXXX signals.
+ *
+ * @param <I> The upstream sequence type
+ * @param <O> The downstream sequence type
+ */
 public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
                                                     Supplier<O>,
+                                                    ReactiveState.FeedbackLoop,
                                                     ReactiveState.ActiveUpstream,
                                                     ReactiveState.ActiveDownstream,
                                                     ReactiveState.Downstream {
@@ -138,6 +146,16 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
     @Override
     public boolean isStarted() {
         return state != SDS_NO_REQUEST_NO_VALUE;
+    }
+
+    @Override
+    public Object delegateInput() {
+        return null;
+    }
+
+    @Override
+    public Object delegateOutput() {
+        return value;
     }
 
     @Override

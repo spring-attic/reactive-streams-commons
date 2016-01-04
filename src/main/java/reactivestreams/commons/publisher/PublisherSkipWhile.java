@@ -36,7 +36,8 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherSkipWhileSubscriber<>(s, predicate));
     }
 
-    static final class PublisherSkipWhileSubscriber<T> implements Subscriber<T> {
+    static final class PublisherSkipWhileSubscriber<T> implements Subscriber<T>, Downstream, ActiveUpstream,
+                                                                  FeedbackLoop, Upstream {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -105,6 +106,34 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
             actual.onComplete();
         }
 
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object delegateInput() {
+            return predicate;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

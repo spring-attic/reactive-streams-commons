@@ -1,5 +1,11 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -7,12 +13,6 @@ import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.BackpressureHelper;
 import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Generate signals one-by-one via a function callback.
@@ -52,7 +52,7 @@ public final class PublisherGenerate<T, S> implements Publisher<T>, ReactiveStat
         void stop();
     }
 
-    final Supplier<S> stateSupplier;
+    final Callable<S> stateSupplier;
 
     final BiFunction<S, PublisherGenerateOutput<T>, S> generator;
 
@@ -63,12 +63,12 @@ public final class PublisherGenerate<T, S> implements Publisher<T>, ReactiveStat
         });
     }
 
-    public PublisherGenerate(Supplier<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
+    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
         this(stateSupplier, generator, s -> {
         });
     }
 
-    public PublisherGenerate(Supplier<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator,
+    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator,
                              Consumer<? super S> stateConsumer) {
         this.stateSupplier = Objects.requireNonNull(stateSupplier, "stateSupplier");
         this.generator = Objects.requireNonNull(generator, "generator");
@@ -80,7 +80,7 @@ public final class PublisherGenerate<T, S> implements Publisher<T>, ReactiveStat
         S state;
 
         try {
-            state = stateSupplier.get();
+            state = stateSupplier.call();
         } catch (Throwable e) {
             EmptySubscription.error(s, e);
             return;

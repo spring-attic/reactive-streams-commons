@@ -28,7 +28,8 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherDefaultIfEmptySubscriber<T>
-      extends SubscriberDeferScalar<T, T> {
+      extends SubscriberDeferScalar<T, T>
+    implements Upstream{
 
         final T value;
 
@@ -90,6 +91,14 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
             // value is constant
         }
 
+        @Override
+        public Object upstream() {
+            return s;
+        }
 
+        @Override
+        public Object delegateInput() {
+            return value;
+        }
     }
 }

@@ -39,7 +39,8 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherSkipSubscriber<T> implements Subscriber<T> {
+    static final class PublisherSkipSubscriber<T> implements Subscriber<T>, Downstream, UpstreamDemand, Bounded,
+                                                             ActiveUpstream {
 
         final Subscriber<? super T> actual;
 
@@ -78,6 +79,31 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         @Override
         public void onComplete() {
             actual.onComplete();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return remaining != n;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return remaining == 0;
+        }
+
+        @Override
+        public long getCapacity() {
+            return n;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return remaining;
         }
     }
 }

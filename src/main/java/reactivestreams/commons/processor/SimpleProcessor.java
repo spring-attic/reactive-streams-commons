@@ -4,8 +4,11 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -25,20 +28,23 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  *
  * @param <T> the input and output value type
  */
-public final class SimpleProcessor<T> implements Processor<T, T> {
+public final class SimpleProcessor<T> implements Processor<T, T>,
+                                                 ReactiveState.ActiveUpstream,
+                                                 ReactiveState.FailState,
+                                                 ReactiveState.LinkedDownstreams {
 
     @SuppressWarnings("rawtypes")
-    private static final TestProcessorSubscription[] EMPTY = new TestProcessorSubscription[0];
+    private static final SimpleProcessorSubscription[] EMPTY = new SimpleProcessorSubscription[0];
 
     @SuppressWarnings("rawtypes")
-    private static final TestProcessorSubscription[] TERMINATED = new TestProcessorSubscription[0];
+    private static final SimpleProcessorSubscription[] TERMINATED = new SimpleProcessorSubscription[0];
 
     @SuppressWarnings("unchecked")
-    private volatile     TestProcessorSubscription<T>[]                                            subscribers = EMPTY;
+    private volatile     SimpleProcessorSubscription<T>[]                                            subscribers = EMPTY;
     @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<SimpleProcessor, TestProcessorSubscription[]> SUBSCRIBERS =
+    private static final AtomicReferenceFieldUpdater<SimpleProcessor, SimpleProcessorSubscription[]> SUBSCRIBERS =
       AtomicReferenceFieldUpdater.newUpdater(SimpleProcessor.class,
-        TestProcessorSubscription[].class,
+        SimpleProcessorSubscription[].class,
         "subscribers");
 
     private Throwable error;
@@ -57,7 +63,7 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
     public void onNext(T t) {
         Objects.requireNonNull(t, "t");
 
-        for (TestProcessorSubscription<T> s : subscribers) {
+        for (SimpleProcessorSubscription<T> s : subscribers) {
             s.onNext(t);
         }
     }
@@ -67,14 +73,14 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
         Objects.requireNonNull(t, "t");
 
         error = t;
-        for (TestProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
+        for (SimpleProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
             s.onError(t);
         }
     }
 
     @Override
     public void onComplete() {
-        for (TestProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
+        for (SimpleProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
             s.onComplete();
         }
     }
@@ -83,7 +89,7 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
     public void subscribe(Subscriber<? super T> s) {
         Objects.requireNonNull(s, "s");
 
-        TestProcessorSubscription<T> p = new TestProcessorSubscription<>(s, this);
+        SimpleProcessorSubscription<T> p = new SimpleProcessorSubscription<>(s, this);
         s.onSubscribe(p);
 
         if (add(p)) {
@@ -100,8 +106,28 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
         }
     }
 
-    boolean add(TestProcessorSubscription<T> s) {
-        TestProcessorSubscription<T>[] a = subscribers;
+    @Override
+    public boolean isStarted() {
+        return true;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return TERMINATED == subscribers;
+    }
+
+    @Override
+    public Iterator<?> downstreams() {
+        return Arrays.asList(subscribers).iterator();
+    }
+
+    @Override
+    public long downstreamsCount() {
+        return subscribers.length;
+    }
+
+    boolean add(SimpleProcessorSubscription<T> s) {
+        SimpleProcessorSubscription<T>[] a = subscribers;
         if (a == TERMINATED) {
             return false;
         }
@@ -113,7 +139,7 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
             }
             int len = a.length;
 
-            @SuppressWarnings("unchecked") TestProcessorSubscription<T>[] b = new TestProcessorSubscription[len + 1];
+            @SuppressWarnings("unchecked") SimpleProcessorSubscription<T>[] b = new SimpleProcessorSubscription[len + 1];
             System.arraycopy(a, 0, b, 0, len);
             b[len] = s;
 
@@ -124,8 +150,8 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
     }
 
     @SuppressWarnings("unchecked")
-    void remove(TestProcessorSubscription<T> s) {
-        TestProcessorSubscription<T>[] a = subscribers;
+    void remove(SimpleProcessorSubscription<T> s) {
+        SimpleProcessorSubscription<T>[] a = subscribers;
         if (a == TERMINATED || a == EMPTY) {
             return;
         }
@@ -153,7 +179,7 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
                 return;
             }
 
-            TestProcessorSubscription<T>[] b = new TestProcessorSubscription[len - 1];
+            SimpleProcessorSubscription<T>[] b = new SimpleProcessorSubscription[len - 1];
             System.arraycopy(a, 0, b, 0, j);
             System.arraycopy(a, j + 1, b, j, len - j - 1);
 
@@ -162,7 +188,7 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
     }
 
     public boolean hasSubscribers() {
-        TestProcessorSubscription<T>[] s = subscribers;
+        SimpleProcessorSubscription<T>[] s = subscribers;
         return s != EMPTY && s != TERMINATED;
     }
 
@@ -180,6 +206,7 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     public Throwable getError() {
         if (subscribers == TERMINATED) {
             return error;
@@ -187,7 +214,9 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
         return null;
     }
 
-    static final class TestProcessorSubscription<T> implements Subscription {
+    static final class SimpleProcessorSubscription<T> implements Subscription, Inner, Upstream, DownstreamDemand,
+                                                                 Downstream,
+                                                                 ActiveDownstream {
 
         final Subscriber<? super T> actual;
 
@@ -197,10 +226,10 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<TestProcessorSubscription> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(TestProcessorSubscription.class, "requested");
+        static final AtomicLongFieldUpdater<SimpleProcessorSubscription> REQUESTED =
+          AtomicLongFieldUpdater.newUpdater(SimpleProcessorSubscription.class, "requested");
 
-        public TestProcessorSubscription(Subscriber<? super T> actual, SimpleProcessor<T> parent) {
+        public SimpleProcessorSubscription(Subscriber<? super T> actual, SimpleProcessor<T> parent) {
             this.actual = actual;
             this.parent = parent;
         }
@@ -218,6 +247,26 @@ public final class SimpleProcessor<T> implements Processor<T, T> {
                 cancelled = true;
                 parent.remove(this);
             }
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public Subscriber<? super T> downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return 0;
+        }
+
+        @Override
+        public Processor<T, T> upstream() {
+            return parent;
         }
 
         void onNext(T value) {

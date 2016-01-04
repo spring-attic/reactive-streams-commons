@@ -29,7 +29,8 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherResumeSubscriber<>(s, nextFactory));
     }
 
-    static final class PublisherResumeSubscriber<T> extends SubscriberMultiSubscription<T, T> {
+    static final class PublisherResumeSubscriber<T> extends SubscriberMultiSubscription<T, T>
+    implements FeedbackLoop {
 
         final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 
@@ -82,6 +83,16 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
             } else {
                 subscriber.onError(t);
             }
+        }
+
+        @Override
+        public Object delegateInput() {
+            return nextFactory;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return null;
         }
     }
 }
