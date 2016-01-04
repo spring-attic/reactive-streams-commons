@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.processor.UnicastProcessor;
+import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
 /**
@@ -20,10 +21,26 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
     
     final int skip;
     
-    final Supplier<? extends Queue<Object>> queueSupplier;
+    final Supplier<? extends Queue<T>> processorQueueSupplier;
+
+    final Supplier<? extends Queue<Processor<T, T>>> overflowQueueSupplier;
+
+    public PublisherWindow(Publisher<? extends T> source, int size, 
+            Supplier<? extends Queue<T>> processorQueueSupplier) {
+        super(source);
+        if (size <= 0) {
+            throw new IllegalArgumentException("size > 0 required but it was " + size);
+        }
+        this.size = size;
+        this.skip = size;
+        this.processorQueueSupplier = Objects.requireNonNull(processorQueueSupplier, "processorQueueSupplier");
+        this.overflowQueueSupplier = null; // won't be needed here
+    }
+
     
     public PublisherWindow(Publisher<? extends T> source, int size, int skip, 
-            Supplier<? extends Queue<Object>> queueSupplier) {
+            Supplier<? extends Queue<T>> processorQueueSupplier,
+            Supplier<? extends Queue<Processor<T, T>>> overflowQueueSupplier) {
         super(source);
         if (size <= 0) {
             throw new IllegalArgumentException("size > 0 required but it was " + size);
@@ -33,16 +50,33 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         }
         this.size = size;
         this.skip = skip;
-        this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
+        this.processorQueueSupplier = Objects.requireNonNull(processorQueueSupplier, "processorQueueSupplier");
+        this.overflowQueueSupplier = Objects.requireNonNull(overflowQueueSupplier, "overflowQueueSupplier");
     }
     
     @Override
     public void subscribe(Subscriber<? super Publisher<T>> s) {
         if (skip == size) {
-            source.subscribe(new PublisherWindowExact<>(s, size, queueSupplier));
+            source.subscribe(new PublisherWindowExact<>(s, size, processorQueueSupplier));
         } else
         if (skip > size) {
-            source.subscribe(new PublisherWindowSkip<>(s, size, skip, queueSupplier));
+            source.subscribe(new PublisherWindowSkip<>(s, size, skip, processorQueueSupplier));
+        } else {
+            Queue<Processor<T, T>> overflowQueue;
+            
+            try {
+                overflowQueue = overflowQueueSupplier.get();
+            } catch (Throwable e) {
+                EmptySubscription.error(s, e);
+                return;
+            }
+            
+            if (overflowQueue == null) {
+                EmptySubscription.error(s, new NullPointerException("The overflowQueueSupplier returned a null queue"));
+                return;
+            }
+            
+            source.subscribe(new PublisherWindowOverlap<>(s, size, skip, processorQueueSupplier, overflowQueue));
         }
     }
     
@@ -50,7 +84,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         final Subscriber<? super Publisher<T>> actual;
 
-        final Supplier<? extends Queue<Object>> queueSupplier;
+        final Supplier<? extends Queue<T>> processorQueueSupplier;
         
         final int size;
 
@@ -73,10 +107,10 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         boolean done;
         
         public PublisherWindowExact(Subscriber<? super Publisher<T>> actual, int size,
-                Supplier<? extends Queue<Object>> queueSupplier) {
+                Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
-            this.queueSupplier = queueSupplier;
+            this.processorQueueSupplier = processorQueueSupplier;
             this.wip = 1;
         }
         
@@ -88,7 +122,6 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
             }
         }
         
-        @SuppressWarnings("unchecked")
         @Override
         public void onNext(T t) {
             if (done) {
@@ -105,7 +138,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                 Queue<T> q;
                 
                 try {
-                    q = (Queue<T>)queueSupplier.get();
+                    q = processorQueueSupplier.get();
                 } catch (Throwable ex) {
                     done = true;
                     cancel();
@@ -118,7 +151,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                     done = true;
                     cancel();
                     
-                    actual.onError(new NullPointerException("The queueSupplier returned a null queue"));
+                    actual.onError(new NullPointerException("The processorQueueSupplier returned a null queue"));
                     return;
                 }
                 
@@ -195,7 +228,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         final Subscriber<? super Publisher<T>> actual;
 
-        final Supplier<? extends Queue<Object>> queueSupplier;
+        final Supplier<? extends Queue<T>> processorQueueSupplier;
         
         final int size;
         
@@ -225,11 +258,11 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         boolean done;
         
         public PublisherWindowSkip(Subscriber<? super Publisher<T>> actual, int size, int skip,
-                Supplier<? extends Queue<Object>> queueSupplier) {
+                Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
             this.skip = skip;
-            this.queueSupplier = queueSupplier;
+            this.processorQueueSupplier = processorQueueSupplier;
             this.wip = 1;
         }
         
@@ -241,7 +274,6 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
             }
         }
         
-        @SuppressWarnings("unchecked")
         @Override
         public void onNext(T t) {
             if (done) {
@@ -258,7 +290,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                 Queue<T> q;
                 
                 try {
-                    q = (Queue<T>)queueSupplier.get();
+                    q = processorQueueSupplier.get();
                 } catch (Throwable ex) {
                     done = true;
                     cancel();
@@ -271,7 +303,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                     done = true;
                     cancel();
                     
-                    actual.onError(new NullPointerException("The queueSupplier returned a null queue"));
+                    actual.onError(new NullPointerException("The processorQueueSupplier returned a null queue"));
                     return;
                 }
                 
@@ -360,8 +392,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         final Subscriber<? super Publisher<T>> actual;
 
-        final Supplier<? extends Queue<Object>> queueSupplier;
-        
+        final Supplier<? extends Queue<T>> processorQueueSupplier;
+
         final Queue<Processor<T, T>> queue;
         
         final int size;
@@ -393,8 +425,6 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         static final AtomicIntegerFieldUpdater<PublisherWindowOverlap> DW =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherWindowOverlap.class, "dw");
 
-        
-        
         int index;
         
         int produced;
@@ -408,16 +438,15 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         volatile boolean cancelled;
         
-        @SuppressWarnings({ "unchecked", "rawtypes" })
         public PublisherWindowOverlap(Subscriber<? super Publisher<T>> actual, int size, int skip,
-                Supplier<? extends Queue<Object>> queueSupplier) {
+                Supplier<? extends Queue<T>> processorQueueSupplier,
+                Queue<Processor<T, T>> overflowQueue) {
             this.actual = actual;
             this.size = size;
             this.skip = skip;
-            this.queueSupplier = queueSupplier;
+            this.processorQueueSupplier = processorQueueSupplier;
             this.wip = 1;
-            Queue<Object> q = Objects.requireNonNull(queueSupplier.get(), "The queueSupplier returned a null queue");
-            this.queue = (Queue)q;
+            this.queue = overflowQueue;
         }
         
         @Override
@@ -428,7 +457,6 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
             }
         }
         
-        @SuppressWarnings("unchecked")
         @Override
         public void onNext(T t) {
             if (done) {
@@ -445,7 +473,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                     Queue<T> q;
                     
                     try {
-                        q = (Queue<T>)queueSupplier.get();
+                        q = processorQueueSupplier.get();
                     } catch (Throwable ex) {
                         done = true;
                         cancel();
@@ -458,7 +486,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                         done = true;
                         cancel();
                         
-                        actual.onError(new NullPointerException("The queueSupplier returned a null queue"));
+                        actual.onError(new NullPointerException("The processorQueueSupplier returned a null queue"));
                         return;
                     }
                     
