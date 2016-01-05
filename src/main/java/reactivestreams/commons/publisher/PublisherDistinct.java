@@ -1,15 +1,16 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * For each subscriber, tracks the source values that have been seen and
@@ -81,6 +82,7 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -117,6 +119,7 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;

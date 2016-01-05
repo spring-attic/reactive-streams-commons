@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.Objects;
@@ -65,6 +66,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -92,7 +94,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void onError(Throwable t) {
             if (done) {
-                t.printStackTrace();
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
 

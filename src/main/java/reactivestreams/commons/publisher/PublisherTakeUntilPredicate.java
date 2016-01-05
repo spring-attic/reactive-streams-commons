@@ -1,12 +1,13 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Objects;
+import java.util.function.Predicate;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Relays values until a predicate returns
@@ -59,6 +60,7 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -88,6 +90,7 @@ public final class PublisherTakeUntilPredicate<T> extends PublisherSource<T, T> 
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;

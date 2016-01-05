@@ -67,9 +67,8 @@ public class PublisherNextTest {
 
         new PublisherNext<>(new PublisherRange(1, 10)).subscribe(ts);
 
-        ts.assertNoValues()
-          .assertError(IndexOutOfBoundsException.class)
-          .assertNotComplete();
+        ts.assertValue(1)
+          .assertComplete();
     }
 
     @Test
@@ -85,9 +84,8 @@ public class PublisherNextTest {
 
         ts.request(1);
 
-        ts.assertNoValues()
-          .assertError(IndexOutOfBoundsException.class)
-          .assertNotComplete();
+        ts.assertValue(1)
+          .assertComplete();
     }
 
 }

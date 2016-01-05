@@ -94,6 +94,7 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 

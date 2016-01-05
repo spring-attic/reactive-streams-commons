@@ -1,12 +1,13 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Objects;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SubscriberDeferSubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Objects;
 
 /**
  * Delays the subscription to the main source until another Publisher
@@ -74,6 +75,7 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;

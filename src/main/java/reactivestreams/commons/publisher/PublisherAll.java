@@ -1,13 +1,14 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Objects;
+import java.util.function.Predicate;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Emits a single boolean true if all values of the source sequence match
@@ -90,6 +91,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;

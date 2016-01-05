@@ -1,12 +1,13 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Objects;
+import java.util.function.Predicate;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Skips source values while a predicate returns
@@ -62,6 +63,7 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -89,6 +91,7 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;

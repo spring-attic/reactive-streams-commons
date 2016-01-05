@@ -1,11 +1,12 @@
 package reactivestreams.commons.publisher;
 
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Takes only the first N values from the source Publisher.
@@ -41,7 +42,8 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeSubscriber<T>
-      implements Subscriber<T>, Subscription {
+      implements Subscriber<T>, Subscription, Upstream, ActiveUpstream,
+                 UpstreamDemand, Bounded, Downstream {
 
         final Subscriber<? super T> actual;
 
@@ -78,6 +80,7 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -103,6 +106,7 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;
@@ -135,6 +139,34 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
         public void cancel() {
             s.cancel();
         }
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
 
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public long getCapacity() {
+            return n;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return remaining;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
     }
 }

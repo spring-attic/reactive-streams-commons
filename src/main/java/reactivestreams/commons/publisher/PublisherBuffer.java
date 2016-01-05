@@ -1,12 +1,5 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Objects;
@@ -14,6 +7,14 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Buffers a certain number of subsequent elements and emits the buffers.
@@ -110,6 +111,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -145,6 +147,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;
@@ -272,6 +275,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -313,6 +317,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
 
@@ -470,6 +475,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -523,6 +529,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
 

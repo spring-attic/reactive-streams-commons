@@ -1,12 +1,13 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Objects;
+import java.util.function.Function;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Filters out subsequent and repeated elements.
@@ -58,6 +59,7 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -85,6 +87,7 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;

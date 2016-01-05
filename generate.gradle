@@ -17,8 +17,8 @@ def includingCoreScope = ['amb',
 						  'map',
 						  'never',
 						  'peek',
-						  'single',
 						  'resume',
+						  'take',
 						  /*'zip'*/] //managed by reactor-core
 
 //A complete RS commons coverage minus the lite core
@@ -62,7 +62,7 @@ def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
 
-def defaultTarget = reactorStream
+def defaultTarget = reactorCore
 
 // ----------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------
@@ -77,6 +77,7 @@ def defaultSingleAPI = ['empty',
 						'ignoreelements',
 						'callable',
 						'first',
+						'next',
 						'collect',
 						'reduce',
 						'all',

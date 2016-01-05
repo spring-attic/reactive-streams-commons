@@ -69,6 +69,7 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 

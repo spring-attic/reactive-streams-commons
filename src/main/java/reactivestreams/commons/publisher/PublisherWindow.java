@@ -126,6 +126,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
             
@@ -281,6 +282,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
             
@@ -468,6 +470,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
             

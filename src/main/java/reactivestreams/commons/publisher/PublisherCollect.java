@@ -1,15 +1,16 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
+import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Collects the values of the source sequence into a container returned by
@@ -90,6 +91,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -105,6 +107,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;

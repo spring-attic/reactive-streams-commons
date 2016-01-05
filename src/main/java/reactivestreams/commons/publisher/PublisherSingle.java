@@ -1,14 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Supplier;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
+import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Expects and emits a single item from the source or signals
@@ -100,6 +101,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
         @Override
         public void onNext(T t) {
             if (done) {
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
             value = t;
@@ -114,6 +116,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
         @Override
         public void onError(Throwable t) {
             if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             done = true;
