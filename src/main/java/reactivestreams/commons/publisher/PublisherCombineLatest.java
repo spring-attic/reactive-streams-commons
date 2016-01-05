@@ -138,7 +138,12 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R>,
             return;
         }
         if (n == 1) {
-            new PublisherMap<>(a[0], v -> combiner.apply(new Object[] { v })).subscribe(s);
+            new PublisherMap<>(a[0], new Function<T, R>() {
+                @Override
+                public R apply(T t) {
+                    return combiner.apply(new Object[] { t });
+                }
+            }).subscribe(s);
             return;
         }
         
