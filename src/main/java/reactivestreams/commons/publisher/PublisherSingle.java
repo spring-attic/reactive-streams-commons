@@ -26,9 +26,13 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
             return null; // Purposedly leave noop
         }
     };
-    
+
+	/**
+     * @param <T>
+     * @return a Supplier instance marker that bypass NoSuchElementException if empty
+     */
     @SuppressWarnings("unchecked")
-    static <T> Supplier<T> completeOnEmptySequence() {
+    public static <T> Supplier<T> completeOnEmptySequence() {
         return (Supplier<T>)COMPLETE_ON_EMPTY_SEQUENCE;
     }
 
