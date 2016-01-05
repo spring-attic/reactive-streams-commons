@@ -1,12 +1,13 @@
 package reactivestreams.commons;
 
+import java.util.concurrent.TimeUnit;
+
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.internal.PerfSubscriber;
-import reactivestreams.commons.publisher.PublisherRange;
 
-import java.util.concurrent.TimeUnit;
+import reactivestreams.commons.internal.*;
+import reactivestreams.commons.publisher.PublisherRange;
 
 
 /**
@@ -50,5 +51,10 @@ public class PublisherRangePerf {
         Publisher<Integer> p = new PublisherRange(0, count);
         bh.consume(p);
         p.subscribe(new PerfSubscriber(bh));
+    }
+
+    @Benchmark
+    public void standardSlowpath(Blackhole bh) {
+        source.subscribe(new PerfSlowPathSubscriber(bh, count + 1));
     }
 }
