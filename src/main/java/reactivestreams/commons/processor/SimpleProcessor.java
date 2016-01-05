@@ -206,7 +206,7 @@ public final class SimpleProcessor<T> implements Processor<T, T>,
         return false;
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public Throwable getError() {
         if (subscribers == TERMINATED) {
             return error;

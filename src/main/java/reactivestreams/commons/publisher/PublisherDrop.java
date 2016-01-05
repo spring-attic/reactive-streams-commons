@@ -18,7 +18,7 @@ import reactivestreams.commons.support.SubscriptionHelper;
  */
 public final class PublisherDrop<T> extends PublisherSource<T, T> {
 
-    static final Consumer NOOP = new Consumer() {
+    static final Consumer<Object> NOOP = new Consumer<Object>() {
         @Override
         public void accept(Object t) {
 
@@ -27,10 +27,9 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
 
     final Consumer<? super T> onDrop;
 
-    @SuppressWarnings("unchecked")
     public PublisherDrop(Publisher<? extends T> source) {
         super(source);
-        this.onDrop = (Consumer<? super T>) NOOP;
+        this.onDrop = NOOP;
     }
 
 

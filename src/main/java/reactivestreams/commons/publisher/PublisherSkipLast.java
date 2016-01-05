@@ -1,12 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.ArrayDeque;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Skips the last N elements from the source stream.
