@@ -16,7 +16,9 @@ import reactivestreams.commons.support.*;
  * @param <T> the value type of the sources
  * @param <R> the result type
  */
-public final class PublisherCombineLatest<T, R> implements Publisher<R> {
+public final class PublisherCombineLatest<T, R> implements Publisher<R>,
+                                                           ReactiveState.Factory,
+                                                           ReactiveState.LinkedUpstreams {
 
     final Publisher<? extends T>[] array;
 
@@ -54,6 +56,16 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R> {
         this.combiner = Objects.requireNonNull(combiner, "combiner");
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
         this.bufferSize = bufferSize;
+    }
+
+    @Override
+    public Iterator<?> upstreams() {
+        return iterable != null ? iterable.iterator() : Arrays.asList(array).iterator();
+    }
+
+    @Override
+    public long upstreamsCount() {
+        return array != null ? array.length : -1L;
     }
 
     @SuppressWarnings("unchecked")
@@ -152,7 +164,8 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R> {
         coordinator.subscribe(a, n);
     }
     
-    static final class PublisherCombineLatestCoordinator<T, R> implements Subscription {
+    static final class PublisherCombineLatestCoordinator<T, R> implements Subscription, LinkedUpstreams,
+                                                                          ActiveDownstream {
 
         final Subscriber<? super R> actual;
         
@@ -217,7 +230,22 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R> {
         public void cancel() {
             cancelled = true;
         }
-        
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return Arrays.asList(subscribers).iterator();
+        }
+
+        @Override
+        public long upstreamsCount() {
+            return subscribers.length;
+        }
+
         void subscribe(Publisher<? extends T>[] sources, int n) {
             PublisherCombineLatestInner<T>[] a = subscribers;
             
@@ -403,7 +431,8 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R> {
         }
     }
     
-    static final class PublisherCombineLatestInner<T> implements Subscriber<T> {
+    static final class PublisherCombineLatestInner<T>
+            implements Subscriber<T>, Inner, UpstreamDemand, DownstreamDemand, UpstreamPrefetch, Upstream, Downstream {
 
         final PublisherCombineLatestCoordinator<T, ?> parent;
 
@@ -512,6 +541,31 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R> {
                 produced = p;
             }
             
+        }
+
+        @Override
+        public Object downstream() {
+            return parent;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return limit - produced;
         }
     }
     
