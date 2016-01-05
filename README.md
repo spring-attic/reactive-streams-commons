@@ -46,9 +46,11 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherPeek` : peek into the lifecycle and signals of a stream
   - `PublisherReduce` : aggregates the source values with the help of an accumulator function and emits the the final accumulated value
   - `PublisherRepeat` : repeatedly streams the source sequence fixed or unlimited times
+  - `PublisherRepeatPredicate` : repeatedly stream the source if a predicate returns true
   - `PublisherRepeatWhen` : repeats a source when a companion sequence signals an item in response to the main's completion signal
   - `PublisherResume` : if the source fails, the stream is resumed by another Publisher returned by a function for the failure exception
   - `PublisherRetry` : retry a failed source sequence fixed or unlimited times
+  - `PublisherRetryPredicate` : retry if a predicate function returns true for the exception
   - `PublisherRetryWhen` : retries a source when a companion sequence signals an item in response to the main's error signal
   - `PublisherSample` : samples the main source whenever the other Publisher signals a value
   - `PublisherScan` : aggregates the source values with the help of an accumulator function and emits the intermediate results
