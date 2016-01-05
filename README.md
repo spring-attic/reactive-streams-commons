@@ -65,6 +65,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherTimeout` uses per-item `Publisher`s that when they fire mean the timeout for that particular item unless a new item arrives in the meantime
   - `PublisherWindow` : splits the source sequence into possibly overlapping windows of given size
   - `PublisherWithLatestFrom` : combines values from a master source with the latest values of another Publisher via a function
+  - `PublisherZipIterable` : pairwise combines a sequence of values with elements from an iterable
 
 ## Supported extractions
 
