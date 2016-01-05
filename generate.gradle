@@ -28,7 +28,7 @@ def excludingStreamScope = includingCoreScope + ['generate',
 												 'flatmap',
 												 'lift', //Already managed by reactor-stream
 												 'stream',
-												 'zip']
+												 'zip'] - ['map']
 
 //Common reactor helper references
 def reactorCommon = ['fn-backport'          : 'reactor.fn',
