@@ -508,6 +508,8 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R> {
                         }
                     }
                 }
+            } else {
+                produced = p;
             }
             
         }
