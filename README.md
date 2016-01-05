@@ -29,6 +29,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherAny` : emits a single true if any value of the source sequence matches the predicate
   - `PublisherBuffer` : buffers certain number of subsequent elements and emits the buffers
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
+  - `PublisherCombineLatest` : combines the latest values of many sources through a function
   - `PublisherCount` : counts the number of elements the source sequence emits
   - `PublisherDistinct` : filters out elements that have been seen previously according to a custom collection
   - `PublisherDistinctUntilChanged` : filters out subsequent and repeated elements
