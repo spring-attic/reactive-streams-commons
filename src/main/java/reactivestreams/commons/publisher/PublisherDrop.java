@@ -17,12 +17,19 @@ import java.util.function.Consumer;
  */
 public final class PublisherDrop<T> extends PublisherSource<T, T> {
 
+    static final Consumer NOOP = new Consumer() {
+        @Override
+        public void accept(Object t) {
+
+        }
+    };
+
     final Consumer<? super T> onDrop;
 
+    @SuppressWarnings("unchecked")
     public PublisherDrop(Publisher<? extends T> source) {
         super(source);
-        this.onDrop = v -> {
-        };
+        this.onDrop = (Consumer<? super T>) NOOP;
     }
 
 

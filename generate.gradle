@@ -10,7 +10,7 @@ def includingCoreScope = ['amb',
 						  'empty',
 						  'next',
 						  /*'flatmap' ,*/ //managed by reactor-core
-						  'ignoreElements',
+						  'ignoreelements',
 						  'iterable',
 						  'just',
 						  /*'lift',*/ //managed by reactor-core
@@ -36,6 +36,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'api-single'           : 'reactor.Mono',
 					 'api-single-operator'  : 'reactor.Mono.MonoBarrier',
 					 'test-type'            : false,
+					 'extra-packages'      : 'reactor.core',
 					 'header'               : '@since 2.5',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
@@ -50,14 +51,14 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 def reactorCore = ['api'                 : 'reactor.Flux',
 				   'api-package'         : 'reactor.core.publisher',
 				   'api-operator'        : 'reactor.Flux.FluxBarrier',
-				   'serializedSubscriber': true,
-				   'extra-packages'      : 'reactor.core',
+				   'serializedSubscriber': false,
 				   'include'             : includingCoreScope] + reactorCommon
 
 //Reactor Stream configuration
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'api-package'         : 'reactor.rx.stream',
 					 'api-operator'        : 'StreamBarrier',
+					 'serializedSubscriber': 'reactor.rx.subscriber',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
 
@@ -73,7 +74,7 @@ def defaultSingleAPI = ['empty',
 						'just',
 						'error',
 						'single',
-						'ignoreElements',
+						'ignoreelements',
 						'callable',
 						'first',
 						'collect',
@@ -264,6 +265,10 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 
 	if (target['api-package']) {
 	  l = l.replace('reactivestreams.commons.publisher', target['api-package'])
+	}
+
+	if (target['serializedSubscriber']) {
+	  l = l.replace('reactivestreams.commons.subscriber.SerializedSubscriber', target['serializedSubscriber']+".SerializedSubscriber")
 	}
 
 	if (target['extra-packages']) {

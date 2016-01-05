@@ -81,7 +81,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         }
     }
     
-    static final class PublisherWindowExact<T> implements Subscriber<T>, Subscription {
+    static final class PublisherWindowExact<T> implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super Publisher<T>> actual;
 
@@ -156,7 +156,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                     return;
                 }
                 
-                w = new UnicastProcessor<>(q, this::doneInner);
+                w = new UnicastProcessor<>(q, this);
                 window = w;
                 
                 actual.onNext(w);
@@ -216,18 +216,19 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         @Override
         public void cancel() {
             if (ONCE.compareAndSet(this, 0, 1)) {
-                doneInner();
+                run();
             }
         }
-        
-        void doneInner() {
+
+        @Override
+        public void run() {
             if (WIP.decrementAndGet(this) == 0) {
                 s.cancel();
             }
         }
     }
     
-    static final class PublisherWindowSkip<T> implements Subscriber<T>, Subscription {
+    static final class PublisherWindowSkip<T> implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super Publisher<T>> actual;
 
@@ -310,7 +311,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                     return;
                 }
                 
-                w = new UnicastProcessor<>(q, this::doneInner);
+                w = new UnicastProcessor<>(q, this);
                 window = w;
                 
                 actual.onNext(w);
@@ -382,18 +383,19 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         @Override
         public void cancel() {
             if (ONCE.compareAndSet(this, 0, 1)) {
-                doneInner();
+                run();
             }
         }
-        
-        void doneInner() {
+
+        @Override
+        public void run() {
             if (WIP.decrementAndGet(this) == 0) {
                 s.cancel();
             }
         }
     }
 
-    static final class PublisherWindowOverlap<T> implements Subscriber<T>, Subscription {
+    static final class PublisherWindowOverlap<T> implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super Publisher<T>> actual;
 
@@ -496,7 +498,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                         return;
                     }
                     
-                    Processor<T, T> w = new UnicastProcessor<>(q, this::doneInner);
+                    Processor<T, T> w = new UnicastProcessor<>(q, this);
                     
                     windows.offer(w);
                     
@@ -656,11 +658,12 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         @Override
         public void cancel() {
             if (ONCE.compareAndSet(this, 0, 1)) {
-                doneInner();
+                run();
             }
         }
-        
-        void doneInner() {
+
+        @Override
+        public void run() {
             if (WIP.decrementAndGet(this) == 0) {
                 s.cancel();
             }
