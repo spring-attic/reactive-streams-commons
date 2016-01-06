@@ -128,4 +128,17 @@ public class PublisherRepeatWhenTest {
 
     }
 
+    @Test
+    public void retryAlways() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+
+        new PublisherRange(1, 2).repeatWhen(v -> v).subscribe(ts);
+        
+        ts.request(8);
+        
+        ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2)
+        .assertNoError()
+        .assertNotComplete();
+    }
+
 }

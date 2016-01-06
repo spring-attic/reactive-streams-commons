@@ -62,6 +62,14 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new PublisherSwitchMap<>(this, mapper, queueSupplier(), BUFFER_SIZE);
     }
     
+    public final PublisherBase<T> retryWhen(Function<? super PublisherBase<Throwable>, ? extends Publisher<? extends Object>> whenFunction) {
+        return new PublisherRetryWhen<>(this, whenFunction);
+    }
+
+    public final PublisherBase<T> repeatWhen(Function<? super PublisherBase<Object>, ? extends Publisher<? extends Object>> whenFunction) {
+        return new PublisherRepeatWhen<>(this, whenFunction);
+    }
+
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
         public PublisherBaseWrapper(Publisher<? extends T> source) {
             super(source);

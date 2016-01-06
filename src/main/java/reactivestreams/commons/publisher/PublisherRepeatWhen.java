@@ -20,10 +20,10 @@ import reactivestreams.commons.subscriber.*;
  */
 public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
-    final Function<Publisher<Object>, ? extends Publisher<? extends Object>> whenSourceFactory;
+    final Function<? super PublisherBase<Object>, ? extends Publisher<? extends Object>> whenSourceFactory;
 
     public PublisherRepeatWhen(Publisher<? extends T> source,
-                               Function<Publisher<Object>, ? extends Publisher<? extends Object>> whenSourceFactory) {
+                               Function<? super PublisherBase<Object>, ? extends Publisher<? extends Object>> whenSourceFactory) {
         super(source);
         this.whenSourceFactory = Objects.requireNonNull(whenSourceFactory, "whenSourceFactory");
     }
@@ -64,7 +64,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
     static final class PublisherRepeatWhenMainSubscriber<T> extends SubscriberMultiSubscription<T, T> {
 
-        final SubscriberDeferSubscription<T, T> otherArbiter;
+        final SubscriberDeferSubscriptionBase otherArbiter;
 
         final Subscriber<Object> signaller;
 
@@ -84,7 +84,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
             super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.otherArbiter = new SubscriberDeferSubscription<>(null);
+            this.otherArbiter = new SubscriberDeferSubscriptionBase();
         }
 
         @Override
@@ -161,7 +161,9 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherRepeatWhenOtherSubscriber implements Subscriber<Object>, Publisher<Object> {
+    static final class PublisherRepeatWhenOtherSubscriber 
+    extends PublisherBase<Object>
+    implements Subscriber<Object> {
         PublisherRepeatWhenMainSubscriber<?> main;
 
         final SimpleProcessor<Object> completionSignal = new SimpleProcessor<>();

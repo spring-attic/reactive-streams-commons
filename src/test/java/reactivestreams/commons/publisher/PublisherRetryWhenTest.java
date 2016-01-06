@@ -1,16 +1,15 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import org.reactivestreams.Publisher;
 
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherRetryWhenTest {
 
-    Publisher<Integer> justError = new PublisherConcatArray<>(new PublisherJust<>(1), new PublisherError<>(new
+    PublisherBase<Integer> justError = new PublisherConcatArray<>(new PublisherJust<>(1), new PublisherError<>(new
       RuntimeException("forced failure 0")));
 
-    Publisher<Integer> rangeError = new PublisherConcatArray<>(new PublisherRange(1, 2), new PublisherError<>(new
+    PublisherBase<Integer> rangeError = new PublisherConcatArray<>(new PublisherRange(1, 2), new PublisherError<>(new
       RuntimeException("forced failure 0")));
 
     @Test(expected = NullPointerException.class)
@@ -135,4 +134,16 @@ public class PublisherRetryWhenTest {
 
     }
 
+    @Test
+    public void retryAlways() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+
+        rangeError.retryWhen(v -> v).subscribe(ts);
+        
+        ts.request(8);
+        
+        ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2)
+        .assertNoError()
+        .assertNotComplete();
+    }
 }

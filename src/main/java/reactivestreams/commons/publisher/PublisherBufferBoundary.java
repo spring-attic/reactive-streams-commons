@@ -123,7 +123,8 @@ extends PublisherSource<T, C> {
         }
     }
     
-    static final class PublisherBufferBoundaryOther<U> extends SubscriberDeferSubscriptionBase<U> {
+    static final class PublisherBufferBoundaryOther<U> extends SubscriberDeferSubscriptionBase
+    implements Subscriber<U> {
         
         final PublisherBufferBoundaryMain<?, U, ?> main;
         

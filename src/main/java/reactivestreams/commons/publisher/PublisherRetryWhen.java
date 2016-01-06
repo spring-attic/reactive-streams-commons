@@ -20,10 +20,10 @@ import reactivestreams.commons.subscriber.*;
  */
 public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
-    final Function<Publisher<Throwable>, ? extends Publisher<? extends Object>> whenSourceFactory;
+    final Function<? super PublisherBase<Throwable>, ? extends Publisher<? extends Object>> whenSourceFactory;
 
     public PublisherRetryWhen(Publisher<? extends T> source,
-                              Function<Publisher<Throwable>, ? extends Publisher<? extends Object>> whenSourceFactory) {
+                              Function<? super PublisherBase<Throwable>, ? extends Publisher<? extends Object>> whenSourceFactory) {
         super(source);
         this.whenSourceFactory = Objects.requireNonNull(whenSourceFactory, "whenSourceFactory");
     }
@@ -64,7 +64,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
     static final class PublisherRetryWhenMainSubscriber<T> extends SubscriberMultiSubscription<T, T> {
 
-        final SubscriberDeferSubscription<T, T> otherArbiter;
+        final SubscriberDeferSubscriptionBase otherArbiter;
 
         final Subscriber<Throwable> signaller;
 
@@ -82,7 +82,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
             super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.otherArbiter = new SubscriberDeferSubscription<>(null);
+            this.otherArbiter = new SubscriberDeferSubscriptionBase();
         }
 
         @Override
@@ -154,7 +154,9 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherRetryWhenOtherSubscriber implements Subscriber<Object>, Publisher<Throwable> {
+    static final class PublisherRetryWhenOtherSubscriber
+    extends PublisherBase<Throwable>
+    implements Subscriber<Object> {
         PublisherRetryWhenMainSubscriber<?> main;
 
         final SimpleProcessor<Throwable> completionSignal = new SimpleProcessor<>();

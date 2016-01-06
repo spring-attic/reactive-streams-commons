@@ -11,18 +11,14 @@ import reactivestreams.commons.support.*;
 /**
  * Base class for Subscribers that will receive their Subscriptions at any time yet
  * they need to be cancelled or requested at any time.
- *
- * @param <I> the input value type
  */
-public abstract class SubscriberDeferSubscriptionBase<I> implements Subscriber<I>, Subscription {
+public class SubscriberDeferSubscriptionBase implements Subscription {
 
     volatile Subscription s;
-    @SuppressWarnings("rawtypes")
     static final AtomicReferenceFieldUpdater<SubscriberDeferSubscriptionBase, Subscription> S =
         AtomicReferenceFieldUpdater.newUpdater(SubscriberDeferSubscriptionBase.class, Subscription.class, "s");
 
     volatile long requested;
-    @SuppressWarnings("rawtypes")
     static final AtomicLongFieldUpdater<SubscriberDeferSubscriptionBase> REQUESTED =
         AtomicLongFieldUpdater.newUpdater(SubscriberDeferSubscriptionBase.class, "requested");
 
