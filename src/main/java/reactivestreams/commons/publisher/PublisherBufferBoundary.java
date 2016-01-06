@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.SubscriberDeferSubscriptionBase;
+import reactivestreams.commons.subscriber.DeferSubscriptionBase;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
@@ -222,7 +222,7 @@ extends PublisherSource<T, C> {
         }
     }
     
-    static final class PublisherBufferBoundaryOther<U> extends SubscriberDeferSubscriptionBase
+    static final class PublisherBufferBoundaryOther<U> extends DeferSubscriptionBase
     implements Subscriber<U> {
         
         final PublisherBufferBoundaryMain<?, U, ?> main;

@@ -83,12 +83,17 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return buffer(start, end, () -> new ArrayList<>());
     }
 
-    
     public final <U, V, C extends Collection<? super T>> PublisherBase<C> buffer(
             Publisher<U> start, Function<? super U, ? extends Publisher<V>> end, 
                     Supplier<C> bufferSupplier) {
         return new PublisherBufferStartEnd<>(this, start, end, bufferSupplier, defaultQueueSupplier());
     }
+
+    public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other) {
+        return new PublisherWindowBoundary<>(this, other, defaultQueueSupplier(), defaultQueueSupplier());
+    }
+    
+    // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
         public PublisherBaseWrapper(Publisher<? extends T> source) {

@@ -72,6 +72,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherTakeUntilPredicate` : relays values until a predicate returns true (checked after each value)
   - `PublisherTimeout` uses per-item `Publisher`s that when they fire mean the timeout for that particular item unless a new item arrives in the meantime
   - `PublisherWindow` : splits the source sequence into possibly overlapping windows of given size
+  - `PublisherWindowBoundary` : splits the source sequence into continuous, non-overlapping windows where the window boundary is signalled by another Publisher.
   - `PublisherWithLatestFrom` : combines values from a master source with the latest values of another Publisher via a function
   - `PublisherZipIterable` : pairwise combines a sequence of values with elements from an iterable
 

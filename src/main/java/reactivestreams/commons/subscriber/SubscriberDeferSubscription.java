@@ -15,7 +15,7 @@ import reactivestreams.commons.support.ReactiveState;
  * @param <O> the output value type
  */
 public class SubscriberDeferSubscription<I, O> 
-extends SubscriberDeferSubscriptionBase
+extends DeferSubscriptionBase
 implements Subscription, Subscriber<I>,
                                                           ReactiveState.DownstreamDemand,
                                                           ReactiveState.ActiveUpstream,

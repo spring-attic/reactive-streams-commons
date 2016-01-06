@@ -12,15 +12,15 @@ import reactivestreams.commons.support.*;
  * Base class for Subscribers that will receive their Subscriptions at any time yet
  * they need to be cancelled or requested at any time.
  */
-public class SubscriberDeferSubscriptionBase implements Subscription {
+public class DeferSubscriptionBase implements Subscription {
 
     volatile Subscription s;
-    static final AtomicReferenceFieldUpdater<SubscriberDeferSubscriptionBase, Subscription> S =
-        AtomicReferenceFieldUpdater.newUpdater(SubscriberDeferSubscriptionBase.class, Subscription.class, "s");
+    static final AtomicReferenceFieldUpdater<DeferSubscriptionBase, Subscription> S =
+        AtomicReferenceFieldUpdater.newUpdater(DeferSubscriptionBase.class, Subscription.class, "s");
 
     volatile long requested;
-    static final AtomicLongFieldUpdater<SubscriberDeferSubscriptionBase> REQUESTED =
-        AtomicLongFieldUpdater.newUpdater(SubscriberDeferSubscriptionBase.class, "requested");
+    static final AtomicLongFieldUpdater<DeferSubscriptionBase> REQUESTED =
+        AtomicLongFieldUpdater.newUpdater(DeferSubscriptionBase.class, "requested");
 
     protected final void setInitialRequest(long n) {
         REQUESTED.lazySet(this, n);

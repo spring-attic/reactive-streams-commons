@@ -64,7 +64,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
     static final class PublisherRetryWhenMainSubscriber<T> extends SubscriberMultiSubscription<T, T> {
 
-        final SubscriberDeferSubscriptionBase otherArbiter;
+        final DeferSubscriptionBase otherArbiter;
 
         final Subscriber<Throwable> signaller;
 
@@ -82,7 +82,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
             super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.otherArbiter = new SubscriberDeferSubscriptionBase();
+            this.otherArbiter = new DeferSubscriptionBase();
         }
 
         @Override
