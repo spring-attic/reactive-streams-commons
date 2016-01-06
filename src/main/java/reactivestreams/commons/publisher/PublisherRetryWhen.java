@@ -1,16 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.SerializedSubscriber;
-import reactivestreams.commons.subscriber.SubscriberDeferSubscription;
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Function;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.subscriber.*;
 
 /**
  * retries a source when a companion sequence signals

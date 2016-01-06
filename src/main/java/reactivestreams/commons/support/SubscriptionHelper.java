@@ -1,8 +1,11 @@
 package reactivestreams.commons.support;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 import org.reactivestreams.Subscription;
 
-import java.util.Objects;
+import reactivestreams.commons.subscription.CancelledSubscription;
 
 /**
  * Utility methods to help working with Subscriptions and their methods.
@@ -39,5 +42,17 @@ public enum SubscriptionHelper {
             return false;
         }
         return true;
+    }
+    
+    public static <F> boolean terminate(AtomicReferenceFieldUpdater<F, Subscription> field, F instance) {
+        Subscription a = field.get(instance);
+        if (a != CancelledSubscription.INSTANCE) {
+            a = field.getAndSet(instance, CancelledSubscription.INSTANCE);
+            if (a != null && a != CancelledSubscription.INSTANCE) {
+                a.cancel();
+                return true;
+            }
+        }
+        return false;
     }
 }

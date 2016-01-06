@@ -1,10 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-
 import java.util.Objects;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 
 /**
  * Switches to another source if the first source turns out to be empty.

@@ -1,10 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 
 /**
  * Repeatedly subscribes to the source sequence if it signals any error

@@ -1,16 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import java.util.Objects;
+import java.util.concurrent.atomic.*;
+
+import org.reactivestreams.*;
+
 import reactivestreams.commons.subscriber.SerializedSubscriber;
 import reactivestreams.commons.subscription.CancelledSubscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import reactivestreams.commons.support.*;
 
 /**
  * Samples the main source and emits its latest value whenever the other Publisher

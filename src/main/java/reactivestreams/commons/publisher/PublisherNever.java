@@ -1,7 +1,7 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.ReactiveState;
 
@@ -13,7 +13,7 @@ import reactivestreams.commons.support.ReactiveState;
  */
 public final class PublisherNever 
 extends PublisherBase<Object>
-implements Publisher<Object>,
+implements 
                                              ReactiveState.Factory,
                                              ReactiveState.ActiveUpstream {
 

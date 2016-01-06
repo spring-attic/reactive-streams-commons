@@ -1,13 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
-import reactivestreams.commons.support.ReactiveState;
-
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+
+import org.reactivestreams.Subscriber;
+
+import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.support.ReactiveState;
 
 /**
  * Executes a Callable function and emits a single value to each individual Subscriber.
@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  */
 public final class PublisherCallable<T> 
 extends PublisherBase<T>
-implements Publisher<T>,
+implements 
                                                    ReactiveState.Factory,
                                                    ReactiveState.Upstream {
 

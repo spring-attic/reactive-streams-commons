@@ -1,11 +1,11 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscription.EmptySubscription;
-
 import java.util.Objects;
 import java.util.function.Function;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.subscription.EmptySubscription;
 
 /**
  * maps the downstream Subscriber into an upstream Subscriber

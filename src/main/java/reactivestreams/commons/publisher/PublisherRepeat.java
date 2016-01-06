@@ -1,11 +1,11 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
+import org.reactivestreams.*;
+
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
-
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Repeatedly subscribes to the source and relays its values either

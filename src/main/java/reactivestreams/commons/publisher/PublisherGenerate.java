@@ -3,16 +3,12 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.support.*;
 
 /**
  * Generate signals one-by-one via a function callback.
@@ -26,7 +22,7 @@ import reactivestreams.commons.support.SubscriptionHelper;
  */
 public final class PublisherGenerate<T, S> 
 extends PublisherBase<T>
-implements Publisher<T>, ReactiveState.Factory {
+implements ReactiveState.Factory {
 
     /**
      * Interface to receive generated signals from the callback function.

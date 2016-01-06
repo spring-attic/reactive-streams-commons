@@ -1,13 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
+import java.util.*;
+import java.util.stream.Stream;
+
 import org.reactivestreams.Subscriber;
+
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.ReactiveState;
-
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 /**
  * Emits the contents of a Stream source.
@@ -16,7 +15,7 @@ import java.util.stream.Stream;
  */
 public final class PublisherStream<T> 
 extends PublisherBase<T>
-implements Publisher<T>,
+implements 
                                                  ReactiveState.Factory,
                                                  ReactiveState.Upstream {
 

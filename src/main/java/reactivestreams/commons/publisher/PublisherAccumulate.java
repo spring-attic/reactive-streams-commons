@@ -1,13 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.SubscriptionHelper;
-import reactivestreams.commons.error.UnsignalledExceptions;
-
 import java.util.Objects;
 import java.util.function.BiFunction;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.error.UnsignalledExceptions;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Accumulates the source values with an accumulator function and

@@ -1,14 +1,10 @@
 package reactivestreams.commons.subscriber;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscription.CancelledSubscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.ReactiveState;
-
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.support.ReactiveState;
 
 /**
  * Arbitrates the requests and cancellation for a Subscription that may be set onSubscribe once only.
@@ -18,7 +14,9 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @param <I> the input value type
  * @param <O> the output value type
  */
-public class SubscriberDeferSubscription<I, O> implements Subscription, Subscriber<I>,
+public class SubscriberDeferSubscription<I, O> 
+extends SubscriberDeferSubscriptionBase<I>
+implements Subscription, Subscriber<I>,
                                                           ReactiveState.DownstreamDemand,
                                                           ReactiveState.ActiveUpstream,
                                                           ReactiveState.ActiveDownstream,
@@ -27,23 +25,13 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
 
     protected final Subscriber<? super O> subscriber;
 
-    volatile Subscription s;
-    @SuppressWarnings("rawtypes")
-    static final AtomicReferenceFieldUpdater<SubscriberDeferSubscription, Subscription> S =
-      AtomicReferenceFieldUpdater.newUpdater(SubscriberDeferSubscription.class, Subscription.class, "s");
-
-    volatile long requested;
-    @SuppressWarnings("rawtypes")
-    static final AtomicLongFieldUpdater<SubscriberDeferSubscription> REQUESTED =
-      AtomicLongFieldUpdater.newUpdater(SubscriberDeferSubscription.class, "requested");
-
     /**
      * Constructs a SingleSubscriptionArbiter with zero initial request.
      * 
      * @param subscriber the actual subscriber
      */
     public SubscriberDeferSubscription(Subscriber<? super O> subscriber) {
-        this.subscriber = subscriber;
+        this.subscriber = Objects.requireNonNull(subscriber, "subscriber");
     }
 
     /**
@@ -57,87 +45,8 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
         if (initialRequest < 0) {
             throw new IllegalArgumentException("initialRequest >= required but it was " + initialRequest);
         }
-        this.subscriber = subscriber;
-        REQUESTED.lazySet(this, initialRequest);
-    }
-
-    /**
-     * Atomically sets the single subscription and requests the missed amount from it.
-     *
-     * @param s
-     * @return false if this arbiter is cancelled or there was a subscription already set
-     */
-    public final boolean set(Subscription s) {
-        Objects.requireNonNull(s, "s");
-        Subscription a = this.s;
-        if (a == CancelledSubscription.INSTANCE) {
-            s.cancel();
-            return false;
-        }
-        if (a != null) {
-            s.cancel();
-            return false;
-        }
-
-        if (S.compareAndSet(this, null, s)) {
-
-            long r = REQUESTED.getAndSet(this, 0L);
-
-            if (r != 0L) {
-                s.request(r);
-            }
-
-            return true;
-        }
-
-        a = this.s;
-
-        if (a != CancelledSubscription.INSTANCE) {
-            s.cancel();
-        }
-
-        return false;
-    }
-
-    @Override
-    public void request(long n) {
-        Subscription a = s;
-        if (a != null) {
-            a.request(n);
-        } else {
-            BackpressureHelper.addAndGet(REQUESTED, this, n);
-
-            a = s;
-
-            if (a != null) {
-                long r = REQUESTED.getAndSet(this, 0L);
-
-                if (r != 0L) {
-                    a.request(r);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void cancel() {
-        Subscription a = s;
-        if (a != CancelledSubscription.INSTANCE) {
-            a = S.getAndSet(this, CancelledSubscription.INSTANCE);
-            if (a != null && a != CancelledSubscription.INSTANCE) {
-                a.cancel();
-            }
-        }
-    }
-
-    /**
-     * Returns true if this arbiter has been cancelled.
-     *
-     * @return true if this arbiter has been cancelled
-     */
-    @Override
-    public final boolean isCancelled() {
-        return s == CancelledSubscription.INSTANCE;
+        this.subscriber = Objects.requireNonNull(subscriber, "subscriber");
+        setInitialRequest(initialRequest);
     }
 
     /**
@@ -180,22 +89,16 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
     @Override
     @SuppressWarnings("unchecked")
     public void onNext(I t) {
-        if (subscriber != null) {
-            subscriber.onNext((O) t);
-        }
+        subscriber.onNext((O) t);
     }
 
     @Override
     public void onError(Throwable t) {
-        if (subscriber != null) {
-            subscriber.onError(t);
-        }
+        subscriber.onError(t);
     }
 
     @Override
     public void onComplete() {
-        if (subscriber != null) {
-            subscriber.onComplete();
-        }
+        subscriber.onComplete();
     }
 }

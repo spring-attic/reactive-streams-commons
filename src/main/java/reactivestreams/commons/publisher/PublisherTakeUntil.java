@@ -1,15 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscriber.SerializedSubscriber;
-import reactivestreams.commons.subscription.CancelledSubscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.subscriber.SerializedSubscriber;
+import reactivestreams.commons.subscription.*;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Relays values from the main Publisher until another Publisher signals an event.

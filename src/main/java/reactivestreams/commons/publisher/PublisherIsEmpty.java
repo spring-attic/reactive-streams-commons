@@ -1,8 +1,7 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.subscriber.SubscriberDeferScalar;
 import reactivestreams.commons.support.SubscriptionHelper;
 

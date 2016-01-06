@@ -1,12 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
-import reactivestreams.commons.support.ReactiveState;
-
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+
+import org.reactivestreams.Subscriber;
+
+import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.support.ReactiveState;
 
 /**
  * Emits the value or error produced by the wrapped CompletableFuture.
@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public final class PublisherCompletableFuture<T> 
 extends PublisherBase<T>
-implements Publisher<T>,
+implements 
                                                             ReactiveState.Factory,
                                                             ReactiveState.Upstream{
 

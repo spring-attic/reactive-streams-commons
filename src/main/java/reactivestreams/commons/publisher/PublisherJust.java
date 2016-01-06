@@ -1,16 +1,16 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscription.ScalarSubscription;
-import reactivestreams.commons.support.ReactiveState;
-
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import org.reactivestreams.Subscriber;
+
+import reactivestreams.commons.subscription.ScalarSubscription;
+import reactivestreams.commons.support.ReactiveState;
+
 public final class PublisherJust<T> 
 extends PublisherBase<T>
-implements Supplier<T>, Publisher<T>,
+implements Supplier<T>,
                                                ReactiveState.Factory,
                                                ReactiveState.Upstream {
 

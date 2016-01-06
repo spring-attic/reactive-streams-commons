@@ -2,8 +2,8 @@ package reactivestreams.commons.publisher;
 
 import java.util.function.Supplier;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.ReactiveState;
 
@@ -15,7 +15,7 @@ import reactivestreams.commons.support.ReactiveState;
  */
 public final class PublisherEmpty 
 extends PublisherBase<Object>
-implements Publisher<Object>, Supplier<Object>,
+implements Supplier<Object>,
                                              ReactiveState.Factory,
                                              ReactiveState.ActiveUpstream {
 

@@ -1,13 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.Objects;
 import java.util.function.Function;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.error.UnsignalledExceptions;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.

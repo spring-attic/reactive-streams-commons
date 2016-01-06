@@ -1,17 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.*;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -20,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
  */
 public final class PublisherArray<T> 
 extends PublisherBase<T>
-implements Publisher<T>,
+implements 
                                                 ReactiveState.Factory  {
     final T[] array;
 

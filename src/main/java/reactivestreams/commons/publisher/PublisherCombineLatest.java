@@ -18,7 +18,7 @@ import reactivestreams.commons.support.*;
  */
 public final class PublisherCombineLatest<T, R> 
 extends PublisherBase<R>
-implements Publisher<R>,
+implements 
                                                            ReactiveState.Factory,
                                                            ReactiveState.LinkedUpstreams {
 

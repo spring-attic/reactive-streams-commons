@@ -1,12 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ReactiveState;
-
 import java.util.Objects;
 import java.util.function.Supplier;
+
+import org.reactivestreams.Subscriber;
+
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ReactiveState;
 
 /**
  * Emits a constant or generated Throwable instance to Subscribers.
@@ -15,7 +15,7 @@ import java.util.function.Supplier;
  */
 public final class PublisherError<T> 
 extends PublisherBase<T>
-implements Publisher<T>,
+implements 
                                                 ReactiveState.Factory,
                                                 ReactiveState.FailState {
 
