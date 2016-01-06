@@ -60,6 +60,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherSkipUntil` : skips values until another sequence signals a value or completes
   - `PublisherSkipWhile` skips values while the predicate returns true
   - `PublisherSwitchIfEmpty` : continues with another sequence if the first sequence turns out to be empty.
+  - `PublisherSwitchMap` : switches to and streams a Publisher generated via a function whenever the upstream signals a value
   - `PublisherTake` : takes a specified amount of values and completes
   - `PublisherTakeLast` : emits only the last N values the source emitted before its completion
   - `PublisherTakeWhile` : relays values while a predicate returns true for the values (checked before each value)

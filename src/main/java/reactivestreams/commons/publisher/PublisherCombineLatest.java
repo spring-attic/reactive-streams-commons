@@ -475,6 +475,7 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R>,
             }
             if (a != null) {
                 s.cancel();
+                SubscriptionHelper.reportSubscriptionSet();
                 return;
             }
 
@@ -493,6 +494,8 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R>,
 
             if (a != CancelledSubscription.INSTANCE) {
                 s.cancel();
+            } else {
+                SubscriptionHelper.reportSubscriptionSet();
             }
         }
 
