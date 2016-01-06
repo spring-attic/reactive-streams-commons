@@ -47,6 +47,8 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
 
         boolean done;
 
+        boolean skipped;
+
         public PublisherSkipWhileSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
@@ -67,6 +69,10 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
                 return;
             }
 
+            if (skipped){
+                actual.onNext(t);
+                return;
+            }
             boolean b;
 
             try {
@@ -85,6 +91,7 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
                 return;
             }
 
+            skipped = true;
             actual.onNext(t);
         }
 

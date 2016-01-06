@@ -64,7 +64,8 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         source.subscribe(new PublisherZipSubscriber<>(s, it, zipper));
     }
     
-    static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T> {
+    static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T>, Downstream, LinkedUpstreams,
+                                                                  ActiveUpstream {
         
         final Subscriber<? super R> actual;
         
@@ -167,6 +168,31 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
                 return;
             }
             actual.onComplete();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return isStarted() ? Arrays.asList(s, it).iterator() : null;
+        }
+
+        @Override
+        public long upstreamsCount() {
+            return isStarted() ? 2 : 1;
         }
     }
 }
