@@ -30,6 +30,8 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherBuffer` : buffers certain number of subsequent elements and emits the buffers
   - `PublisherBufferBoundary` : buffers elements into continuous, non-overlapping lists where another Publisher
   signals the start/end of the buffer regions
+  - `PublisherBufferStartEnd` : buffers elements into possibly overlapping buffers whose boundaries are determined
+  by a start Publisher's element and a signal of a derived Publisher
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
   - `PublisherCombineLatest` : combines the latest values of many sources through a function
   - `PublisherCount` : counts the number of elements the source sequence emits
