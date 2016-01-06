@@ -11,7 +11,7 @@ def includingCoreScope = ['amb',
 						  'next',
 						  /*'flatmap' ,*/ //managed by reactor-core
 						  'ignoreelements',
-						  'iterable',
+						  /*'iterable',*/ //managed by reactor-stream
 						  'just',
 						  /*'lift',*/ //managed by reactor-core
 						  'map',

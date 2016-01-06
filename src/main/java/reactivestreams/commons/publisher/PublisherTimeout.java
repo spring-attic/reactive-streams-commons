@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.subscription.CancelledSubscription;
@@ -124,10 +125,12 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
             long idx = index;
             if (idx == Long.MIN_VALUE) {
                 s.cancel();
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
             if (!INDEX.compareAndSet(this, idx, idx + 1)) {
                 s.cancel();
+                UnsignalledExceptions.onNextDropped(t);
                 return;
             }
 
@@ -166,9 +169,11 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
         public void onError(Throwable t) {
             long idx = index;
             if (idx == Long.MIN_VALUE) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
             if (!INDEX.compareAndSet(this, idx, Long.MIN_VALUE)) {
+                UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
 
