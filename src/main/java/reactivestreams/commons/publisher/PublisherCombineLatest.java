@@ -34,7 +34,7 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R>,
             Function<Object[], R> combiner, Supplier<? extends Queue<SourceAndArray>> queueSupplier,
                     int bufferSize) {
         if (bufferSize <= 0) {
-            throw new IllegalArgumentException("bufferSize > 0 required but it was " + bufferSize);
+            throw new IllegalArgumentException("BUFFER_SIZE > 0 required but it was " + bufferSize);
         }
 
         this.array = Objects.requireNonNull(array, "array");
@@ -48,7 +48,7 @@ public final class PublisherCombineLatest<T, R> implements Publisher<R>,
             Function<Object[], R> combiner, Supplier<? extends Queue<SourceAndArray>> queueSupplier,
                     int bufferSize) {
         if (bufferSize <= 0) {
-            throw new IllegalArgumentException("bufferSize > 0 required but it was " + bufferSize);
+            throw new IllegalArgumentException("BUFFER_SIZE > 0 required but it was " + bufferSize);
         }
         
         this.array = null;

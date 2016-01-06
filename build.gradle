@@ -61,6 +61,8 @@ processResources {
 	}
 }
 
+[compileJava, compileTestJava]*.options*.compilerArgs << "-parameters"
+
 task sourcesJar(type: Jar, dependsOn: classes) {
 	classifier = 'sources'
 	from sourceSets.main.allSource

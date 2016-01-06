@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.*;
 
 import org.reactivestreams.*;
 
+import reactivestreams.commons.publisher.PublisherBase;
 import reactivestreams.commons.support.*;
 
 /**
@@ -16,7 +17,9 @@ import reactivestreams.commons.support.*;
  *
  * @param <T> the input and output type
  */
-public final class UnicastProcessor<T> implements Processor<T, T> {
+public final class UnicastProcessor<T> 
+extends PublisherBase<T>
+implements Processor<T, T> {
 
     final Queue<T> queue;
     

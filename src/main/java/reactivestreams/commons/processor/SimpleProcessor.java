@@ -1,17 +1,12 @@
 package reactivestreams.commons.processor;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.publisher.PublisherBase;
+import reactivestreams.commons.support.*;
 
 /**
  * Dispatches onNext, onError and onComplete signals to zero-to-many Subscribers.
@@ -28,7 +23,9 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  *
  * @param <T> the input and output value type
  */
-public final class SimpleProcessor<T> implements Processor<T, T>,
+public final class SimpleProcessor<T> 
+    extends PublisherBase<T>
+    implements Processor<T, T>,
                                                  ReactiveState.ActiveUpstream,
                                                  ReactiveState.FailState,
                                                  ReactiveState.LinkedDownstreams {

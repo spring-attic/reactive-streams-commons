@@ -11,7 +11,9 @@ import java.util.Objects;
  * @param <T> the upstream value type
  * @param <R> the downstream value type
  */
-public abstract class PublisherSource<T, R> implements Publisher<R>,
+public abstract class PublisherSource<T, R> 
+    extends PublisherBase<R>
+    implements
                                                        ReactiveState.Upstream,
                                                        ReactiveState.Factory {
 

@@ -24,17 +24,17 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
     
     final int bufferSize;
     
-    static final PublisherSwitchMapInner<Object> CANCELLED = new PublisherSwitchMapInner<>(null, 0, Long.MAX_VALUE);
+    static final PublisherSwitchMapInner<Object> CANCELLED_INNER = new PublisherSwitchMapInner<>(null, 0, Long.MAX_VALUE);
     
     public PublisherSwitchMap(Publisher<? extends T> source, 
             Function<? super T, ? extends Publisher<? extends R>> mapper,
                     Supplier<? extends Queue<Object>> queueSupplier, int bufferSize) {
         super(source);
         if (bufferSize <= 0) {
-            throw new IllegalArgumentException("bufferSize > 0 required but it was " + bufferSize);
+            throw new IllegalArgumentException("BUFFER_SIZE > 0 required but it was " + bufferSize);
         }
         this.mapper = Objects.requireNonNull(mapper, "mapper");
-        this.queueSupplier = Objects.requireNonNull(queueSupplier);
+        this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
         this.bufferSize = bufferSize;
     }
     
@@ -77,6 +77,11 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
                 AtomicReferenceFieldUpdater.newUpdater(PublisherSwitchMapMain.class, Throwable.class, "error");
         
         volatile boolean cancelled;
+        
+        volatile int once;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherSwitchMapMain> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherSwitchMapMain.class, "once");
         
         volatile long requested;
         @SuppressWarnings("rawtypes")
@@ -132,8 +137,7 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
                 return;
             }
             
-            long idx = index + 1;
-            index = idx;
+            long idx = INDEX.incrementAndGet(this);
             
             PublisherSwitchMapInner<R> si = inner;
             if (si != null) {
@@ -173,7 +177,12 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
             }
             
             if (ExceptionHelper.addThrowable(ERROR, this, t)) {
-                deactivate();
+                
+                if (ONCE.compareAndSet(this, 0, 1)) {
+                    deactivate();
+                }
+                
+                cancelInner();
                 done = true;
                 drain();
             } else {
@@ -187,7 +196,10 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
                 return;
             }
             
-            deactivate();
+            if (ONCE.compareAndSet(this, 0, 1)) {
+                deactivate();
+            }
+
             done = true;
             drain();
         }
@@ -215,13 +227,18 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
             ACTIVE.decrementAndGet(this);
         }
 
+        void cancelInner() {
+            PublisherSwitchMapInner<?> si = INNER.getAndSet(this, CANCELLED_INNER);
+            if (si != null && si != CANCELLED_INNER) {
+                si.cancel();
+                si.deactivate();
+            }
+        }
+        
         void cancelAndCleanup(Queue<?> q) {
             s.cancel();
             
-            Subscription si = INNER.getAndSet(this, CANCELLED);
-            if (si != null && si != CANCELLED) {
-                si.cancel();
-            }
+            cancelInner();
             
             q.clear();
         }
@@ -259,7 +276,7 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
                     
                     Object second;
                     
-                    while ((second = q.poll()) != null) ;
+                    while ((second = q.poll()) == null) ;
                     
                     if (index == si.index) {
                         
@@ -299,7 +316,7 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
             
             if (d) {
                 Throwable e = ExceptionHelper.terminate(ERROR, this);
-                if (e != null) {
+                if (e != null && e != ExceptionHelper.TERMINATED) {
                     cancelAndCleanup(q);
                     
                     a.onError(e);
@@ -311,7 +328,7 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
                 }
                 
             }
-            return true;
+            return false;
         }
         
         void innerNext(PublisherSwitchMapInner<R> inner, R value) {
@@ -322,6 +339,11 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
         
         void innerError(PublisherSwitchMapInner<R> inner, Throwable e) {
             if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                s.cancel();
+                
+                if (ONCE.compareAndSet(this, 0, 1)) {
+                    deactivate();
+                }
                 inner.deactivate();
                 drain();
             } else {
