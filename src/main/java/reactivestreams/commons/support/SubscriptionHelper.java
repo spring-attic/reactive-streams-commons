@@ -55,4 +55,28 @@ public enum SubscriptionHelper {
         }
         return false;
     }
+    
+    public static <F> boolean setOnce(AtomicReferenceFieldUpdater<F, Subscription> field, F instance, Subscription s) {
+        Subscription a = field.get(instance);
+        if (a == CancelledSubscription.INSTANCE) {
+            return false;
+        }
+        if (a != null) {
+            reportSubscriptionSet();
+            return false;
+        }
+        
+        if (field.compareAndSet(instance, null, s)) {
+            return true;
+        }
+        
+        a = field.get(instance);
+        
+        if (a == CancelledSubscription.INSTANCE) {
+            return false;
+        }
+        
+        reportSubscriptionSet();
+        return false;
+    }
 }

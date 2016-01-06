@@ -1,6 +1,6 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.*;
 
@@ -70,6 +70,14 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new PublisherRepeatWhen<>(this, whenFunction);
     }
 
+    public final <U> PublisherBase<List<T>> buffer(Publisher<U> other) {
+        return buffer(other, () -> new ArrayList<>());
+    }
+    
+    public final <U, C extends Collection<? super T>> PublisherBase<C> buffer(Publisher<U> other, Supplier<C> bufferSupplier) {
+        return new PublisherBufferBoundary<>(this, other, bufferSupplier);
+    }
+    
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
         public PublisherBaseWrapper(Publisher<? extends T> source) {
             super(source);

@@ -1,12 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Collection;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 import java.util.function.Supplier;
 
 import org.reactivestreams.*;
 
+import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SubscriberDeferSubscriptionBase;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.*;
 
 /**
  * Buffers elements into custom collections where the buffer boundary is signalled
@@ -26,8 +29,8 @@ extends PublisherSource<T, C> {
     public PublisherBufferBoundary(Publisher<? extends T> source, 
             Publisher<U> other, Supplier<C> bufferSupplier) {
         super(source);
-        this.other = other;
-        this.bufferSupplier = bufferSupplier;
+        this.other = Objects.requireNonNull(other, "other");
+        this.bufferSupplier = Objects.requireNonNull(bufferSupplier, "bufferSupplier");
     }
     
     @Override
@@ -46,7 +49,7 @@ extends PublisherSource<T, C> {
             return;
         }
         
-        PublisherBufferBoundaryMain<T, U, C> parent = new PublisherBufferBoundaryMain<>(s, buffer);
+        PublisherBufferBoundaryMain<T, U, C> parent = new PublisherBufferBoundaryMain<>(s, buffer, bufferSupplier);
         
         PublisherBufferBoundaryOther<U> boundary = new PublisherBufferBoundaryOther<>(parent);
         parent.other = boundary;
@@ -63,63 +66,159 @@ extends PublisherSource<T, C> {
 
         final Subscriber<? super C> actual;
         
+        final Supplier<C> bufferSupplier;
+        
         PublisherBufferBoundaryOther<U> other;
         
         C buffer;
         
-        Subscription s;
+        volatile Subscription s;
+        @SuppressWarnings("rawtypes")
+        static final AtomicReferenceFieldUpdater<PublisherBufferBoundaryMain, Subscription> S =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherBufferBoundaryMain.class, Subscription.class, "s");
         
-        public PublisherBufferBoundaryMain(Subscriber<? super C> actual, C buffer) {
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherBufferBoundaryMain> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherBufferBoundaryMain.class, "requested");
+        
+        public PublisherBufferBoundaryMain(Subscriber<? super C> actual, C buffer, Supplier<C> bufferSupplier) {
             this.actual = actual;
             this.buffer = buffer;
+            this.bufferSupplier = bufferSupplier;
         }
         
         @Override
         public void request(long n) {
-            // TODO Auto-generated method stub
-            
+            if (SubscriptionHelper.validate(n)) {
+                BackpressureHelper.addAndGet(REQUESTED, this, n);
+            }
         }
 
+        void cancelMain() {
+            SubscriptionHelper.terminate(S, this);
+        }
+        
         @Override
         public void cancel() {
-            // TODO Auto-generated method stub
-            
+            cancelMain();
+            other.cancel();
         }
 
         @Override
         public void onSubscribe(Subscription s) {
-            // TODO Auto-generated method stub
-            
+            if (SubscriptionHelper.setOnce(S, this, s)) {
+                s.request(Long.MAX_VALUE);
+            }
         }
 
         @Override
         public void onNext(T t) {
-            // TODO Auto-generated method stub
+            synchronized (this) {
+                C b = buffer;
+                if (b != null) {
+                    b.add(t);
+                    return;
+                }
+            }
             
+            UnsignalledExceptions.onNextDropped(t);
         }
 
         @Override
         public void onError(Throwable t) {
-            // TODO Auto-generated method stub
+            boolean report;
+            synchronized (this) {
+                C b = buffer;
+                
+                if (b != null) {
+                    buffer = null;
+                    report = true;
+                } else {
+                    report = false;
+                }
+            }
             
+            if (report) {
+                other.cancel();
+                
+                actual.onError(t);
+            } else {
+                UnsignalledExceptions.onErrorDropped(t);
+            }
         }
 
         @Override
         public void onComplete() {
-            // TODO Auto-generated method stub
+            C b;
+            synchronized (this) {
+                b = buffer;
+                buffer = null;
+            }
             
+            if (b != null) {
+                if (emit(b)) {
+                    actual.onComplete();
+                }
+            }
         }
         
         void otherNext() {
+            C c;
             
+            try {
+                c = bufferSupplier.get();
+            } catch (Throwable e) {
+                other.cancel();
+                
+                otherError(e);
+                return;
+            }
+            
+            if (c == null) {
+                other.cancel();
+
+                otherError(new NullPointerException("The bufferSupplier returned a null buffer"));
+                return;
+            }
+            
+            C b;
+            synchronized (this) {
+                b = buffer;
+                if (b == null) {
+                    return;
+                }
+                buffer = c;
+            }
+            
+            emit(b);
         }
         
         void otherError(Throwable e) {
+            cancelMain();
             
+            onError(e);
         }
         
         void otherComplete() {
-            
+            // FIXME let the last buffer fill until the main completes?
+        }
+        
+        boolean emit(C b) {
+            long r = requested;
+            if (r != 0L) {
+                actual.onNext(b);
+                if (r != Long.MAX_VALUE) {
+                    REQUESTED.decrementAndGet(this);
+                }
+                return true;
+            } else {
+                cancel();
+                
+                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));;
+                
+                return false;
+            }
         }
     }
     
