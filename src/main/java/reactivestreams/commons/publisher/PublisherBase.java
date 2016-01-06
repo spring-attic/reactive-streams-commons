@@ -4,7 +4,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.*;
 
-import org.reactivestreams.Publisher;
+import org.reactivestreams.*;
 
 /**
  * Experimental base class with fluent API.
@@ -12,6 +12,9 @@ import org.reactivestreams.Publisher;
  * <p>
  * Remark: in Java 8, this could be an interface with default methods but some library
  * users need Java 7.
+ * 
+ * <p>
+ * Use {@link #wrap(Publisher)} to wrap any Publisher. 
  * 
  * @param <T> the output value type
  */
@@ -35,7 +38,46 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new PublisherMap<>(this, mapper);
     }
     
+    public final PublisherBase<T> filter(Predicate<? super T> predicate) {
+        return new PublisherFilter<>(this, predicate);
+    }
+    
+    public final PublisherBase<T> take(long n) {
+        return new PublisherTake<>(this, n);
+    }
+    
+    public final PublisherBase<T> concatWith(Publisher<? extends T> other) {
+        return new PublisherConcatArray<>(this, other);
+    }
+    
+    public final PublisherBase<T> ambWith(Publisher<? extends T> other) {
+        return new PublisherAmb<>(this, other);
+    }
+    
+    public final <U, R> PublisherBase<R> withLatestFrom(Publisher<? extends U> other, BiFunction<? super T, ? super U, ? extends R> combiner) {
+        return new PublisherWithLatestFrom<>(this, other, combiner);
+    }
+    
     public final <R> PublisherBase<R> switchMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
         return new PublisherSwitchMap<>(this, mapper, queueSupplier(), BUFFER_SIZE);
+    }
+    
+    static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
+        public PublisherBaseWrapper(Publisher<? extends T> source) {
+            super(source);
+        }
+        
+        @Override
+        public void subscribe(Subscriber<? super T> s) {
+            source.subscribe(s);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static <T> PublisherBase<T> wrap(Publisher<? extends T> source) {
+        if (source instanceof PublisherBase) {
+            return (PublisherBase<T>)source;
+        }
+        return new PublisherBaseWrapper<>(source);
     }
 }

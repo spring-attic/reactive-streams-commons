@@ -5,16 +5,16 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 import org.junit.Test;
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
 
-import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.processor.*;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherWindowTest {
 
     // javac can't handle these inline and fails with type inference error
     final Supplier<Queue<Integer>> pqs = ConcurrentLinkedQueue::new;
-    final Supplier<Queue<Processor<Integer, Integer>>> oqs = ConcurrentLinkedQueue::new;
+    final Supplier<Queue<UnicastProcessor<Integer>>> oqs = ConcurrentLinkedQueue::new;
 
     @Test(expected = NullPointerException.class)
     public void source1Null() {

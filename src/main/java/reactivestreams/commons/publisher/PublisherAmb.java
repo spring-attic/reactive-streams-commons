@@ -19,7 +19,9 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
  *
  * @param <T> the value type
  */
-public final class PublisherAmb<T> implements Publisher<T>,
+public final class PublisherAmb<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                               ReactiveState.Factory,
                                               ReactiveState.LinkedUpstreams{
 

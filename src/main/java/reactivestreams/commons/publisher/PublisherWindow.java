@@ -16,7 +16,7 @@ import reactivestreams.commons.support.*;
  * 
  * @param <T> the value type
  */
-public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
+public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T>> {
 
     final int size;
     
@@ -24,7 +24,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
     
     final Supplier<? extends Queue<T>> processorQueueSupplier;
 
-    final Supplier<? extends Queue<Processor<T, T>>> overflowQueueSupplier;
+    final Supplier<? extends Queue<UnicastProcessor<T>>> overflowQueueSupplier;
 
     public PublisherWindow(Publisher<? extends T> source, int size, 
             Supplier<? extends Queue<T>> processorQueueSupplier) {
@@ -41,7 +41,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
     
     public PublisherWindow(Publisher<? extends T> source, int size, int skip, 
             Supplier<? extends Queue<T>> processorQueueSupplier,
-            Supplier<? extends Queue<Processor<T, T>>> overflowQueueSupplier) {
+            Supplier<? extends Queue<UnicastProcessor<T>>> overflowQueueSupplier) {
         super(source);
         if (size <= 0) {
             throw new IllegalArgumentException("size > 0 required but it was " + size);
@@ -56,14 +56,14 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
     }
     
     @Override
-    public void subscribe(Subscriber<? super Publisher<T>> s) {
+    public void subscribe(Subscriber<? super PublisherBase<T>> s) {
         if (skip == size) {
             source.subscribe(new PublisherWindowExact<>(s, size, processorQueueSupplier));
         } else
         if (skip > size) {
             source.subscribe(new PublisherWindowSkip<>(s, size, skip, processorQueueSupplier));
         } else {
-            Queue<Processor<T, T>> overflowQueue;
+            Queue<UnicastProcessor<T>> overflowQueue;
             
             try {
                 overflowQueue = overflowQueueSupplier.get();
@@ -83,7 +83,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
     
     static final class PublisherWindowExact<T> implements Subscriber<T>, Subscription, Runnable {
         
-        final Subscriber<? super Publisher<T>> actual;
+        final Subscriber<? super PublisherBase<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
         
@@ -103,11 +103,11 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         Subscription s;
         
-        Processor<T, T> window;
+        UnicastProcessor<T> window;
         
         boolean done;
         
-        public PublisherWindowExact(Subscriber<? super Publisher<T>> actual, int size,
+        public PublisherWindowExact(Subscriber<? super PublisherBase<T>> actual, int size,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
@@ -132,7 +132,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
             
             int i = index;
             
-            Processor<T, T> w = window;
+            UnicastProcessor<T> w = window;
             if (i == 0) {
                 WIP.getAndIncrement(this);
                 
@@ -231,7 +231,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
     
     static final class PublisherWindowSkip<T> implements Subscriber<T>, Subscription, Runnable {
         
-        final Subscriber<? super Publisher<T>> actual;
+        final Subscriber<? super PublisherBase<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
         
@@ -258,11 +258,11 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         Subscription s;
         
-        Processor<T, T> window;
+        UnicastProcessor<T> window;
         
         boolean done;
         
-        public PublisherWindowSkip(Subscriber<? super Publisher<T>> actual, int size, int skip,
+        public PublisherWindowSkip(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
@@ -288,7 +288,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
             
             int i = index;
             
-            Processor<T, T> w = window;
+            UnicastProcessor<T> w = window;
             if (i == 0) {
                 WIP.getAndIncrement(this);
                 
@@ -399,17 +399,17 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
 
     static final class PublisherWindowOverlap<T> implements Subscriber<T>, Subscription, Runnable {
         
-        final Subscriber<? super Publisher<T>> actual;
+        final Subscriber<? super PublisherBase<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
 
-        final Queue<Processor<T, T>> queue;
+        final Queue<UnicastProcessor<T>> queue;
         
         final int size;
         
         final int skip;
 
-        final ArrayDeque<Processor<T, T>> windows;
+        final ArrayDeque<UnicastProcessor<T>> windows;
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
@@ -447,9 +447,9 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
         
         volatile boolean cancelled;
         
-        public PublisherWindowOverlap(Subscriber<? super Publisher<T>> actual, int size, int skip,
+        public PublisherWindowOverlap(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
                 Supplier<? extends Queue<T>> processorQueueSupplier,
-                Queue<Processor<T, T>> overflowQueue) {
+                Queue<UnicastProcessor<T>> overflowQueue) {
             this.actual = actual;
             this.size = size;
             this.skip = skip;
@@ -501,7 +501,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                         return;
                     }
                     
-                    Processor<T, T> w = new UnicastProcessor<>(q, this);
+                    UnicastProcessor<T> w = new UnicastProcessor<>(q, this);
                     
                     windows.offer(w);
                     
@@ -572,8 +572,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                 return;
             }
             
-            final Subscriber<? super Publisher<T>> a = actual;
-            final Queue<Processor<T, T>> q = queue;
+            final Subscriber<? super PublisherBase<T>> a = actual;
+            final Queue<UnicastProcessor<T>> q = queue;
             int missed = 1;
             
             for (;;) {
@@ -584,7 +584,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Publisher<T>> {
                 while (e != r) {
                     boolean d = done;
                     
-                    Processor<T, T> t = q.poll();
+                    UnicastProcessor<T> t = q.poll();
                     
                     boolean empty = t == null;
                     
