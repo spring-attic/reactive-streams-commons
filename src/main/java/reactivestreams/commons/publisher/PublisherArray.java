@@ -18,7 +18,9 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
  *
  * @param <T> the value type
  */
-public final class PublisherArray<T> implements Publisher<T>,
+public final class PublisherArray<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                 ReactiveState.Factory  {
     final T[] array;
 

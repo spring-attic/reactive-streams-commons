@@ -16,7 +16,9 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
  *
  * @param <T> the value type
  */
-public final class PublisherConcatArray<T> implements Publisher<T>,
+public final class PublisherConcatArray<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                       ReactiveState.Factory,
                                                       ReactiveState.LinkedUpstreams {
 

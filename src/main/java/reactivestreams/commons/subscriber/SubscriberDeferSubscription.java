@@ -14,6 +14,9 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * Arbitrates the requests and cancellation for a Subscription that may be set onSubscribe once only.
  * <p>
  * Note that {@link #request(long)} doesn't validate the amount.
+ * 
+ * @param <I> the input value type
+ * @param <O> the output value type
  */
 public class SubscriberDeferSubscription<I, O> implements Subscription, Subscriber<I>,
                                                           ReactiveState.DownstreamDemand,
@@ -36,6 +39,8 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
 
     /**
      * Constructs a SingleSubscriptionArbiter with zero initial request.
+     * 
+     * @param subscriber the actual subscriber
      */
     public SubscriberDeferSubscription(Subscriber<? super O> subscriber) {
         this.subscriber = subscriber;
@@ -44,6 +49,7 @@ public class SubscriberDeferSubscription<I, O> implements Subscription, Subscrib
     /**
      * Constructs a SingleSubscriptionArbiter with the specified initial request amount.
      *
+     * @param subscriber the actual subscriber
      * @param initialRequest
      * @throws IllegalArgumentException if initialRequest is negative
      */

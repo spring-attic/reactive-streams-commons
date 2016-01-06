@@ -63,6 +63,7 @@ public final class UnsignalledExceptions {
     /**
      * Take an unsignalled data and handle it.
      *
+     * @param <T> the type of the value dropped
      * @param t the dropped data
      */
     public static <T> void onNextDropped(T t) {

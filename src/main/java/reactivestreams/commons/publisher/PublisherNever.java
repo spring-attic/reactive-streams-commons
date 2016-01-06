@@ -11,7 +11,9 @@ import reactivestreams.commons.support.ReactiveState;
  * This Publisher is effectively stateless and only a single instance exists.
  * Use the {@link #instance()} method to obtain a properly type-parametrized view of it.
  */
-public final class PublisherNever implements Publisher<Object>,
+public final class PublisherNever 
+extends PublisherBase<Object>
+implements Publisher<Object>,
                                              ReactiveState.Factory,
                                              ReactiveState.ActiveUpstream {
 
@@ -39,10 +41,11 @@ public final class PublisherNever implements Publisher<Object>,
     /**
      * Returns a properly parametrized instance of this never Publisher.
      *
+     * @param <T> the value type
      * @return a properly parametrized instance of this never Publisher
      */
     @SuppressWarnings("unchecked")
-    public static <T> Publisher<T> instance() {
-        return (Publisher<T>) INSTANCE;
+    public static <T> PublisherBase<T> instance() {
+        return (PublisherBase<T>) INSTANCE;
     }
 }

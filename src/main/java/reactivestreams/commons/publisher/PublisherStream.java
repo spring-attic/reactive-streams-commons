@@ -14,7 +14,9 @@ import java.util.stream.Stream;
  *
  * @param <T> the value type
  */
-public final class PublisherStream<T> implements Publisher<T>,
+public final class PublisherStream<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                  ReactiveState.Factory,
                                                  ReactiveState.Upstream {
 

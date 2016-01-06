@@ -18,6 +18,7 @@ import reactivestreams.commons.support.SubscriptionHelper;
  *
  * @param <T> the source value type
  * @param <K> the key extacted from the source value to be used for duplicate testing
+ * @param <C> the collection type whose add() method is used for testing for duplicates
  */
 public final class PublisherDistinct<T, K, C extends Collection<? super K>> extends PublisherSource<T, T> {
 

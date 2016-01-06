@@ -23,6 +23,9 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * <p>
  * Both Publishers will run in unbounded mode because the backpressure
  * would interfere with the sampling precision.
+ * 
+ * @param <T> the input and output value type
+ * @param <U> the value type of the sampler (irrelevant)
  */
 public final class PublisherSample<T, U> extends PublisherSource<T, T> {
 

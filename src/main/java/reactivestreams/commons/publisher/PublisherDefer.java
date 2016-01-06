@@ -13,7 +13,9 @@ import java.util.function.Supplier;
  *
  * @param <T> the value type
  */
-public final class PublisherDefer<T> implements Publisher<T>,
+public final class PublisherDefer<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                 ReactiveState.Factory,
                                                 ReactiveState.Upstream {
 

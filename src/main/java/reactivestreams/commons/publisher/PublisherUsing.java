@@ -27,7 +27,9 @@ import reactivestreams.commons.support.SubscriptionHelper;
  * @param <T> the value type streamed
  * @param <S> the resource type
  */
-public final class PublisherUsing<T, S> implements Publisher<T>,
+public final class PublisherUsing<T, S> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                    ReactiveState.Factory,
                                                    ReactiveState.Upstream {
 

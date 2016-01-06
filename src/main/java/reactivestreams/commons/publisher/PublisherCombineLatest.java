@@ -16,7 +16,9 @@ import reactivestreams.commons.support.*;
  * @param <T> the value type of the sources
  * @param <R> the result type
  */
-public final class PublisherCombineLatest<T, R> implements Publisher<R>,
+public final class PublisherCombineLatest<T, R> 
+extends PublisherBase<R>
+implements Publisher<R>,
                                                            ReactiveState.Factory,
                                                            ReactiveState.LinkedUpstreams {
 

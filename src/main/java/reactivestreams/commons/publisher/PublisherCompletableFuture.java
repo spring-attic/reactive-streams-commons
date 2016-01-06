@@ -16,7 +16,9 @@ import java.util.concurrent.CompletableFuture;
  *
  * @param <T> the value type
  */
-public final class PublisherCompletableFuture<T> implements Publisher<T>,
+public final class PublisherCompletableFuture<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                             ReactiveState.Factory,
                                                             ReactiveState.Upstream{
 

@@ -13,7 +13,9 @@ import reactivestreams.commons.support.ReactiveState;
  * This Publisher is effectively stateless and only a single instance exists.
  * Use the {@link #instance()} method to obtain a properly type-parametrized view of it.
  */
-public final class PublisherEmpty implements Publisher<Object>, Supplier<Object>,
+public final class PublisherEmpty 
+extends PublisherBase<Object>
+implements Publisher<Object>, Supplier<Object>,
                                              ReactiveState.Factory,
                                              ReactiveState.ActiveUpstream {
 
@@ -42,11 +44,12 @@ public final class PublisherEmpty implements Publisher<Object>, Supplier<Object>
     /**
      * Returns a properly parametrized instance of this empty Publisher.
      *
+     * @param <T> the output type
      * @return a properly parametrized instance of this empty Publisher
      */
     @SuppressWarnings("unchecked")
-    public static <T> Publisher<T> instance() {
-        return (Publisher<T>) INSTANCE;
+    public static <T> PublisherBase<T> instance() {
+        return (PublisherBase<T>) INSTANCE;
     }
 
     @Override

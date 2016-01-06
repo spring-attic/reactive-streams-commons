@@ -16,7 +16,9 @@ import java.util.function.Supplier;
  *
  * @param <T> the returned value type
  */
-public final class PublisherCallable<T> implements Publisher<T>,
+public final class PublisherCallable<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                    ReactiveState.Factory,
                                                    ReactiveState.Upstream {
 

@@ -24,7 +24,9 @@ import reactivestreams.commons.support.SubscriptionHelper;
  * @param <T> the value type emitted
  * @param <S> the custom state per subscriber
  */
-public final class PublisherGenerate<T, S> implements Publisher<T>, ReactiveState.Factory {
+public final class PublisherGenerate<T, S> 
+extends PublisherBase<T>
+implements Publisher<T>, ReactiveState.Factory {
 
     /**
      * Interface to receive generated signals from the callback function.

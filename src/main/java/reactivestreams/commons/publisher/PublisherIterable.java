@@ -17,7 +17,9 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
  *
  * @param <T> the value type
  */
-public final class PublisherIterable<T> implements Publisher<T>,
+public final class PublisherIterable<T> 
+extends PublisherBase<T>
+implements Publisher<T>,
                                                    ReactiveState.Factory,
                                                    ReactiveState.Upstream {
 

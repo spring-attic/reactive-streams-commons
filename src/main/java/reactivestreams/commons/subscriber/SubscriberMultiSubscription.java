@@ -20,6 +20,9 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * <p>
  * You should call {@link #produced(long)} or {@link #producedOne()} after each element has been delivered to properly
  * account the outstanding request amount in case a Subscription switch happens.
+ * 
+ * @param <I> the input value type
+ * @param <O> the output value type
  */
 public abstract class SubscriberMultiSubscription<I, O> implements Subscription, Subscriber<I>,
                                                                    ReactiveState.Downstream,

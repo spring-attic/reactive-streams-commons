@@ -12,7 +12,9 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 /**
  * Emits a range of integer values.
  */
-public final class PublisherRange implements Publisher<Integer>,
+public final class PublisherRange 
+extends PublisherBase<Integer>
+implements Publisher<Integer>,
                                              ReactiveState.Factory {
 
     final long start;

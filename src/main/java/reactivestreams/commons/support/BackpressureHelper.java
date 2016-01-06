@@ -62,6 +62,7 @@ public enum BackpressureHelper {
     /**
      * Perform a potential post-completion request accounting.
      *
+     * @param <T> the value type emitted
      * @param n
      * @param actual
      * @param queue
@@ -182,6 +183,7 @@ public enum BackpressureHelper {
     /**
      * Tries draining the queue if the source just completed.
      *
+     * @param <T> the value type emitted
      * @param actual
      * @param queue
      * @param state
@@ -225,10 +227,13 @@ public enum BackpressureHelper {
     /**
      * Perform a potential post-completion request accounting.
      *
+     * @param <T> the value type emitted
+     * @param <F> the type of the parent class containing the field
      * @param n
      * @param actual
      * @param queue
-     * @param state
+     * @param field
+     * @param instance 
      * @param isCancelled
      * @return true if the state indicates a completion state.
      */
@@ -347,9 +352,12 @@ public enum BackpressureHelper {
     /**
      * Tries draining the queue if the source just completed.
      *
+     * @param <T> the value type emitted
+     * @param <F> the type of the parent class containing the field
      * @param actual
      * @param queue
-     * @param state
+     * @param field
+     * @param instance
      * @param isCancelled
      */
     public static <T, F> void postComplete(Subscriber<? super T> actual,

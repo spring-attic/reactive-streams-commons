@@ -58,7 +58,9 @@ public interface ReactiveState {
 	interface Upstream extends ReactiveState {
 
 		/**
-		 * Return the direct source of data, Supports reference
+		 * Return the direct source of data, Supports reference.
+		 * 
+		 * @return the direct source of data, Supports reference.
 		 */
 		Object upstream();
 	}
@@ -69,7 +71,9 @@ public interface ReactiveState {
 	interface LinkedUpstreams extends ReactiveState {
 
 		/**
-		 * Return the connected sources of data
+		 * Return the connected sources of data.
+		 * 
+		 * @return the connected sources of data
 		 */
 		Iterator<?> upstreams();
 
@@ -108,7 +112,8 @@ public interface ReactiveState {
 	interface Downstream extends ReactiveState {
 
 		/**
-		 * Return the direct data receiver
+		 * Return the direct data receiver.
+		 * @return the direct data receiver
 		 */
 		Object downstream();
 	}
@@ -124,7 +129,7 @@ public interface ReactiveState {
 		Iterator<?> downstreams();
 
 		/**
-		 * @return
+		 * @return the number of downstream receivers
 		 */
 		long downstreamsCount();
 
