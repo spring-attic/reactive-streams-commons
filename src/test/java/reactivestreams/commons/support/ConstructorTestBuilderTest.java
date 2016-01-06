@@ -1,5 +1,6 @@
 package reactivestreams.commons.support;
 
+import java.lang.reflect.Constructor;
 import java.util.Objects;
 
 import org.junit.*;
@@ -15,6 +16,14 @@ public class ConstructorTestBuilderTest {
         public B(Object o, int i) {
             Objects.requireNonNull(o, "o");
         }
+    }
+    
+    @Test
+    public void compileWithParamNames() throws Exception {
+        Constructor<?> c = A.class.getConstructor(Object.class, Integer.TYPE);
+        
+        Assert.assertTrue("You must enable parameter name retention via javac command line -parameters", c.getParameters()[0].isNamePresent());
+        Assert.assertEquals("You must enable parameter name retention via javac command line -parameters", "o", c.getParameters()[0].getName());
     }
 
     @Test
