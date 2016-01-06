@@ -24,10 +24,10 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
     final Supplier<C> collectionSupplier;
 
     public PublisherDistinct(Publisher<? extends T> source, Function<? super T, ? extends K> keyExtractor,
-                             Supplier<C> collectionSuppplier) {
+                             Supplier<C> collectionSupplier) {
         super(source);
         this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
-        this.collectionSupplier = Objects.requireNonNull(collectionSuppplier, "collectionSupplier");
+        this.collectionSupplier = Objects.requireNonNull(collectionSupplier, "collectionSupplier");
     }
 
     @Override

@@ -8,7 +8,7 @@ import org.reactivestreams.*;
 import reactivestreams.commons.subscription.EmptySubscription;
 
 /**
- * maps the downstream Subscriber into an upstream Subscriber
+ * Maps the downstream Subscriber into an upstream Subscriber
  * which allows implementing custom operators via lambdas.
  *
  * @param <T> the upstream value type
