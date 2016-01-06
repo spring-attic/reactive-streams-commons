@@ -30,7 +30,7 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     };
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    static <T> Supplier<Queue<T>> queueSupplier() {
+    static <T> Supplier<Queue<T>> defaultQueueSupplier() {
         return (Supplier)QUEUE_SUPPLIER;
     }
     
@@ -59,7 +59,7 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     }
     
     public final <R> PublisherBase<R> switchMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
-        return new PublisherSwitchMap<>(this, mapper, queueSupplier(), BUFFER_SIZE);
+        return new PublisherSwitchMap<>(this, mapper, defaultQueueSupplier(), BUFFER_SIZE);
     }
     
     public final PublisherBase<T> retryWhen(Function<? super PublisherBase<Throwable>, ? extends Publisher<? extends Object>> whenFunction) {
@@ -87,7 +87,7 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     public final <U, V, C extends Collection<? super T>> PublisherBase<C> buffer(
             Publisher<U> start, Function<? super U, ? extends Publisher<V>> end, 
                     Supplier<C> bufferSupplier) {
-        return new PublisherBufferStartEnd<>(this, start, end, bufferSupplier);
+        return new PublisherBufferStartEnd<>(this, start, end, bufferSupplier, defaultQueueSupplier());
     }
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

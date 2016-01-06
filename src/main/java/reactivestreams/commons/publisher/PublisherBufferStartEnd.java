@@ -8,6 +8,7 @@ import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SubscriberDeferSubscriptionBase;
+import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
 /**
@@ -27,25 +28,41 @@ extends PublisherSource<T, C> {
     final Function<? super U, ? extends Publisher<V>> end;
     
     final Supplier<C> bufferSupplier;
+    
+    final Supplier<? extends Queue<C>> queueSupplier;
 
     public PublisherBufferStartEnd(Publisher<? extends T> source, Publisher<U> start,
-            Function<? super U, ? extends Publisher<V>> end, Supplier<C> bufferSupplier) {
+            Function<? super U, ? extends Publisher<V>> end, Supplier<C> bufferSupplier,
+                    Supplier<? extends Queue<C>> queueSupplier) {
         super(source);
-        this.start = start;
-        this.end = end;
-        this.bufferSupplier = bufferSupplier;
+        this.start = Objects.requireNonNull(start, "start");
+        this.end = Objects.requireNonNull(end, "end");
+        this.bufferSupplier = Objects.requireNonNull(bufferSupplier, "bufferSupplier");
+        this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
     }
     
     @Override
     public void subscribe(Subscriber<? super C> s) {
-        PublisherBufferStartEndMain<T, U, V, C> parent = new PublisherBufferStartEndMain<>(s, bufferSupplier);
         
-        PublisherBufferStartEndStarter<U> starter = new PublisherBufferStartEndStarter<>(parent);
-        parent.starter = starter;
+        Queue<C> q;
+        
+        try {
+            q = queueSupplier.get();
+        } catch (Throwable e) {
+            EmptySubscription.error(s, e);
+            return;
+        }
+        
+        if (q == null) {
+            EmptySubscription.error(s, new NullPointerException("The queueSupplier returned a null queue"));
+            return;
+        }
+        
+        PublisherBufferStartEndMain<T, U, V, C> parent = new PublisherBufferStartEndMain<>(s, bufferSupplier, q, end);
         
         s.onSubscribe(parent);
         
-        start.subscribe(starter);
+        start.subscribe(parent.starter);
         
         source.subscribe(parent);
     }
@@ -57,9 +74,15 @@ extends PublisherSource<T, C> {
         
         final Supplier<C> bufferSupplier;
         
-        PublisherBufferStartEndStarter<U> starter;
+        final Queue<C> queue;
+        
+        final Function<? super U, ? extends Publisher<V>> end;
+        
+        Set<Subscription> endSubscriptions;
+        
+        final PublisherBufferStartEndStarter<U> starter;
 
-        Collection<C> buffers;
+        Map<Long, C> buffers;
         
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
@@ -71,10 +94,36 @@ extends PublisherSource<T, C> {
         static final AtomicLongFieldUpdater<PublisherBufferStartEndMain> REQUESTED =
                 AtomicLongFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, "requested");
 
-        public PublisherBufferStartEndMain(Subscriber<? super C> actual, Supplier<C> bufferSupplier) {
+        long index;
+        
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherBufferStartEndMain> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, "wip");
+        
+        volatile Throwable error;
+        @SuppressWarnings("rawtypes")
+        static final AtomicReferenceFieldUpdater<PublisherBufferStartEndMain, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, Throwable.class, "error");
+        
+        volatile boolean done;
+        
+        volatile boolean cancelled;
+
+        volatile int open;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherBufferStartEndMain> OPEN =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, "open");
+
+        public PublisherBufferStartEndMain(Subscriber<? super C> actual, Supplier<C> bufferSupplier, Queue<C> queue, Function<? super U, ? extends Publisher<V>> end) {
             this.actual = actual;
             this.bufferSupplier = bufferSupplier;
-            this.buffers = new HashSet<>();
+            this.buffers = new HashMap<>();
+            this.endSubscriptions = new HashSet<>();
+            this.queue = queue;
+            this.end = end;
+            this.open = 1;
+            this.starter = new PublisherBufferStartEndStarter<>(this);
         }
         
         @Override
@@ -87,9 +136,9 @@ extends PublisherSource<T, C> {
         @Override
         public void onNext(T t) {
             synchronized (this) {
-                Collection<C> set = buffers;
+                Map<Long, C> set = buffers;
                 if (set != null) {
-                    for (C b : set) {
+                    for (C b : set.values()) {
                         b.add(t);
                     }
                     return;
@@ -103,7 +152,7 @@ extends PublisherSource<T, C> {
         public void onError(Throwable t) {
             boolean report;
             synchronized (this) {
-                Collection<C> set = buffers;
+                Map<Long, C> set = buffers;
                 if (set != null) {
                     buffers = null;
                     report = true;
@@ -113,7 +162,7 @@ extends PublisherSource<T, C> {
             }
             
             if (report) {
-                actual.onError(t);
+                anyError(t);
             } else {
                 UnsignalledExceptions.onErrorDropped(t);
             }
@@ -121,7 +170,7 @@ extends PublisherSource<T, C> {
         
         @Override
         public void onComplete() {
-            Collection<C> set;
+            Map<Long, C> set;
             
             synchronized (this) {
                 set = buffers;
@@ -130,12 +179,14 @@ extends PublisherSource<T, C> {
                 }
             }
             
-            for (C b : set) {
-                if (!emit(b)) {
-                    break;
-                }
+            cancelStart();
+            cancelEnds();
+            
+            for (C b : set.values()) {
+                queue.offer(b);
             }
-            actual.onComplete();
+            done = true;
+            drain();
         }
         
         @Override
@@ -153,10 +204,57 @@ extends PublisherSource<T, C> {
             starter.cancel();
         }
         
+        void cancelEnds() {
+            Set<Subscription> set;
+            synchronized (starter) {
+                set = endSubscriptions;
+                
+                if (set == null) {
+                    return;
+                }
+                endSubscriptions = null;
+            }
+            
+            for (Subscription s : set) {
+                s.cancel();
+            }
+        }
+        
+        boolean addEndSubscription(Subscription s) {
+            synchronized (starter) {
+                Set<Subscription> set = endSubscriptions;
+                
+                if (set != null) {
+                    set.add(s);
+                    return true;
+                }
+            }
+            s.cancel();
+            return false;
+        }
+        
+        void removeEndSubscription(Subscription s) {
+            synchronized (starter) {
+                Set<Subscription> set = endSubscriptions;
+                
+                if (set != null) {
+                    set.remove(s);
+                    return;
+                }
+            }
+        }
+        
         @Override
         public void cancel() {
-            // TODO Auto-generated method stub
-            
+            if (!cancelled) {
+                cancelled = true;
+                
+                cancelMain();
+                
+                cancelStart();
+                
+                cancelEnds();
+            }
         }
         
         boolean emit(C b) {
@@ -168,12 +266,192 @@ extends PublisherSource<T, C> {
                 }
                 return true;
             } else {
-                cancel();
                 
-                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));;
+                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));
                 
                 return false;
             }
+        }
+        
+        void anyError(Throwable t) {
+            if (ExceptionHelper.addThrowable(ERROR, this, t)) {
+                done = true;
+                drain();
+            } else {
+                UnsignalledExceptions.onErrorDropped(t);
+            }
+        }
+        
+        void startNext(U u) {
+            
+            long idx = index;
+            index = idx + 1;
+            
+            C b;
+
+            try {
+                b = bufferSupplier.get();
+            } catch (Throwable e) {
+                cancelStart();
+                
+                anyError(e);
+                return;
+            }
+            
+            if (b == null) {
+                cancelStart();
+
+                anyError(new NullPointerException("The bufferSupplier returned a null buffer"));
+                return;
+            }
+            
+            synchronized (this) {
+                Map<Long, C> set = buffers;
+                if (set == null) {
+                    return;
+                }
+                
+                set.put(idx, b);
+            }
+            
+            Publisher<V> p;
+            
+            try {
+                p = end.apply(u);
+            } catch (Throwable e) {
+                cancelStart();
+                
+                anyError(e);
+                return;
+            }
+            
+            if (p == null) {
+                cancelStart();
+
+                anyError(new NullPointerException("The end returned a null publisher"));
+                return;
+            }
+            
+            PublisherBufferStartEndEnder<T, V, C> end = new PublisherBufferStartEndEnder<>(this, b, idx);
+            
+            if (addEndSubscription(end)) {
+                OPEN.getAndIncrement(this);
+                
+                p.subscribe(end);
+            }
+        }
+        
+        void startError(Throwable e) {
+            anyError(e);
+        }
+        
+        void startComplete() {
+            if (OPEN.decrementAndGet(this) == 0) {
+                cancelAll();
+                done = true;
+                drain();
+            }
+        }
+        
+        void cancelAll() {
+            cancelMain();
+            
+            cancelStart();
+            
+            cancelEnds();
+        }
+        
+        void endSignal(PublisherBufferStartEndEnder<T, V, C> ender) {
+            synchronized (this) {
+                Map<Long, C> set = buffers;
+                
+                if (set == null) {
+                    return;
+                }
+                
+                if (set.remove(ender.index) == null) {
+                    return;
+                }
+                
+                queue.offer(ender.buffer);
+            }
+            if (OPEN.decrementAndGet(this) == 0) {
+                cancelAll();
+                done = true;
+            }
+            drain();
+        }
+        
+        void endError(Throwable e) {
+            anyError(e);
+        }
+        
+        void drain() {
+            if (WIP.getAndIncrement(this) != 0) {
+                return;
+            }
+            
+            final Subscriber<? super C> a = actual;
+            final Queue<C> q = queue;
+            
+            int missed = 1;
+            
+            for (;;) {
+                
+                for (;;) {
+                    boolean d = done;
+                    
+                    C b = q.poll();
+                    
+                    boolean empty = b == null;
+                    
+                    if (checkTerminated(d, empty, a, q)) {
+                        return;
+                    }
+                    
+                    if (empty) {
+                        break;
+                    }
+                    
+                    long r = requested;
+                    if (r != 0L) {
+                        actual.onNext(b);
+                        if (r != Long.MAX_VALUE) {
+                            REQUESTED.decrementAndGet(this);
+                        }
+                    } else {
+                        anyError(new IllegalStateException("Could not emit buffer due to lack of requests"));
+                        continue;
+                    }
+                }
+                
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+        
+        boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a, Queue<?> q) {
+            if (cancelled) {
+                queue.clear();
+                return true;
+            }
+            
+            if (d) {
+                Throwable e = ExceptionHelper.terminate(ERROR, this);
+                if (e != null && e != ExceptionHelper.TERMINATED) {
+                    cancel();
+                    queue.clear();
+                    a.onError(e);
+                    return true;
+                } else
+                if (empty) {
+                    a.onComplete();
+                    return true;
+                }
+            }
+            return false;
         }
     }
     
@@ -194,19 +472,61 @@ extends PublisherSource<T, C> {
         
         @Override
         public void onNext(U t) {
-            // TODO Auto-generated method stub
-            
+            main.startNext(t);
         }
         
         @Override
         public void onError(Throwable t) {
-            // TODO Auto-generated method stub
-            
+            main.startError(t);
         }
         
         @Override
         public void onComplete() {
-            // TODO Auto-generated method stub
-            
+            main.startComplete();
         }
-    }}
+    }
+    
+    static final class PublisherBufferStartEndEnder<T, V, C extends Collection<? super T>> extends SubscriberDeferSubscriptionBase
+    implements Subscriber<V> {
+        final PublisherBufferStartEndMain<T, ?, V, C> main;
+
+        final C buffer;
+        
+        final long index;
+        
+        public PublisherBufferStartEndEnder(PublisherBufferStartEndMain<T, ?, V, C> main, C buffer, long index) {
+            this.main = main;
+            this.buffer = buffer;
+            this.index = index;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (set(s)) {
+                s.request(Long.MAX_VALUE);
+            }
+        }
+
+        @Override
+        public void onNext(V t) {
+            if (!isCancelled()) {
+                cancel();
+                
+                main.endSignal(this);
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            main.endError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            if (!isCancelled()) {
+                main.endSignal(this);
+            }
+        }
+        
+    }
+}
