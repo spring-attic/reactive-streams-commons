@@ -13,7 +13,7 @@ import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
 /**
- * Splits the source sequence into continuous, non-overlapping windows 
+ * Splits the source sequence into continuous, non-overlapping windowEnds 
  * where the window boundary is signalled by another Publisher
  * 
  * @param <T> the input value type

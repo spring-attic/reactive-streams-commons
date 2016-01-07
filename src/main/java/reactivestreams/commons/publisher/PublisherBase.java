@@ -289,6 +289,9 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new PublisherSwitchIfEmpty<>(this, other);
     }
     
+    public final <U, V> PublisherBase<PublisherBase<T>> window(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
+        return new PublisherWindowStartEnd<>(this, start, end, defaultQueueSupplier(), defaultQueueSupplier());
+    }
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
