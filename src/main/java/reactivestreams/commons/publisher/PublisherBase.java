@@ -330,7 +330,7 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     }
     
     public final <U> PublisherBase<T> throttleTimeout(Function<? super T, ? extends Publisher<U>> throttler) {
-        return new PublisherThrottleTimeout<>(this, throttler);
+        return new PublisherThrottleTimeout<>(this, throttler, defaultQueueSupplier());
     }
     
     // ---------------------------------------------------------------------------------------
