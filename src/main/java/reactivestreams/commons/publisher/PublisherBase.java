@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.*;
+import java.util.stream.Stream;
 
 import org.reactivestreams.*;
 
@@ -333,6 +334,30 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new PublisherThrottleTimeout<>(this, throttler, defaultQueueSupplier());
     }
     
+    public final Iterable<T> toIterable() {
+        return toIterable(BUFFER_SIZE);
+    }
+
+    public final Iterable<T> toIterable(long batchSize) {
+        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier());
+    }
+    
+    public final Stream<T> stream() {
+        return stream(BUFFER_SIZE);
+    }
+    
+    public final Stream<T> stream(long batchSize) {
+        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier()).stream();
+    }
+
+    public final Stream<T> parallelStream() {
+        return parallelStream(BUFFER_SIZE);
+    }
+    
+    public final Stream<T> parallelStream(long batchSize) {
+        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier()).parallelStream();
+    }
+
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
