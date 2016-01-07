@@ -56,9 +56,39 @@ public enum SubscriptionHelper {
         return false;
     }
     
+    public static <F> boolean replace(AtomicReferenceFieldUpdater<F, Subscription> field, F instance, Subscription s) {
+        for (;;) {
+            Subscription a = field.get(instance);
+            if (a == CancelledSubscription.INSTANCE) {
+                s.cancel();
+                return false;
+            }
+            if (field.compareAndSet(instance, a, s)) {
+                return true;
+            }
+        }
+    }
+
+    public static <F> boolean set(AtomicReferenceFieldUpdater<F, Subscription> field, F instance, Subscription s) {
+        for (;;) {
+            Subscription a = field.get(instance);
+            if (a == CancelledSubscription.INSTANCE) {
+                s.cancel();
+                return false;
+            }
+            if (field.compareAndSet(instance, a, s)) {
+                if (a != null) {
+                    a.cancel();
+                }
+                return true;
+            }
+        }
+    }
+
     public static <F> boolean setOnce(AtomicReferenceFieldUpdater<F, Subscription> field, F instance, Subscription s) {
         Subscription a = field.get(instance);
         if (a == CancelledSubscription.INSTANCE) {
+            s.cancel();
             return false;
         }
         if (a != null) {
@@ -73,9 +103,11 @@ public enum SubscriptionHelper {
         a = field.get(instance);
         
         if (a == CancelledSubscription.INSTANCE) {
+            s.cancel();
             return false;
         }
         
+        s.cancel();
         reportSubscriptionSet();
         return false;
     }

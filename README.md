@@ -71,6 +71,8 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherTakeWhile` : relays values while a predicate returns true for the values (checked before each value)
   - `PublisherTakeUntil` : relays values until another Publisher signals
   - `PublisherTakeUntilPredicate` : relays values until a predicate returns true (checked after each value)
+  - `PublisherThrottleFirst` : takes a value from upstream then uses the duration provided by a generated Publisher to skip other values until that other Publisher signals
+  - `PublisherThrottleTimeout` : emits the last value from upstream only if there were no newer values emitted during the time window provided by a publisher for that particular last value
   - `PublisherTimeout` uses per-item `Publisher`s that when they fire mean the timeout for that particular item unless a new item arrives in the meantime
   - `PublisherWindow` : splits the source sequence into possibly overlapping windows of given size
   - `PublisherWindowBoundary` : splits the source sequence into continuous, non-overlapping windows where the window boundary is signalled by another Publisher

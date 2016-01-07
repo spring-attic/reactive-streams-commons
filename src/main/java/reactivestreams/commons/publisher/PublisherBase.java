@@ -321,6 +321,18 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new PublisherZipIterable<>(this, other, zipper);
     }
     
+    public final <U> PublisherBase<T> throttleFirst(Function<? super T, ? extends Publisher<U>> throttler) {
+        return new PublisherThrottleFirst<>(this, throttler);
+    }
+    
+    public final <U> PublisherBase<T> throttleLast(Publisher<U> throttler) {
+        return sample(throttler);
+    }
+    
+    public final <U> PublisherBase<T> throttleTimeout(Function<? super T, ? extends Publisher<U>> throttler) {
+        return new PublisherThrottleTimeout<>(this, throttler);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
