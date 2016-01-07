@@ -141,7 +141,7 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> {
                     return;
                 }
 
-                set(t);
+                complete(t);
             }
         }
 

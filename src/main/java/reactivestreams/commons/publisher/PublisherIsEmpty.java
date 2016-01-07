@@ -44,12 +44,12 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
         public void onNext(T t) {
             s.cancel();
 
-            set(false);
+            complete(false);
         }
 
         @Override
         public void onComplete() {
-            set(true);
+            complete(true);
         }
 
         @Override

@@ -107,7 +107,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
             if (v == null) {
                 subscriber.onComplete();
             }
-            set(v);
+            complete(v);
         }
 
         @Override

@@ -121,7 +121,12 @@ public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Subscripti
         this.value = value;
     }
 
-    public final void set(O value) {
+    /**
+     * Tries to emit the value and complete the underlying subscriber or
+     * stores the value away until there is a request for it.
+     * @param value the value to emit
+     */
+    public final void complete(O value) {
         Objects.requireNonNull(value);
         for (; ; ) {
             int s = getState();

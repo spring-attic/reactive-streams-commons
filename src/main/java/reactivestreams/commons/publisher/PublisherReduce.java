@@ -129,7 +129,7 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
             }
             done = true;
 
-            set(value);
+            complete(value);
         }
 
         @Override

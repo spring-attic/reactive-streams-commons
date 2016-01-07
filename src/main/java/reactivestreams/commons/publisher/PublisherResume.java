@@ -17,6 +17,29 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
 
     final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 
+// FIXME this causes ambiguity error because javac can't distinguish between different lambda arities:
+//
+//    new PublisherResume(source, e -> other) tries to match the (Publisher, Publisher) constructor and fails
+//
+//    public PublisherResume(Publisher<? extends T> source,
+//            Publisher<? extends T> next) {
+//        this(source, create(next));
+//    }
+//
+    static <T> Function<Throwable, Publisher<? extends T>> create(Publisher<? extends T> next) {
+        Objects.requireNonNull(next, "next");
+        return new Function<Throwable, Publisher<? extends T>>() {
+            @Override
+            public Publisher<? extends T> apply(Throwable e) {
+                return next;
+            }
+        };
+    }
+    
+    public static <T> PublisherResume<T> create(Publisher<? extends T> source, Publisher<? extends T> other) {
+        return new PublisherResume<>(source, create(other));
+    }
+    
     public PublisherResume(Publisher<? extends T> source,
                            Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory) {
         super(source);

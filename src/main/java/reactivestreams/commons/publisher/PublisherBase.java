@@ -292,6 +292,35 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     public final <U, V> PublisherBase<PublisherBase<T>> window(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
         return new PublisherWindowStartEnd<>(this, start, end, defaultQueueSupplier(), defaultQueueSupplier());
     }
+    
+    public final PublisherBase<T> takeLast(int n) {
+        return new PublisherTakeLast<>(this, n);
+    }
+    
+    public final <U> PublisherBase<T> takeUntil(Publisher<U> other) {
+        return new PublisherTakeUntil<>(this, other);
+    }
+    
+    public final PublisherBase<T> takeUntil(Predicate<? super T> predicate) {
+        return new PublisherTakeUntilPredicate<>(this, predicate);
+    }
+
+    public final PublisherBase<T> takeWhile(Predicate<? super T> predicate) {
+        return new PublisherTakeWhile<>(this, predicate);
+    }
+    
+    public final <U, V> PublisherBase<T> timeout(Publisher<U> firstTimeout, Function<? super T, ? extends Publisher<V>> itemTimeout) {
+        return new PublisherTimeout<>(this, firstTimeout, itemTimeout);
+    }
+
+    public final <U, V> PublisherBase<T> timeout(Publisher<U> firstTimeout, Function<? super T, ? extends Publisher<V>> itemTimeout, Publisher<? extends T> other) {
+        return new PublisherTimeout<>(this, firstTimeout, itemTimeout, other);
+    }
+
+    public final <U, R> PublisherBase<R> zipWith(Iterable<U> other, BiFunction<? super T, ? super U, ? extends R> zipper) {
+        return new PublisherZipIterable<>(this, other, zipper);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

@@ -357,11 +357,31 @@ public class TestSubscriber<T> extends SubscriberDeferredSubscription<T, T> {
             assertionError("No error", null);
         }
         if (s == 1) {
-            Throwable cause = errors.get(0)
-              .getCause();
-            if (clazz.isInstance(cause)) {
+            Throwable cause = errors.get(0).getCause();
+            if (!clazz.isInstance(cause)) {
                 assertionError("Error class incompatible: expected = " + clazz.getSimpleName() + ", actual = " + valueAndClass(
                   cause), null);
+            }
+        }
+        if (s > 1) {
+            assertionError("Multiple errors: " + s, null);
+        }
+
+        return this;
+    }
+
+    public final TestSubscriber<T> assertErrorCauseMessage(String message) {
+        int s = errors.size();
+        if (s == 0) {
+            assertionError("No error", null);
+        }
+        if (s == 1) {
+            Throwable cause = errors.get(0).getCause();
+            if (cause == null) {
+                assertionError("No cause to " + errors.get(0), errors.get(0));
+            } else
+            if (!Objects.equals(message, cause.getMessage())) {
+                assertionError("Error messages differ: expected = " + message + ", actual = " + cause.getMessage(), cause);
             }
         }
         if (s > 1) {

@@ -1,23 +1,24 @@
 package reactivestreams.commons.publisher;
 
+import java.util.function.Function;
+
 import org.junit.Test;
+import org.reactivestreams.Publisher;
+
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.publisher.PublisherError;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.publisher.PublisherResume;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.support.ConstructorTestBuilder;
 
 public class PublisherResumeTest {
 
-    @Test(expected = NullPointerException.class)
-    public void sourceNull() {
-        new PublisherResume<>(null, v -> PublisherNever.instance());
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void nextFactoryNull() {
-        new PublisherResume<>(PublisherNever.instance(), null);
+    @Test
+    public void constructors() {
+        ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherResume.class);
+        
+        ctb.addRef("source", PublisherNever.instance());
+        ctb.addRef("nextFactory", (Function<Throwable, Publisher<Object>>)e -> PublisherNever.instance());
+        
+        ctb.test();
     }
 
     @Test

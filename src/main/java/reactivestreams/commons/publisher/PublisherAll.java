@@ -83,7 +83,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
                 done = true;
                 s.cancel();
 
-                set(false);
+                complete(false);
             }
         }
 
@@ -104,7 +104,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
                 return;
             }
             done = true;
-            set(true);
+            complete(true);
         }
 
         @Override

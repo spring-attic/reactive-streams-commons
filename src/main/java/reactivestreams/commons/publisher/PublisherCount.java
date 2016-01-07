@@ -56,7 +56,7 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> {
 
         @Override
         public void onComplete() {
-            set(counter);
+            complete(counter);
         }
 
         @Override

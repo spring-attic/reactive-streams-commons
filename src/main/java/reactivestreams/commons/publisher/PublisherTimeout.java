@@ -23,13 +23,13 @@ import reactivestreams.commons.support.SubscriptionHelper;
  */
 public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
 
-    final Supplier<? extends Publisher<U>> firstTimeout;
+    final Publisher<U> firstTimeout;
 
     final Function<? super T, ? extends Publisher<V>> itemTimeout;
 
     final Publisher<? extends T> other;
 
-    public PublisherTimeout(Publisher<? extends T> source, Supplier<? extends Publisher<U>> firstTimeout,
+    public PublisherTimeout(Publisher<? extends T> source, Publisher<U> firstTimeout,
                             Function<? super T, ? extends Publisher<V>> itemTimeout) {
         super(source);
         this.firstTimeout = Objects.requireNonNull(firstTimeout, "firstTimeout");
@@ -37,7 +37,7 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
         this.other = null;
     }
 
-    public PublisherTimeout(Publisher<? extends T> source, Supplier<? extends Publisher<U>> firstTimeout,
+    public PublisherTimeout(Publisher<? extends T> source, Publisher<U> firstTimeout,
                             Function<? super T, ? extends Publisher<V>> itemTimeout, Publisher<? extends T> other) {
         super(source);
         this.firstTimeout = Objects.requireNonNull(firstTimeout, "firstTimeout");
@@ -54,25 +54,11 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
 
         serial.onSubscribe(main);
 
-        Publisher<U> firstPublisher;
-
-        try {
-            firstPublisher = firstTimeout.get();
-        } catch (Throwable e) {
-            serial.onError(e);
-            return;
-        }
-
-        if (firstPublisher == null) {
-            serial.onError(new NullPointerException("The firstTimeout returned a null Publisher"));
-            return;
-        }
-
         PublisherTimeoutTimeoutSubscriber ts = new PublisherTimeoutTimeoutSubscriber(main, 0L);
 
         main.setTimeout(ts);
 
-        firstPublisher.subscribe(ts);
+        firstTimeout.subscribe(ts);
 
         source.subscribe(main);
     }

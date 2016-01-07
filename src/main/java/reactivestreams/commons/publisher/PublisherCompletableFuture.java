@@ -47,7 +47,7 @@ implements
             if (e != null) {
                 s.onError(e);
             } else if (v != null) {
-                sds.set(v);
+                sds.complete(v);
             } else {
                 s.onError(new NullPointerException("The future produced a null value"));
             }

@@ -57,6 +57,6 @@ implements
             return;
         }
 
-        sds.set(t);
+        sds.complete(t);
     }
 }

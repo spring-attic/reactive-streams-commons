@@ -76,7 +76,7 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
             if (hasValue) {
                 subscriber.onComplete();
             } else {
-                set(value);
+                complete(value);
             }
         }
 

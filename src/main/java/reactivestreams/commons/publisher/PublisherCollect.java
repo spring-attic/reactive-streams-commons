@@ -118,7 +118,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
                 return;
             }
             done = true;
-            set(container);
+            complete(container);
         }
 
         @Override
