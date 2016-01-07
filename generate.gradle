@@ -101,7 +101,7 @@ task generateTargetAPI(type: Sync) {
   outputs.upToDateWhen { false }
   includeEmptyDirs = false
 
-  def target = targets[project.hasProperty('library') ? library : defaultTarget]
+  def target = targets[project.hasProperty('library') ? library : defaultTarget] ?: defaultTarget
 
 
   def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
@@ -152,7 +152,7 @@ task generateTargetSingleAPI(type: Copy) {
 
   includeEmptyDirs = false
 
-  def target = targets[project.hasProperty('library') ? library: defaultTarget]
+  def target = targets[project.hasProperty('library') ? library: defaultTarget] ?: defaultTarget
 
   def apiSingleClass = target['api-single']
   def apiSingleBarrierClass = target['api-single-operator']
@@ -194,7 +194,7 @@ task generateTargetSingleAPI(type: Copy) {
 task generateExtra(type: Copy) {
   description = 'Generate extra package (subscriber, subscription, processor, support) for target integration'
 
-  def target = targets[project.hasProperty('library') ? library : defaultTarget]
+  def target = targets[project.hasProperty('library') ? library : defaultTarget] ?: defaultTarget
   includeEmptyDirs = false
 
   def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
@@ -248,7 +248,7 @@ task inlineCommons {
   dependsOn generateTargetAPI
 
 
-  def target = targets[project.hasProperty('library') ? library: defaultTarget]
+  def target = targets[project.hasProperty('library') ? library: defaultTarget] ?: defaultTarget
   if (target['extra-packages']) {
 	dependsOn generateExtra
   }
