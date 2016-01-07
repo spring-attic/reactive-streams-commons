@@ -17,7 +17,7 @@ def includingCoreScope = ['amb',
 						  'map',
 						  'never',
 						  'peek',
-						  'switchIEmpty',
+						  'switchifempty',
 						  'resume',
 						  /*'zip'*/] //managed by reactor-core
 
@@ -38,6 +38,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'header'               : '@since 2.5',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
+					 'ExceptionHelper'   : 'Exceptions',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
 					 //'SubscriberDeferSubscription'     : 'reactor.core.subscriber.SubscriberDeferSubscription',
@@ -50,14 +51,14 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 def reactorCore = ['api'                 : 'reactor.Flux',
 				   'api-package'         : 'reactor.core.publisher',
 				   'api-operator'        : 'reactor.Flux.FluxBarrier',
-				   'serializedSubscriber': false,
+				   'SerializedSubscriber': false,
 				   'include'             : includingCoreScope] + reactorCommon
 
 //Reactor Stream configuration
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'api-package'         : 'reactor.rx.stream',
 					 'api-operator'        : 'StreamBarrier',
-					 'serializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
+					 'SerializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
 
@@ -211,7 +212,7 @@ task generateExtra(type: Copy) {
 	exclude '**/subscriber/test/**'
   }
 
-  if (target.containsKey('serializedSubscriber') && !target['serializedSubscriber']) {
+  if (target.containsKey('SerializedSubscriber') && !target['SerializedSubscriber']) {
 	exclude '**/subscriber/SerializedSubscriber.java'
   }
 
@@ -229,6 +230,10 @@ task generateExtra(type: Copy) {
 
   if (target.UnsignalledExceptions) {
 	exclude '**/UnsignalledExceptions.java'
+  }
+
+  if (target.ExceptionHelper) {
+	exclude '**/ExceptionHelper.java'
   }
 
   filter { line -> replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass)
@@ -280,8 +285,8 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	  l = l.replace('reactivestreams.commons.publisher', target['api-package'])
 	}
 
-	if (target['serializedSubscriber']) {
-	  l = l.replace('reactivestreams.commons.subscriber.SerializedSubscriber', target['serializedSubscriber']+".SerializedSubscriber")
+	if (target['SerializedSubscriber']) {
+	  l = l.replace('reactivestreams.commons.subscriber.SerializedSubscriber', target['SerializedSubscriber'])
 	}
 
 	if (target['extra-packages']) {
@@ -297,7 +302,9 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	else if (l.contains('UnsignalledExceptions') && target['UnsignalledExceptions']) {
 	  l = l.replace('UnsignalledExceptions', target['UnsignalledExceptions'])
 	}
-
+	else if (l.contains('ExceptionHelper') && target['ExceptionHelper']) {
+	  l = l.replace('ExceptionHelper', target['ExceptionHelper'])
+	}
 	return l;
   }
 
@@ -314,15 +321,15 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 		  .replace("implements Publisher", "extends $apiClass")
 		  .replace('public final class Publisher', "$license\npublic final class $apiClassName")
 
-  //Special case for just
+  //Special case for just/empty
   if (l.contains('implements Supplier<T>, Publisher<T>')) {
 	return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClass<T>")
   }
 
   l = l.replaceAll('Publisher([A-Z][^A-Z]*)', "$apiClassName\$1")
 
-  if (l.contains('serializedSubscriber') && target['serializedSubscriber']) {
-	l = l.replace('SerializedSubscriber', target['serializedSubscriber'])
+  if (l.contains('SerializedSubscriber') && target['SerializedSubscriber']) {
+	l = l.replace('SerializedSubscriber', target['SerializedSubscriber'])
   }
 
   if (l.contains('BackpressureHelper') && target['BackpressureHelper']) {
@@ -330,6 +337,9 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
   else if (l.contains('SubscriptionHelper') && target['SubscriptionHelper']) {
 	l = l.replace('SubscriptionHelper', target['SubscriptionHelper'])
+  }
+  else if (l.contains('ExceptionHelper') && target['ExceptionHelper']) {
+	l = l.replace('ExceptionHelper', target['ExceptionHelper'])
   }
   else if (l.contains('UnsignalledExceptions') && target['UnsignalledExceptions']) {
 	l = l.replace('UnsignalledExceptions', target['UnsignalledExceptions'])
