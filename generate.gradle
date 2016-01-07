@@ -4,6 +4,7 @@
 def includingCoreScope = ['amb',
 						  'array',
 						  'callable',
+						  'defaultifempty',
 						  /*'concatarray' ,*/ //managed by reactor-stream
 						  /*'concatiterable' ,*/ //managed by reactor-stream
 						  'error',
@@ -17,7 +18,6 @@ def includingCoreScope = ['amb',
 						  'map',
 						  'never',
 						  'peek',
-						  'switchifempty',
 						  'resume',
 						  /*'zip'*/] //managed by reactor-core
 
@@ -101,7 +101,7 @@ task generateTargetAPI(type: Sync) {
   outputs.upToDateWhen { false }
   includeEmptyDirs = false
 
-  def target = targets[library ?: defaultTarget]
+  def target = targets[project.hasProperty('library') ? library : defaultTarget]
 
 
   def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
@@ -152,7 +152,7 @@ task generateTargetSingleAPI(type: Copy) {
 
   includeEmptyDirs = false
 
-  def target = targets[library ?: defaultTarget]
+  def target = targets[project.hasProperty('library') ? library: defaultTarget]
 
   def apiSingleClass = target['api-single']
   def apiSingleBarrierClass = target['api-single-operator']
@@ -194,7 +194,7 @@ task generateTargetSingleAPI(type: Copy) {
 task generateExtra(type: Copy) {
   description = 'Generate extra package (subscriber, subscription, processor, support) for target integration'
 
-  def target = targets[library ?: defaultTarget]
+  def target = targets[project.hasProperty('library') ? library : defaultTarget]
   includeEmptyDirs = false
 
   def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
@@ -248,7 +248,7 @@ task inlineCommons {
   dependsOn generateTargetAPI
 
 
-  def target = targets[library ?: defaultTarget]
+  def target = targets[project.hasProperty('library') ? library: defaultTarget]
   if (target['extra-packages']) {
 	dependsOn generateExtra
   }
