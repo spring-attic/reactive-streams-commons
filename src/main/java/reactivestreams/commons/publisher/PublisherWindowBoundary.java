@@ -8,7 +8,7 @@ import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.processor.UnicastProcessor;
-import reactivestreams.commons.subscriber.DeferSubscriptionBase;
+import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
@@ -359,15 +359,15 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
             } else {
                 cancel();
                 
-                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));;
-                
+                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));
+
                 return false;
             }
         }
     }
     
     static final class PublisherWindowBoundaryOther<U>
-    extends DeferSubscriptionBase
+            extends DeferredSubscription
     implements Subscriber<U> {
         
         final PublisherWindowBoundaryMain<?, U> main;

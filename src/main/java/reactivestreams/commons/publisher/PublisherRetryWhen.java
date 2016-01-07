@@ -8,6 +8,8 @@ import org.reactivestreams.*;
 
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.*;
+import reactivestreams.commons.subscription.DeferredSubscription;
+import reactivestreams.commons.subscription.EmptySubscription;
 
 /**
  * retries a source when a companion sequence signals
@@ -64,7 +66,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
     static final class PublisherRetryWhenMainSubscriber<T> extends SubscriberMultiSubscription<T, T> {
 
-        final DeferSubscriptionBase otherArbiter;
+        final DeferredSubscription otherArbiter;
 
         final Subscriber<Throwable> signaller;
 
@@ -82,7 +84,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
             super(actual);
             this.signaller = signaller;
             this.source = source;
-            this.otherArbiter = new DeferSubscriptionBase();
+            this.otherArbiter = new DeferredSubscription();
         }
 
         @Override
@@ -156,7 +158,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
     static final class PublisherRetryWhenOtherSubscriber
     extends PublisherBase<Throwable>
-    implements Subscriber<Object> {
+    implements Subscriber<Object>, FeedbackLoop, Trace, Inner {
         PublisherRetryWhenMainSubscriber<?> main;
 
         final SimpleProcessor<Throwable> completionSignal = new SimpleProcessor<>();
@@ -164,6 +166,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         @Override
         public void onSubscribe(Subscription s) {
             main.setWhen(s);
+            completionSignal.onSubscribe(EmptySubscription.INSTANCE);
         }
 
         @Override
@@ -184,6 +187,16 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         @Override
         public void subscribe(Subscriber<? super Throwable> s) {
             completionSignal.subscribe(s);
+        }
+
+        @Override
+        public Object delegateInput() {
+            return main;
+        }
+
+        @Override
+        public Object delegateOutput() {
+            return completionSignal;
         }
     }
 }

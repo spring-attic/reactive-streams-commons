@@ -3,7 +3,7 @@ package reactivestreams.commons.subscriber.test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.EmptySubscriber;
-import reactivestreams.commons.subscriber.SubscriberDeferSubscription;
+import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 import java.util.*;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> the value type.
  */
-public class TestSubscriber<T> extends SubscriberDeferSubscription<T, T> {
+public class TestSubscriber<T> extends SubscriberDeferredSubscription<T, T> {
 
     final List<T> values;
 

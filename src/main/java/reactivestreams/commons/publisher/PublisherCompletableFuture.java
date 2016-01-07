@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.reactivestreams.Subscriber;
 
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.support.ReactiveState;
 
 /**
@@ -35,7 +35,7 @@ implements
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        SubscriberDeferScalar<T, T> sds = new SubscriberDeferScalar<>(s);
+        SubscriberDeferredScalar<T, T> sds = new SubscriberDeferredScalar<>(s);
 
         s.onSubscribe(sds);
 

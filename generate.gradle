@@ -4,8 +4,8 @@
 def includingCoreScope = ['amb',
 						  'array',
 						  'callable',
-						  /*'concatarray' ,*/ //managed by reactor-core
-						  /*'concatiterable' ,*/ //managed by reactor-core
+						  /*'concatarray' ,*/ //managed by reactor-stream
+						  /*'concatiterable' ,*/ //managed by reactor-stream
 						  'error',
 						  'empty',
 						  'next',
@@ -17,16 +17,15 @@ def includingCoreScope = ['amb',
 						  'map',
 						  'never',
 						  'peek',
+						  'switchIEmpty',
 						  'resume',
 						  /*'zip'*/] //managed by reactor-core
 
 //A complete RS commons coverage minus the lite core
 def excludingStreamScope = includingCoreScope + ['generate',
 												 'completablefuture',
-												 'concatarray',
-												 'concatiterable',
 												 'flatmap',
-												 'lift', //Already managed by reactor-stream
+												 'lift', //Already managed by reactor-core
 												 'stream',
 												 'zip'] - ['map']
 
@@ -35,11 +34,12 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'api-single'           : 'reactor.Mono',
 					 'api-single-operator'  : 'reactor.Mono.MonoBarrier',
 					 'test-type'            : false,
-					 'extra-packages'      : 'reactor.core',
+					 'extra-packages'       : 'reactor.core',
 					 'header'               : '@since 2.5',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
 					 'UnsignalledExceptions': 'Exceptions',
+					 'tabs'                 : 1,
 					 //'SubscriberDeferSubscription'     : 'reactor.core.subscriber.SubscriberDeferSubscription',
 					 //'SubscriberMultiSubscription': 'reactor.core.subscriber.SubscriberMultiSubscription',
 					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
@@ -57,11 +57,16 @@ def reactorCore = ['api'                 : 'reactor.Flux',
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'api-package'         : 'reactor.rx.stream',
 					 'api-operator'        : 'StreamBarrier',
-					 'serializedSubscriber': 'reactor.rx.subscriber',
+					 'serializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
 
-def defaultTarget = reactorStream
+def targets = [
+        'reactor-core' : reactorCore,
+        'reactor-stream' : reactorStream
+]
+
+def defaultTarget = reactorCore
 
 // ----------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------
@@ -95,7 +100,7 @@ task generateTargetAPI(type: Sync) {
   outputs.upToDateWhen { false }
   includeEmptyDirs = false
 
-  def target = defaultTarget
+  def target = targets[library ?: defaultTarget]
 
 
   def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
@@ -128,6 +133,12 @@ task generateTargetAPI(type: Sync) {
 			.startsWith('Publisher') && (name in target.exclude || name in defaultSingleAPI)
   }
 
+  exclude 'PublisherBase.java'
+
+  if(target['api-operator']){
+	exclude 'PublisherSource.java'
+  }
+
   rename { String fileName -> fileName.replace('Publisher', apiClassName)
   }
 
@@ -135,13 +146,12 @@ task generateTargetAPI(type: Sync) {
   }
 }
 
-
 task generateTargetSingleAPI(type: Copy) {
   description = 'Generate Single type artifacts for target integration'
 
   includeEmptyDirs = false
 
-  def target = defaultTarget
+  def target = targets[library ?: defaultTarget]
 
   def apiSingleClass = target['api-single']
   def apiSingleBarrierClass = target['api-single-operator']
@@ -183,7 +193,7 @@ task generateTargetSingleAPI(type: Copy) {
 task generateExtra(type: Copy) {
   description = 'Generate extra package (subscriber, subscription, processor, support) for target integration'
 
-  def target = defaultTarget
+  def target = targets[library ?: defaultTarget]
   includeEmptyDirs = false
 
   def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
@@ -227,10 +237,13 @@ task generateExtra(type: Copy) {
 
 task inlineCommons {
   description = 'Generate all necessary artifacts for target integration'
+
+  delete "build/generated_api"
+
   dependsOn generateTargetAPI
 
-  def target = defaultTarget
 
+  def target = targets[library ?: defaultTarget]
   if (target['extra-packages']) {
 	dependsOn generateExtra
   }
@@ -289,7 +302,14 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   def l = line
-		  .replace("extends PublisherSource", "extends $apiBarrierClass")
+
+  if(target['tabs']){
+	l = l.replaceAll(' '*4, '\t' * target['tabs'])
+  }
+
+  l = l
+		  .replace("PublisherSource", apiBarrierClass)
+		  .replace("PublisherBase", apiClass)
 		  .replaceAll("implements Publisher([^,]*),", "extends $apiClass\$1 implements")
 		  .replace("implements Publisher", "extends $apiClass")
 		  .replace('public final class Publisher', "$license\npublic final class $apiClassName")
@@ -299,9 +319,11 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClass<T>")
   }
 
-
   l = l.replaceAll('Publisher([A-Z][^A-Z]*)', "$apiClassName\$1")
 
+  if (l.contains('serializedSubscriber') && target['serializedSubscriber']) {
+	l = l.replace('SerializedSubscriber', target['serializedSubscriber'])
+  }
 
   if (l.contains('BackpressureHelper') && target['BackpressureHelper']) {
 	l = l.replace('BackpressureHelper', target['BackpressureHelper'])

@@ -16,12 +16,12 @@ import java.util.function.Supplier;
  * @param <I> The upstream sequence type
  * @param <O> The downstream sequence type
  */
-public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
-                                                    Supplier<O>,
-                                                    ReactiveState.FeedbackLoop,
-                                                    ReactiveState.ActiveUpstream,
-                                                    ReactiveState.ActiveDownstream,
-                                                    ReactiveState.Downstream {
+public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Subscription,
+                                                       Supplier<O>,
+                                                       ReactiveState.FeedbackLoop,
+                                                       ReactiveState.ActiveUpstream,
+                                                       ReactiveState.ActiveDownstream,
+                                                       ReactiveState.Downstream {
 
     static final int SDS_NO_REQUEST_NO_VALUE   = 0;
     static final int SDS_NO_REQUEST_HAS_VALUE  = 1;
@@ -34,10 +34,10 @@ public class SubscriberDeferScalar<I, O> implements Subscriber<I>, Subscription,
 
     volatile int state;
     @SuppressWarnings("rawtypes")
-    static final AtomicIntegerFieldUpdater<SubscriberDeferScalar> STATE =
-      AtomicIntegerFieldUpdater.newUpdater(SubscriberDeferScalar.class, "state");
+    static final AtomicIntegerFieldUpdater<SubscriberDeferredScalar> STATE =
+      AtomicIntegerFieldUpdater.newUpdater(SubscriberDeferredScalar.class, "state");
 
-    public SubscriberDeferScalar(Subscriber<? super O> subscriber) {
+    public SubscriberDeferredScalar(Subscriber<? super O> subscriber) {
         this.subscriber = subscriber;
     }
 

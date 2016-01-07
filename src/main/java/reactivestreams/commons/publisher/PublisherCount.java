@@ -2,7 +2,7 @@ package reactivestreams.commons.publisher;
 
 import org.reactivestreams.*;
 
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -21,7 +21,7 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> {
         source.subscribe(new PublisherCountSubscriber<>(s));
     }
 
-    static final class PublisherCountSubscriber<T> extends SubscriberDeferScalar<T, Long>
+    static final class PublisherCountSubscriber<T> extends SubscriberDeferredScalar<T, Long>
     implements Upstream {
 
         long counter;

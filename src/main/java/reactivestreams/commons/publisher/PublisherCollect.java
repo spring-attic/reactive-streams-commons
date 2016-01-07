@@ -6,7 +6,7 @@ import java.util.function.*;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
 
@@ -51,7 +51,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherCollectSubscriber<T, R>
-      extends SubscriberDeferScalar<T, R>
+            extends SubscriberDeferredScalar<T, R>
     implements Upstream {
 
         final BiConsumer<? super R, ? super T> action;

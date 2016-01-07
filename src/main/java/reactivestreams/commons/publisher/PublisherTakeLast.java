@@ -6,7 +6,7 @@ import java.util.function.BooleanSupplier;
 
 import org.reactivestreams.*;
 
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.support.*;
 
 /**
@@ -75,7 +75,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeLastOneSubscriber<T>
-      extends SubscriberDeferScalar<T, T>
+            extends SubscriberDeferredScalar<T, T>
     implements Upstream {
 
         Subscription s;

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.*;
 
-import reactivestreams.commons.subscriber.SubscriberDeferSubscription;
+import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
@@ -17,7 +17,7 @@ import reactivestreams.commons.support.*;
  */
 public final class PublisherAmb<T> 
 extends PublisherBase<T>
-implements Publisher<T>,
+implements
                                               ReactiveState.Factory,
                                               ReactiveState.LinkedUpstreams{
 
@@ -244,7 +244,7 @@ implements Publisher<T>,
         }
     }
 
-    static final class PublisherAmbSubscriber<T> extends SubscriberDeferSubscription<T, T>
+    static final class PublisherAmbSubscriber<T> extends SubscriberDeferredSubscription<T, T>
     implements Inner {
         final PublisherAmbCoordinator<T> parent;
 

@@ -7,7 +7,7 @@ import java.util.function.*;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.DeferSubscriptionBase;
+import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
@@ -455,7 +455,7 @@ extends PublisherSource<T, C> {
         }
     }
     
-    static final class PublisherBufferStartEndStarter<U> extends DeferSubscriptionBase
+    static final class PublisherBufferStartEndStarter<U> extends DeferredSubscription
     implements Subscriber<U> {
         final PublisherBufferStartEndMain<?, U, ?, ?> main;
         
@@ -486,7 +486,7 @@ extends PublisherSource<T, C> {
         }
     }
     
-    static final class PublisherBufferStartEndEnder<T, V, C extends Collection<? super T>> extends DeferSubscriptionBase
+    static final class PublisherBufferStartEndEnder<T, V, C extends Collection<? super T>> extends DeferredSubscription
     implements Subscriber<V> {
         final PublisherBufferStartEndMain<T, ?, V, C> main;
 

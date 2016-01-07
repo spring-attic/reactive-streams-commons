@@ -1,26 +1,45 @@
-package reactivestreams.commons.subscriber;
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package reactivestreams.commons.subscription;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.*;
 
 import org.reactivestreams.*;
 
-import reactivestreams.commons.subscription.CancelledSubscription;
 import reactivestreams.commons.support.*;
 
 /**
  * Base class for Subscribers that will receive their Subscriptions at any time yet
  * they need to be cancelled or requested at any time.
  */
-public class DeferSubscriptionBase implements Subscription {
+public class DeferredSubscription
+        implements Subscription,
+                   ReactiveState.ActiveUpstream,
+                   ReactiveState.ActiveDownstream,
+                   ReactiveState.DownstreamDemand,
+                   ReactiveState.Upstream {
 
     volatile Subscription s;
-    static final AtomicReferenceFieldUpdater<DeferSubscriptionBase, Subscription> S =
-        AtomicReferenceFieldUpdater.newUpdater(DeferSubscriptionBase.class, Subscription.class, "s");
+    static final AtomicReferenceFieldUpdater<DeferredSubscription, Subscription> S =
+        AtomicReferenceFieldUpdater.newUpdater(DeferredSubscription.class, Subscription.class, "s");
 
     volatile long requested;
-    static final AtomicLongFieldUpdater<DeferSubscriptionBase> REQUESTED =
-        AtomicLongFieldUpdater.newUpdater(DeferSubscriptionBase.class, "requested");
+    static final AtomicLongFieldUpdater<DeferredSubscription> REQUESTED =
+        AtomicLongFieldUpdater.newUpdater(DeferredSubscription.class, "requested");
 
     protected final void setInitialRequest(long n) {
         REQUESTED.lazySet(this, n);
@@ -103,8 +122,29 @@ public class DeferSubscriptionBase implements Subscription {
      *
      * @return true if this arbiter has been cancelled
      */
+    @Override
     public final boolean isCancelled() {
         return s == CancelledSubscription.INSTANCE;
+    }
+
+    @Override
+    public final boolean isStarted() {
+        return s != null;
+    }
+
+    @Override
+    public final boolean isTerminated() {
+        return isCancelled();
+    }
+
+    @Override
+    public long requestedFromDownstream() {
+        return requested;
+    }
+
+    @Override
+    public Subscription upstream() {
+        return s;
     }
 
 }

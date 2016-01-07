@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.DeferSubscriptionBase;
+import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.*;
 
@@ -215,14 +215,14 @@ extends PublisherSource<T, C> {
             } else {
                 cancel();
                 
-                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));;
-                
+                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));
+
                 return false;
             }
         }
     }
     
-    static final class PublisherBufferBoundaryOther<U> extends DeferSubscriptionBase
+    static final class PublisherBufferBoundaryOther<U> extends DeferredSubscription
     implements Subscriber<U> {
         
         final PublisherBufferBoundaryMain<?, U, ?> main;

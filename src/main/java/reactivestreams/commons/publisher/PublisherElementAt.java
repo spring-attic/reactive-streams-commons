@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -45,7 +45,7 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherElementAtSubscriber<T>
-      extends SubscriberDeferScalar<T, T>
+            extends SubscriberDeferredScalar<T, T>
     implements Upstream {
         final Supplier<? extends T> defaultSupplier;
 

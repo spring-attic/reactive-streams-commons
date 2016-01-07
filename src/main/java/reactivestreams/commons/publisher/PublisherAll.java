@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -32,7 +32,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
         source.subscribe(new PublisherAllSubscriber<T>(s, predicate));
     }
 
-    static final class PublisherAllSubscriber<T> extends SubscriberDeferScalar<T, Boolean>
+    static final class PublisherAllSubscriber<T> extends SubscriberDeferredScalar<T, Boolean>
     implements Upstream {
         final Predicate<? super T> predicate;
 

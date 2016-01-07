@@ -6,7 +6,7 @@ import java.util.function.*;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.SubscriberDeferScalar;
+import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
 
@@ -50,7 +50,7 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherReduceSubscriber<T, R>
-      extends SubscriberDeferScalar<T, R>
+            extends SubscriberDeferredScalar<T, R>
     implements Upstream {
 
         final BiFunction<R, ? super T, R> accumulator;
