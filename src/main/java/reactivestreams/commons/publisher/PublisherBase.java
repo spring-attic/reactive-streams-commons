@@ -1,7 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.function.*;
 import java.util.stream.Stream;
 
@@ -358,6 +358,22 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new BlockingIterable<>(this, batchSize, defaultQueueSupplier()).parallelStream();
     }
 
+    public final Future<T> toFuture() {
+        return new BlockingFuture<>(this).future();
+    }
+    
+    public final Future<T> toFuture(T defaultValue) {
+        return new BlockingFuture<>(this).future(defaultValue);
+    }
+    
+    public final CompletableFuture<T> toCompletableFuture() {
+        return new BlockingFuture<>(this).completableFuture();
+    }
+    
+    public final CompletableFuture<T> toCompletableFuture(T defaultValue) {
+        return new BlockingFuture<>(this).completableFuture(defaultValue);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

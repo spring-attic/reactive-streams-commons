@@ -44,6 +44,14 @@ public enum SubscriptionHelper {
         return true;
     }
     
+    /**
+     * Atomically swaps in the single CancelledSubscription instance and returns true
+     * if this was the first of such operation on the target field.
+     * @param <F> the field type
+     * @param field the field accessor
+     * @param instance the parent instance of the field
+     * @return true if the call triggered the cancellation of the underlying Subscription instance
+     */
     public static <F> boolean terminate(AtomicReferenceFieldUpdater<F, Subscription> field, F instance) {
         Subscription a = field.get(instance);
         if (a != CancelledSubscription.INSTANCE) {

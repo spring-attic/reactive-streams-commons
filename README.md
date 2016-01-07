@@ -86,6 +86,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
 I.e., these allow leaving the reactive-streams world.
 
   - `BlockingIterable` : an iterable that consumes a Publisher in a blocking fashion
+  - `BlockingFuture` : can return a future that consumes the source entierly and returns the very last value
 
 ## Travis status
 
