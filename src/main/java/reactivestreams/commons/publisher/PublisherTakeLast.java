@@ -4,10 +4,12 @@ import java.util.ArrayDeque;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.support.DrainHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Emits the last N values the source emitted before its completion.
@@ -159,7 +161,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.postCompleteRequest(n, actual, buffer, REQUESTED, this, this);
+                DrainHelper.postCompleteRequest(n, actual, buffer, REQUESTED, this, this);
             }
         }
 
@@ -198,7 +200,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         @Override
         public void onComplete() {
 
-            BackpressureHelper.postComplete(actual, buffer, REQUESTED, this, this);
+            DrainHelper.postComplete(actual, buffer, REQUESTED, this, this);
         }
 
         @Override

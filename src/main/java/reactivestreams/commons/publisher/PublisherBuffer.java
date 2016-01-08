@@ -1,13 +1,21 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.DrainHelper;
+import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Buffers a certain number of subsequent elements and emits the buffers.
@@ -432,7 +440,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
                 return;
             }
 
-            if (BackpressureHelper.postCompleteRequest(n, actual, buffers, REQUESTED, this, this)) {
+            if (DrainHelper.postCompleteRequest(n, actual, buffers, REQUESTED, this, this)) {
                 return;
             }
 
@@ -540,7 +548,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
 
             done = true;
 
-            BackpressureHelper.postComplete(actual, buffers, REQUESTED, this, this);
+            DrainHelper.postComplete(actual, buffers, REQUESTED, this, this);
         }
 
         @Override

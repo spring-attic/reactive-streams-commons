@@ -58,6 +58,7 @@ def reactorCore = ['api'                 : 'reactor.Flux',
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'api-package'         : 'reactor.rx.stream',
 					 'api-operator'        : 'StreamBarrier',
+					 'DrainHelper'   : 'reactor.rx.support.DrainUtils',
 					 'SerializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
@@ -305,6 +306,9 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	else if (l.contains('ExceptionHelper') && target['ExceptionHelper']) {
 	  l = l.replace('ExceptionHelper', target['ExceptionHelper'])
 	}
+	else if (l.contains('DrainHelper') && target['DrainHelper']) {
+	  return null
+	}
 	return l;
   }
 
@@ -343,6 +347,9 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
   else if (l.contains('UnsignalledExceptions') && target['UnsignalledExceptions']) {
 	l = l.replace('UnsignalledExceptions', target['UnsignalledExceptions'])
+  }
+  else if (l.contains('DrainHelper') && target['DrainHelper']) {
+	l = l.replace('DrainHelper', target['DrainHelper'])
   }
 
   if (target.SimpleProcessor) {
