@@ -265,6 +265,9 @@ implements
         }
         
         void innerValue(int index, T value) {
+            
+            boolean replenishInsteadOfDrain;
+            
             synchronized (this) {
                 Object[] os = latest;
 
@@ -281,12 +284,18 @@ implements
                     SourceAndArray sa = new SourceAndArray(subscribers[index], os.clone());
                     
                     queue.offer(sa);
+                    
+                    replenishInsteadOfDrain = false;
                 } else {
-                    return;
+                    replenishInsteadOfDrain = true;
                 }
             }
             
-            drain();
+            if (replenishInsteadOfDrain) {
+                subscribers[index].requestOne();
+            } else {
+                drain();
+            }
         }
         
         void innerComplete(int index) {

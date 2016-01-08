@@ -251,5 +251,29 @@ public class PublisherCombineLatestTest {
         .assertNotComplete();
         
     }
-    
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void unpairedKeepsRequesting() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        
+        new PublisherCombineLatest<>(new Publisher[] { sp1, sp2 }, a -> (Integer)a[0] + (Integer)a[1], qs, 16).subscribe(ts);
+        
+        for (int i = 0; i < 17; i++) {
+            sp1.onNext(i);
+        }
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        sp2.onNext(100);
+        
+        ts.assertValue(116)
+        .assertNoError()
+        .assertNotComplete();
+    }
 }
