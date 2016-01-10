@@ -1,10 +1,10 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.publisher.PublisherTake;
+import org.reactivestreams.Publisher;
+
 import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.subscription.EmptySubscription;
 
 public class PublisherTakeTest {
 
@@ -61,5 +61,23 @@ public class PublisherTakeTest {
         ts.assertNoValues()
           .assertComplete()
           .assertNoError();
+    }
+    
+    @Test
+    public void takeOverflowAttempt() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        Publisher<Integer> p = s -> {
+            s.onSubscribe(EmptySubscription.INSTANCE);
+            s.onNext(1);
+            s.onNext(2);
+            s.onNext(3);
+        };
+        
+        new PublisherTake<>(p, 2).subscribe(ts);
+        
+        ts.assertValues(1, 2)
+        .assertNoError()
+        .assertComplete();
     }
 }
