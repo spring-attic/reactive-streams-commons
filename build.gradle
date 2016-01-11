@@ -83,6 +83,11 @@ artifacts {
 	archives javadocJar
 }
 
+configurations.all {
+  // check for updates every build
+  resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 jar {
 	manifest {
 		name = 'reactive-streams-commons'
