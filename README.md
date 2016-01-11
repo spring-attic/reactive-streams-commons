@@ -1,6 +1,18 @@
 # reactive-streams-commons
 A Repository for commons utilities implementations for Reactive Streams.
 
+## Maven
+
+`
+repositories {
+    maven { url 'http://repo.spring.io/libs-snapshot' }
+}
+
+dependencies {
+    compile 'io.projectreactor:reactive-streams-commons:0.1.0.BUILD-SNAPSHOT'
+}
+`
+
 ## Supported datasources
 
 I.e., converts non-reactive data sources into `Publisher`s.
@@ -87,6 +99,7 @@ I.e., these allow leaving the reactive-streams world.
 
   - `BlockingIterable` : an iterable that consumes a Publisher in a blocking fashion
   - `BlockingFuture` : can return a future that consumes the source entierly and returns the very last value
+  - `BlockingStream` : allows creating sequential and parallel j.u.stream.Stream flows out of a source Publisher
 
 ## Travis status
 
