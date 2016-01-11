@@ -1,13 +1,18 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import java.util.stream.*;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -59,29 +64,6 @@ public final class BlockingIterable<T> implements Iterable<T> {
         }
         
         return new SubscriberIterator<>(q, batchSize);
-    }
-    
-    @Override
-    public Spliterator<T> spliterator() {
-        return stream().spliterator(); // cancellation should be composed through this way
-    }
-    
-    public Stream<T> stream() {
-        SubscriberIterator<T> it = createIterator();
-        source.subscribe(it);
-
-        Spliterator<T> sp = Spliterators.spliteratorUnknownSize(it, 0);
-        
-        return StreamSupport.stream(sp, false).onClose(it);
-    }
-
-    public Stream<T> parallelStream() {
-        SubscriberIterator<T> it = createIterator();
-        source.subscribe(it);
-
-        Spliterator<T> sp = Spliterators.spliteratorUnknownSize(it, 0);
-        
-        return StreamSupport.stream(sp, true).onClose(it);
     }
 
     static void throwError(Throwable e) {

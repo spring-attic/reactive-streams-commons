@@ -1,11 +1,27 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 /**
  * Experimental base class with fluent API.
@@ -347,7 +363,7 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     }
     
     public final Stream<T> stream(long batchSize) {
-        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier()).stream();
+        return new BlockingStream<>(this, batchSize, defaultQueueSupplier()).stream();
     }
 
     public final Stream<T> parallelStream() {
@@ -355,7 +371,7 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     }
     
     public final Stream<T> parallelStream(long batchSize) {
-        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier()).parallelStream();
+        return new BlockingStream<>(this, batchSize, defaultQueueSupplier()).parallelStream();
     }
 
     public final Future<T> toFuture() {

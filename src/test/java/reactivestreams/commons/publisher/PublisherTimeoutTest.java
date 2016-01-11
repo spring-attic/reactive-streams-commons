@@ -215,7 +215,7 @@ public class PublisherTimeoutTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         FluxProcessor<Integer, Integer> p = Processors.queue();
-        FluxProcessor<Integer, Integer> p2 = Processors.queue("test", 5);
+        FluxProcessor<Integer, Integer> p2 = Processors.queue("test", 16);
 
         p2.subscribe(ts);
 
