@@ -3,7 +3,7 @@ A Repository for commons utilities implementations for Reactive Streams.
 
 ## Maven
 
-`
+```
 repositories {
     maven { url 'http://repo.spring.io/libs-snapshot' }
 }
@@ -11,7 +11,7 @@ repositories {
 dependencies {
     compile 'io.projectreactor:reactive-streams-commons:0.1.0.BUILD-SNAPSHOT'
 }
-`
+```
 
 ## Supported datasources
 
