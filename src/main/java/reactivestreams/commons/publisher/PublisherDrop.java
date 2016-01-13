@@ -4,10 +4,12 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.Consumer;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Drops values if the subscriber doesn't request fast enough.
@@ -90,6 +92,11 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
         public void onNext(T t) {
 
             if (done) {
+                try {
+                    onDrop.accept(t);
+                } catch (Throwable e) {
+                    UnsignalledExceptions.onNextDropped(t);
+                }
                 return;
             }
 
