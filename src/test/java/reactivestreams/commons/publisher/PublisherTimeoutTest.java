@@ -237,4 +237,23 @@ public class PublisherTimeoutTest {
         ts.assertValueCount(100).assertComplete();
     }
 
+    @Test
+    public void timeoutRequested() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        
+        source.timeout(tp, v -> tp).subscribe(ts);
+        
+        tp.onNext(1);
+        
+        source.onNext(2);
+        source.onComplete();
+        
+        ts.assertNoValues()
+        .assertError(TimeoutException.class)
+        .assertNotComplete();
+    }
 }

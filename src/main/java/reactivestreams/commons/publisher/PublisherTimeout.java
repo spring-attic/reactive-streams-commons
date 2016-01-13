@@ -323,6 +323,8 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
                 if (this.s != CancelledSubscription.INSTANCE) {
                     SubscriptionHelper.reportSubscriptionSet();
                 }
+            } else {
+                s.request(Long.MAX_VALUE);
             }
         }
 
