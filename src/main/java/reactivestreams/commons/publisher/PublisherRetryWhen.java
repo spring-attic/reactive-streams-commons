@@ -4,10 +4,12 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Function;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.*;
+import reactivestreams.commons.subscriber.SerializedSubscriber;
+import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 
@@ -34,6 +36,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
     public void subscribe(Subscriber<? super T> s) {
 
         PublisherRetryWhenOtherSubscriber other = new PublisherRetryWhenOtherSubscriber();
+        other.completionSignal.onSubscribe(EmptySubscription.INSTANCE);
 
         SerializedSubscriber<T> serial = new SerializedSubscriber<>(s);
 
@@ -166,7 +169,6 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         @Override
         public void onSubscribe(Subscription s) {
             main.setWhen(s);
-            completionSignal.onSubscribe(EmptySubscription.INSTANCE);
         }
 
         @Override

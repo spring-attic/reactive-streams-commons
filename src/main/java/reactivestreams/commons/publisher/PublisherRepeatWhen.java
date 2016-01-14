@@ -36,6 +36,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
     public void subscribe(Subscriber<? super T> s) {
 
         PublisherRepeatWhenOtherSubscriber other = new PublisherRepeatWhenOtherSubscriber();
+        other.completionSignal.onSubscribe(EmptySubscription.INSTANCE);
 
         SerializedSubscriber<T> serial = new SerializedSubscriber<>(s);
 
@@ -103,14 +104,6 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
             super.cancel();
         }
 
-        void cancelWhen() {
-            otherArbiter.cancel();
-        }
-
-        public void setWhen(Subscription w) {
-            otherArbiter.set(w);
-        }
-
         @Override
         public void onSubscribe(Subscription s) {
             set(s);
@@ -137,6 +130,14 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
             produced(p);
             otherArbiter.request(1);
             signaller.onNext(p);
+        }
+
+        void cancelWhen() {
+            otherArbiter.cancel();
+        }
+
+        void setWhen(Subscription w) {
+            otherArbiter.set(w);
         }
 
         void resubscribe() {
@@ -177,7 +178,6 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         @Override
         public void onSubscribe(Subscription s) {
             main.setWhen(s);
-            completionSignal.onSubscribe(EmptySubscription.INSTANCE);
         }
 
         @Override
