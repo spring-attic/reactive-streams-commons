@@ -120,7 +120,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         public void onNext(T t) {
             subscriber.onNext(t);
 
-            producedOne();
+            produced++;
         }
 
         @Override
@@ -134,6 +134,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         public void onComplete() {
             long p = produced;
             produced = 0;
+            produced(p);
             otherArbiter.request(1);
             signaller.onNext(p);
         }
