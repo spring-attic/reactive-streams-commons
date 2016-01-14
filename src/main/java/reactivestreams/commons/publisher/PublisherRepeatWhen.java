@@ -4,10 +4,12 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Function;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.*;
+import reactivestreams.commons.subscriber.SerializedSubscriber;
+import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 
@@ -22,10 +24,10 @@ import reactivestreams.commons.subscription.EmptySubscription;
  */
 public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
-    final Function<? super PublisherBase<Object>, ? extends Publisher<? extends Object>> whenSourceFactory;
+    final Function<? super PublisherBase<Long>, ? extends Publisher<? extends Object>> whenSourceFactory;
 
     public PublisherRepeatWhen(Publisher<? extends T> source,
-                               Function<? super PublisherBase<Object>, ? extends Publisher<? extends Object>> whenSourceFactory) {
+                               Function<? super PublisherBase<Long>, ? extends Publisher<? extends Object>> whenSourceFactory) {
         super(source);
         this.whenSourceFactory = Objects.requireNonNull(whenSourceFactory, "whenSourceFactory");
     }
@@ -43,7 +45,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
         serial.onSubscribe(main);
 
-        Publisher<? extends Object> p;
+        Publisher<?> p;
 
         try {
             p = whenSourceFactory.apply(other);
@@ -68,7 +70,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
         final DeferredSubscription otherArbiter;
 
-        final Subscriber<Object> signaller;
+        final Subscriber<Long> signaller;
 
         final Publisher<? extends T> source;
 
@@ -79,9 +81,9 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
         volatile boolean cancelled;
 
-        static final Object NEXT = new Object();
+        long produced;
 
-        public PublisherRepeatWhenMainSubscriber(Subscriber<? super T> actual, Subscriber<Object> signaller,
+        public PublisherRepeatWhenMainSubscriber(Subscriber<? super T> actual, Subscriber<Long> signaller,
                                                  Publisher<? extends T> source) {
             super(actual);
             this.signaller = signaller;
@@ -130,9 +132,10 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
         @Override
         public void onComplete() {
+            long p = produced;
+            produced = 0;
             otherArbiter.request(1);
-
-            signaller.onNext(NEXT);
+            signaller.onNext(p);
         }
 
         void resubscribe() {
@@ -164,11 +167,11 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherRepeatWhenOtherSubscriber 
-    extends PublisherBase<Object>
+    extends PublisherBase<Long>
     implements Subscriber<Object>, FeedbackLoop, Trace, Inner {
         PublisherRepeatWhenMainSubscriber<?> main;
 
-        final SimpleProcessor<Object> completionSignal = new SimpleProcessor<>();
+        final SimpleProcessor<Long> completionSignal = new SimpleProcessor<>();
 
         @Override
         public void onSubscribe(Subscription s) {
@@ -192,7 +195,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public void subscribe(Subscriber<? super Object> s) {
+        public void subscribe(Subscriber<? super Long> s) {
             completionSignal.subscribe(s);
         }
 

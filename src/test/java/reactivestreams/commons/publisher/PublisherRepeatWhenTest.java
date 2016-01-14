@@ -1,7 +1,6 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherRepeatWhenTest {
@@ -136,6 +135,19 @@ public class PublisherRepeatWhenTest {
         
         ts.request(8);
         
+        ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2)
+        .assertNoError()
+        .assertNotComplete();
+    }
+
+    @Test
+    public void retryWithVolumeCondition() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+
+        new PublisherRange(1, 2).repeatWhen(v -> v.takeWhile(n -> n > 0)).subscribe(ts);
+
+        ts.request(8);
+
         ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2)
         .assertNoError()
         .assertNotComplete();

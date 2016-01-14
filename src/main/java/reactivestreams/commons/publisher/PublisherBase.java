@@ -83,7 +83,8 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new PublisherRetryWhen<>(this, whenFunction);
     }
 
-    public final PublisherBase<T> repeatWhen(Function<? super PublisherBase<Object>, ? extends Publisher<? extends Object>> whenFunction) {
+    public final PublisherBase<T> repeatWhen(Function<? super PublisherBase<Long>, ? extends Publisher<? extends
+            Object>> whenFunction) {
         return new PublisherRepeatWhen<>(this, whenFunction);
     }
 
