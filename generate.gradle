@@ -4,7 +4,7 @@
 def includingCoreScope = ['amb',
 						  'array',
 						  'callable',
-						  'defaultifempty',
+						  'switchifempty',
 						  /*'concatarray' ,*/ //managed by reactor-stream
 						  /*'concatiterable' ,*/ //managed by reactor-stream
 						  'error',
