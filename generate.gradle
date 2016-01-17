@@ -45,7 +45,8 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 //'SubscriberMultiSubscription': 'reactor.core.subscriber.SubscriberMultiSubscription',
 					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
 					 //'SubscriberDeferScalar'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'SimpleProcessor'      : 'reactor.core.processor.EmitterProcessor']
+					 'SimpleProcessor'      : 'reactor.core.processor.EmitterProcessor',
+					 'UnicastProcessor'      : 'reactor.rx.broadcast.UnicastProcessor']
 
 //Reactor Core configuration
 def reactorCore = ['api'                 : 'reactor.Flux',
@@ -221,6 +222,10 @@ task generateExtra(type: Copy) {
 	exclude '**/SimpleProcessor.java'
   }
 
+  if (target.UnicastProcessor) {
+	exclude '**/UnicastProcessor.java'
+  }
+
   if (target.SubscriptionHelper) {
 	exclude '**/SubscriptionHelper.java'
   }
@@ -276,6 +281,9 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	def l = line
 	if (target.SimpleProcessor) {
 	  l = l.replace("reactivestreams.commons.processor.SimpleProcessor", target.SimpleProcessor)
+	}
+	if (target.UnicastProcessor) {
+	  l = l.replace("reactivestreams.commons.processor.UnicastProcessor", target.UnicastProcessor)
 	}
 
 	if (target['fn-backport']) {
@@ -354,6 +362,10 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 
   if (target.SimpleProcessor) {
 	l = l.replace('SimpleProcessor', target.SimpleProcessor)
+  }
+
+  if (target.UnicastProcessor) {
+	l = l.replace('UnicastProcessor', target.UnicastProcessor)
   }
 
   return l
