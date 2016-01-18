@@ -22,6 +22,8 @@ public class PublisherWindowBeginEndTest {
         ctb.addRef("windowEnd", (Function<Object, Publisher<Object>>)v -> PublisherNever.instance());
         ctb.addRef("queueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
         ctb.addInt("bufferSize", 1, Integer.MAX_VALUE);
+        
+        ctb.test();
     }
     
     @Test

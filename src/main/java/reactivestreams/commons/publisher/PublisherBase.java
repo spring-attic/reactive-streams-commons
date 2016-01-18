@@ -395,6 +395,14 @@ public abstract class PublisherBase<T> implements Publisher<T> {
         return new BlockingFuture<>(this).completableFuture(defaultValue);
     }
     
+    public final <U> PublisherBase<List<T>> buffer(Publisher<U> other, int maxSize) {
+        return new PublisherBufferBoundaryAndSize<>(this, other, () -> new ArrayList<>(), maxSize, defaultQueueSupplier());
+    }
+
+    public final <U, C extends Collection<? super T>> PublisherBase<C> buffer(Publisher<U> other, int maxSize, Supplier<C> bufferSupplier) {
+        return new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultQueueSupplier());
+    }
+
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

@@ -28,11 +28,13 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherError` : emits a constant or generated Throwable exception
   - `PublisherFuture` : awaits and emits a single value emitted by a `Future`
   - `PublisherGenerate` : generate signals one-by-one via a function 
+  - `PublisherInterval` : periodically emits an ever increasing sequence of long values
   - `PublisherIterable` : emits the elements of an `Iterable`
   - `PublisherJust` : emits a single value
   - `PublisherNever` : doesn't emit any signal other than `onSubscribe`; use `instance()` to get its singleton instance with the proper type parameter
   - `PublisherRange` : emits a range of integer values
   - `PublisherStream` : emits elements of a `Stream`
+  - `PublisherTimer` : emit a single 0L after a specified amount of time
   - `PublisherUsing` : create a resource, stream values in a Publisher derived from the resource and release the resource when the sequence completes or the Subscriber cancels
   
 ## Supported transformations
@@ -43,6 +45,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherBuffer` : buffers certain number of subsequent elements and emits the buffers
   - `PublisherBufferBoundary` : buffers elements into continuous, non-overlapping lists where another Publisher
   signals the start/end of the buffer regions
+  - `PublisherBufferBoundaryAndSize` : buffers elements into continuous, non-overlapping lists where the each buffer is emitted when they become full or another Publisher signals the boundary of the buffer regions
   - `PublisherBufferStartEnd` : buffers elements into possibly overlapping buffers whose boundaries are determined
   by a start Publisher's element and a signal of a derived Publisher
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
