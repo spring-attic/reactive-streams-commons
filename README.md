@@ -91,6 +91,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherTimeout` uses per-item `Publisher`s that when they fire mean the timeout for that particular item unless a new item arrives in the meantime
   - `PublisherWindow` : splits the source sequence into possibly overlapping windows of given size
   - `PublisherWindowBoundary` : splits the source sequence into continuous, non-overlapping windows where the window boundary is signalled by another Publisher
+  - `PublisherWindowBoundaryAndSize` : splits the source sequence into continuous, non-overlapping windows where the window boundary is signalled by another Publisher or if a window received a specified amount of values
   - `PublisherWindowStartEnd` : splits the source sequence into potentially overlapping windows controlled by a
   start Publisher and a derived end Publisher for each start value
   - `PublisherWithLatestFrom` : combines values from a master source with the latest values of another Publisher via a function

@@ -110,7 +110,11 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other) {
         return new PublisherWindowBoundary<>(this, other, defaultQueueSupplier(), defaultQueueSupplier());
     }
-    
+
+    public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other, int maxSize) {
+        return new PublisherWindowBoundaryAndSize<>(this, other, defaultQueueSupplier(), defaultQueueSupplier(), maxSize);
+    }
+
     public final PublisherBase<T> accumulate(BiFunction<T, ? super T, T> accumulator) {
         return new PublisherAccumulate<>(this, accumulator);
     }

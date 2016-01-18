@@ -70,8 +70,8 @@ implements Processor<T, T> {
     }
     
     void drain() {
-        if (WIP.getAndIncrement(this) == 0) {
-            
+        if (WIP.getAndIncrement(this) != 0) {
+            return;
         }
         
         int missed = 1;
