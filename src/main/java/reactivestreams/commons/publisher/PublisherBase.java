@@ -310,7 +310,11 @@ public abstract class PublisherBase<T> implements Publisher<T> {
     public final <U, V> PublisherBase<PublisherBase<T>> window(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
         return new PublisherWindowStartEnd<>(this, start, end, defaultQueueSupplier(), defaultQueueSupplier());
     }
-    
+
+    public final <U, V> PublisherBase<PublisherBase<T>> window2(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
+        return new PublisherWindowBeginEnd<>(this, start, end, defaultQueueSupplier(), BUFFER_SIZE);
+    }
+
     public final PublisherBase<T> takeLast(int n) {
         return new PublisherTakeLast<>(this, n);
     }
