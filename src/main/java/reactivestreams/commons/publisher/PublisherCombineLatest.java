@@ -1,14 +1,25 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscription.*;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.subscription.CancelledSubscription;
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Combines the latest values from multiple sources through a function.
@@ -381,7 +392,8 @@ implements
                     try {
                         w = combiner.apply(v.array);
                     } catch (Throwable ex) {
-                        innerError(ex);
+                        innerError(ExceptionHelper.unwrap(ex));
+                        ExceptionHelper.throwIfFatal(ex);
                         continue;
                     }
                     

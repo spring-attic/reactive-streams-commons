@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.BackpressureHelper;
 import reactivestreams.commons.support.DrainHelper;
@@ -123,8 +124,8 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
                     b = bufferSupplier.get();
                 } catch (Throwable e) {
                     cancel();
-
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
 
@@ -491,8 +492,8 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
                     b = bufferSupplier.get();
                 } catch (Throwable e) {
                     cancel();
-
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
 

@@ -1,10 +1,13 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.subscription.EmptySubscription;
@@ -97,8 +100,8 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
                 action.accept(container, t);
             } catch (Throwable e) {
                 cancel();
-
-                onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
             }
         }
 

@@ -4,8 +4,9 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Predicate;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 
 /**
@@ -70,8 +71,10 @@ public final class PublisherRetryPredicate<T> extends PublisherSource<T, T> {
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
-                e.addSuppressed(t);
-                subscriber.onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                Throwable _t = ExceptionHelper.unwrap(e);
+                _t.addSuppressed(t);
+                subscriber.onError(_t);
                 return;
             }
             

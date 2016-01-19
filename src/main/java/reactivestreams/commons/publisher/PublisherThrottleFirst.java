@@ -1,14 +1,19 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Function;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscription.DeferredSubscription;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Takes a value from upstream then uses the duration provided by a 
@@ -117,8 +122,8 @@ public final class PublisherThrottleFirst<T, U> extends PublisherSource<T, T> {
                     p = throttler.apply(t);
                 } catch (Throwable e) {
                     SubscriptionHelper.terminate(S, this);
-                    
-                    error(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    error(ExceptionHelper.unwrap(e));
                     return;
                 }
                 

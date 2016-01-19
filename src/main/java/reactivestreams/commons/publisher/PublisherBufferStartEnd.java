@@ -1,15 +1,27 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * buffers elements into possibly overlapping buffers whose boundaries are determined
@@ -293,8 +305,8 @@ extends PublisherSource<T, C> {
                 b = bufferSupplier.get();
             } catch (Throwable e) {
                 cancelStart();
-                
-                anyError(e);
+                ExceptionHelper.throwIfFatal(e);
+                anyError(ExceptionHelper.unwrap(e));
                 return;
             }
             
@@ -320,8 +332,8 @@ extends PublisherSource<T, C> {
                 p = end.apply(u);
             } catch (Throwable e) {
                 cancelStart();
-                
-                anyError(e);
+                ExceptionHelper.throwIfFatal(e);
+                anyError(ExceptionHelper.unwrap(e));
                 return;
             }
             

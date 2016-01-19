@@ -1,10 +1,13 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.subscription.EmptySubscription;
@@ -96,8 +99,8 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
                 v = accumulator.apply(value, t);
             } catch (Throwable e) {
                 cancel();
-
-                onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
                 return;
             }
 

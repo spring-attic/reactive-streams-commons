@@ -7,6 +7,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
@@ -51,7 +52,8 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         try {
             p = whenSourceFactory.apply(other);
         } catch (Throwable e) {
-            s.onError(e);
+            ExceptionHelper.throwIfFatal(e);
+            s.onError(ExceptionHelper.unwrap(e));
             return;
         }
 

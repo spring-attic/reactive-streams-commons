@@ -4,10 +4,13 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.BiFunction;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
-import reactivestreams.commons.subscription.*;
+import reactivestreams.commons.subscription.CancelledSubscription;
+import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -135,7 +138,8 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
                 try {
                     r = combiner.apply(t, u);
                 } catch (Throwable e) {
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
 

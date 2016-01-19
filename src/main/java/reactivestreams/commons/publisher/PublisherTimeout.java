@@ -2,14 +2,19 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscriber.*;
-import reactivestreams.commons.subscription.*;
+import reactivestreams.commons.subscriber.SerializedSubscriber;
+import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.subscription.CancelledSubscription;
+import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -125,8 +130,8 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
                 p = itemTimeout.apply(t);
             } catch (Throwable e) {
                 cancel();
-
-                subscriber.onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                subscriber.onError(ExceptionHelper.unwrap(e));
                 return;
             }
 

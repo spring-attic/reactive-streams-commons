@@ -70,27 +70,15 @@ public final class UnsignalledExceptions {
     }
 
     /**
-     * Throws a particular {@code Throwable} only if it belongs to a set of "fatal" error varieties. These
-     * varieties are as follows:
-     * <ul>
-     * <li>{@code StackOverflowError}</li>
-     * <li>{@code VirtualMachineError}</li>
-     * <li>{@code ThreadDeath}</li>
-     * <li>{@code LinkageError}</li>
-     * </ul>
+     * Take an unsignalled exception that is masking anowher one due to callback failure.
      *
-     * @param t
+     * @param e the exception to handle, if null, a new NullPointerException is instantiated
      */
-    public static void throwIfFatal(Throwable t) {
-        if (t instanceof StackOverflowError) {
-            throw (StackOverflowError) t;
-        } else if (t instanceof VirtualMachineError) {
-            throw (VirtualMachineError) t;
-        } else if (t instanceof ThreadDeath) {
-            throw (ThreadDeath) t;
-        } else if (t instanceof LinkageError) {
-            throw (LinkageError) t;
+    public static void onErrorDropped(Throwable e, Throwable root) {
+        if(root != null) {
+            e.addSuppressed(root);
         }
+        onErrorDropped(e);
     }
 
     /**
@@ -99,7 +87,7 @@ public final class UnsignalledExceptions {
      * @param e the exception to handle, if null, a new NullPointerException is instantiated
      */
     public static void onErrorDropped(Throwable e) {
-        throwIfFatal(e);
+        ExceptionHelper.throwIfFatal(e);
         if (e == null) {
             e = new NullPointerException();
         }

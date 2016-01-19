@@ -3,8 +3,10 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.SubscriptionHelper;
 
@@ -79,8 +81,8 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
                     t = accumulator.apply(v, t);
                 } catch (Throwable e) {
                     s.cancel();
-
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
                 if (t == null) {

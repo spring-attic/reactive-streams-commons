@@ -1,15 +1,25 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.processor.UnicastProcessor;
-import reactivestreams.commons.subscription.*;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.subscription.DeferredSubscription;
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Splits the source sequence into potentially overlapping windowEnds controlled by items of a 
@@ -339,7 +349,8 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
                             try {
                                 p = end.apply(newWindow.value);
                             } catch (Throwable ex) {
-                                ExceptionHelper.addThrowable(ERROR, this, ex);
+                                ExceptionHelper.throwIfFatal(ex);
+                                ExceptionHelper.addThrowable(ERROR, this, ExceptionHelper.unwrap(ex));
                                 continue;
                             }
 

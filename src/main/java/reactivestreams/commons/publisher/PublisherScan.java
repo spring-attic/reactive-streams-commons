@@ -4,10 +4,13 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BiFunction;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Aggregates the source values with the help of an accumulator function
@@ -105,8 +108,10 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
                 r = accumulator.apply(r, t);
             } catch (Throwable e) {
                 s.cancel();
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
 
-                onError(e);
+                return;
             }
 
             if (r == null) {

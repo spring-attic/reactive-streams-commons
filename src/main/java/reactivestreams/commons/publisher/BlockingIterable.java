@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.support.ReactiveState;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
@@ -23,7 +24,7 @@ import reactivestreams.commons.support.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class BlockingIterable<T> implements Iterable<T> {
+public final class BlockingIterable<T> implements Iterable<T>, ReactiveState.Upstream, ReactiveState.Bounded {
 
     final Publisher<? extends T> source;
     
@@ -66,6 +67,16 @@ public final class BlockingIterable<T> implements Iterable<T> {
         return new SubscriberIterator<>(q, batchSize);
     }
 
+    @Override
+    public long getCapacity() {
+        return batchSize;
+    }
+
+    @Override
+    public Object upstream() {
+        return source;
+    }
+
     static void throwError(Throwable e) {
         if (e instanceof RuntimeException) {
             throw (RuntimeException)e;
@@ -73,7 +84,7 @@ public final class BlockingIterable<T> implements Iterable<T> {
         throw new RuntimeException(e);
     }
     
-    static final class SubscriberIterator<T> implements Subscriber<T>, Iterator<T>, Runnable {
+    static final class SubscriberIterator<T> implements Subscriber<T>, Iterator<T>, Runnable, Upstream {
 
         final Queue<T> queue;
         
@@ -216,5 +227,11 @@ public final class BlockingIterable<T> implements Iterable<T> {
         public void remove() {
             throw new UnsupportedOperationException("remove");
         }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
+
 }

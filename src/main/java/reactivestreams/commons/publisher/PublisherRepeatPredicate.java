@@ -4,8 +4,9 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.BooleanSupplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 
 /**
@@ -70,7 +71,8 @@ public final class PublisherRepeatPredicate<T> extends PublisherSource<T, T> {
             try {
                 b = predicate.getAsBoolean();
             } catch (Throwable e) {
-                subscriber.onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                subscriber.onError(ExceptionHelper.unwrap(e));
                 return;
             }
             

@@ -1,10 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.error.UnsignalledExceptions;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscription.EmptySubscription;
 
 /**
@@ -75,7 +77,7 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
                 }
                 catch (Throwable e) {
                     cancel();
-                    onError(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
             }
@@ -89,8 +91,9 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
                     parent.onCancelCall.run();
                 }
                 catch (Throwable e) {
-                    cancel();
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    s.cancel();
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
             }
@@ -105,7 +108,7 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
                 }
                 catch (Throwable e) {
                     onError(e);
-                    EmptySubscription.error(actual, e);
+                    EmptySubscription.error(actual, ExceptionHelper.unwrap(e));
                     return;
                 }
             }
@@ -121,7 +124,8 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
                 }
                 catch (Throwable e) {
                     cancel();
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
             }
@@ -131,14 +135,8 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
         @Override
         public void onError(Throwable t) {
             if(parent.onErrorCall != null) {
-                UnsignalledExceptions.throwIfFatal(t);
-                try {
-                    parent.onErrorCall.accept(t);
-                }
-                catch (Throwable e) {
-                    UnsignalledExceptions.onErrorDropped(e);
-                    return;
-                }
+                ExceptionHelper.throwIfFatal(t);
+                parent.onErrorCall.accept(t);
             }
 
             actual.onError(t);
@@ -148,11 +146,13 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
                     parent.onAfterTerminateCall.run();
                 }
                 catch (Throwable e) {
-                    UnsignalledExceptions.throwIfFatal(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    Throwable _e = ExceptionHelper.unwrap(e);
+                    e.addSuppressed(ExceptionHelper.unwrap(t));
                     if(parent.onErrorCall != null) {
-                        parent.onErrorCall.accept(t);
+                        parent.onErrorCall.accept(_e);
                     }
-                    actual.onError(e);
+                    actual.onError(_e);
                 }
             }
         }
@@ -164,7 +164,8 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
                     parent.onCompleteCall.run();
                 }
                 catch (Throwable e) {
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
             }
@@ -176,11 +177,12 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
                     parent.onAfterTerminateCall.run();
                 }
                 catch (Throwable e) {
-                    UnsignalledExceptions.throwIfFatal(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    Throwable _e = ExceptionHelper.unwrap(e);
                     if(parent.onErrorCall != null) {
-                        parent.onErrorCall.accept(e);
+                        parent.onErrorCall.accept(_e);
                     }
-                    actual.onError(e);
+                    actual.onError(_e);
                 }
             }
         }

@@ -1,10 +1,14 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
@@ -141,8 +145,8 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
             } catch (Throwable e) {
                 done = true;
                 s.cancel();
-                
-                actual.onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                actual.onError(ExceptionHelper.unwrap(e));
                 return;
             }
             

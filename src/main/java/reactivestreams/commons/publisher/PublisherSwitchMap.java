@@ -1,14 +1,22 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscription.*;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.subscription.CancelledSubscription;
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Switches to a new Publisher generated via a function whenever the upstream produces an item.
@@ -151,7 +159,8 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
                 p = mapper.apply(t);
             } catch (Throwable e) {
                 s.cancel();
-                onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
                 return;
             }
             

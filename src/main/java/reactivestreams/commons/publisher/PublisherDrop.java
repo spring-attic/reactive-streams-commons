@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.support.BackpressureHelper;
 import reactivestreams.commons.support.SubscriptionHelper;
@@ -113,8 +114,8 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
                     onDrop.accept(t);
                 } catch (Throwable e) {
                     cancel();
-
-                    onError(e);
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
                 }
             }
         }

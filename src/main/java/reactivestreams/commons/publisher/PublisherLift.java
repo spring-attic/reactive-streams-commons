@@ -3,8 +3,9 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscription.EmptySubscription;
 
 /**
@@ -34,7 +35,8 @@ public final class PublisherLift<T, R> extends PublisherSource<T, R> {
         try {
             ts = lifter.apply(s);
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            ExceptionHelper.throwIfFatal(e);
+            EmptySubscription.error(s, ExceptionHelper.unwrap(e));
             return;
         }
 

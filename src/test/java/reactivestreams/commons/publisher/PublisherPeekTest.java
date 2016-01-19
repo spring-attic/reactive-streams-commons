@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Subscription;
-
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 
 public class PublisherPeekTest {
@@ -173,6 +173,45 @@ public class PublisherPeekTest {
         ts.cancel();
 
         Assert.assertTrue(onCancel.get());
+    }
+
+    @Test
+    public void callbackError(){
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        Throwable err = new Exception("test");
+
+        new PublisherPeek<>(new PublisherJust<>(1),
+                null,
+                d -> ExceptionHelper.fail(err),
+                null,
+                null,
+                null,
+                null,
+                null
+        ).subscribe(ts);
+
+        //nominal error path (DownstreamException)
+        ts.assertError(err);
+
+        ts = new TestSubscriber<>();
+
+        try {
+            new PublisherPeek<>(new PublisherJust<>(1),
+                    null,
+                    d -> ExceptionHelper.failUpstream(err),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null).subscribe(ts);
+
+            Assert.fail();
+        }
+        catch (Exception e){
+            //fatal publisher exception (UpstreamException)
+            Assert.assertTrue(ExceptionHelper.unwrap(e) == err);
+        }
     }
 
 }

@@ -1,14 +1,22 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
-import reactivestreams.commons.subscription.*;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.subscription.DeferredSubscription;
+import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.SubscriptionHelper;
 
 /**
  * Emits the last value from upstream only if there were no newer values emitted
@@ -143,7 +151,8 @@ public final class PublisherThrottleTimeout<T, U> extends PublisherSource<T, T> 
             try {
                 p = throttler.apply(t);
             } catch (Throwable e) {
-                onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
                 return;
             }
 

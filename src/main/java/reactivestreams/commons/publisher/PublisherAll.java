@@ -3,8 +3,10 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
 import reactivestreams.commons.support.SubscriptionHelper;
@@ -75,7 +77,8 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
             } catch (Throwable e) {
                 done = true;
                 s.cancel();
-
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
                 subscriber.onError(e);
                 return;
             }

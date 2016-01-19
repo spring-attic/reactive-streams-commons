@@ -1,10 +1,14 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.function.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
@@ -90,8 +94,8 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
                 k = keyExtractor.apply(t);
             } catch (Throwable e) {
                 s.cancel();
-
-                onError(e);
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
                 return;
             }
 

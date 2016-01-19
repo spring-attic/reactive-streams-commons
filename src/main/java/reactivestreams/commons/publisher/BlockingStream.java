@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.reactivestreams.Publisher;
+import reactivestreams.commons.error.ExceptionHelper;
 
 /**
  * An iterable that consumes a Publisher in a blocking fashion.
@@ -51,7 +52,8 @@ public final class BlockingStream<T> implements Iterable<T> {
         try {
             q = queueSupplier.get();
         } catch (Throwable e) {
-            BlockingIterable.throwError(e);
+            ExceptionHelper.throwIfFatal(e);
+            ExceptionHelper.fail(e);
             return null;
         }
         
