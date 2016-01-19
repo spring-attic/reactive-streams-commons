@@ -3,8 +3,10 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 
 /**
@@ -91,8 +93,10 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
                 try {
                     p = nextFactory.apply(t);
                 } catch (Throwable e) {
-                    e.addSuppressed(t);
-                    subscriber.onError(e);
+                    Throwable _e = ExceptionHelper.unwrap(e);
+                    _e.addSuppressed(t);
+                    ExceptionHelper.throwIfFatal(e);
+                    subscriber.onError(_e);
                     return;
                 }
                 if (p == null) {
