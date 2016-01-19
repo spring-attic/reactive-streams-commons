@@ -6,8 +6,8 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.support.ExceptionHelper;
 
 /**
  * Resumes the failed main sequence with another sequence returned by

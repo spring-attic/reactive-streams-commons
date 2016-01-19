@@ -2,10 +2,11 @@ package reactivestreams.commons.publisher;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.error.UnsignalledExceptions;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.support.UnsignalledExceptions;
 
 /**
  * Emits a single item at most from the source.

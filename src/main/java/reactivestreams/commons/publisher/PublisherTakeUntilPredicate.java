@@ -6,9 +6,9 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.error.ExceptionHelper;
-import reactivestreams.commons.error.UnsignalledExceptions;
+import reactivestreams.commons.support.ExceptionHelper;
 import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.support.UnsignalledExceptions;
 
 /**
  * Relays values until a predicate returns

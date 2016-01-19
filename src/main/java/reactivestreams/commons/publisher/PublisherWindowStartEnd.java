@@ -13,13 +13,13 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.error.ExceptionHelper;
-import reactivestreams.commons.error.UnsignalledExceptions;
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
 import reactivestreams.commons.support.BackpressureHelper;
+import reactivestreams.commons.support.ExceptionHelper;
 import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.support.UnsignalledExceptions;
 
 /**
  * Splits the source sequence into potentially overlapping windowEnds controlled by items of a 

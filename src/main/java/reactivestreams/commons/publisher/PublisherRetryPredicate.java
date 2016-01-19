@@ -6,8 +6,8 @@ import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.support.ExceptionHelper;
 
 /**
  * Repeatedly subscribes to the source if the predicate returns true after

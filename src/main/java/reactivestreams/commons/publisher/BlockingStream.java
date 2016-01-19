@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.error.ExceptionHelper;
+import reactivestreams.commons.support.ExceptionHelper;
 
 /**
  * An iterable that consumes a Publisher in a blocking fashion.

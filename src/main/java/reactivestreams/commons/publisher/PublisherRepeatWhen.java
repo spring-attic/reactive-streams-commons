@@ -7,12 +7,12 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.subscription.DeferredSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ExceptionHelper;
 
 /**
  * Repeats a source when a companion sequence

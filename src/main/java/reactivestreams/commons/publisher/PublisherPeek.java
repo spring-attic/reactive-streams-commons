@@ -6,8 +6,8 @@ import java.util.function.LongConsumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ExceptionHelper;
 
 /**
  * Peek into the lifecycle events and signals of a sequence.

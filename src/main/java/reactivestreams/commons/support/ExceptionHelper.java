@@ -1,4 +1,4 @@
-package reactivestreams.commons.error;
+package reactivestreams.commons.support;
 
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 

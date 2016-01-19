@@ -7,10 +7,10 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.error.ExceptionHelper;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
 import reactivestreams.commons.subscription.CancelledSubscription;
 import reactivestreams.commons.subscription.EmptySubscription;
+import reactivestreams.commons.support.ExceptionHelper;
 import reactivestreams.commons.support.SubscriptionHelper;
 
 /**

@@ -2,11 +2,12 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.error.UnsignalledExceptions;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
 import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.support.UnsignalledExceptions;
 
 /**
  * Delays the subscription to the main source until another Publisher
