@@ -32,8 +32,8 @@ def excludingStreamScope = includingCoreScope + ['generate',
 
 //Common reactor helper references
 def reactorCommon = ['fn-backport'          : 'reactor.fn',
-					 'api-single'           : 'reactor.Mono',
-					 'api-single-operator'  : 'reactor.Mono.MonoBarrier',
+					 'api-single'           : 'reactor.core.publisher.Mono',
+					 'api-single-operator'  : 'reactor.core.publisher.Mono.MonoBarrier',
 					 'test-type'            : false,
 					 'extra-packages'       : 'reactor.core',
 					 'header'               : '@since 2.5',
@@ -50,9 +50,9 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'UnicastProcessor'      : 'reactor.rx.broadcast.UnicastProcessor']
 
 //Reactor Core configuration
-def reactorCore = ['api'                 : 'reactor.Flux',
+def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
 				   'api-package'         : 'reactor.core.publisher',
-				   'api-operator'        : 'reactor.Flux.FluxBarrier',
+				   'api-operator'        : 'reactor.core.publisher.Flux.FluxBarrier',
 				   'SerializedSubscriber': false,
 				   'include'             : includingCoreScope] + reactorCommon
 

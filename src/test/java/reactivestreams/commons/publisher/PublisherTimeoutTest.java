@@ -9,8 +9,8 @@ import org.reactivestreams.Publisher;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
 import reactivestreams.commons.support.ConstructorTestBuilder;
-import reactor.Processors;
 import reactor.core.publisher.FluxProcessor;
+import reactor.core.publisher.Processors;
 import reactor.core.subscription.ReactiveSession;
 
 public class PublisherTimeoutTest {
