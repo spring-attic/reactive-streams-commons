@@ -46,7 +46,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 //'SubscriberMultiSubscription': 'reactor.core.subscriber.SubscriberMultiSubscription',
 					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
 					 //'SubscriberDeferScalar'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'SimpleProcessor'      : 'reactor.core.processor.EmitterProcessor',
+					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
 					 'UnicastProcessor'      : 'reactor.rx.broadcast.UnicastProcessor']
 
 //Reactor Core configuration
