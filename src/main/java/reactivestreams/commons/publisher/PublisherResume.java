@@ -28,7 +28,7 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
 //        this(source, create(next));
 //    }
 //
-    static <T> Function<Throwable, Publisher<? extends T>> create(Publisher<? extends T> next) {
+    static <T> Function<Throwable, Publisher<? extends T>> create(final Publisher<? extends T> next) {
         Objects.requireNonNull(next, "next");
         return new Function<Throwable, Publisher<? extends T>>() {
             @Override
