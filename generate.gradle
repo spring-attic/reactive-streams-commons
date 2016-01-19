@@ -24,7 +24,8 @@ def includingCoreScope = ['amb',
 //A complete RS commons coverage minus the lite core
 def excludingStreamScope = includingCoreScope + ['generate',
 												 'completablefuture',
-												 'flatmap',
+												 'flatmap', 'timer', 'interval', 'blockingfuture',
+												 'blockingiterable', 'blockingstream',
 												 'lift', //Already managed by reactor-core
 												 'stream',
 												 'zip'] - ['map']
