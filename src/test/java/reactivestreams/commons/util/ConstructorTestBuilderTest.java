@@ -1,9 +1,10 @@
-package reactivestreams.commons.support;
+package reactivestreams.commons.util;
 
 import java.lang.reflect.Constructor;
 import java.util.Objects;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ConstructorTestBuilderTest {
     static class A {

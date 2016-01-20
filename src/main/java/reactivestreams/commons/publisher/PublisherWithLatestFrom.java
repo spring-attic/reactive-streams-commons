@@ -8,10 +8,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
-import reactivestreams.commons.subscription.CancelledSubscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ExceptionHelper;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Combines values from a main Publisher with values from another

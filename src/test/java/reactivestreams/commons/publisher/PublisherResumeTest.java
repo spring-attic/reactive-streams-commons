@@ -4,10 +4,9 @@ import java.util.function.Function;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
-import reactivestreams.commons.support.ConstructorTestBuilder;
+import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherResumeTest {
 

@@ -13,8 +13,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * An iterable that consumes a Publisher in a blocking fashion.

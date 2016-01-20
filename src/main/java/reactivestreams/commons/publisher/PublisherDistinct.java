@@ -8,10 +8,10 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ExceptionHelper;
-import reactivestreams.commons.support.SubscriptionHelper;
-import reactivestreams.commons.support.UnsignalledExceptions;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * For each subscriber, tracks the source values that have been seen and

@@ -10,9 +10,9 @@ import org.reactivestreams.Subscription;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.subscription.DeferredSubscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ExceptionHelper;
+import reactivestreams.commons.util.DeferredSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
 
 /**
  * Repeats a source when a companion sequence

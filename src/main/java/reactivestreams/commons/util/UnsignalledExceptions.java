@@ -1,4 +1,4 @@
-package reactivestreams.commons.support;
+package reactivestreams.commons.util;
 
 import java.util.function.Consumer;
 

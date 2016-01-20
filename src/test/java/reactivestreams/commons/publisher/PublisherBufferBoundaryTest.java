@@ -1,13 +1,16 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 
-import org.junit.*;
-
+import org.junit.Assert;
+import org.junit.Test;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
-import reactivestreams.commons.support.ConstructorTestBuilder;
+import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherBufferBoundaryTest {
 

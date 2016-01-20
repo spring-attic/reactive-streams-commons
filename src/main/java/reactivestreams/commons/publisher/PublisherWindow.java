@@ -12,10 +12,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.processor.UnicastProcessor;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.SubscriptionHelper;
-import reactivestreams.commons.support.UnsignalledExceptions;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Splits the source sequence into possibly overlapping publishers.

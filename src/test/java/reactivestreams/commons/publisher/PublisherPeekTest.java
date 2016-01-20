@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
-import reactivestreams.commons.support.ExceptionHelper;
+import reactivestreams.commons.util.ExceptionHelper;
 
 public class PublisherPeekTest {
     @Test(expected = NullPointerException.class)

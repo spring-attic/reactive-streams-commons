@@ -4,9 +4,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
-
-import reactivestreams.commons.subscription.ScalarSubscription;
-import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.util.ScalarSubscription;
 
 public final class PublisherJust<T> 
 extends PublisherBase<T>

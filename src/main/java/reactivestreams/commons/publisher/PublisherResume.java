@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.support.ExceptionHelper;
+import reactivestreams.commons.util.ExceptionHelper;
 
 /**
  * Resumes the failed main sequence with another sequence returned by

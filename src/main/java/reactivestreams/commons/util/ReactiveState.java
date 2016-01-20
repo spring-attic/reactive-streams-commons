@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package reactivestreams.commons.support;
+package reactivestreams.commons.util;
 
 import java.util.Iterator;
 

@@ -1,14 +1,18 @@
 package reactivestreams.commons.subscriber.test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.EmptySubscriber;
 import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
-import reactivestreams.commons.support.SubscriptionHelper;
-
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * A Subscriber implementation that hosts assertion tests for its state and allows asynchronous cancellation and

@@ -6,9 +6,9 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.ExceptionHelper;
-import reactivestreams.commons.support.SubscriptionHelper;
-import reactivestreams.commons.support.UnsignalledExceptions;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Accumulates the source values with an accumulator function and

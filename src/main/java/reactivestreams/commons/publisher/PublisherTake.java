@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.SubscriptionHelper;
-import reactivestreams.commons.support.UnsignalledExceptions;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Takes only the first N values from the source Publisher.

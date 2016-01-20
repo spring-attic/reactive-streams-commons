@@ -1,12 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.reactivestreams.Subscriber;
-
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Emits the contents of a Stream source.

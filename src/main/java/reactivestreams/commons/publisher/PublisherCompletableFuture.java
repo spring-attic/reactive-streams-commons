@@ -4,9 +4,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.reactivestreams.Subscriber;
-
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Emits the value or error produced by the wrapped CompletableFuture.

@@ -2,8 +2,8 @@ package reactivestreams.commons.subscriber;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Subscriber that makes sure signals are delivered sequentially in case the onNext, onError or onComplete methods are

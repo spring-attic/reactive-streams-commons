@@ -8,8 +8,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.support.DrainHelper;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.DrainHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits the last N values the source emitted before its completion.

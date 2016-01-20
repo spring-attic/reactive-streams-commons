@@ -1,15 +1,15 @@
 package reactivestreams.commons.subscriber;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * A subscription implementation that arbitrates request amounts between subsequent Subscriptions, including the

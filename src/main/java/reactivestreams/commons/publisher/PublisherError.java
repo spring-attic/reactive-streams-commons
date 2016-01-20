@@ -4,9 +4,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
-
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Emits a constant or generated Throwable instance to Subscribers.

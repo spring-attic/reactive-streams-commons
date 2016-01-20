@@ -1,9 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Counts the number of values in the source sequence.

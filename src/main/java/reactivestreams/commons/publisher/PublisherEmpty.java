@@ -2,10 +2,10 @@ package reactivestreams.commons.publisher;
 
 import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ReactiveState;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Represents an empty publisher which only calls onSubscribe and onComplete.

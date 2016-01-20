@@ -1,11 +1,9 @@
-package reactivestreams.commons.support;
+package reactivestreams.commons.util;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscription;
-
-import reactivestreams.commons.subscription.CancelledSubscription;
 
 /**
  * Utility methods to help working with Subscriptions and their methods.

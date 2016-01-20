@@ -7,7 +7,7 @@ import java.util.function.BooleanSupplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.support.ExceptionHelper;
+import reactivestreams.commons.util.ExceptionHelper;
 
 /**
  * Repeatedly subscribes to the source if the predicate returns true after

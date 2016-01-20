@@ -2,14 +2,15 @@ package reactivestreams.commons.publisher;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
-
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
-import reactivestreams.commons.support.ConstructorTestBuilder;
+import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherThrottleTimeoutTest {
 

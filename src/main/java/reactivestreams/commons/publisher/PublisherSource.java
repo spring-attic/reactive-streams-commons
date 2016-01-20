@@ -3,8 +3,7 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 
 import org.reactivestreams.Publisher;
-
-import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Keep reference to the upstream Publisher in order to apply operator Subscribers

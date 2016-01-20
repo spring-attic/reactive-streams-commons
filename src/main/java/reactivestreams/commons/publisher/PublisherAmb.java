@@ -1,13 +1,17 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Given a set of source Publishers the values of that Publisher is forwarded to the

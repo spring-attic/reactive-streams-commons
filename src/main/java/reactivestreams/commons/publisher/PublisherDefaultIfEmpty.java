@@ -2,10 +2,11 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits a scalar value if the source sequence turns out to be empty.

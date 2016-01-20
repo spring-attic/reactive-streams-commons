@@ -37,8 +37,8 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'test-type'            : false,
 					 'extra-packages'       : 'reactor.core',
 					 'header'               : '@since 2.5',
-					 'SubscriptionHelper'   : 'reactor.core.subscription.BackpressureUtils',
-					 'BackpressureHelper'   : 'reactor.core.subscription.BackpressureUtils',
+					 'SubscriptionHelper'   : 'BackpressureUtils',
+					 'BackpressureHelper'   : 'BackpressureUtils',
 					 'ExceptionHelper'   : 'Exceptions',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
@@ -60,7 +60,7 @@ def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'api-package'         : 'reactor.rx.stream',
 					 'api-operator'        : 'StreamBarrier',
-					 'DrainHelper'   : 'reactor.rx.support.DrainUtils',
+					 'DrainHelper'   : 'reactor.rx.util.DrainUtils',
 					 'SerializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
@@ -195,7 +195,7 @@ task generateTargetSingleAPI(type: Copy) {
 }
 
 task generateExtra(type: Copy) {
-  description = 'Generate extra package (subscriber, subscription, processor, support) for target integration'
+  description = 'Generate extra package (subscriber, subscription, processor, util) for target integration'
 
   def target = targets[project.hasProperty('library') ? library : defaultTarget] ?: defaultTarget
   includeEmptyDirs = false
@@ -346,12 +346,10 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   if (l.contains('BackpressureHelper') && target['BackpressureHelper']) {
-	def s = target['BackpressureHelper'].split('.')
-	l = l.replace('BackpressureHelper', s[s.size() - 1])
+	l = l.replace('BackpressureHelper', target['BackpressureHelper'])
   }
   else if (l.contains('SubscriptionHelper') && target['SubscriptionHelper']) {
-	def s = target['SubscriptionHelper'].split('.')
-	l = l.replace('SubscriptionHelper', s[s.size() - 1])
+	l = l.replace('SubscriptionHelper', target['SubscriptionHelper'])
   }
   else if (l.contains('ExceptionHelper') && target['ExceptionHelper']) {
 	l = l.replace('ExceptionHelper', target['ExceptionHelper'])

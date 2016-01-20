@@ -1,12 +1,16 @@
 package reactivestreams.commons.processor;
 
 import java.util.Queue;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Processor;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.support.*;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * A Processor implementation that takes a custom queue and allows

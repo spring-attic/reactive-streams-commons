@@ -5,8 +5,8 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ExceptionHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
 
 /**
  * Maps the downstream Subscriber into an upstream Subscriber

@@ -3,11 +3,13 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
-import reactivestreams.commons.subscription.*;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Skips values from the main publisher until the other publisher signals

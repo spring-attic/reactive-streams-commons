@@ -1,7 +1,11 @@
-package reactivestreams.commons.support;
+package reactivestreams.commons.util;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Test constructor parameters

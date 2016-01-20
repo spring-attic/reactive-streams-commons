@@ -11,12 +11,12 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscription.CancelledSubscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.BackpressureHelper;
-import reactivestreams.commons.support.ExceptionHelper;
-import reactivestreams.commons.support.SubscriptionHelper;
-import reactivestreams.commons.support.UnsignalledExceptions;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Switches to a new Publisher generated via a function whenever the upstream produces an item.

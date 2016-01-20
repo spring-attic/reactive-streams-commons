@@ -6,8 +6,8 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.support.ExceptionHelper;
-import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Executes a Callable function and emits a single value to each individual Subscriber.

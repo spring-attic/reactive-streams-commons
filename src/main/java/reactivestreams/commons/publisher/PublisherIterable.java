@@ -1,12 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.*;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits the contents of an Iterable source.

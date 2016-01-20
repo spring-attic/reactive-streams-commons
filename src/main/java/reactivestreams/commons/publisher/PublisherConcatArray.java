@@ -1,13 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ReactiveState;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Concatenates a fixed array of Publishers' values.

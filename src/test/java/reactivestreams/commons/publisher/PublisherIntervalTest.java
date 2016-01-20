@@ -1,13 +1,16 @@
 package reactivestreams.commons.publisher;
 
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
+import java.util.function.LongSupplier;
 
-import org.junit.*;
-
+import org.junit.Assert;
+import org.junit.Test;
 import reactivestreams.commons.subscriber.test.TestSubscriber;
-import reactivestreams.commons.support.ConstructorTestBuilder;
+import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherIntervalTest {
 

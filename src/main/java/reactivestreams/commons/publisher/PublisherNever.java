@@ -1,9 +1,9 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.subscription.EmptySubscription;
-import reactivestreams.commons.support.ReactiveState;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Represents an never publisher which only calls onSubscribe.

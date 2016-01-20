@@ -1,9 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.support.SubscriptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
 

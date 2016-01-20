@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package reactivestreams.commons.subscription;
+package reactivestreams.commons.util;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.support.*;
+import org.reactivestreams.Subscription;
 
 /**
  * Base class for Subscribers that will receive their Subscriptions at any time yet

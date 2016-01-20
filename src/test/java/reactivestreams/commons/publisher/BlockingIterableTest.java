@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
-import reactivestreams.commons.support.ConstructorTestBuilder;
+import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class BlockingIterableTest {
 

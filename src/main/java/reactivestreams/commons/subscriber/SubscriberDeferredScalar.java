@@ -1,13 +1,13 @@
 package reactivestreams.commons.subscriber;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.support.ReactiveState;
-import reactivestreams.commons.support.SubscriptionHelper;
-
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Supplier;
+
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * A Subscriber/Subscription barrier that holds a single value at most and properly gates asynchronous behaviors

@@ -2,10 +2,10 @@ package reactivestreams.commons.subscriber;
 
 import java.util.Objects;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.subscription.DeferredSubscription;
-import reactivestreams.commons.support.ReactiveState;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.util.DeferredSubscription;
+import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Arbitrates the requests and cancellation for a Subscription that may be set onSubscribe once only.

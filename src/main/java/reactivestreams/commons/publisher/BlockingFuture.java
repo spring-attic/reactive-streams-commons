@@ -1,13 +1,20 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.subscription.CancelledSubscription;
-import reactivestreams.commons.support.SubscriptionHelper;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Creates a Future that consumes a source Publisher and returns the very last value,
