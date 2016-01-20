@@ -37,8 +37,8 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'test-type'            : false,
 					 'extra-packages'       : 'reactor.core',
 					 'header'               : '@since 2.5',
-					 'SubscriptionHelper'   : 'BackpressureUtils',
-					 'BackpressureHelper'   : 'BackpressureUtils',
+					 'SubscriptionHelper'   : 'reactor.core.subscription.BackpressureUtils',
+					 'BackpressureHelper'   : 'reactor.core.subscription.BackpressureUtils',
 					 'ExceptionHelper'   : 'Exceptions',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
@@ -46,7 +46,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 //'SubscriberMultiSubscription': 'reactor.core.subscriber.SubscriberMultiSubscription',
 					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
 					 //'SubscriberDeferScalar'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
-					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
+					 'SimpleProcessor'      : 'reactor.core.publisher.ProcessorEmitter',
 					 'UnicastProcessor'      : 'reactor.rx.broadcast.UnicastProcessor']
 
 //Reactor Core configuration
@@ -346,10 +346,12 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   if (l.contains('BackpressureHelper') && target['BackpressureHelper']) {
-	l = l.replace('BackpressureHelper', target['BackpressureHelper'])
+	def s = target['BackpressureHelper'].split('.')
+	l = l.replace('BackpressureHelper', s[s.size() - 1])
   }
   else if (l.contains('SubscriptionHelper') && target['SubscriptionHelper']) {
-	l = l.replace('SubscriptionHelper', target['SubscriptionHelper'])
+	def s = target['SubscriptionHelper'].split('.')
+	l = l.replace('SubscriptionHelper', s[s.size() - 1])
   }
   else if (l.contains('ExceptionHelper') && target['ExceptionHelper']) {
 	l = l.replace('ExceptionHelper', target['ExceptionHelper'])
