@@ -21,24 +21,24 @@ import reactivestreams.commons.util.UnsignalledExceptions;
 /**
  * Splits the source sequence into continuous, non-overlapping windowEnds 
  * where the window boundary is signalled by another Publisher
- * 
+ *
  * @param <T> the input value type
  * @param <U> the boundary publisher's type (irrelevant)
  */
 public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<T, PublisherBase<T>> {
 
     final Publisher<U> other;
-    
+
     final Supplier<? extends Queue<T>> processorQueueSupplier;
 
     final Supplier<? extends Queue<Object>> drainQueueSupplier;
-    
+
     final int maxSize;
 
-    public PublisherWindowBoundaryAndSize(Publisher<? extends T> source, Publisher<U> other, 
+    public PublisherWindowBoundaryAndSize(Publisher<? extends T> source, Publisher<U> other,
             Supplier<? extends Queue<T>> processorQueueSupplier,
-                    Supplier<? extends Queue<Object>> drainQueueSupplier,
-                            int maxSize) {
+            Supplier<? extends Queue<Object>> drainQueueSupplier,
+            int maxSize) {
         super(source);
         if (maxSize < 1) {
             throw new IllegalArgumentException("maxSize > 0 required but it was " + maxSize);
@@ -53,7 +53,7 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
     public void subscribe(Subscriber<? super PublisherBase<T>> s) {
 
         Queue<T> q;
-        
+
         try {
             q = processorQueueSupplier.get();
         } catch (Throwable e) {
@@ -65,9 +65,9 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
             EmptySubscription.error(s, new NullPointerException("The processorQueueSupplier returned a null queue"));
             return;
         }
-        
+
         Queue<Object> dq;
-        
+
         try {
             dq = drainQueueSupplier.get();
         } catch (Throwable e) {
@@ -81,38 +81,38 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
         }
 
         PublisherWindowBoundaryMain<T, U> main = new PublisherWindowBoundaryMain<>(s, processorQueueSupplier, q, dq, maxSize);
-        
+
         s.onSubscribe(main);
-        
+
         if (main.emit(main.window)) {
             other.subscribe(main.boundary);
-            
+
             source.subscribe(main);
         }
     }
-    
+
     static final class PublisherWindowBoundaryMain<T, U>
-    implements Subscriber<T>, Subscription, Runnable {
-        
+            implements Subscriber<T>, Subscription, Runnable {
+
         final Subscriber<? super PublisherBase<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
-        
+
         final PublisherWindowBoundaryOther<U> boundary;
-        
+
         final Queue<Object> queue;
-        
+
         final int maxSize;
-        
+
         UnicastProcessor<T> window;
-        
+
         int size;
 
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherWindowBoundaryMain, Subscription> S =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherWindowBoundaryMain.class, Subscription.class, "s");
-        
+
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherWindowBoundaryMain> REQUESTED =
@@ -127,7 +127,7 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherWindowBoundaryMain, Throwable> ERROR =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherWindowBoundaryMain.class, Throwable.class, "error");
-        
+
         volatile boolean cancelled;
 
         volatile int open;
@@ -141,10 +141,10 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                 AtomicIntegerFieldUpdater.newUpdater(PublisherWindowBoundaryMain.class, "once");
 
         static final Object BOUNDARY_MARKER = new Object();
-        
-        public PublisherWindowBoundaryMain(Subscriber<? super PublisherBase<T>> actual, 
-                Supplier<? extends Queue<T>> processorQueueSupplier, 
-                        Queue<T> processorQueue, Queue<Object> queue, int maxSize) {
+
+        public PublisherWindowBoundaryMain(Subscriber<? super PublisherBase<T>> actual,
+                Supplier<? extends Queue<T>> processorQueueSupplier,
+                Queue<T> processorQueue, Queue<Object> queue, int maxSize) {
             this.actual = actual;
             this.processorQueueSupplier = processorQueueSupplier;
             this.window = new UnicastProcessor<>(processorQueue, this);
@@ -153,14 +153,14 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
             this.queue = queue;
             this.maxSize = maxSize;
         }
-        
+
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
                 s.request(Long.MAX_VALUE);
             }
         }
-        
+
         @Override
         public void onNext(T t) {
             synchronized (this) {
@@ -168,7 +168,7 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
             }
             drain();
         }
-        
+
         @Override
         public void onError(Throwable t) {
             if (ExceptionHelper.addThrowable(ERROR, this, t)) {
@@ -178,18 +178,16 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                 UnsignalledExceptions.onErrorDropped(t);
             }
         }
-        
+
         @Override
         public void onComplete() {
             synchronized (this) {
-                if(!queue.isEmpty()) {
-                    queue.offer(BOUNDARY_MARKER);
-                }
+                queue.offer(BOUNDARY_MARKER);
             }
             mainDone();
             drain();
         }
-        
+
         @Override
         public void run() {
             if (OPEN.decrementAndGet(this) == 0) {
@@ -197,14 +195,14 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                 boundary.cancel();
             }
         }
-        
+
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 BackpressureHelper.addAndGet(REQUESTED, this, n);
             }
         }
-        
+
         void cancelMain() {
             SubscriptionHelper.terminate(S, this);
         }
@@ -214,27 +212,25 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                 run();
             }
         }
-        
+
         @Override
         public void cancel() {
             cancelled = true;
             mainDone();
         }
-        
+
         void boundaryNext() {
             synchronized (this) {
-                if(!queue.isEmpty()) {
-                    queue.offer(BOUNDARY_MARKER);
-                }
+                queue.offer(BOUNDARY_MARKER);
             }
-            
+
             if (cancelled) {
                 boundary.cancel();
             }
-            
+
             drain();
         }
-        
+
         void boundaryError(Throwable e) {
             if (ExceptionHelper.addThrowable(ERROR, this, e)) {
                 mainDone();
@@ -243,50 +239,48 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                 UnsignalledExceptions.onErrorDropped(e);
             }
         }
-        
+
         void boundaryComplete() {
             synchronized (this) {
-                if(!queue.isEmpty()) {
-                    queue.offer(BOUNDARY_MARKER);
-                }
+                queue.offer(BOUNDARY_MARKER);
             }
             mainDone();
             drain();
         }
-        
+
         void drain() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
-            
+
             final Subscriber<? super PublisherBase<T>> a = actual;
             final Queue<Object> q = queue;
             UnicastProcessor<T> w = window;
-            
+
             int missed = 1;
-            
+
             for (;;) {
-                
+
                 for (;;) {
                     boolean d = open == 0 || error != null;
-                    
+
                     Object o = q.poll();
-                    
+
                     boolean empty = o == null;
-                    
+
                     if (checkTerminated(d, empty, a, q, w)) {
                         return;
                     }
-                    
+
                     if (empty) {
                         break;
                     }
-                    
+
                     if (o != BOUNDARY_MARKER) {
                         @SuppressWarnings("unchecked")
                         T t = (T)o;
                         w.onNext(t);
-                        
+
                         int localSize = size + 1;
                         if (localSize == maxSize) {
                             size = 0;
@@ -295,14 +289,14 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                             size = localSize;
                         }
                     }
-                    
+
                     if (o == BOUNDARY_MARKER) {
                         window = null;
 
                         w.onComplete();
-                        
+
                         if (!cancelled && open != 0 && error == null) {
-                            
+
                             Queue<T> pq;
 
                             try {
@@ -311,16 +305,16 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                                 emitError(a, e);
                                 return;
                             }
-                            
+
                             if (pq == null) {
                                 emitError(a, new NullPointerException("The processorQueueSupplier returned a null queue"));
                                 return;
                             }
-                            
+
                             OPEN.getAndIncrement(this);
-                            
+
                             w = new UnicastProcessor<>(pq, this);
-                            
+
                             long r = requested;
                             if (r != 0L) {
                                 size = 0;
@@ -339,33 +333,33 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                         }
                     }
                 }
-                
+
                 missed = WIP.addAndGet(this, -missed);
                 if (missed == 0) {
                     break;
                 }
             }
         }
-        
+
         void emitError(Subscriber<?> a, Throwable e) {
             cancelMain();
             boundary.cancel();
-            
+
             ExceptionHelper.addThrowable(ERROR, this, e);
             e = ExceptionHelper.terminate(ERROR, this);
-            
+
             a.onError(e);
         }
-        
+
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a, Queue<?> q, UnicastProcessor<?> w) {
             if (d) {
                 Throwable e = ExceptionHelper.terminate(ERROR, this);
                 if (e != null && e != ExceptionHelper.TERMINATED) {
                     cancelMain();
                     boundary.cancel();
-                    
+
                     w.onError(e);
-                    
+
                     a.onError(e);
                     return true;
                 } else
@@ -374,15 +368,15 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                     boundary.cancel();
 
                     w.onComplete();
-                    
+
                     a.onComplete();
                     return true;
                 }
             }
-            
+
             return false;
         }
-        
+
         boolean emit(UnicastProcessor<T> w) {
             long r = requested;
             if (r != 0L) {
@@ -393,18 +387,18 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                 return true;
             } else {
                 cancel();
-                
+
                 actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));
 
                 return false;
             }
         }
     }
-    
+
     static final class PublisherWindowBoundaryOther<U>
             extends DeferredSubscription
-    implements Subscriber<U> {
-        
+            implements Subscriber<U> {
+
         final PublisherWindowBoundaryMain<?, U> main;
 
         public PublisherWindowBoundaryOther(PublisherWindowBoundaryMain<?, U> main) {
