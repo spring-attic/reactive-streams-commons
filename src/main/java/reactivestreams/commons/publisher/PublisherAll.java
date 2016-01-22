@@ -79,8 +79,7 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> {
                 done = true;
                 s.cancel();
                 ExceptionHelper.throwIfFatal(e);
-                onError(ExceptionHelper.unwrap(e));
-                subscriber.onError(e);
+                subscriber.onError(ExceptionHelper.unwrap(e));
                 return;
             }
             if (!b) {

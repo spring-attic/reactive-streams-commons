@@ -38,12 +38,13 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
     public void subscribe(Subscriber<? super T> s) {
 
         PublisherRepeatWhenOtherSubscriber other = new PublisherRepeatWhenOtherSubscriber();
-        other.completionSignal.onSubscribe(EmptySubscription.INSTANCE);
+        Subscriber<Long> signaller = new SerializedSubscriber<>(other.completionSignal);
+        
+        signaller.onSubscribe(EmptySubscription.INSTANCE);
 
         SerializedSubscriber<T> serial = new SerializedSubscriber<>(s);
 
-        PublisherRepeatWhenMainSubscriber<T> main = new PublisherRepeatWhenMainSubscriber<>(serial, other
-          .completionSignal, source);
+        PublisherRepeatWhenMainSubscriber<T> main = new PublisherRepeatWhenMainSubscriber<>(serial, signaller, source);
         other.main = main;
 
         serial.onSubscribe(main);
@@ -129,8 +130,11 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         @Override
         public void onComplete() {
             long p = produced;
-            produced = 0;
-            produced(p);
+            if (p != 0L) {
+                produced = 0;
+                produced(p);
+            }
+
             otherArbiter.request(1);
             signaller.onNext(p);
         }

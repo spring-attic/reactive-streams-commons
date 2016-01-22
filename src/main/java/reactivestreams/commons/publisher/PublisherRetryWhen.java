@@ -38,12 +38,13 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
     public void subscribe(Subscriber<? super T> s) {
 
         PublisherRetryWhenOtherSubscriber other = new PublisherRetryWhenOtherSubscriber();
-        other.completionSignal.onSubscribe(EmptySubscription.INSTANCE);
+        Subscriber<Throwable> signaller = new SerializedSubscriber<>(other.completionSignal);
+        
+        signaller.onSubscribe(EmptySubscription.INSTANCE);
 
         SerializedSubscriber<T> serial = new SerializedSubscriber<>(s);
 
-        PublisherRetryWhenMainSubscriber<T> main = new PublisherRetryWhenMainSubscriber<>(serial, other
-          .completionSignal, source);
+        PublisherRetryWhenMainSubscriber<T> main = new PublisherRetryWhenMainSubscriber<>(serial, signaller, source);
         other.main = main;
 
         serial.onSubscribe(main);
@@ -85,6 +86,8 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
         volatile boolean cancelled;
 
+        long produced;
+        
         public PublisherRetryWhenMainSubscriber(Subscriber<? super T> actual, Subscriber<Throwable> signaller,
                                                 Publisher<? extends T> source) {
             super(actual);
@@ -117,11 +120,17 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         public void onNext(T t) {
             subscriber.onNext(t);
 
-            producedOne();
+            produced++;
         }
 
         @Override
         public void onError(Throwable t) {
+            long p = produced;
+            if (p != 0L) {
+                produced = 0;
+                produced(p);
+            }
+
             otherArbiter.request(1);
 
             signaller.onNext(t);
