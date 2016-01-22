@@ -1,10 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.publisher.PublisherSkipWhile;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherSkipWhileTest {
 
@@ -91,7 +88,6 @@ public class PublisherSkipWhileTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherSkipWhile<>(new PublisherRange(1, 5), v -> true).subscribe(ts);
-        ;
 
         ts.assertNoValues()
           .assertComplete()

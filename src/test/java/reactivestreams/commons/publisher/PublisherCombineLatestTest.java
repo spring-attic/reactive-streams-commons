@@ -1,14 +1,16 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherCombineLatestTest {
 

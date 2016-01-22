@@ -7,8 +7,11 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -24,11 +27,8 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <I> the input value type
  * @param <O> the output value type
  */
-public abstract class SubscriberMultiSubscription<I, O> implements Subscription, Subscriber<I>,
-                                                                   ReactiveState.Downstream,
-                                                                   ReactiveState.ActiveDownstream,
-                                                                   ReactiveState.DownstreamDemand,
-                                                                   ReactiveState.Upstream  {
+public abstract class SubscriberMultiSubscription<I, O> implements Subscription, Subscriber<I>, Subscribable, Cancellable,
+                                                                   Requestable, Completable {
 
     protected final Subscriber<? super O> subscriber;
 
@@ -288,5 +288,15 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
     @Override
     public final long requestedFromDownstream() {
         return requested + missedRequested;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return false;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return upstream() != null;
     }
 }

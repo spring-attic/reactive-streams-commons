@@ -2,9 +2,7 @@ package reactivestreams.commons.publisher;
 
 import org.junit.Test;
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.publisher.PublisherLatest;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherLatestTest {
     @Test(expected = NullPointerException.class)

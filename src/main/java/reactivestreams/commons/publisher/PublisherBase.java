@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Introspectable;
 
 /**
  * Experimental base class with fluent API.
@@ -35,7 +36,7 @@ import org.reactivestreams.Subscription;
  * 
  * @param <T> the output value type
  */
-public abstract class PublisherBase<T> implements Publisher<T> {
+public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
 
     static final int BUFFER_SIZE = 128;
     
@@ -405,6 +406,16 @@ public abstract class PublisherBase<T> implements Publisher<T> {
 
     public final <U, C extends Collection<? super T>> PublisherBase<C> buffer(Publisher<U> other, int maxSize, Supplier<C> bufferSupplier) {
         return new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultQueueSupplier());
+    }
+
+    @Override
+    public int getMode() {
+        return FACTORY;
+    }
+
+    @Override
+    public String getName() {
+        return getClass().getSimpleName();
     }
 
     // ---------------------------------------------------------------------------------------

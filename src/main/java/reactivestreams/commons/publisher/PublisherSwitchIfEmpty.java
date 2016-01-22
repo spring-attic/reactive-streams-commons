@@ -2,9 +2,10 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.trait.Connectable;
 
 /**
  * Switches to another source if the first source turns out to be empty.
@@ -30,7 +31,7 @@ public final class PublisherSwitchIfEmpty<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherSwitchIfEmptySubscriber<T> extends SubscriberMultiSubscription<T, T>
-    implements FeedbackLoop {
+            implements Connectable {
 
         final Publisher<? extends T> other;
 
@@ -62,12 +63,12 @@ public final class PublisherSwitchIfEmpty<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return null;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return other;
         }
     }

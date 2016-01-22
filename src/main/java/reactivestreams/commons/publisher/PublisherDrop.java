@@ -7,6 +7,10 @@ import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Connectable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -45,8 +49,8 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherDropSubscriber<T>
-            implements Subscriber<T>, Subscription, Downstream, Upstream, ActiveUpstream,
-                       DownstreamDemand, FeedbackLoop {
+            implements Subscriber<T>, Subscription, Subscribable, Completable, Requestable,
+                       Connectable {
 
         final Subscriber<? super T> actual;
 
@@ -162,12 +166,12 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return onDrop;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return null;
         }
 

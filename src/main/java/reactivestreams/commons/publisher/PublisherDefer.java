@@ -5,8 +5,8 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Defers the creation of the actual Publisher the Subscriber will be subscribed to.
@@ -15,9 +15,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherDefer<T> 
 extends PublisherBase<T>
-implements 
-                                                ReactiveState.Factory,
-                                                ReactiveState.Upstream {
+        implements Publishable {
 
     final Supplier<? extends Publisher<? extends T>> supplier;
 

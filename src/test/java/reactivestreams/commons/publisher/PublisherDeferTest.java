@@ -1,9 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherDefer;
-import reactivestreams.commons.publisher.PublisherJust;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherDeferTest {
 

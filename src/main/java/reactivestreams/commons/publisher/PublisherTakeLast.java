@@ -8,6 +8,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Publishable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.DrainHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 
@@ -39,8 +43,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T>,
-                                                                     Downstream {
+    static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T>, Subscribable {
 
         final Subscriber<? super T> actual;
 
@@ -78,7 +81,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
 
     static final class PublisherTakeLastOneSubscriber<T>
             extends SubscriberDeferredScalar<T, T>
-    implements Upstream {
+            implements Publishable {
 
         Subscription s;
 
@@ -130,7 +133,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeLastManySubscriber<T>
-      implements Subscriber<T>, Subscription, BooleanSupplier, Downstream, ActiveDownstream, Upstream, Buffering {
+      implements Subscriber<T>, Subscription, BooleanSupplier, Subscribable, Cancellable, Publishable, Backpressurable {
 
         final Subscriber<? super T> actual;
 
@@ -214,7 +217,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public long pending() {
+        public long getPending() {
             return buffer.size();
         }
 

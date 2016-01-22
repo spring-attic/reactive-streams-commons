@@ -6,6 +6,9 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Connectable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
@@ -40,8 +43,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         source.subscribe(new PublisherMapSubscriber<>(s, mapper));
     }
 
-    static final class PublisherMapSubscriber<T, R> implements Subscriber<T>,
-                                                               Upstream, Downstream, FeedbackLoop, ActiveUpstream{
+    static final class PublisherMapSubscriber<T, R> implements Subscriber<T>, Completable, Subscribable, Connectable {
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
@@ -129,12 +131,12 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return mapper;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return null;
         }
 

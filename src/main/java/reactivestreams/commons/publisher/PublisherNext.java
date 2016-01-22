@@ -5,6 +5,9 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
@@ -25,8 +28,7 @@ public final class PublisherNext<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherNextSubscriber<T>
-            implements Subscriber<T>, Subscription, Upstream, ActiveUpstream,
-                       Bounded, Downstream {
+            implements Subscriber<T>, Subscription, Completable, Backpressurable, Subscribable {
 
         final Subscriber<? super T> actual;
 
@@ -116,6 +118,11 @@ public final class PublisherNext<T> extends PublisherSource<T, T> {
         @Override
         public Object downstream() {
             return actual;
+        }
+
+        @Override
+        public long getPending() {
+            return -1L;
         }
     }
 }

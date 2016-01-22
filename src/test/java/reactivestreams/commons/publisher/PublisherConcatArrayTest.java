@@ -2,9 +2,7 @@ package reactivestreams.commons.publisher;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.publisher.PublisherConcatArray;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherConcatArrayTest {
 

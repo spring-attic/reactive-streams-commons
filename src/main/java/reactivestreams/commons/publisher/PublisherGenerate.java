@@ -10,7 +10,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -24,8 +23,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <S> the custom state per subscriber
  */
 public final class PublisherGenerate<T, S> 
-extends PublisherBase<T>
-implements ReactiveState.Factory {
+extends PublisherBase<T> {
 
     /**
      * Interface to receive generated signals from the callback function.
@@ -86,10 +84,10 @@ implements ReactiveState.Factory {
             EmptySubscription.error(s, e);
             return;
         }
-        s.onSubscribe(new PublisherGenerateSubscription<>(s, state, generator, stateConsumer));
+        s.onSubscribe(new GenerateSubscription<>(s, state, generator, stateConsumer));
     }
 
-    static final class PublisherGenerateSubscription<T, S>
+    static final class GenerateSubscription<T, S>
       implements Subscription, PublisherGenerateOutput<T> {
 
         final Subscriber<? super T> actual;
@@ -108,10 +106,10 @@ implements ReactiveState.Factory {
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherGenerateSubscription> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(PublisherGenerateSubscription.class, "requested");
+        static final AtomicLongFieldUpdater<GenerateSubscription> REQUESTED =
+          AtomicLongFieldUpdater.newUpdater(GenerateSubscription.class, "requested");
 
-        public PublisherGenerateSubscription(Subscriber<? super T> actual, S state,
+        public GenerateSubscription(Subscriber<? super T> actual, S state,
                                              BiFunction<S, PublisherGenerateOutput<T>, S> generator, Consumer<? super
           S> stateConsumer) {
             this.actual = actual;

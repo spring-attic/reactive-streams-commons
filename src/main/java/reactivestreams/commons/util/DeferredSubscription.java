@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package reactivestreams.commons.util;
 
 import java.util.Objects;
@@ -20,17 +5,16 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Requestable;
 
 /**
  * Base class for Subscribers that will receive their Subscriptions at any time yet
  * they need to be cancelled or requested at any time.
  */
 public class DeferredSubscription
-        implements Subscription,
-                   ReactiveState.ActiveUpstream,
-                   ReactiveState.ActiveDownstream,
-                   ReactiveState.DownstreamDemand,
-                   ReactiveState.Upstream {
+        implements Subscription, Cancellable, Requestable, Completable {
 
     volatile Subscription s;
     static final AtomicReferenceFieldUpdater<DeferredSubscription, Subscription> S =

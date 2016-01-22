@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.trait.Publishable;
 
 /**
  * Emits the value or error produced by the wrapped CompletableFuture.
@@ -17,9 +17,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherCompletableFuture<T> 
 extends PublisherBase<T>
-implements 
-                                                            ReactiveState.Factory,
-                                                            ReactiveState.Upstream{
+        implements Publishable {
 
     final CompletableFuture<? extends T> future;
 

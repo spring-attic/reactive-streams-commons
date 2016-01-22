@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
@@ -35,7 +36,7 @@ public final class PublisherAny<T> extends PublisherSource<T, Boolean> {
     }
 
     static final class PublisherAnySubscriber<T> extends SubscriberDeferredScalar<T, Boolean>
-    implements Upstream {
+            implements Publishable {
         final Predicate<? super T> predicate;
 
         Subscription s;
@@ -121,7 +122,7 @@ public final class PublisherAny<T> extends PublisherSource<T, Boolean> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return predicate;
         }
     }

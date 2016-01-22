@@ -2,8 +2,8 @@ package reactivestreams.commons.publisher;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.trait.Completable;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Represents an never publisher which only calls onSubscribe.
@@ -13,24 +13,12 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherNever 
 extends PublisherBase<Object>
-implements 
-                                             ReactiveState.Factory,
-                                             ReactiveState.ActiveUpstream {
+        implements Completable {
 
     private static final Publisher<Object> INSTANCE = new PublisherNever();
 
     private PublisherNever() {
         // deliberately no op
-    }
-
-    @Override
-    public boolean isStarted() {
-        return true;
-    }
-
-    @Override
-    public boolean isTerminated() {
-        return false;
     }
 
     @Override
@@ -47,5 +35,20 @@ implements
     @SuppressWarnings("unchecked")
     public static <T> PublisherBase<T> instance() {
         return (PublisherBase<T>) INSTANCE;
+    }
+
+    @Override
+    public Object upstream() {
+        return null;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return false;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return false;
     }
 }

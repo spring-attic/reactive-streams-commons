@@ -2,7 +2,13 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Prefetchable;
+import reactivestreams.commons.trait.Subscribable;
 
 /**
  * Skips the first N elements from a reactive stream.
@@ -37,8 +43,8 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherSkipSubscriber<T> implements Subscriber<T>, Downstream, UpstreamDemand, Bounded,
-                                                             ActiveUpstream {
+    static final class PublisherSkipSubscriber<T> implements Subscriber<T>, Subscribable, Prefetchable,
+                                                             Backpressurable, Completable {
 
         final Subscriber<? super T> actual;
 
@@ -102,6 +108,21 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         @Override
         public long expectedFromUpstream() {
             return remaining;
+        }
+
+        @Override
+        public long getPending() {
+            return -1L;
+        }
+
+        @Override
+        public Object upstream() {
+            return null;
+        }
+
+        @Override
+        public long limit() {
+            return 0;
         }
     }
 }

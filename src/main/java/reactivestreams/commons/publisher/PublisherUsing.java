@@ -9,9 +9,9 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
@@ -31,9 +31,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  */
 public final class PublisherUsing<T, S> 
 extends PublisherBase<T>
-implements 
-                                                   ReactiveState.Factory,
-                                                   ReactiveState.Upstream {
+        implements Publishable {
 
     final Callable<S> resourceSupplier;
 

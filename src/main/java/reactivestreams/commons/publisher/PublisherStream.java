@@ -5,8 +5,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Emits the contents of a Stream source.
@@ -15,9 +15,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherStream<T> 
 extends PublisherBase<T>
-implements 
-                                                 ReactiveState.Factory,
-                                                 ReactiveState.Upstream {
+        implements Publishable {
 
     final Stream<? extends T> stream;
 

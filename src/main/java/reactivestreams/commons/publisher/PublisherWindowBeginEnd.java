@@ -72,7 +72,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
             return;
         }
         
-        PublisherWindowBeginEndMain<T, U, V> main = new PublisherWindowBeginEndMain<>(s, windowEnd, bufferSize, q);
+        WindowBeginEndMainSubscriber<T, U, V> main = new WindowBeginEndMainSubscriber<>(s, windowEnd, bufferSize, q);
         
         s.onSubscribe(main);
         
@@ -81,7 +81,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         source.subscribe(main);
     }
     
-    static final class PublisherWindowBeginEndMain<T, U, V> 
+    static final class WindowBeginEndMainSubscriber<T, U, V>
     implements Subscriber<T>, Subscription {
         
         final Subscriber<? super PublisherBase<T>> actual;
@@ -94,12 +94,12 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         
         final Queue<T> queue;
         
-        final PublisherWindowBeginEndBegin<U> begin;
+        final WindowBeginEndBegin<U> begin;
         
         volatile Subscription main;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherWindowBeginEndMain, Subscription> MAIN =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherWindowBeginEndMain.class, Subscription.class, "main");
+        static final AtomicReferenceFieldUpdater<WindowBeginEndMainSubscriber, Subscription> MAIN =
+                AtomicReferenceFieldUpdater.newUpdater(WindowBeginEndMainSubscriber.class, Subscription.class, "main");
 
         volatile PublisherWindowInner<T, V>[] windows;
         
@@ -110,30 +110,30 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowBeginEndMain> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowBeginEndMain.class, "wip");
+        static final AtomicIntegerFieldUpdater<WindowBeginEndMainSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(WindowBeginEndMainSubscriber.class, "wip");
         
         volatile int open;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowBeginEndMain> OPEN =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowBeginEndMain.class, "open");
+        static final AtomicIntegerFieldUpdater<WindowBeginEndMainSubscriber> OPEN =
+                AtomicIntegerFieldUpdater.newUpdater(WindowBeginEndMainSubscriber.class, "open");
         
         volatile int once;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowBeginEndMain> ONCE =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowBeginEndMain.class, "once");
+        static final AtomicIntegerFieldUpdater<WindowBeginEndMainSubscriber> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(WindowBeginEndMainSubscriber.class, "once");
 
         volatile Throwable error;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherWindowBeginEndMain, Throwable> ERROR =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherWindowBeginEndMain.class, Throwable.class, "error");
+        static final AtomicReferenceFieldUpdater<WindowBeginEndMainSubscriber, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(WindowBeginEndMainSubscriber.class, Throwable.class, "error");
 
         volatile boolean done;
         
         long produced;
         
         @SuppressWarnings("unchecked")
-        public PublisherWindowBeginEndMain(
+        public WindowBeginEndMainSubscriber(
                 Subscriber<? super PublisherBase<T>> subscriber,
                 Function<? super U, ? extends Publisher<V>> windowEnd, 
                         int bufferSize, 
@@ -143,7 +143,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
             this.bufferSize = bufferSize;
             this.queue = queue;
             this.limit = bufferSize - (bufferSize >> 2);
-            this.begin = new PublisherWindowBeginEndBegin<>(this);
+            this.begin = new WindowBeginEndBegin<>(this);
             this.open = 1;
             this.windows = EMPTY;
         }
@@ -487,13 +487,13 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         }
     }
     
-    static final class PublisherWindowBeginEndBegin<U> 
+    static final class WindowBeginEndBegin<U>
     extends DeferredSubscription
     implements Subscriber<U> {
         
-        final PublisherWindowBeginEndMain<?, U, ?> parent;
+        final WindowBeginEndMainSubscriber<?, U, ?> parent;
 
-        public PublisherWindowBeginEndBegin(PublisherWindowBeginEndMain<?, U, ?> parent) {
+        public WindowBeginEndBegin(WindowBeginEndMainSubscriber<?, U, ?> parent) {
             this.parent = parent;
         }
         
@@ -522,7 +522,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
     extends PublisherBase<T>
     implements Subscriber<V>, Subscription {
         
-        final PublisherWindowBeginEndMain<T, ?, V> parent;
+        final WindowBeginEndMainSubscriber<T, ?, V> parent;
 
         volatile int once;
         @SuppressWarnings("rawtypes")
@@ -551,7 +551,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         static final AtomicReferenceFieldUpdater<PublisherWindowInner, Subscription> S =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherWindowInner.class, Subscription.class, "s");
 
-        public PublisherWindowInner(PublisherWindowBeginEndMain<T, ?, V> parent) {
+        public PublisherWindowInner(WindowBeginEndMainSubscriber<T, ?, V> parent) {
             this.parent = parent;
         }
         

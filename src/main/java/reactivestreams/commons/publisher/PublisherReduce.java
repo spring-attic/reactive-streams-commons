@@ -8,6 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -54,7 +55,7 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
 
     static final class PublisherReduceSubscriber<T, R>
             extends SubscriberDeferredScalar<T, R>
-    implements Upstream {
+            implements Publishable {
 
         final BiFunction<R, ? super T, R> accumulator;
 
@@ -146,7 +147,7 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return accumulator;
         }
     }

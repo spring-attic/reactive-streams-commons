@@ -3,7 +3,7 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.trait.Publishable;
 
 /**
  * Keep reference to the upstream Publisher in order to apply operator Subscribers
@@ -13,9 +13,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public abstract class PublisherSource<T, R> 
     extends PublisherBase<R>
-    implements
-                                                       ReactiveState.Upstream,
-                                                       ReactiveState.Factory {
+        implements Publishable {
 
     final protected Publisher<? extends T> source;
 

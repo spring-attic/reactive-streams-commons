@@ -10,8 +10,14 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.publisher.PublisherBase;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Failurable;
+import reactivestreams.commons.trait.Introspectable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
+import reactivestreams.commons.trait.SubscribableMany;
 import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -31,10 +37,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class SimpleProcessor<T> 
     extends PublisherBase<T>
-    implements Processor<T, T>,
-                                                 ReactiveState.ActiveUpstream,
-                                                 ReactiveState.FailState,
-                                                 ReactiveState.LinkedDownstreams {
+    implements Processor<T, T>, Completable, Failurable, SubscribableMany {
 
     @SuppressWarnings("rawtypes")
     private static final SimpleProcessorSubscription[] EMPTY = new SimpleProcessorSubscription[0];
@@ -217,9 +220,8 @@ public final class SimpleProcessor<T>
         return null;
     }
 
-    static final class SimpleProcessorSubscription<T> implements Subscription, Inner, Upstream, DownstreamDemand,
-                                                                 Downstream,
-                                                                 ActiveDownstream {
+    static final class SimpleProcessorSubscription<T> implements Subscription, Introspectable, Completable, Requestable,
+                                                                 Subscribable, Cancellable {
 
         final Subscriber<? super T> actual;
 
@@ -291,5 +293,35 @@ public final class SimpleProcessor<T>
         void onComplete() {
             actual.onComplete();
         }
+
+        @Override
+        public boolean isStarted() {
+            return parent.isStarted();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return parent.isTerminated();
+        }
+
+        @Override
+        public int getMode() {
+            return INNER;
+        }
+
+        @Override
+        public String getName() {
+            return getClass().getSimpleName();
+        }
+    }
+
+    @Override
+    public Object upstream() {
+        return null;
+    }
+
+    @Override
+    public int getMode() {
+        return 0;
     }
 }

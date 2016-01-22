@@ -1,4 +1,4 @@
-package reactivestreams.commons.subscriber.test;
+package reactivestreams.commons.test;
 
 import java.util.ArrayList;
 import java.util.Arrays;

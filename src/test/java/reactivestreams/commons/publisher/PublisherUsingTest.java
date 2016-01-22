@@ -1,18 +1,14 @@
 package reactivestreams.commons.publisher;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.publisher.PublisherEmpty;
-import reactivestreams.commons.publisher.PublisherError;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.publisher.PublisherUsing;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherUsingTest {
 

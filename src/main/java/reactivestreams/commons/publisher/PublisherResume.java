@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.trait.Connectable;
 import reactivestreams.commons.util.ExceptionHelper;
 
 /**
@@ -54,7 +55,7 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherResumeSubscriber<T> extends SubscriberMultiSubscription<T, T>
-    implements FeedbackLoop {
+            implements Connectable {
 
         final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;
 
@@ -112,12 +113,12 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return nextFactory;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return null;
         }
     }

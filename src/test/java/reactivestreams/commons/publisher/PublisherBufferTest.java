@@ -1,14 +1,11 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherBuffer;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherBufferTest {
     @Test(expected = NullPointerException.class)

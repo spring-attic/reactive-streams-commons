@@ -6,9 +6,9 @@ import java.util.function.Supplier;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-
-import reactivestreams.commons.processor.*;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.processor.UnicastProcessor;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherWindowTest {
 
@@ -28,7 +28,7 @@ public class PublisherWindowTest {
 
     @Test(expected = NullPointerException.class)
     public void processorQueue1Null() {
-        new PublisherWindow<>(PublisherNever.<Object>instance(), 1, null);
+        new PublisherWindow<>(PublisherNever.instance(), 1, null);
     }
 
     @Test(expected = NullPointerException.class)

@@ -5,6 +5,9 @@ import java.util.ArrayDeque;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Publishable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -33,8 +36,7 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Upstream, Downstream,
-                                                                 Buffering {
+    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Publishable, Subscribable, Backpressurable {
         final Subscriber<? super T> actual;
 
         final int n;
@@ -85,7 +87,7 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public long pending() {
+        public long getPending() {
             return buffer.size();
         }
 

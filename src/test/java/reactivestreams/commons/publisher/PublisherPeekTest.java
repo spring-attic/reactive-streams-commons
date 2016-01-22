@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ExceptionHelper;
 
 public class PublisherPeekTest {

@@ -1,10 +1,9 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherCompletableFuture;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.concurrent.CompletableFuture;
+
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherCompletableFutureTest {
 

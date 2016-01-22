@@ -1,12 +1,10 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.publisher.PublisherConcatIterable;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
-import java.util.Arrays;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherConcatIterableTest {
 

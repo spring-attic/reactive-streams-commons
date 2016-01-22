@@ -1,13 +1,9 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherArray;
-import reactivestreams.commons.publisher.PublisherDistinct;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.HashSet;
+
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherDistinctTest {
 

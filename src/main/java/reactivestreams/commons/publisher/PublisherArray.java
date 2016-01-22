@@ -8,9 +8,12 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.PublishableMany;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -19,9 +22,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class PublisherArray<T> 
-extends PublisherBase<T>
-implements 
-                                                ReactiveState.Factory  {
+extends PublisherBase<T> {
     final T[] array;
 
     @SafeVarargs
@@ -35,11 +36,11 @@ implements
             EmptySubscription.complete(s);
             return;
         }
-        s.onSubscribe(new PublisherArraySubscription<>(s, array));
+        s.onSubscribe(new ArraySubscription<>(s, array));
     }
 
-    static final class PublisherArraySubscription<T>
-      implements Subscription, Downstream, DownstreamDemand, ActiveDownstream, LinkedUpstreams {
+    static final class ArraySubscription<T>
+      implements Subscription, Subscribable, Requestable, Cancellable, PublishableMany {
         final Subscriber<? super T> actual;
 
         final T[] array;
@@ -50,10 +51,10 @@ implements
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherArraySubscription> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(PublisherArraySubscription.class, "requested");
+        static final AtomicLongFieldUpdater<ArraySubscription> REQUESTED =
+          AtomicLongFieldUpdater.newUpdater(ArraySubscription.class, "requested");
 
-        public PublisherArraySubscription(Subscriber<? super T> actual, T[] array) {
+        public ArraySubscription(Subscriber<? super T> actual, T[] array) {
             this.actual = actual;
             this.array = array;
         }

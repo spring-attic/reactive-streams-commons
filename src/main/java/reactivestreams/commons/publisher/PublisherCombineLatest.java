@@ -13,11 +13,17 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Introspectable;
+import reactivestreams.commons.trait.Prefetchable;
+import reactivestreams.commons.trait.Publishable;
+import reactivestreams.commons.trait.PublishableMany;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.CancelledSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
@@ -29,9 +35,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  */
 public final class PublisherCombineLatest<T, R> 
 extends PublisherBase<R>
-implements 
-                                                           ReactiveState.Factory,
-                                                           ReactiveState.LinkedUpstreams {
+        implements PublishableMany {
 
     final Publisher<? extends T>[] array;
 
@@ -182,8 +186,7 @@ implements
         coordinator.subscribe(a, n);
     }
     
-    static final class PublisherCombineLatestCoordinator<T, R> implements Subscription, LinkedUpstreams,
-                                                                          ActiveDownstream {
+    static final class PublisherCombineLatestCoordinator<T, R> implements Subscription, PublishableMany, Cancellable {
 
         final Subscriber<? super R> actual;
         
@@ -460,7 +463,8 @@ implements
     }
     
     static final class PublisherCombineLatestInner<T>
-            implements Subscriber<T>, Inner, UpstreamDemand, DownstreamDemand, UpstreamPrefetch, Upstream, Downstream {
+            implements Subscriber<T>, Introspectable, Prefetchable, Requestable, Publishable,
+                       Subscribable {
 
         final PublisherCombineLatestCoordinator<T, ?> parent;
 
@@ -597,6 +601,16 @@ implements
         @Override
         public long expectedFromUpstream() {
             return limit - produced;
+        }
+
+        @Override
+        public int getMode() {
+            return INNER;
+        }
+
+        @Override
+        public String getName() {
+            return getClass().getSimpleName();
         }
     }
     

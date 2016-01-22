@@ -6,7 +6,10 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Connectable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -16,12 +19,9 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <I> The upstream sequence type
  * @param <O> The downstream sequence type
  */
-public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Subscription,
-                                                       Supplier<O>,
-                                                       ReactiveState.FeedbackLoop,
-                                                       ReactiveState.ActiveUpstream,
-                                                       ReactiveState.ActiveDownstream,
-                                                       ReactiveState.Downstream {
+public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Completable, Subscription,
+                                                       Supplier<O>, Connectable, Cancellable,
+                                                       Subscribable {
 
     static final int SDS_NO_REQUEST_NO_VALUE   = 0;
     static final int SDS_NO_REQUEST_HAS_VALUE  = 1;
@@ -154,17 +154,22 @@ public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Subscripti
     }
 
     @Override
-    public Object delegateInput() {
+    public Object connectedInput() {
         return null;
     }
 
     @Override
-    public Object delegateOutput() {
+    public Object connectedOutput() {
         return value;
     }
 
     @Override
     public boolean isTerminated() {
         return isCancelled();
+    }
+
+    @Override
+    public Object upstream() {
+        return value;
     }
 }

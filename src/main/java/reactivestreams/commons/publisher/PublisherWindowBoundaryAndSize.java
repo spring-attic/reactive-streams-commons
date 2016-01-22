@@ -182,7 +182,9 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
         @Override
         public void onComplete() {
             synchronized (this) {
-                queue.offer(BOUNDARY_MARKER);
+                if(!queue.isEmpty()) {
+                    queue.offer(BOUNDARY_MARKER);
+                }
             }
             mainDone();
             drain();
@@ -221,7 +223,9 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
         
         void boundaryNext() {
             synchronized (this) {
-                queue.offer(BOUNDARY_MARKER);
+                if(!queue.isEmpty()) {
+                    queue.offer(BOUNDARY_MARKER);
+                }
             }
             
             if (cancelled) {
@@ -242,7 +246,9 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
         
         void boundaryComplete() {
             synchronized (this) {
-                queue.offer(BOUNDARY_MARKER);
+                if(!queue.isEmpty()) {
+                    queue.offer(BOUNDARY_MARKER);
+                }
             }
             mainDone();
             drain();

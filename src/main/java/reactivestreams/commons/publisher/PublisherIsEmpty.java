@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
@@ -18,7 +19,7 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
     }
 
     static final class PublisherIsEmptySubscriber<T> extends SubscriberDeferredScalar<T, Boolean>
-    implements Upstream {
+            implements Publishable {
         Subscription s;
 
         public PublisherIsEmptySubscriber(Subscriber<? super Boolean> actual) {

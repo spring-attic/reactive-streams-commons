@@ -12,7 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherBufferStartEndTest {

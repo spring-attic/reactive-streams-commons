@@ -9,7 +9,7 @@ import java.util.function.LongSupplier;
 
 import org.junit.Assert;
 import org.junit.Test;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherIntervalTest {

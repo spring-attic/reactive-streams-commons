@@ -1,16 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Assert;
-import org.junit.Test;
-import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.publisher.PublisherDrop;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherDropTest {
 

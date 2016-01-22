@@ -66,7 +66,8 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
             return;
         }
         
-        PublisherWindowStartEndMain<T, U, V> main = new PublisherWindowStartEndMain<>(s, q, end, processorQueueSupplier);
+        WindowStartEndMainSubscriber<T, U, V>
+                main = new WindowStartEndMainSubscriber<>(s, q, end, processorQueueSupplier);
         
         s.onSubscribe(main);
         
@@ -75,14 +76,14 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         source.subscribe(main);
     }
     
-    static final class PublisherWindowStartEndMain<T, U, V> 
+    static final class WindowStartEndMainSubscriber<T, U, V>
     implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super PublisherBase<T>> actual;
         
         final Queue<Object> queue;
         
-        final PublisherWindowStartEndStarter<T, U, V> starter;
+        final WindowStartEndStarter<T, U, V> starter;
         
         final Function<? super U, ? extends Publisher<V>> end;
         
@@ -90,32 +91,32 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherWindowStartEndMain> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherWindowStartEndMain.class, "requested");
+        static final AtomicLongFieldUpdater<WindowStartEndMainSubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(WindowStartEndMainSubscriber.class, "requested");
         
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowStartEndMain> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowStartEndMain.class, "wip");
+        static final AtomicIntegerFieldUpdater<WindowStartEndMainSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(WindowStartEndMainSubscriber.class, "wip");
         
         volatile boolean cancelled;
         
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherWindowStartEndMain, Subscription> S =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherWindowStartEndMain.class, Subscription.class,  "s");
+        static final AtomicReferenceFieldUpdater<WindowStartEndMainSubscriber, Subscription> S =
+                AtomicReferenceFieldUpdater.newUpdater(WindowStartEndMainSubscriber.class, Subscription.class,  "s");
         
         volatile int once;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowStartEndMain> ONCE =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowStartEndMain.class, "once");
+        static final AtomicIntegerFieldUpdater<WindowStartEndMainSubscriber> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(WindowStartEndMainSubscriber.class, "once");
         
         volatile int open;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowStartEndMain> OPEN =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowStartEndMain.class, "open");
+        static final AtomicIntegerFieldUpdater<WindowStartEndMainSubscriber> OPEN =
+                AtomicIntegerFieldUpdater.newUpdater(WindowStartEndMainSubscriber.class, "open");
         
-        Set<PublisherWindowStartEndEnder<T, V>> windowEnds;
+        Set<WindowStartEndEnder<T, V>> windowEnds;
         
         Set<UnicastProcessor<T>> windows;
 
@@ -123,15 +124,15 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         
         volatile Throwable error;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherWindowStartEndMain, Throwable> ERROR =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherWindowStartEndMain.class, Throwable.class,  "error");
+        static final AtomicReferenceFieldUpdater<WindowStartEndMainSubscriber, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(WindowStartEndMainSubscriber.class, Throwable.class,  "error");
 
-        public PublisherWindowStartEndMain(Subscriber<? super PublisherBase<T>> actual, Queue<Object> queue,
+        public WindowStartEndMainSubscriber(Subscriber<? super PublisherBase<T>> actual, Queue<Object> queue,
                 Function<? super U, ? extends Publisher<V>> end,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.queue = queue;
-            this.starter = new PublisherWindowStartEndStarter<>(this);
+            this.starter = new WindowStartEndStarter<>(this);
             this.end = end;
             this.windowEnds = new HashSet<>();
             this.windows = new HashSet<>();
@@ -208,7 +209,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
             drain();
         }
         
-        void endSignal(PublisherWindowStartEndEnder<T, V> end) {
+        void endSignal(WindowStartEndEnder<T, V> end) {
             remove(end);
             synchronized (this) {
                 queue.offer(end);
@@ -237,9 +238,9 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
             }
         }
         
-        boolean add(PublisherWindowStartEndEnder<T, V> ender) {
+        boolean add(WindowStartEndEnder<T, V> ender) {
             synchronized (starter) {
-                Set<PublisherWindowStartEndEnder<T, V>> set = windowEnds;
+                Set<WindowStartEndEnder<T, V>> set = windowEnds;
                 if (set != null) {
                     set.add(ender);
                     return true;
@@ -249,9 +250,9 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
             return false;
         }
         
-        void remove(PublisherWindowStartEndEnder<T, V> ender) {
+        void remove(WindowStartEndEnder<T, V> ender) {
             synchronized (starter) {
-                Set<PublisherWindowStartEndEnder<T, V>> set = windowEnds;
+                Set<WindowStartEndEnder<T, V>> set = windowEnds;
                 if (set != null) {
                     set.remove(ender);
                 }
@@ -259,7 +260,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         }
         
         void removeAll() {
-            Set<PublisherWindowStartEndEnder<T, V>> set;
+            Set<WindowStartEndEnder<T, V>> set;
             synchronized (starter) {
                 set = windowEnds;
                 if (set == null) {
@@ -363,7 +364,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
                             
                             UnicastProcessor<T> w = new UnicastProcessor<>(pq, this);
                             
-                            PublisherWindowStartEndEnder<T, V> end = new PublisherWindowStartEndEnder<>(this, w);
+                            WindowStartEndEnder<T, V> end = new WindowStartEndEnder<>(this, w);
                             
                             windows.add(w);
                             
@@ -384,9 +385,8 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
                             }
                         }
                     } else
-                    if (o instanceof PublisherWindowStartEndEnder) {
-                        @SuppressWarnings("unchecked")
-                        PublisherWindowStartEndEnder<T, V> end = (PublisherWindowStartEndEnder<T, V>) o;
+                    if (o instanceof WindowStartEndEnder) {
+                        @SuppressWarnings("unchecked") WindowStartEndEnder<T, V> end = (WindowStartEndEnder<T, V>) o;
                         
                         end.window.onComplete();
                     } else {
@@ -407,13 +407,13 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         }
     }
     
-    static final class PublisherWindowStartEndStarter<T, U, V>
+    static final class WindowStartEndStarter<T, U, V>
     extends DeferredSubscription
     implements Subscriber<U> {
 
-        final PublisherWindowStartEndMain<T, U, V> main;
+        final WindowStartEndMainSubscriber<T, U, V> main;
         
-        public PublisherWindowStartEndStarter(PublisherWindowStartEndMain<T, U, V> main) {
+        public WindowStartEndStarter(WindowStartEndMainSubscriber<T, U, V> main) {
             this.main = main;
         }
 
@@ -441,15 +441,15 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         
     }
     
-    static final class PublisherWindowStartEndEnder<T, V> 
+    static final class WindowStartEndEnder<T, V>
     extends DeferredSubscription
     implements Subscriber<V> {
 
-        final PublisherWindowStartEndMain<T, ?, V> main;
+        final WindowStartEndMainSubscriber<T, ?, V> main;
         
         final UnicastProcessor<T> window;
         
-        public PublisherWindowStartEndEnder(PublisherWindowStartEndMain<T, ?, V> main, UnicastProcessor<T> window) {
+        public WindowStartEndEnder(WindowStartEndMainSubscriber<T, ?, V> main, UnicastProcessor<T> window) {
             this.main = main;
             this.window = window;
         }

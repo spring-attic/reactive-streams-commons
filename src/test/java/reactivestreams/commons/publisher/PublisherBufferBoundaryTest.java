@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Test;
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherBufferBoundaryTest {

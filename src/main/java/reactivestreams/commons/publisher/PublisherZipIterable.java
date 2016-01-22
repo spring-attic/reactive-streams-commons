@@ -8,6 +8,9 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.PublishableMany;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -68,8 +71,8 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         source.subscribe(new PublisherZipSubscriber<>(s, it, zipper));
     }
     
-    static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T>, Downstream, LinkedUpstreams,
-                                                                  ActiveUpstream {
+    static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T>, Subscribable, PublishableMany,
+                                                                  Completable {
         
         final Subscriber<? super R> actual;
         
@@ -187,6 +190,11 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         @Override
         public Object downstream() {
             return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
         }
 
         @Override

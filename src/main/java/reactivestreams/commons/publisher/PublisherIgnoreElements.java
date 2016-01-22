@@ -1,6 +1,9 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Subscribable;
 
 /**
  * Ignores normal values and passes only the terminal signals along.
@@ -18,7 +21,7 @@ public final class PublisherIgnoreElements<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherIgnoreElementsSubscriber<>(s));
     }
     
-    static final class PublisherIgnoreElementsSubscriber<T> implements Subscriber<T>, Downstream {
+    static final class PublisherIgnoreElementsSubscriber<T> implements Subscriber<T>, Subscribable {
         final Subscriber<? super T> actual;
         
         public PublisherIgnoreElementsSubscriber(Subscriber<? super T> actual) {

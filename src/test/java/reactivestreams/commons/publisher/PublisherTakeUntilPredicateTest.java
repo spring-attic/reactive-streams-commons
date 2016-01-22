@@ -1,10 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.publisher.PublisherTakeUntilPredicate;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherTakeUntilPredicateTest {
 
@@ -91,7 +88,6 @@ public class PublisherTakeUntilPredicateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherTakeUntilPredicate<>(new PublisherRange(1, 5), v -> true).subscribe(ts);
-        ;
 
         ts.assertValue(1)
           .assertComplete()

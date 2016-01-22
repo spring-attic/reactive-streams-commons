@@ -13,7 +13,10 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Publishable;
+import reactivestreams.commons.util.CancelledSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -24,7 +27,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class BlockingIterable<T> implements Iterable<T>, ReactiveState.Upstream, ReactiveState.Bounded {
+public final class BlockingIterable<T> implements Iterable<T>, Publishable, Backpressurable {
 
     final Publisher<? extends T> source;
     
@@ -67,7 +70,6 @@ public final class BlockingIterable<T> implements Iterable<T>, ReactiveState.Ups
         return new SubscriberIterator<>(q, batchSize);
     }
 
-    @Override
     public long getCapacity() {
         return batchSize;
     }
@@ -77,6 +79,11 @@ public final class BlockingIterable<T> implements Iterable<T>, ReactiveState.Ups
         return source;
     }
 
+    @Override
+    public long getPending() {
+        return 0;
+    }
+
     static void throwError(Throwable e) {
         if (e instanceof RuntimeException) {
             throw (RuntimeException)e;
@@ -84,7 +91,7 @@ public final class BlockingIterable<T> implements Iterable<T>, ReactiveState.Ups
         throw new RuntimeException(e);
     }
     
-    static final class SubscriberIterator<T> implements Subscriber<T>, Iterator<T>, Runnable, Upstream {
+    static final class SubscriberIterator<T> implements Subscriber<T>, Iterator<T>, Runnable, Completable {
 
         final Queue<T> queue;
         
@@ -231,6 +238,16 @@ public final class BlockingIterable<T> implements Iterable<T>, ReactiveState.Ups
         @Override
         public Object upstream() {
             return s;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done && s != CancelledSubscription.INSTANCE;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done || s == CancelledSubscription.INSTANCE;
         }
     }
 

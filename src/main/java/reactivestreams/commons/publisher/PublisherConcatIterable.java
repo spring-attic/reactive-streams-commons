@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.trait.PublishableMany;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Concatenates a fixed array of Publishers' values.
@@ -17,9 +17,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherConcatIterable<T> 
 extends PublisherBase<T>
-implements 
-                                                         ReactiveState.Factory,
-                                                         ReactiveState.LinkedUpstreams {
+        implements PublishableMany {
 
     final Iterable<? extends Publisher<? extends T>> iterable;
 

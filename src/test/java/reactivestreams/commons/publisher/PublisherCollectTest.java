@@ -1,13 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherCollect;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherCollectTest {
 

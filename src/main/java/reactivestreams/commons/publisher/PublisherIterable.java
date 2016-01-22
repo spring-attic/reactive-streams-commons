@@ -6,9 +6,13 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Publishable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -18,9 +22,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherIterable<T> 
 extends PublisherBase<T>
-implements 
-                                                   ReactiveState.Factory,
-                                                   ReactiveState.Upstream {
+        implements Publishable {
 
     final Iterable<? extends T> iterable;
 
@@ -72,11 +74,11 @@ implements
             return;
         }
 
-        s.onSubscribe(new PublisherIterableSubscription<>(s, it));
+        s.onSubscribe(new IterableSubscription<>(s, it));
     }
 
-    static final class PublisherIterableSubscription<T>
-      implements Downstream, Upstream, DownstreamDemand, ActiveDownstream, ActiveUpstream, Subscription {
+    static final class IterableSubscription<T>
+            implements Subscribable, Completable, Requestable, Cancellable, Subscription {
 
         final Subscriber<? super T> actual;
 
@@ -86,10 +88,10 @@ implements
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherIterableSubscription> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(PublisherIterableSubscription.class, "requested");
+        static final AtomicLongFieldUpdater<IterableSubscription> REQUESTED =
+          AtomicLongFieldUpdater.newUpdater(IterableSubscription.class, "requested");
 
-        public PublisherIterableSubscription(Subscriber<? super T> actual, Iterator<? extends T> iterator) {
+        public IterableSubscription(Subscriber<? super T> actual, Iterator<? extends T> iterator) {
             this.actual = actual;
             this.iterator = iterator;
         }

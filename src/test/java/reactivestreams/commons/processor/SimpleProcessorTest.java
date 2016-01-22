@@ -2,8 +2,7 @@ package reactivestreams.commons.processor;
 
 import org.junit.Assert;
 import org.junit.Test;
-import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class SimpleProcessorTest {
 

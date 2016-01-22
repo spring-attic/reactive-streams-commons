@@ -1,10 +1,9 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherIterable;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.Arrays;
+
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherIterableTest {
 

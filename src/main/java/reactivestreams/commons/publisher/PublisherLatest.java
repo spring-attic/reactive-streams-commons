@@ -7,6 +7,11 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Failurable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 
@@ -28,8 +33,8 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherLatestSubscriber<T>
-            implements Subscriber<T>, Subscription, ActiveUpstream, ActiveDownstream, FailState, Upstream,
-                       Downstream, DownstreamDemand {
+            implements Subscriber<T>, Subscription, Cancellable, Failurable, Completable, Subscribable,
+                       Requestable {
 
         final Subscriber<? super T> actual;
 

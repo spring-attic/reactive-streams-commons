@@ -1,10 +1,9 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherCallable;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.io.IOException;
+
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherCallableTest {
 

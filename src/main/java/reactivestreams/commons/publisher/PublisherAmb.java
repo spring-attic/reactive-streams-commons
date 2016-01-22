@@ -9,8 +9,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Introspectable;
+import reactivestreams.commons.trait.PublishableMany;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -21,9 +23,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherAmb<T> 
 extends PublisherBase<T>
-implements
-                                              ReactiveState.Factory,
-                                              ReactiveState.LinkedUpstreams{
+        implements PublishableMany {
 
     final Publisher<? extends T>[] array;
 
@@ -137,7 +137,7 @@ implements
     }
 
     static final class PublisherAmbCoordinator<T>
-      implements Subscription, LinkedUpstreams, ActiveDownstream {
+      implements Subscription, PublishableMany, Cancellable {
 
         final PublisherAmbSubscriber<T>[] subscribers;
 
@@ -249,7 +249,7 @@ implements
     }
 
     static final class PublisherAmbSubscriber<T> extends SubscriberDeferredSubscription<T, T>
-    implements Inner {
+            implements Introspectable {
         final PublisherAmbCoordinator<T> parent;
 
         final int index;
@@ -290,6 +290,16 @@ implements
                 won = true;
                 subscriber.onComplete();
             }
+        }
+
+        @Override
+        public int getMode() {
+            return INNER;
+        }
+
+        @Override
+        public String getName() {
+            return getClass().getSimpleName();
         }
     }
 }

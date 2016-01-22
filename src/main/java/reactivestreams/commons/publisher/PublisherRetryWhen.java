@@ -10,6 +10,7 @@ import org.reactivestreams.Subscription;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.trait.Connectable;
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -163,7 +164,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
     static final class PublisherRetryWhenOtherSubscriber
     extends PublisherBase<Throwable>
-    implements Subscriber<Object>, FeedbackLoop, Trace, Inner {
+    implements Subscriber<Object>, Connectable {
         PublisherRetryWhenMainSubscriber<?> main;
 
         final SimpleProcessor<Throwable> completionSignal = new SimpleProcessor<>();
@@ -194,13 +195,18 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return main;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return completionSignal;
+        }
+
+        @Override
+        public int getMode() {
+            return INNER | TRACE_ONLY;
         }
     }
 }

@@ -34,11 +34,14 @@ def excludingStreamScope = includingCoreScope + ['generate',
 def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'api-single'           : 'reactor.core.publisher.Mono',
 					 'api-single-operator'  : 'reactor.core.publisher.Mono.MonoBarrier',
+					 'api-inner' 			: '',
 					 'test-type'            : false,
 					 'extra-packages'       : 'reactor.core',
 					 'header'               : '@since 2.5',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
+					 'FunctionHelper'   : 'FunctionUtils',
+					 'DrainHelper'  		 : 'reactor.rx.util.DrainUtils',
 					 'ExceptionHelper'   : 'Exceptions',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
@@ -52,6 +55,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 //Reactor Core configuration
 def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
 				   'api-package'         : 'reactor.core.publisher',
+				   'packageScope'         : true,
 				   'api-operator'        : 'reactor.core.publisher.Flux.FluxBarrier',
 				   'SerializedSubscriber': false,
 				   'include'             : includingCoreScope] + reactorCommon
@@ -60,7 +64,6 @@ def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
 					 'api-package'         : 'reactor.rx.stream',
 					 'api-operator'        : 'StreamBarrier',
-					 'DrainHelper'   : 'reactor.rx.util.DrainUtils',
 					 'SerializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
 					 'exclude'             : excludingStreamScope,
 					 'internal'            : false] + reactorCommon
@@ -231,6 +234,14 @@ task generateExtra(type: Copy) {
 	exclude '**/SubscriptionHelper.java'
   }
 
+  if (target.DrainHelper) {
+	exclude '**/DrainHelper.java'
+  }
+
+  if (target.FunctionHelper) {
+	exclude '**/FunctionHelper.java'
+  }
+
   if (target.BackpressureHelper) {
 	exclude '**/BackpressureHelper.java'
   }
@@ -327,12 +338,26 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	l = l.replaceAll(' '*4, '\t' * target['tabs'])
   }
 
+  if (target.containsKey('api-inner')) {
+	l = l.replaceAll('Publisher([^ ]*)Main', target['api-inner']+'$1Main')
+	l = l.replaceAll('Publisher([^ ]*)Main', target['api-inner']+'$1Main') //naive double reference workaround
+	l = l.replaceAll('Publisher([^ ]*)Coordinator', target['api-inner']+'$1Coordinator')
+	l = l.replaceAll('Publisher([^ ]*)Coordinator', target['api-inner']+'$1Coordinator')
+	l = l.replaceAll('Publisher([^ ]*)Other', target['api-inner']+'$1Other')
+	l = l.replaceAll('Publisher([^ ]*)Other', target['api-inner']+'$1Other')
+	l = l.replaceAll('Publisher([^ ]*)Inner', target['api-inner']+'$1Inner')
+	l = l.replaceAll('Publisher([^ ]*)Inner', target['api-inner']+'$1Inner')
+	l = l.replaceAll('Publisher([^ ]*)Subscriber', target['api-inner']+'$1Subscriber')
+	l = l.replaceAll('Publisher([^ ]*)Subscriber', target['api-inner']+'$1Subscriber')
+  }
+
   l = l
 		  .replace("PublisherSource", apiBarrierClass)
 		  .replace("PublisherBase", apiClass)
 		  .replaceAll("implements Publisher([^,]*),", "extends $apiClass\$1 implements")
 		  .replace("implements Publisher", "extends $apiClass")
-		  .replace('public final class Publisher', "$license\npublic final class $apiClassName")
+		  .replace('public final class Publisher', "$license\n${target.packageScope ? '' : 'public '}final class " +
+		  "$apiClassName")
 
   //Special case for just/empty
   if (l.contains('implements Supplier<T>, Publisher<T>')) {

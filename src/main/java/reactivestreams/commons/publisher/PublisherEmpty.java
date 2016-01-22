@@ -4,8 +4,8 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.trait.Completable;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Represents an empty publisher which only calls onSubscribe and onComplete.
@@ -15,24 +15,12 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherEmpty 
 extends PublisherBase<Object>
-implements Supplier<Object>,
-                                             ReactiveState.Factory,
-                                             ReactiveState.ActiveUpstream {
+implements Supplier<Object>, Completable {
 
     private static final Publisher<Object> INSTANCE = new PublisherEmpty();
 
     private PublisherEmpty() {
         // deliberately no op
-    }
-
-    @Override
-    public boolean isStarted() {
-        return false;
-    }
-
-    @Override
-    public boolean isTerminated() {
-        return true;
     }
 
     @Override
@@ -55,5 +43,20 @@ implements Supplier<Object>,
     @Override
     public Object get() {
         return null; /* Scalar optimizations on empty */
+    }
+
+    @Override
+    public Object upstream() {
+        return null;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return false;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return true;
     }
 }

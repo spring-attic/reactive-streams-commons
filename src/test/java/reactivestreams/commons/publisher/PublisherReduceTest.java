@@ -1,10 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.publisher.PublisherReduce;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherReduceTest {
 
@@ -15,7 +12,7 @@ public class PublisherReduceTest {
 
     @Test(expected = NullPointerException.class)
     public void supplierNull() {
-        new PublisherReduce<>(PublisherNever.instance(), null, (a, b) -> (Integer) b);
+        new PublisherReduce<>(PublisherNever.instance(), null, (a, b) -> b);
     }
 
     @Test(expected = NullPointerException.class)

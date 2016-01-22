@@ -1,10 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.publisher.PublisherScan;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherScanTest {
 
@@ -81,7 +78,7 @@ public class PublisherScanTest {
     public void accumulatorReturnsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherScan<>(new PublisherRange(1, 10), 0, (a, b) -> (Integer) null).subscribe(ts);
+        new PublisherScan<>(new PublisherRange(1, 10), 0, (a, b) -> null).subscribe(ts);
 
         ts.assertValue(0)
           .assertNotComplete()

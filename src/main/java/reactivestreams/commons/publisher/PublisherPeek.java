@@ -6,6 +6,8 @@ import java.util.function.LongConsumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Publishable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 
@@ -55,8 +57,7 @@ public final class PublisherPeek<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherPeekSubscriber<>(s, this));
     }
 
-    static final class PublisherPeekSubscriber<T> implements Subscriber<T>, Subscription,
-                                                             Upstream, Downstream {
+    static final class PublisherPeekSubscriber<T> implements Subscriber<T>, Subscription, Publishable, Subscribable {
 
         final Subscriber<? super T> actual;
 

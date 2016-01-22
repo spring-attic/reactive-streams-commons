@@ -6,6 +6,9 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Connectable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
@@ -31,7 +34,7 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
     }
 
     static final class PublisherDistinctUntilChangedSubscriber<T, K>
-            implements Subscriber<T>, Downstream, FeedbackLoop, Upstream, ActiveUpstream {
+            implements Subscriber<T>, Subscribable, Connectable, Completable {
         final Subscriber<? super T> actual;
 
         final Function<? super T, K> keyExtractor;
@@ -122,12 +125,12 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return keyExtractor;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return lastKey;
         }
 

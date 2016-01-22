@@ -4,17 +4,18 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits a range of integer values.
  */
 public final class PublisherRange 
-extends PublisherBase<Integer>
-implements 
-                                             ReactiveState.Factory {
+extends PublisherBase<Integer> {
 
     final long start;
 
@@ -35,11 +36,11 @@ implements
 
     @Override
     public void subscribe(Subscriber<? super Integer> s) {
-        s.onSubscribe(new PublisherRangeSubscription<>(s, start, end));
+        s.onSubscribe(new RangeSubscription<>(s, start, end));
     }
 
-    static final class PublisherRangeSubscription<T>
-      implements Subscription, ActiveDownstream, DownstreamDemand, ActiveUpstream, Downstream {
+    static final class RangeSubscription<T>
+      implements Subscription, Cancellable, Requestable, Completable, Subscribable {
 
         final Subscriber<? super Integer> actual;
 
@@ -51,10 +52,10 @@ implements
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherRangeSubscription> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(PublisherRangeSubscription.class, "requested");
+        static final AtomicLongFieldUpdater<RangeSubscription> REQUESTED =
+          AtomicLongFieldUpdater.newUpdater(RangeSubscription.class, "requested");
 
-        public PublisherRangeSubscription(Subscriber<? super Integer> actual, long start, long end) {
+        public RangeSubscription(Subscriber<? super Integer> actual, long start, long end) {
             this.actual = actual;
             this.index = start;
             this.end = end;
@@ -161,6 +162,11 @@ implements
         @Override
         public Object downstream() {
             return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return index;
         }
 
         @Override

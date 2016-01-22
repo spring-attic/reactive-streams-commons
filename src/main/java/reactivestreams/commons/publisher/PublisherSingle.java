@@ -8,6 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
@@ -55,7 +56,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherSingleSubscriber<T> extends SubscriberDeferredScalar<T, T>
-    implements Upstream {
+            implements Publishable {
 
         final Supplier<? extends T> defaultSupplier;
 
@@ -182,7 +183,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return defaultSupplier != COMPLETE_ON_EMPTY_SEQUENCE ? defaultSupplier : null;
         }
 

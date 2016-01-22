@@ -2,7 +2,12 @@ package reactivestreams.commons.subscriber;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Failurable;
+import reactivestreams.commons.trait.Introspectable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -17,14 +22,9 @@ import reactivestreams.commons.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription,
-                                                      ReactiveState.ActiveUpstream,
-                                                      ReactiveState.Downstream,
-                                                      ReactiveState.ActiveDownstream,
-                                                      ReactiveState.Upstream,
-                                                      ReactiveState.Trace,
-                                                      ReactiveState.Buffering,
-                                                      ReactiveState.FailState{
+public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription, Subscribable,
+                                                      Cancellable, Completable, Introspectable, Backpressurable,
+                                                      Failurable {
 
     final Subscriber<? super T> actual;
 
@@ -320,7 +320,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
     }
 
     @Override
-    public long pending() {
+    public long getPending() {
         LinkedArrayNode<T> node = serGetTail();
         if(node != null){
             return node.count;
@@ -331,6 +331,16 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
     @Override
     public long getCapacity() {
         return LinkedArrayNode.DEFAULT_CAPACITY;
+    }
+
+    @Override
+    public int getMode() {
+        return INNER | TRACE_ONLY;
+    }
+
+    @Override
+    public String getName() {
+        return getClass().getSimpleName();
     }
 
     /**

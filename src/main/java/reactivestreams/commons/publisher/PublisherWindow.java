@@ -64,10 +64,10 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
     @Override
     public void subscribe(Subscriber<? super PublisherBase<T>> s) {
         if (skip == size) {
-            source.subscribe(new PublisherWindowExact<>(s, size, processorQueueSupplier));
+            source.subscribe(new WindowExactSubscriber<>(s, size, processorQueueSupplier));
         } else
         if (skip > size) {
-            source.subscribe(new PublisherWindowSkip<>(s, size, skip, processorQueueSupplier));
+            source.subscribe(new WindowSkipSubscriber<>(s, size, skip, processorQueueSupplier));
         } else {
             Queue<UnicastProcessor<T>> overflowQueue;
             
@@ -83,11 +83,11 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                 return;
             }
             
-            source.subscribe(new PublisherWindowOverlap<>(s, size, skip, processorQueueSupplier, overflowQueue));
+            source.subscribe(new WindowOverlapSubscriber<>(s, size, skip, processorQueueSupplier, overflowQueue));
         }
     }
     
-    static final class PublisherWindowExact<T> implements Subscriber<T>, Subscription, Runnable {
+    static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super PublisherBase<T>> actual;
 
@@ -97,13 +97,13 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowExact> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowExact.class, "wip");
+        static final AtomicIntegerFieldUpdater<WindowExactSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(WindowExactSubscriber.class, "wip");
 
         volatile int once;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowExact> ONCE =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowExact.class, "once");
+        static final AtomicIntegerFieldUpdater<WindowExactSubscriber> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(WindowExactSubscriber.class, "once");
 
         int index;
         
@@ -113,7 +113,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         
         boolean done;
         
-        public PublisherWindowExact(Subscriber<? super PublisherBase<T>> actual, int size,
+        public WindowExactSubscriber(Subscriber<? super PublisherBase<T>> actual, int size,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
@@ -235,7 +235,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         }
     }
     
-    static final class PublisherWindowSkip<T> implements Subscriber<T>, Subscription, Runnable {
+    static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super PublisherBase<T>> actual;
 
@@ -247,18 +247,18 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowSkip> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowSkip.class, "wip");
+        static final AtomicIntegerFieldUpdater<WindowSkipSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(WindowSkipSubscriber.class, "wip");
 
         volatile int once;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowSkip> ONCE =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowSkip.class, "once");
+        static final AtomicIntegerFieldUpdater<WindowSkipSubscriber> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(WindowSkipSubscriber.class, "once");
 
         volatile int firstRequest;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowSkip> FIRST_REQUEST =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowSkip.class, "firstRequest");
+        static final AtomicIntegerFieldUpdater<WindowSkipSubscriber> FIRST_REQUEST =
+                AtomicIntegerFieldUpdater.newUpdater(WindowSkipSubscriber.class, "firstRequest");
 
         int index;
         
@@ -268,7 +268,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         
         boolean done;
         
-        public PublisherWindowSkip(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
+        public WindowSkipSubscriber(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
@@ -403,7 +403,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         }
     }
 
-    static final class PublisherWindowOverlap<T> implements Subscriber<T>, Subscription, Runnable {
+    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super PublisherBase<T>> actual;
 
@@ -419,28 +419,28 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowOverlap> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowOverlap.class, "wip");
+        static final AtomicIntegerFieldUpdater<WindowOverlapSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(WindowOverlapSubscriber.class, "wip");
 
         volatile int once;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowOverlap> ONCE =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowOverlap.class, "once");
+        static final AtomicIntegerFieldUpdater<WindowOverlapSubscriber> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(WindowOverlapSubscriber.class, "once");
 
         volatile int firstRequest;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowOverlap> FIRST_REQUEST =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowOverlap.class, "firstRequest");
+        static final AtomicIntegerFieldUpdater<WindowOverlapSubscriber> FIRST_REQUEST =
+                AtomicIntegerFieldUpdater.newUpdater(WindowOverlapSubscriber.class, "firstRequest");
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherWindowOverlap> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherWindowOverlap.class, "requested");
+        static final AtomicLongFieldUpdater<WindowOverlapSubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(WindowOverlapSubscriber.class, "requested");
 
         volatile int dw;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherWindowOverlap> DW =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherWindowOverlap.class, "dw");
+        static final AtomicIntegerFieldUpdater<WindowOverlapSubscriber> DW =
+                AtomicIntegerFieldUpdater.newUpdater(WindowOverlapSubscriber.class, "dw");
 
         int index;
         
@@ -453,7 +453,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         
         volatile boolean cancelled;
         
-        public PublisherWindowOverlap(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
+        public WindowOverlapSubscriber(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
                 Supplier<? extends Queue<T>> processorQueueSupplier,
                 Queue<UnicastProcessor<T>> overflowQueue) {
             this.actual = actual;

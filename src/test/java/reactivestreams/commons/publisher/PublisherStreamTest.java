@@ -1,12 +1,11 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherStream;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherStreamTest {
 

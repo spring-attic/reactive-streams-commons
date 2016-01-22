@@ -70,7 +70,7 @@ extends PublisherSource<T, C> {
             return;
         }
         
-        PublisherBufferStartEndMain<T, U, V, C> parent = new PublisherBufferStartEndMain<>(s, bufferSupplier, q, end);
+        BufferStartEndMainSubscriber<T, U, V, C> parent = new BufferStartEndMainSubscriber<>(s, bufferSupplier, q, end);
         
         s.onSubscribe(parent);
         
@@ -79,7 +79,7 @@ extends PublisherSource<T, C> {
         source.subscribe(parent);
     }
     
-    static final class PublisherBufferStartEndMain<T, U, V, C extends Collection<? super T>>
+    static final class BufferStartEndMainSubscriber<T, U, V, C extends Collection<? super T>>
     implements Subscriber<T>, Subscription {
         
         final Subscriber<? super C> actual;
@@ -92,31 +92,31 @@ extends PublisherSource<T, C> {
         
         Set<Subscription> endSubscriptions;
         
-        final PublisherBufferStartEndStarter<U> starter;
+        final BufferStartEndStarter<U> starter;
 
         Map<Long, C> buffers;
         
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherBufferStartEndMain, Subscription> S =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, Subscription.class, "s");
+        static final AtomicReferenceFieldUpdater<BufferStartEndMainSubscriber, Subscription> S =
+                AtomicReferenceFieldUpdater.newUpdater(BufferStartEndMainSubscriber.class, Subscription.class, "s");
         
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherBufferStartEndMain> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, "requested");
+        static final AtomicLongFieldUpdater<BufferStartEndMainSubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(BufferStartEndMainSubscriber.class, "requested");
 
         long index;
         
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherBufferStartEndMain> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, "wip");
+        static final AtomicIntegerFieldUpdater<BufferStartEndMainSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(BufferStartEndMainSubscriber.class, "wip");
         
         volatile Throwable error;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherBufferStartEndMain, Throwable> ERROR =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, Throwable.class, "error");
+        static final AtomicReferenceFieldUpdater<BufferStartEndMainSubscriber, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(BufferStartEndMainSubscriber.class, Throwable.class, "error");
         
         volatile boolean done;
         
@@ -124,10 +124,10 @@ extends PublisherSource<T, C> {
 
         volatile int open;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherBufferStartEndMain> OPEN =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherBufferStartEndMain.class, "open");
+        static final AtomicIntegerFieldUpdater<BufferStartEndMainSubscriber> OPEN =
+                AtomicIntegerFieldUpdater.newUpdater(BufferStartEndMainSubscriber.class, "open");
 
-        public PublisherBufferStartEndMain(Subscriber<? super C> actual, Supplier<C> bufferSupplier, Queue<C> queue, Function<? super U, ? extends Publisher<V>> end) {
+        public BufferStartEndMainSubscriber(Subscriber<? super C> actual, Supplier<C> bufferSupplier, Queue<C> queue, Function<? super U, ? extends Publisher<V>> end) {
             this.actual = actual;
             this.bufferSupplier = bufferSupplier;
             this.buffers = new HashMap<>();
@@ -135,7 +135,7 @@ extends PublisherSource<T, C> {
             this.queue = queue;
             this.end = end;
             this.open = 1;
-            this.starter = new PublisherBufferStartEndStarter<>(this);
+            this.starter = new BufferStartEndStarter<>(this);
         }
         
         @Override
@@ -344,7 +344,7 @@ extends PublisherSource<T, C> {
                 return;
             }
             
-            PublisherBufferStartEndEnder<T, V, C> end = new PublisherBufferStartEndEnder<>(this, b, idx);
+            BufferStartEndEnder<T, V, C> end = new BufferStartEndEnder<>(this, b, idx);
             
             if (addEndSubscription(end)) {
                 OPEN.getAndIncrement(this);
@@ -373,7 +373,7 @@ extends PublisherSource<T, C> {
             cancelEnds();
         }
         
-        void endSignal(PublisherBufferStartEndEnder<T, V, C> ender) {
+        void endSignal(BufferStartEndEnder<T, V, C> ender) {
             synchronized (this) {
                 Map<Long, C> set = buffers;
                 
@@ -467,11 +467,11 @@ extends PublisherSource<T, C> {
         }
     }
     
-    static final class PublisherBufferStartEndStarter<U> extends DeferredSubscription
+    static final class BufferStartEndStarter<U> extends DeferredSubscription
     implements Subscriber<U> {
-        final PublisherBufferStartEndMain<?, U, ?, ?> main;
+        final BufferStartEndMainSubscriber<?, U, ?, ?> main;
         
-        public PublisherBufferStartEndStarter(PublisherBufferStartEndMain<?, U, ?, ?> main) {
+        public BufferStartEndStarter(BufferStartEndMainSubscriber<?, U, ?, ?> main) {
             this.main = main;
         }
         
@@ -498,15 +498,15 @@ extends PublisherSource<T, C> {
         }
     }
     
-    static final class PublisherBufferStartEndEnder<T, V, C extends Collection<? super T>> extends DeferredSubscription
+    static final class BufferStartEndEnder<T, V, C extends Collection<? super T>> extends DeferredSubscription
     implements Subscriber<V> {
-        final PublisherBufferStartEndMain<T, ?, V, C> main;
+        final BufferStartEndMainSubscriber<T, ?, V, C> main;
 
         final C buffer;
         
         final long index;
         
-        public PublisherBufferStartEndEnder(PublisherBufferStartEndMain<T, ?, V, C> main, C buffer, long index) {
+        public BufferStartEndEnder(BufferStartEndMainSubscriber<T, ?, V, C> main, C buffer, long index) {
             this.main = main;
             this.buffer = buffer;
             this.index = index;

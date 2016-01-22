@@ -2,8 +2,7 @@ package reactivestreams.commons.publisher;
 
 import org.junit.Assert;
 import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherEmpty;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherEmptyTest {
 

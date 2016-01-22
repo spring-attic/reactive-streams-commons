@@ -7,6 +7,10 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Connectable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -46,7 +50,7 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherScanSubscriber<T, R>
-      implements Subscriber<T>, Subscription, Downstream, DownstreamDemand, FeedbackLoop, Upstream, ActiveUpstream {
+      implements Subscriber<T>, Subscription, Subscribable, Requestable, Connectable, Completable {
 
         final Subscriber<? super R> actual;
 
@@ -218,12 +222,12 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return accumulator;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return null;
         }
 

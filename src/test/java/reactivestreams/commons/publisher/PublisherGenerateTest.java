@@ -1,14 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import org.junit.Assert;
-import org.junit.Test;
-import reactivestreams.commons.publisher.PublisherGenerate;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.Assert;
+import org.junit.Test;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherGenerateTest {
 

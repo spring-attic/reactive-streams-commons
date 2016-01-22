@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 import org.junit.Test;
 import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherBufferBoundaryAndSizeTest {
@@ -47,7 +47,7 @@ public class PublisherBufferBoundaryAndSizeTest {
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
         sp1.buffer(sp2, 3).subscribe(ts);
-        
+
         sp1.onNext(1);
         sp1.onNext(2);
         sp2.onNext(100);

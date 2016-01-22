@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.trait.Failurable;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Emits a constant or generated Throwable instance to Subscribers.
@@ -14,9 +14,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherError<T> 
 extends PublisherBase<T>
-implements 
-                                                ReactiveState.Factory,
-                                                ReactiveState.FailState {
+        implements Failurable {
 
     final Supplier<? extends Throwable> supplier;
 

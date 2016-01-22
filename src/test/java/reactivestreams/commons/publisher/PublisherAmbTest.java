@@ -1,14 +1,10 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.publisher.PublisherAmb;
-import reactivestreams.commons.publisher.PublisherError;
-import reactivestreams.commons.publisher.PublisherNever;
-import reactivestreams.commons.publisher.PublisherRange;
-import reactivestreams.commons.subscriber.test.TestSubscriber;
-
-import java.util.Arrays;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherAmbTest {
 
@@ -83,7 +79,7 @@ public class PublisherAmbTest {
     public void arrayOneIsNullSource() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        new PublisherAmb<>(PublisherNever.instance(), (Publisher<Object>) null, PublisherNever.instance()).subscribe
+        new PublisherAmb<>(PublisherNever.instance(), null, PublisherNever.instance()).subscribe
           (ts);
 
         ts.assertNoValues()

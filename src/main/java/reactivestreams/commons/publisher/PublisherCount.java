@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -23,7 +24,7 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> {
     }
 
     static final class PublisherCountSubscriber<T> extends SubscriberDeferredScalar<T, Long>
-    implements Upstream {
+            implements Publishable {
 
         long counter;
 

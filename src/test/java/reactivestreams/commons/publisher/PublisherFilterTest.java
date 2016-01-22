@@ -3,8 +3,7 @@ package reactivestreams.commons.publisher;
 import java.util.Arrays;
 
 import org.junit.Test;
-
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherFilterTest {
 

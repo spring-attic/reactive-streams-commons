@@ -4,8 +4,8 @@ import java.util.Objects;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.DeferredSubscription;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Arbitrates the requests and cancellation for a Subscription that may be set onSubscribe once only.
@@ -17,8 +17,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public class SubscriberDeferredSubscription<I, O>
         extends DeferredSubscription
-implements Subscription, Subscriber<I>,
-                                                          ReactiveState.Downstream {
+implements Subscription, Subscriber<I>, Subscribable {
 
     protected final Subscriber<? super O> subscriber;
 

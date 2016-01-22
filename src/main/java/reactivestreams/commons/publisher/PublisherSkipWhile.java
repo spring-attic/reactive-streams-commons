@@ -6,6 +6,9 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Connectable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
@@ -38,8 +41,8 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherSkipWhileSubscriber<>(s, predicate));
     }
 
-    static final class PublisherSkipWhileSubscriber<T> implements Subscriber<T>, Downstream, ActiveUpstream,
-                                                                  FeedbackLoop, Upstream {
+    static final class PublisherSkipWhileSubscriber<T> implements Subscriber<T>, Subscribable, Connectable,
+                                                                  Completable {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -133,12 +136,12 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return predicate;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return null;
         }
 

@@ -11,10 +11,15 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Connectable;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.DrainHelper;
 import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.ReactiveState;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
@@ -25,7 +30,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <C> the buffer collection type
  */
 public final class PublisherBuffer<T, C extends Collection<? super T>> extends PublisherSource<T, C>
-        implements ReactiveState.Bounded {
+        implements Backpressurable {
 
     final int size;
 
@@ -63,13 +68,17 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
     }
 
-    @Override
     public long getCapacity() {
         return size;
     }
 
+    @Override
+    public long getPending() {
+        return -1L;
+    }
+
     static final class PublisherBufferExactSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription, Downstream, FeedbackLoop, Upstream, ActiveUpstream, Buffering {
+      implements Subscriber<T>, Subscription, Subscribable, Connectable, Completable, Backpressurable {
 
         final Subscriber<? super C> actual;
 
@@ -187,12 +196,12 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return bufferSupplier;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return buffer;
         }
 
@@ -202,7 +211,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
 
         @Override
-        public long pending() {
+        public long getPending() {
             C b = buffer;
             return b != null ? b.size() : 0L;
         }
@@ -214,7 +223,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
     }
 
     static final class PublisherBufferSkipSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription, Downstream, FeedbackLoop, Upstream, ActiveUpstream, Buffering {
+      implements Subscriber<T>, Subscription, Subscribable, Connectable, Completable, Backpressurable {
 
         final Subscriber<? super C> actual;
 
@@ -362,12 +371,12 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return bufferSupplier;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return buffer;
         }
 
@@ -377,7 +386,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
 
         @Override
-        public long pending() {
+        public long getPending() {
             C b = buffer;
             return b != null ? b.size() : 0L;
         }
@@ -390,8 +399,9 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
 
 
     static final class PublisherBufferOverlappingSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription, BooleanSupplier, Downstream, Upstream, ActiveUpstream,
-                 ActiveDownstream, FeedbackLoop, Buffering, DownstreamDemand {
+      implements Subscriber<T>, Subscription, BooleanSupplier, Subscribable, Completable, Cancellable,
+                 Connectable,
+                 Backpressurable, Requestable {
         final Subscriber<? super C> actual;
 
         final Supplier<C> bufferSupplier;
@@ -568,7 +578,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
 
         @Override
-        public long pending() {
+        public long getPending() {
             return buffers.size()*size; //rounded max
         }
 
@@ -588,12 +598,12 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return bufferSupplier;
         }
 
         @Override
-        public Object delegateOutput() {
+        public Object connectedOutput() {
             return buffers;
         }
 

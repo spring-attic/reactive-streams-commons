@@ -1,10 +1,10 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Test;
-
-import reactivestreams.commons.subscriber.test.TestSubscriber;
+import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherZipIterableTest {
 

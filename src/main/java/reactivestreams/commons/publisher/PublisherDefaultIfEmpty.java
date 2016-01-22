@@ -6,6 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -29,7 +30,7 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
 
     static final class PublisherDefaultIfEmptySubscriber<T>
             extends SubscriberDeferredScalar<T, T>
-    implements Upstream{
+            implements Publishable {
 
         final T value;
 
@@ -97,7 +98,7 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object delegateInput() {
+        public Object connectedInput() {
             return value;
         }
     }

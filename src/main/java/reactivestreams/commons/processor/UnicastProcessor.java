@@ -215,6 +215,11 @@ implements Processor<T, T> {
             s.onError(new IllegalStateException("This processor allows only a single Subscriber"));
         }
     }
+
+    @Override
+    public int getMode() {
+        return 0;
+    }
     
     void request(long n) {
         if (SubscriptionHelper.validate(n)) {

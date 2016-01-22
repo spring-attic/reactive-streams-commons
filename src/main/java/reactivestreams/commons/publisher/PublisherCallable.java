@@ -6,8 +6,8 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.ReactiveState;
 
 /**
  * Executes a Callable function and emits a single value to each individual Subscriber.
@@ -18,9 +18,7 @@ import reactivestreams.commons.util.ReactiveState;
  */
 public final class PublisherCallable<T> 
 extends PublisherBase<T>
-implements 
-                                                   ReactiveState.Factory,
-                                                   ReactiveState.Upstream {
+        implements Publishable {
 
     final Callable<? extends T> callable;
 

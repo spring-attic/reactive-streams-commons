@@ -4,14 +4,12 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.util.ReactiveState;
+import reactivestreams.commons.trait.Publishable;
 import reactivestreams.commons.util.ScalarSubscription;
 
 public final class PublisherJust<T> 
 extends PublisherBase<T>
-implements Supplier<T>,
-                                               ReactiveState.Factory,
-                                               ReactiveState.Upstream {
+implements Supplier<T>, Publishable {
 
     final T value;
 
