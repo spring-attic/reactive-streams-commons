@@ -105,18 +105,17 @@ public class PublisherWindowBoundaryAndSizeTest {
         
         sp2.onNext(200);
 
-        ts.assertValueCount(5);
+        ts.assertValueCount(4);
         
         sp1.onComplete();
         
-        ts.assertValueCount(5);
+        ts.assertValueCount(4);
         
         expect(ts, 0, 1, 2, 3);
         expect(ts, 1, 4, 5);
         expect(ts, 2, 6, 7, 8);
         expect(ts, 3);
-        expect(ts, 4);
-        
+
         ts.assertNoError()
         .assertComplete();
         

@@ -172,7 +172,7 @@ extends PublisherSource<T, C> {
                 C b = buffer;
                 if (b != null) {
                     b.add(t);
-                    if (b.size() == maxSize) {
+                    if (Integer.MAX_VALUE != maxSize && b.size() == maxSize) {
                         queue.offer(b);
                         
                         try {
@@ -244,16 +244,21 @@ extends PublisherSource<T, C> {
         
         void otherNext() {
             C c;
-            
+            C b = buffer;
+
+            if(b == null || b.isEmpty()){
+                return;
+            }
+
             try {
                 c = bufferSupplier.get();
             } catch (Throwable e) {
                 other.cancel();
-                
+
                 otherError(e);
                 return;
             }
-            
+
             if (c == null) {
                 other.cancel();
 
@@ -261,7 +266,7 @@ extends PublisherSource<T, C> {
                 return;
             }
             
-            C b;
+
             synchronized (this) {
                 b = buffer;
                 if (b == null) {

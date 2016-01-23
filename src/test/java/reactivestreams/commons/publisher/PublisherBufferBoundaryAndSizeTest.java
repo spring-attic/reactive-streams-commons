@@ -2,7 +2,6 @@ package reactivestreams.commons.publisher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -71,7 +70,6 @@ public class PublisherBufferBoundaryAndSizeTest {
                 Arrays.asList(3, 4, 5), 
                 Arrays.asList(6),
                 Arrays.asList(7, 8, 9),
-                Collections.emptyList(),
                 Arrays.asList(10)
             )
         .assertNoError()

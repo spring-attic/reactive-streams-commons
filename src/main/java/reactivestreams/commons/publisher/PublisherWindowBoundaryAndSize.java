@@ -276,21 +276,25 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                         break;
                     }
 
+                    int localSize;
                     if (o != BOUNDARY_MARKER) {
                         @SuppressWarnings("unchecked")
                         T t = (T)o;
                         w.onNext(t);
 
-                        int localSize = size + 1;
-                        if (localSize == maxSize) {
+                        localSize = size + 1;
+                        if (maxSize != Integer.MAX_VALUE && localSize == maxSize) {
                             size = 0;
                             o = BOUNDARY_MARKER;
                         } else {
                             size = localSize;
                         }
                     }
+                    else{
+                        localSize = size;
+                    }
 
-                    if (o == BOUNDARY_MARKER) {
+                    if ((once == 1 || localSize != 0) && o == BOUNDARY_MARKER) {
                         window = null;
 
                         w.onComplete();
