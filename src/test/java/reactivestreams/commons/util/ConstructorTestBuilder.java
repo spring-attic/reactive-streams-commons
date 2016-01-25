@@ -52,6 +52,11 @@ public final class ConstructorTestBuilder {
                     
                     String pname = params[j].getName();
                     
+                    if (params[j].getType() == Boolean.TYPE) {
+                        paramValues[j] = true;
+                        continue;
+                    }
+                    
                     Object cp = parameters.get(pname);
                     
                     if (cp == null) {
@@ -102,7 +107,12 @@ public final class ConstructorTestBuilder {
                     String pname = params[j].getName();
                     
                     Object cp = parameters.get(pname);
-                    
+
+                    if (params[j].getType() == Boolean.TYPE) {
+                        paramValues[j] = true;
+                        continue;
+                    }
+
                     if (cp == null) {
                         throw new IllegalStateException("Constructor " + c + " parameter " + pname + " is missing a test setting");
                     }

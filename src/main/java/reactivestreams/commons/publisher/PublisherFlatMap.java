@@ -7,7 +7,6 @@ import java.util.function.*;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.util.*;
-import reactor.core.util.Exceptions;
 
 /**
  * Maps a sequence of values each into a Publisher and flattens them 
@@ -100,8 +99,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         @SuppressWarnings("rawtypes")
         static final PublisherFlatMapInner[] TERMINATED = new PublisherFlatMapInner[0];
         
-        long index;
-
         int last;
         
         int produced;
@@ -201,6 +198,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     b = EMPTY;
                 } else {
                     b = new PublisherFlatMapInner[n - 1];
+                    System.arraycopy(a, 0, b, 0, j);
+                    System.arraycopy(a, j + 1, b, j, n - j - 1);
                 }
                 if (SUBSCRIBERS.compareAndSet(this, a, b)) {
                     return;
@@ -236,7 +235,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 p = mapper.apply(t);
             } catch (Throwable e) {
                 s.cancel();
-                Exceptions.throwIfFatal(e);
+                ExceptionHelper.throwIfFatal(e);
                 onError(e);
                 return;
             }
@@ -253,7 +252,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 R v = ((Supplier<R>)p).get();
                 emitScalar(v);
             } else {
-                PublisherFlatMapInner<R> inner = new PublisherFlatMapInner<>(this, prefetch, index++);
+                PublisherFlatMapInner<R> inner = new PublisherFlatMapInner<>(this, prefetch);
                 if (add(inner)) {
                     
                     p.subscribe(inner);
@@ -354,7 +353,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         }
         
         void drain() {
-            if (WIP.getAndIncrement(this) == 0) {
+            if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
             drainLoop();
@@ -367,7 +366,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             
             for (;;) {
                 
-                
                 PublisherFlatMapInner<R>[] as = subscribers;
                 
                 int n = as.length;
@@ -379,6 +377,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     return;
                 }
                 
+                boolean again = false;
+
                 long r = requested;
                 long e = 0L;
                 long replenishMain = 0L;
@@ -412,18 +412,91 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                             if (r != Long.MAX_VALUE) {
                                 r = REQUESTED.addAndGet(this, -e);
                             }
+                            e = 0L;
                         }
                     }
 
                     if (r != 0L) {
-                        // TODO
                         
+                        int j = last;
+                        if (j >= n) {
+                            j = n - 1;
+                        }
+                        
+                        for (int i = 0; i < n; i++) {
+                            
+                            PublisherFlatMapInner<R> inner = as[j];
+                            
+                            d = inner.done;
+                            Queue<R> q = inner.queue;
+                            if (d && q == null) {
+                                remove(inner);
+                                again = true;
+                                replenishMain++;
+                            } else {
+                                while (e != r) {
+                                    d = inner.done;
+                                    
+                                    R v = q.poll();
+                                    
+                                    boolean empty = v == null;
+                                    
+                                    if (checkTerminated(d, false, a)) {
+                                        return;
+                                    }
+
+                                    if (d && empty) {
+                                        remove(inner);
+                                        again = true;
+                                        replenishMain++;
+                                        break;
+                                    }
+                                    
+                                    if (empty) {
+                                        break;
+                                    }
+                                    
+                                    a.onNext(v);
+                                    
+                                    e++;
+                                }
+                                
+                                if (e == r) {
+                                    if (d && q.isEmpty()) {
+                                        remove(inner);
+                                        again = true;
+                                        replenishMain++;
+                                    }
+                                }
+                                
+                                if (e != 0L) {
+                                    if (!inner.done) {
+                                        inner.request(e);
+                                    }
+                                    if (r != Long.MAX_VALUE) {
+                                        r = REQUESTED.addAndGet(this, -e);
+                                        if (r == 0L) {
+                                            last = j;
+                                            break; // 0 .. n - 1
+                                        }
+                                    }
+                                    e = 0L;
+                                }
+                            }
+                            if (++j == n) {
+                                j = 0;
+                            }
+                        }
                     }
                 }
                 
                 
-                if (replenishMain != 0L) {
+                if (replenishMain != 0L && !done && !cancelled) {
                     s.request(replenishMain);
+                }
+                
+                if (again) {
+                    continue;
                 }
                 
                 missed = WIP.addAndGet(this, -missed);
@@ -445,8 +518,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             if (delayError) {
                 if (done && empty) {
                     Throwable e = error;
-                    if (e != null && e != Exceptions.TERMINATED) {
-                        e = Exceptions.terminate(ERROR, this);
+                    if (e != null && e != ExceptionHelper.TERMINATED) {
+                        e = ExceptionHelper.terminate(ERROR, this);
                         a.onError(e);
                     } else {
                         a.onComplete();
@@ -457,8 +530,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             } else {
                 if (done) {
                     Throwable e = error;
-                    if (e != null && e != Exceptions.TERMINATED) {
-                        e = Exceptions.terminate(ERROR, this);
+                    if (e != null && e != ExceptionHelper.TERMINATED) {
+                        e = ExceptionHelper.terminate(ERROR, this);
                         scalarQueue = null;
                         s.cancel();
                         cancelAllInner();
@@ -553,8 +626,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         final int limit;
         
-        final long index;
-        
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherFlatMapInner, Subscription> S =
@@ -568,11 +639,10 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         boolean synchronousSource;
         
-        public PublisherFlatMapInner(PublisherFlatMapMain<?, R> parent, int prefetch, long index) {
+        public PublisherFlatMapInner(PublisherFlatMapMain<?, R> parent, int prefetch) {
             this.parent = parent;
             this.prefetch = prefetch;
             this.limit = prefetch - (prefetch >> 2);
-            this.index = index;
         }
 
         @SuppressWarnings("unchecked")
