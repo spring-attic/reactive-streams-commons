@@ -46,10 +46,11 @@ extends PublisherBase<Integer> {
             return;
         }
         
-        s.onSubscribe(new RangeSubscription<>(s, st, en));
+        s.onSubscribe(new RangeSubscription(s, st, en));
     }
 
-    static final class RangeSubscription<T>
+    static final class RangeSubscription
+    extends SynchronousSource<Integer>
       implements Subscription, Cancellable, Requestable, Completable, Subscribable {
 
         final Subscriber<? super Integer> actual;
@@ -61,7 +62,6 @@ extends PublisherBase<Integer> {
         long index;
 
         volatile long requested;
-        @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<RangeSubscription> REQUESTED =
           AtomicLongFieldUpdater.newUpdater(RangeSubscription.class, "requested");
 
@@ -183,5 +183,35 @@ extends PublisherBase<Integer> {
         public long requestedFromDownstream() {
             return requested;
         }
+
+        @Override
+        public Integer poll() {
+            long i = index++;
+            if (i == end) {
+                return null;
+            }
+            return (int)i;
+        }
+
+        @Override
+        public Integer peek() {
+            long i = index;
+            if (i == end) {
+                return null;
+            }
+            return (int)i;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return index == end;
+        }
+
+        @Override
+        public void clear() {
+            index = end;
+        }
+        
+        
     }
 }
