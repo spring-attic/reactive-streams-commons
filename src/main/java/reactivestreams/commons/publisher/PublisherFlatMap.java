@@ -45,6 +45,37 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
     @Override
     public void subscribe(Subscriber<? super R> s) {
+        
+        if (source instanceof Supplier) {
+            @SuppressWarnings("unchecked")
+            T t = ((Supplier<? extends T>)source).get();
+            
+            Publisher<? extends R> p;
+            
+            try {
+                p = mapper.apply(t);
+            } catch (Throwable e) {
+                ExceptionHelper.throwIfFatal(e);
+                EmptySubscription.error(s, e);
+                return;
+            }
+            
+            if (p == null) {
+                EmptySubscription.error(s, new NullPointerException("The mapper returned a null Publisher"));
+                return;
+            }
+            
+            if (p instanceof Supplier) {
+                @SuppressWarnings("unchecked")
+                R v = ((Supplier<R>)p).get();
+                s.onSubscribe(new ScalarSubscription<>(s, v));
+            } else {
+                p.subscribe(s);
+            } 
+            
+            return;
+        }
+        
         source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, queueSupplier, prefetch));
     }
 
@@ -437,7 +468,19 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                                 while (e != r) {
                                     d = inner.done;
                                     
-                                    R v = q.poll();
+                                    R v;
+                                    
+                                    try {
+                                        v = q.poll();
+                                    } catch (Throwable ex) {
+                                        ExceptionHelper.throwIfFatal(ex);
+                                        inner.cancel();
+                                        if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                                            UnsignalledExceptions.onErrorDropped(ex);
+                                        }
+                                        v = null;
+                                        d = true;
+                                    }
                                     
                                     boolean empty = v == null;
                                     
@@ -516,7 +559,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
             
             if (delayError) {
-                if (done && empty) {
+                if (d && empty) {
                     Throwable e = error;
                     if (e != null && e != ExceptionHelper.TERMINATED) {
                         e = ExceptionHelper.terminate(ERROR, this);
@@ -528,7 +571,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     return true;
                 }
             } else {
-                if (done) {
+                if (d) {
                     Throwable e = error;
                     if (e != null && e != ExceptionHelper.TERMINATED) {
                         e = ExceptionHelper.terminate(ERROR, this);

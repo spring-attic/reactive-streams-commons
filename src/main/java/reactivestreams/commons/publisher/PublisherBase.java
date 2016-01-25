@@ -454,4 +454,44 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         }
         return new PublisherBaseWrapper<>(source);
     }
+
+    // ---------------------------------------------------------------------------------------
+    
+    public static <T> PublisherBase<T> just(T value) {
+        return new PublisherJust<>(value);
+    }
+    
+    public static <T> PublisherBase<T> empty() {
+        return PublisherEmpty.instance();
+    }
+
+    public static <T> PublisherBase<T> never() {
+        return PublisherNever.instance();
+    }
+
+    public static PublisherBase<Integer> range(int start, int count) {
+        if (count == 0) {
+            return empty();
+        }
+        if (count == 1) {
+            return just(start);
+        }
+        return new PublisherRange(start, count);
+    }
+    
+    @SafeVarargs
+    public static <T> PublisherBase<T> fromArray(T... array) {
+        int n = array.length;
+        if (n == 0) {
+            return empty();
+        } else
+        if (n == 1) {
+            return just(array[0]);
+        }
+        return new PublisherArray<>(array);
+    }
+
+    public static <T> PublisherBase<T> fromIterable(Iterable<? extends T> iterable) {
+        return new PublisherIterable<>(iterable);
+    }
 }

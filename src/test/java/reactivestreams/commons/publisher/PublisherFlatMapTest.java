@@ -118,4 +118,15 @@ public class PublisherFlatMapTest {
         .assertComplete();
     }
 
+    @Test
+    public void nullValue() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherRange(1, 1000).flatMap(v -> new PublisherArray<>((Integer)null)).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
 }

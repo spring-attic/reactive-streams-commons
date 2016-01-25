@@ -8,8 +8,7 @@ import reactivestreams.commons.trait.Cancellable;
 import reactivestreams.commons.trait.Completable;
 import reactivestreams.commons.trait.Requestable;
 import reactivestreams.commons.trait.Subscribable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.*;
 
 /**
  * Emits a range of integer values.
@@ -36,7 +35,18 @@ extends PublisherBase<Integer> {
 
     @Override
     public void subscribe(Subscriber<? super Integer> s) {
-        s.onSubscribe(new RangeSubscription<>(s, start, end));
+        long st = start;
+        long en = end;
+        if (st == en) {
+            EmptySubscription.complete(s);
+            return;
+        } else
+        if (st + 1 == en) {
+            s.onSubscribe(new ScalarSubscription<>(s, (int)st));
+            return;
+        }
+        
+        s.onSubscribe(new RangeSubscription<>(s, st, en));
     }
 
     static final class RangeSubscription<T>

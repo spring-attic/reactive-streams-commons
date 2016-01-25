@@ -39,16 +39,16 @@ public class PublisherFlatMapPerf {
 
         @Setup
         public void setup() {
-            baseline = new PublisherRange(1, count);
+            baseline = PublisherBase.range(1, count);
 
-            justFlatMapRange = new PublisherJust<>(1).flatMap(v -> new PublisherRange(v, count));
+            justFlatMapRange = PublisherBase.just(1).flatMap(v -> PublisherBase.range(v, count));
 
             Integer[] arr = new Integer[count];
             Arrays.fill(arr, 777);
             
-            justFlatMapArray = new PublisherJust<>(1).flatMap(v -> new PublisherArray<>(arr));
+            justFlatMapArray = PublisherBase.just(1).flatMap(v -> new PublisherArray<>(arr));
 
-            rangeFlatMapJust = new PublisherRange(1, count).flatMap(v -> new PublisherJust<>(v));
+            rangeFlatMapJust = PublisherBase.range(1, count).flatMap(v -> PublisherBase.just(v));
         }
     }
 
@@ -62,14 +62,14 @@ public class PublisherFlatMapPerf {
 
         @Setup
         public void setup() {
-            justFlatMapJust = new PublisherJust<>(1).flatMap(v -> new PublisherJust<>(v));
+            justFlatMapJust = PublisherBase.just(1).flatMap(v -> PublisherBase.just(v));
             
             Integer[] arr = new Integer[1000];
             Arrays.fill(arr, 777);
 
-            rangeFlatMapRange = new PublisherRange(0, 1000).flatMap(v -> new PublisherRange(v, 1000));
+            rangeFlatMapRange = PublisherBase.range(0, 1000).flatMap(v -> PublisherBase.range(v, 1000));
 
-            rangeFlatMapArray = new PublisherRange(0, 1000).flatMap(v -> new PublisherArray<>(arr));
+            rangeFlatMapArray = PublisherBase.range(0, 1000).flatMap(v -> new PublisherArray<>(arr));
         }
     }
 
