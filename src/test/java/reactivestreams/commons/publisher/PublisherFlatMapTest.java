@@ -20,7 +20,8 @@ public class PublisherFlatMapTest {
         ctb.addRef("mapper", (Function<Object, Publisher<Object>>)v -> PublisherNever.instance());
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
         ctb.addInt("maxConcurrency", 1, Integer.MAX_VALUE);
-        ctb.addRef("queueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
+        ctb.addRef("mainQueueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
+        ctb.addRef("innerQueueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
         
         ctb.test();
     }

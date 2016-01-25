@@ -21,14 +21,16 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     
     final boolean delayError;
     
-    final int prefetch;
-    
     final int maxConcurrency;
     
-    final Supplier<? extends Queue<R>> queueSupplier;
+    final Supplier<? extends Queue<R>> mainQueueSupplier;
+
+    final int prefetch;
+    
+    final Supplier<? extends Queue<R>> innerQueueSupplier;
     
     public PublisherFlatMap(Publisher<? extends T> source, Function<? super T, ? extends Publisher<? extends R>> mapper,
-            boolean delayError, int maxConcurrency, Supplier<? extends Queue<R>> queueSupplier, int prefetch) {
+            boolean delayError, int maxConcurrency, Supplier<? extends Queue<R>> mainQueueSupplier, int prefetch, Supplier<? extends Queue<R>> innerQueueSupplier) {
         super(source);
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
@@ -40,7 +42,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         this.delayError = delayError;
         this.prefetch = prefetch;
         this.maxConcurrency = maxConcurrency;
-        this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
+        this.mainQueueSupplier = Objects.requireNonNull(mainQueueSupplier, "mainQueueSupplier");
+        this.innerQueueSupplier = Objects.requireNonNull(innerQueueSupplier, "innerQueueSupplier");
     }
 
     @Override
@@ -76,7 +79,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             return;
         }
         
-        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, queueSupplier, prefetch));
+        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
     }
 
     static final class PublisherFlatMapMain<T, R> 
@@ -90,9 +93,11 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         final int maxConcurrency;
         
-        final Supplier<? extends Queue<R>> queueSupplier;
+        final Supplier<? extends Queue<R>> mainQueueSupplier;
 
         final int prefetch;
+
+        final Supplier<? extends Queue<R>> innerQueueSupplier;
         
         final int limit;
         
@@ -136,13 +141,14 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         public PublisherFlatMapMain(Subscriber<? super R> actual,
                 Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency,
-                Supplier<? extends Queue<R>> queueSupplier, int prefetch) {
+                Supplier<? extends Queue<R>> mainQueueSupplier, int prefetch, Supplier<? extends Queue<R>> innerQueueSupplier) {
             this.actual = actual;
             this.mapper = mapper;
             this.delayError = delayError;
             this.maxConcurrency = maxConcurrency;
-            this.queueSupplier = queueSupplier;
+            this.mainQueueSupplier = mainQueueSupplier;
             this.prefetch = prefetch;
+            this.innerQueueSupplier = innerQueueSupplier;
             this.limit = prefetch - (prefetch >> 2);
             SUBSCRIBERS.lazySet(this, EMPTY);
         }
@@ -317,7 +323,24 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                         return;
                     }
                 } else {
-                    Queue<R> q = getOrCreateScalarQueue();
+                    Queue<R> q;
+                    
+                    try {
+                        q = getOrCreateScalarQueue();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        
+                        s.cancel();
+                        
+                        if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                            done = true;
+                        } else {
+                            UnsignalledExceptions.onErrorDropped(ex);
+                        }
+                        
+                        drainLoop();
+                        return;
+                    }
                     
                     if (!q.offer(v)) {
                         s.cancel();
@@ -333,7 +356,24 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 }
                 drainLoop();
             } else {
-                Queue<R> q = getOrCreateScalarQueue();
+                Queue<R> q;
+                
+                try {
+                    q = getOrCreateScalarQueue();
+                } catch (Throwable ex) {
+                    ExceptionHelper.throwIfFatal(ex);
+                    
+                    s.cancel();
+                    
+                    if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                        done = true;
+                    } else {
+                        UnsignalledExceptions.onErrorDropped(ex);
+                    }
+                    
+                    drain();
+                    return;
+                }
                 
                 if (!q.offer(v)) {
                     s.cancel();
@@ -353,7 +393,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         Queue<R> getOrCreateScalarQueue() {
             Queue<R> q = scalarQueue;
             if (q == null) {
-                q = queueSupplier.get();
+                q = mainQueueSupplier.get();
                 scalarQueue = q;
             }
             return q;
@@ -617,7 +657,21 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                         return;
                     }
                 } else {
-                    Queue<R> q = getOrCreateScalarQueue(inner);
+                    Queue<R> q;
+                    
+                    try {
+                        q = getOrCreateScalarQueue(inner);
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        inner.cancel();
+                        if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                            inner.done = true;
+                        } else {
+                            UnsignalledExceptions.onErrorDropped(ex);
+                        }
+                        drainLoop();
+                        return;
+                    }
                     
                     if (!q.offer(v)) {
                         inner.cancel();
@@ -633,7 +687,21 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 }
                 drainLoop();
             } else {
-                Queue<R> q = getOrCreateScalarQueue(inner);
+                Queue<R> q;
+                
+                try {
+                    q = getOrCreateScalarQueue(inner);
+                } catch (Throwable ex) {
+                    ExceptionHelper.throwIfFatal(ex);
+                    inner.cancel();
+                    if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                        inner.done = true;
+                    } else {
+                        UnsignalledExceptions.onErrorDropped(ex);
+                    }
+                    drain();
+                    return;
+                }
                 
                 if (!q.offer(v)) {
                     inner.cancel();
@@ -653,7 +721,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         Queue<R> getOrCreateScalarQueue(PublisherFlatMapInner<R> inner) {
             Queue<R> q = inner.queue;
             if (q == null) {
-                q = queueSupplier.get();
+                q = innerQueueSupplier.get();
                 inner.queue = q;
             }
             return q;

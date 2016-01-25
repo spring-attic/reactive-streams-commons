@@ -431,7 +431,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> PublisherBase<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency, int prefetch) {
-        return new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(), prefetch);
+        return new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(), prefetch, defaultQueueSupplier());
     }
 
     // ---------------------------------------------------------------------------------------
