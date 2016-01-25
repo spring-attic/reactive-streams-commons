@@ -48,7 +48,7 @@ public class PublisherFlatMapPerf {
             
             justFlatMapArray = PublisherBase.just(1).flatMap(v -> new PublisherArray<>(arr));
 
-            rangeFlatMapJust = PublisherBase.range(1, count).flatMap(v -> PublisherBase.just(v));
+            rangeFlatMapJust = PublisherBase.range(1, count).flatMap(PublisherBase::just);
         }
     }
 

@@ -2,7 +2,6 @@ package reactivestreams.commons.publisher;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.Consumer;
 
 import org.reactivestreams.*;
 
@@ -206,16 +205,6 @@ extends PublisherBase<T> {
         @Override
         public void clear() {
             index = array.length;
-        }
-        
-        @Override
-        public void onDrainable(Runnable call) {
-            // TODO what to do with this?
-        }
-        
-        @Override
-        public void onError(Consumer<Throwable> errorCall) {
-            // TODO what to do with this?
         }
     }
 }

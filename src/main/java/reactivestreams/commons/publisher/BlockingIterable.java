@@ -70,6 +70,7 @@ public final class BlockingIterable<T> implements Iterable<T>, Publishable, Back
         return new SubscriberIterator<>(q, batchSize);
     }
 
+    @Override
     public long getCapacity() {
         return batchSize;
     }

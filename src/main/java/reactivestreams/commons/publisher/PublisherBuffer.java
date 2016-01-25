@@ -68,6 +68,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
     }
 
+    @Override
     public long getCapacity() {
         return size;
     }

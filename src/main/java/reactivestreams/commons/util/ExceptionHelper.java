@@ -134,6 +134,9 @@ public enum ExceptionHelper {
      * An exception helper for lambda and other checked-to-unchecked exception wrapping
      */
     static class ReactiveException extends RuntimeException {
+        /** */
+        private static final long serialVersionUID = -4167553196581090231L;
+
         public ReactiveException(Throwable cause) {
             super(cause);
         }
@@ -153,6 +156,8 @@ public enum ExceptionHelper {
      * exceptions allowed to bubble
      */
     static final class UpstreamException extends ReactiveException {
+        /** */
+        private static final long serialVersionUID = 2491425277432776142L;
 
         public UpstreamException(String message) {
             super(message);
@@ -167,6 +172,9 @@ public enum ExceptionHelper {
      * An exception that is propagated downward through {@link org.reactivestreams.Subscriber#onError(Throwable)}
      */
     static final class DownstreamException extends ReactiveException {
+
+        /** */
+        private static final long serialVersionUID = -2025033116568832120L;
 
         public DownstreamException(String message) {
             super(message);

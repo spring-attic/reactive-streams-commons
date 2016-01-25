@@ -1,9 +1,9 @@
 package reactivestreams.commons.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.trait.Subscribable;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.trait.*;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Ignores normal values and passes only the terminal signals along.
@@ -21,8 +21,10 @@ public final class PublisherIgnoreElements<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherIgnoreElementsSubscriber<>(s));
     }
     
-    static final class PublisherIgnoreElementsSubscriber<T> implements Subscriber<T>, Subscribable {
+    static final class PublisherIgnoreElementsSubscriber<T> implements Subscriber<T>, Subscribable, Subscription, Publishable {
         final Subscriber<? super T> actual;
+        
+        Subscription s;
         
         public PublisherIgnoreElementsSubscriber(Subscriber<? super T> actual) {
             this.actual = actual;
@@ -30,8 +32,13 @@ public final class PublisherIgnoreElements<T> extends PublisherSource<T, T> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            actual.onSubscribe(s);
-            s.request(Long.MAX_VALUE);
+            if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+                
+                actual.onSubscribe(this);
+                
+                s.request(Long.MAX_VALUE);
+            }
         }
         
         @Override
@@ -52,6 +59,21 @@ public final class PublisherIgnoreElements<T> extends PublisherSource<T, T> {
         @Override
         public Object downstream() {
             return actual;
+        }
+        
+        @Override
+        public void request(long n) {
+            // requests Long.MAX_VALUE anyway
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
+        }
+        
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 }

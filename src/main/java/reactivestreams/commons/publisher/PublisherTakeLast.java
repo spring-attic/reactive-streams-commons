@@ -43,9 +43,11 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T>, Subscribable {
+    static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T>, Subscribable, Subscription, Publishable {
 
         final Subscriber<? super T> actual;
+        
+        Subscription s;
 
         public PublisherTakeLastZeroSubscriber(Subscriber<? super T> actual) {
             this.actual = actual;
@@ -53,9 +55,13 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            actual.onSubscribe(s);
+            if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+                
+                actual.onSubscribe(this);
 
-            s.request(Long.MAX_VALUE);
+                s.request(Long.MAX_VALUE);
+            }
         }
 
         @Override
@@ -76,6 +82,21 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         @Override
         public Object downstream() {
             return actual;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
+        }
+        
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 

@@ -9,6 +9,7 @@ import reactivestreams.commons.trait.Backpressurable;
 import reactivestreams.commons.trait.Completable;
 import reactivestreams.commons.trait.Prefetchable;
 import reactivestreams.commons.trait.Subscribable;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Skips the first N elements from a reactive stream.
@@ -44,13 +45,15 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherSkipSubscriber<T> implements Subscriber<T>, Subscribable, Prefetchable,
-                                                             Backpressurable, Completable {
+                                                             Backpressurable, Completable, Subscription {
 
         final Subscriber<? super T> actual;
 
         final long n;
 
         long remaining;
+        
+        Subscription s;
 
         public PublisherSkipSubscriber(Subscriber<? super T> actual, long n) {
             this.actual = actual;
@@ -60,9 +63,13 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            actual.onSubscribe(s);
-
-            s.request(n);
+            if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+                
+                actual.onSubscribe(this);
+    
+                s.request(n);
+            }
         }
 
         @Override
@@ -117,12 +124,22 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
 
         @Override
         public Object upstream() {
-            return null;
+            return s;
         }
 
         @Override
         public long limit() {
             return 0;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
         }
     }
 }

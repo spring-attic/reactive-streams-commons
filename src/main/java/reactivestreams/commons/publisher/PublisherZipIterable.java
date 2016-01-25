@@ -72,7 +72,7 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
     }
     
     static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T>, Subscribable, PublishableMany,
-                                                                  Completable {
+                                                                  Completable, Subscription {
         
         final Subscriber<? super R> actual;
         
@@ -95,7 +95,7 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                actual.onSubscribe(s);
+                actual.onSubscribe(this);
             }
         }
         
@@ -205,6 +205,16 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         @Override
         public long upstreamsCount() {
             return isStarted() ? 2 : 1;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
         }
     }
 }

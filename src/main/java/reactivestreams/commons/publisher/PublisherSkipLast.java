@@ -36,7 +36,7 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Publishable, Subscribable, Backpressurable {
+    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Publishable, Subscribable, Backpressurable, Subscription {
         final Subscriber<? super T> actual;
 
         final int n;
@@ -56,7 +56,7 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
 
-                actual.onSubscribe(s);
+                actual.onSubscribe(this);
 
                 s.request(n);
             }
@@ -104,6 +104,16 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         @Override
         public Object upstream() {
             return s;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
         }
     }
 }

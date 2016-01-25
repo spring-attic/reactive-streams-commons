@@ -1,7 +1,6 @@
 package reactivestreams.commons.util;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Base class for synchronous sources which have fixed size and can
@@ -11,23 +10,6 @@ import java.util.function.Consumer;
  * @param <T> the content value type
  */
 public abstract class SynchronousSource<T> implements Queue<T> {
-
-    /**
-     * Sets a Runnable instance to be called when the queue has data available for
-     * peek/poll.
-     * 
-     * @param call the runnable to call
-     */
-    public abstract void onDrainable(Runnable call);
-    
-    /**
-     * Sets a Consumer instance to be called when the queue can't produce some value for
-     * peek/pool and doesn't want to throw.
-     * 
-     * @param errorCall the Consumer to call
-     */
-    public abstract void onError(Consumer<Throwable> errorCall);
-    
     // -----------------------------------------------------------------------------------
     // The rest of the methods are not applicable
     // -----------------------------------------------------------------------------------

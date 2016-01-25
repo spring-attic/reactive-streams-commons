@@ -43,7 +43,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         source.subscribe(new PublisherMapSubscriber<>(s, mapper));
     }
 
-    static final class PublisherMapSubscriber<T, R> implements Subscriber<T>, Completable, Subscribable, Connectable {
+    static final class PublisherMapSubscriber<T, R> implements Subscriber<T>, Completable, Subscribable, Connectable, Subscription {
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
@@ -61,7 +61,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
 
-                actual.onSubscribe(s);
+                actual.onSubscribe(this);
             }
         }
 
@@ -143,6 +143,16 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         @Override
         public Object upstream() {
             return s;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
         }
     }
 }

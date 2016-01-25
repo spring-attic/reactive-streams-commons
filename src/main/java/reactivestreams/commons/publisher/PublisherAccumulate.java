@@ -3,15 +3,10 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.trait.Completable;
-import reactivestreams.commons.trait.Connectable;
-import reactivestreams.commons.trait.Subscribable;
-import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.trait.*;
+import reactivestreams.commons.util.*;
 
 /**
  * Accumulates the source values with an accumulator function and
@@ -45,7 +40,7 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherAccumulateSubscriber<T> implements Subscriber<T>, Subscribable, Completable,
-                                                                   Connectable {
+                                                                   Connectable, Subscription {
         final Subscriber<? super T> actual;
 
         final BiFunction<T, ? super T, T> accumulator;
@@ -66,7 +61,7 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
 
-                actual.onSubscribe(s);
+                actual.onSubscribe(this);
             }
         }
 
@@ -146,6 +141,16 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
         @Override
         public Object upstream() {
             return s;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
         }
     }
 }

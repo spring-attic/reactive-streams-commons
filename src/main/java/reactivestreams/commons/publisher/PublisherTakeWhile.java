@@ -38,7 +38,7 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeWhileSubscriber<T> implements Subscriber<T>, Subscribable, Completable,
-                                                                  Connectable {
+                                                                  Connectable, Subscription {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -56,7 +56,7 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                actual.onSubscribe(s);
+                actual.onSubscribe(this);
             }
         }
 
@@ -139,6 +139,16 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
         @Override
         public Object upstream() {
             return s;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
         }
     }
 }
