@@ -504,7 +504,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                                 remove(inner);
                                 again = true;
                                 replenishMain++;
-                            } else {
+                            } else 
+                            if (q != null) {
                                 while (e != r) {
                                     d = inner.done;
                                     
