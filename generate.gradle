@@ -40,6 +40,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'header'               : '@since 2.5',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
+					 'packageScope'         : true,
 					 'FunctionHelper'   : 'FunctionUtils',
 					 'DrainHelper'  		 : 'reactor.rx.util.DrainUtils',
 					 'ExceptionHelper'   : 'Exceptions',
@@ -50,19 +51,18 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
 					 //'SubscriberDeferScalar'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
 					 'SimpleProcessor'      : 'reactor.core.publisher.ProcessorEmitter',
-					 'UnicastProcessor'      : 'reactor.rx.broadcast.UnicastProcessor']
+					 'UnicastProcessor'      : 'reactor.rx.UnicastProcessor']
 
 //Reactor Core configuration
 def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
 				   'api-package'         : 'reactor.core.publisher',
-				   'packageScope'         : true,
 				   'api-operator'        : 'reactor.core.publisher.Flux.FluxBarrier',
 				   'SerializedSubscriber': false,
 				   'include'             : includingCoreScope] + reactorCommon
 
 //Reactor Stream configuration
 def reactorStream = ['api'                 : 'reactor.rx.Stream',
-					 'api-package'         : 'reactor.rx.stream',
+					 'api-package'         : 'reactor.rx',
 					 'api-operator'        : 'StreamBarrier',
 					 'SerializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
 					 'exclude'             : excludingStreamScope,
