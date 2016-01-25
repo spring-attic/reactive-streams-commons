@@ -10,7 +10,7 @@ def includingCoreScope = ['amb',
 						  'error',
 						  'empty',
 						  'next',
-						  /*'flatmap' ,*/ //managed by reactor-core
+						  'flatmap',
 						  'ignoreelements',
 						  /*'iterable',*/ //managed by reactor-stream
 						  'just',
@@ -24,7 +24,7 @@ def includingCoreScope = ['amb',
 //A complete RS commons coverage minus the lite core
 def excludingStreamScope = includingCoreScope + ['generate',
 												 'completablefuture',
-												 'flatmap', 'timer', 'interval', 'blockingfuture',
+												 'timer', 'interval', 'blockingfuture',
 												 'blockingiterable', 'blockingstream',
 												 'lift', //Already managed by reactor-core
 												 'stream',
