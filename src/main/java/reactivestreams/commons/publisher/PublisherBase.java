@@ -418,6 +418,22 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return getClass().getSimpleName();
     }
 
+    public final <R> PublisherBase<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
+        return flatMap(mapper, false, Integer.MAX_VALUE, BUFFER_SIZE);
+    }
+
+    public final <R> PublisherBase<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError) {
+        return flatMap(mapper, delayError, Integer.MAX_VALUE, BUFFER_SIZE);
+    }
+
+    public final <R> PublisherBase<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency) {
+        return flatMap(mapper, delayError, maxConcurrency, BUFFER_SIZE);
+    }
+
+    public final <R> PublisherBase<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency, int prefetch) {
+        return new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(), prefetch);
+    }
+
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

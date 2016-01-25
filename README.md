@@ -58,6 +58,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherDrop` : runs the source in unbounded mode and drops values if the downstream doesn't request fast enough
   - `PublisherElementAt` : emits the element at the specified index location
   - `PublisherFilter` : filters out values which doesn't pass a predicate
+  - `PublisherFlatMap` : maps a sequence of values each into a Publisher and flattens them back into a single sequence, interleaving events from the various inner Publishers
   - `PublisherIgnoreElements` : ignores values and passes only the terminal signals along
   - `PublisherIsEmpty` : returns a single true if the source sequence is empty
   - `PublisherLatest` : runs the source in unbounded mode and emits the latest value if the downstream doesn't request fast enough

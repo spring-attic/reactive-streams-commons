@@ -1,20 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.function.Consumer;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.trait.Cancellable;
-import reactivestreams.commons.trait.PublishableMany;
-import reactivestreams.commons.trait.Requestable;
-import reactivestreams.commons.trait.Subscribable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.SubscriptionHelper;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.trait.*;
+import reactivestreams.commons.util.*;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -40,6 +33,7 @@ extends PublisherBase<T> {
     }
 
     static final class ArraySubscription<T>
+    extends SynchronousSource<T>
       implements Subscription, Subscribable, Requestable, Cancellable, PublishableMany {
         final Subscriber<? super T> actual;
 
@@ -174,6 +168,54 @@ extends PublisherBase<T> {
         @Override
         public long upstreamsCount() {
             return array instanceof Publisher[] ? array.length : -1;
+        }
+
+        @Override
+        public T poll() {
+            int i = index++;
+            T[] a = array;
+            if (i < a.length) {
+                T t = a[i];
+                if (t == null) {
+                    throw new NullPointerException();
+                }
+                return t;
+            }
+            return null;
+        }
+
+        @Override
+        public T peek() {
+            int i = index;
+            T[] a = array;
+            if (i < a.length) {
+                T t = a[i];
+                if (t == null) {
+                    throw new NullPointerException();
+                }
+                return t;
+            }
+            return null;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return index == array.length;
+        }
+
+        @Override
+        public void clear() {
+            index = array.length;
+        }
+        
+        @Override
+        public void onDrainable(Runnable call) {
+            // TODO what to do with this?
+        }
+        
+        @Override
+        public void onError(Consumer<Throwable> errorCall) {
+            // TODO what to do with this?
         }
     }
 }
