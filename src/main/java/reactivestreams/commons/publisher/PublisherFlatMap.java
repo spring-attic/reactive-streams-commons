@@ -625,6 +625,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     } else 
                     if (empty) {
                         a.onComplete();
+                        return true;
                     }
                 }
             }
