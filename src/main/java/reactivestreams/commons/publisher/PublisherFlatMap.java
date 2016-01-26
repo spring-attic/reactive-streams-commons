@@ -595,6 +595,20 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     }
                 }
                 
+                if (r == 0L) {
+                    for (int i = 0; i < n; i++) {
+                        
+                        PublisherFlatMapInner<R> inner = as[i];
+                        
+                        d = inner.done;
+                        Queue<R> q = inner.queue;
+                        if (d && (q == null || q.isEmpty())) {
+                            remove(inner);
+                            again = true;
+                            replenishMain++;
+                        }
+                    }
+                }
                 
                 if (replenishMain != 0L && !done && !cancelled) {
                     s.request(replenishMain);
@@ -657,6 +671,9 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         void innerError(PublisherFlatMapInner<R> inner, Throwable e) {
             if (ExceptionHelper.addThrowable(ERROR, this, e)) {
                 inner.done = true;
+                if (!delayError) {
+                    done = true;
+                }
                 drain();
             } else {
                 UnsignalledExceptions.onErrorDropped(e);
