@@ -1,12 +1,50 @@
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.util.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.trait.Backpressurable;
+import reactivestreams.commons.trait.Cancellable;
+import reactivestreams.commons.trait.Completable;
+import reactivestreams.commons.trait.Failurable;
+import reactivestreams.commons.trait.Introspectable;
+import reactivestreams.commons.trait.Prefetchable;
+import reactivestreams.commons.trait.PublishableMany;
+import reactivestreams.commons.trait.Requestable;
+import reactivestreams.commons.trait.Subscribable;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.ScalarSubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.SynchronousSource;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Maps a sequence of values each into a Publisher and flattens them 
@@ -92,7 +130,9 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherFlatMapMain<T, R> 
-    implements Subscriber<T>, Subscription {
+    implements Subscriber<T>, Subscription,
+               PublishableMany, Requestable, Completable, Subscribable,
+               Cancellable, Backpressurable, Failurable {
         
         final Subscriber<? super R> actual;
 
@@ -766,10 +806,71 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
             return q;
         }
+
+        @Override
+        public long getCapacity() {
+            return maxConcurrency;
+        }
+
+        @Override
+        public long getPending() {
+            return done || scalarQueue == null ? -1L : scalarQueue.size();
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !isTerminated() && !isCancelled();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done && subscribers.length == 0;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return Arrays.asList(subscribers).iterator();
+        }
+
+        @Override
+        public long upstreamsCount() {
+            return subscribers.length;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
     }
     
     static final class PublisherFlatMapInner<R> 
-    implements Subscriber<R>, Subscription {
+    implements Subscriber<R>, Subscription,
+               Subscribable,
+               Backpressurable,
+               Cancellable,
+               Completable,
+               Prefetchable,
+               Introspectable {
 
         final PublisherFlatMapMain<?, R> parent;
         
@@ -844,6 +945,60 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         public void cancel() {
             SubscriptionHelper.terminate(S, this);
         }
-        
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return done || queue == null ? -1L : queue.size();
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return s == CancelledSubscription.INSTANCE;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done && !isCancelled();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done && (queue == null || queue.isEmpty());
+        }
+
+        @Override
+        public int getMode() {
+            return INNER;
+        }
+
+        @Override
+        public String getName() {
+            return PublisherFlatMapInner.class.getSimpleName();
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return produced;
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object downstream() {
+            return parent;
+        }
     }
 }
