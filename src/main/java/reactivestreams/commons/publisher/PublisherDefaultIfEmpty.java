@@ -32,8 +32,6 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
             extends SubscriberDeferredScalar<T, T>
             implements Publishable {
 
-        final T value;
-
         Subscription s;
 
         boolean hasValue;

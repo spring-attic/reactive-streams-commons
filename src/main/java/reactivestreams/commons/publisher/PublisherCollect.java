@@ -60,8 +60,6 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
 
         final BiConsumer<? super R, ? super T> action;
 
-        final R container;
-
         Subscription s;
 
         boolean done;
@@ -70,7 +68,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
                                           R container) {
             super(actual);
             this.action = action;
-            this.container = container;
+            this.value = container;
         }
 
         @Override
@@ -98,7 +96,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
             }
 
             try {
-                action.accept(container, t);
+                action.accept(value, t);
             } catch (Throwable e) {
                 cancel();
                 ExceptionHelper.throwIfFatal(e);
@@ -122,7 +120,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
                 return;
             }
             done = true;
-            complete(container);
+            complete(value);
         }
 
         @Override
@@ -147,7 +145,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
 
         @Override
         public Object connectedOutput() {
-            return container;
+            return value;
         }
     }
 }
