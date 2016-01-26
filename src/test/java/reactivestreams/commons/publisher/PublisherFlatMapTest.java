@@ -130,4 +130,26 @@ public class PublisherFlatMapTest {
         .assertNotComplete();
     }
 
+    @Test
+    public void mainEmpty() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+
+        PublisherBase.<Integer>empty().flatMap(v -> new PublisherJust<>(v)).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void innerEmpty() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.<Integer>empty()).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+
 }

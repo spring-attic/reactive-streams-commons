@@ -53,6 +53,11 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             @SuppressWarnings("unchecked")
             T t = ((Supplier<? extends T>)source).get();
             
+            if (t == null) {
+                EmptySubscription.complete(s);
+                return;
+            }
+            
             Publisher<? extends R> p;
             
             try {
@@ -71,7 +76,11 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             if (p instanceof Supplier) {
                 @SuppressWarnings("unchecked")
                 R v = ((Supplier<R>)p).get();
-                s.onSubscribe(new ScalarSubscription<>(s, v));
+                if (v != null) {
+                    s.onSubscribe(new ScalarSubscription<>(s, v));
+                } else {
+                    EmptySubscription.complete(s);
+                }
             } else {
                 p.subscribe(s);
             } 
@@ -299,6 +308,18 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         }
         
         void emitScalar(R v) {
+            if (v == null) {
+                if (maxConcurrency != Integer.MAX_VALUE) {
+                    int p = produced + 1;
+                    if (p == limit) {
+                        produced = 0;
+                        s.request(p);
+                    } else {
+                        produced = p;
+                    }
+                }
+                return;
+            }
             if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
                 long r = requested;
                 
