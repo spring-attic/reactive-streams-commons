@@ -1,13 +1,50 @@
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.graph.PublishableMany;
+import reactivestreams.commons.graph.Subscribable;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.state.Prefetchable;
+import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.SynchronousSource;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Repeatedly takes one item from all source Publishers and 
@@ -16,7 +53,7 @@ import reactivestreams.commons.util.*;
  * @param <T> the common input type
  * @param <R> the output value type
  */
-public final class PublisherZip<T, R> extends PublisherBase<R> {
+public final class PublisherZip<T, R> extends PublisherBase<R> implements Introspectable, PublishableMany {
 
     final Publisher<? extends T>[] sources;
     
@@ -205,7 +242,19 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
             coordinator.subscribe(srcs, n);
         }
     }
-    static final class PublisherZipSingleCoordinator<T, R> extends SubscriberDeferredScalar<R, R> {
+
+    @Override
+    public Iterator<?> upstreams() {
+        return sources == null ? sourcesIterable.iterator() : Arrays.asList(sources).iterator();
+    }
+
+    @Override
+    public long upstreamsCount() {
+        return sources == null ? -1 : sources.length;
+    }
+
+    static final class PublisherZipSingleCoordinator<T, R> extends SubscriberDeferredScalar<R, R>
+    implements PublishableMany, Backpressurable {
 
         final Function<? super Object[], ? extends R> zipper;
         
@@ -233,7 +282,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
         }
         
         void subscribe(int n, int sc, Publisher<? extends T>[] sources) {
-            WIP.lazySet(this, sc);
+            WIP.lazySet(this, n - sc);
             PublisherZipSingleSubscriber<T>[] a = subscribers;
             for (int i = 0; i < n; i++) {
                 if (wip <= 0 || isCancelled()) {
@@ -292,6 +341,26 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
             cancelAll();
         }
 
+        @Override
+        public long getCapacity() {
+            return upstreamsCount();
+        }
+
+        @Override
+        public long getPending() {
+            return wip;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return Arrays.asList(subscribers).iterator();
+        }
+
+        @Override
+        public long upstreamsCount() {
+            return subscribers.length;
+        }
+
         void cancelAll() {
             for (PublisherZipSingleSubscriber<T> s : subscribers) {
                 if (s != null) {
@@ -301,7 +370,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
         }
     }
     
-    static final class PublisherZipSingleSubscriber<T> implements Subscriber<T> {
+    static final class PublisherZipSingleSubscriber<T> implements Subscriber<T>, Cancellable, Backpressurable, Completable, Introspectable{
         final PublisherZipSingleCoordinator<T, ?> parent;
         
         final int index;
@@ -359,13 +428,54 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
             done = true;
             parent.complete(index);
         }
-        
+
+        @Override
+        public long getCapacity() {
+            return 1;
+        }
+
+        @Override
+        public long getPending() {
+            return !done ? 1 : -1;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return s == CancelledSubscription.INSTANCE;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return !done && !isCancelled();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public int getMode() {
+            return INNER;
+        }
+
+        @Override
+        public String getName() {
+            return "ScalarZipSubscriber";
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
         void cancel() {
             SubscriptionHelper.terminate(S, this);
         }
     }
     
-    static final class PublisherZipCoordinator<T, R> implements Subscription {
+    static final class PublisherZipCoordinator<T, R> implements Subscription, PublishableMany, Cancellable, Backpressurable, Completable, Requestable,
+                                                                Failurable {
 
         final Subscriber<? super R> actual;
         
@@ -431,7 +541,63 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
                 cancelAll();
             }
         }
-        
+
+        @Override
+        public long getCapacity() {
+            return upstreamsCount();
+        }
+
+        @Override
+        public long getPending() {
+            int nonEmpties = 0;
+            for(int i =0; i < subscribers.length; i++){
+                if(!subscribers[i].queue.isEmpty()){
+                    nonEmpties++;
+                }
+            }
+            return nonEmpties;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object upstream() {
+            return null;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return Arrays.asList(subscribers).iterator();
+        }
+
+        @Override
+        public long upstreamsCount() {
+            return subscribers.length;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
         void error(Throwable e, int index) {
             if (ExceptionHelper.addThrowable(ERROR, this, e)) {
                 drain();
@@ -609,7 +775,11 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
         }
     }
     
-    static final class PublisherZipInner<T> implements Subscriber<T> {
+    static final class PublisherZipInner<T> implements Subscriber<T>,
+                                                       Backpressurable,
+                                                       Completable,
+                                                       Prefetchable,
+                                                       Subscribable {
         
         final PublisherZipCoordinator<T, ?> parent;
 
@@ -684,7 +854,47 @@ public final class PublisherZip<T, R> extends PublisherBase<R> {
             done = true;
             parent.drain();
         }
-        
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue != null ? queue.size() : -1;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done && (queue == null || queue.isEmpty());
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return produced;
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object downstream() {
+            return null;
+        }
+
         void cancel() {
             SubscriptionHelper.terminate(S, this);
         }

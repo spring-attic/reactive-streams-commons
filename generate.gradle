@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
  *
@@ -13,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 //Sample tasks used by reactor.
 
 //A lite core
@@ -35,7 +35,7 @@ def includingCoreScope = ['amb',
 						  'never',
 						  'peek',
 						  'resume',
-						  'zip'] //managed by reactor-core
+						  'zip']
 
 //A complete RS commons coverage minus the lite core
 def excludingStreamScope = includingCoreScope + ['generate',
@@ -43,8 +43,7 @@ def excludingStreamScope = includingCoreScope + ['generate',
 												 'timer', 'interval', 'blockingfuture',
 												 'blockingiterable', 'blockingstream',
 												 'lift', //Already managed by reactor-core
-												 'stream',
-												 'zip'] - ['map']
+												 'stream'] - ['map']
 
 //Common reactor helper references
 def reactorCommon = ['fn-backport'          : 'reactor.fn',

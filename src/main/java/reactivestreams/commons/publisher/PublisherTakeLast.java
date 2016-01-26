@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package reactivestreams.commons.publisher;
 
 import java.util.ArrayDeque;
@@ -7,11 +22,11 @@ import java.util.function.BooleanSupplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.graph.Publishable;
+import reactivestreams.commons.graph.Subscribable;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.trait.Backpressurable;
-import reactivestreams.commons.trait.Cancellable;
-import reactivestreams.commons.trait.Publishable;
-import reactivestreams.commons.trait.Subscribable;
 import reactivestreams.commons.util.DrainHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 
