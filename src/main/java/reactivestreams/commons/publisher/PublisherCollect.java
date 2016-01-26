@@ -126,16 +126,9 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public R get() {
-            return container;
-        }
-
-        @Override
         public void setValue(R value) {
             // value is constant
         }
-
-
 
         @Override
         public boolean isTerminated() {

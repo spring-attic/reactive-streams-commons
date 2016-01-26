@@ -36,6 +36,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherStream` : emits elements of a `Stream`
   - `PublisherTimer` : emit a single 0L after a specified amount of time
   - `PublisherUsing` : create a resource, stream values in a Publisher derived from the resource and release the resource when the sequence completes or the Subscriber cancels
+  - `PublisherZip` : Repeatedly takes one item from all source Publishers and runs it through a function to produce the output item
   
 ## Supported transformations
 

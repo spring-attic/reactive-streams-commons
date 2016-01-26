@@ -2,14 +2,10 @@ package reactivestreams.commons.subscriber;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.function.Supplier;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.trait.Cancellable;
-import reactivestreams.commons.trait.Completable;
-import reactivestreams.commons.trait.Connectable;
-import reactivestreams.commons.trait.Subscribable;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.trait.*;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -20,7 +16,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <O> The downstream sequence type
  */
 public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Completable, Subscription,
-                                                       Supplier<O>, Connectable, Cancellable,
+                                                       Connectable, Cancellable,
                                                        Subscribable {
 
     static final int SDS_NO_REQUEST_NO_VALUE   = 0;
@@ -52,7 +48,7 @@ public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Completabl
                 if (s == SDS_NO_REQUEST_HAS_VALUE) {
                     if (compareAndSetState(SDS_NO_REQUEST_HAS_VALUE, SDS_HAS_REQUEST_HAS_VALUE)) {
                         Subscriber<? super O> a = downstream();
-                        a.onNext(get());
+                        a.onNext(value);
                         a.onComplete();
                     }
                     return;
@@ -105,11 +101,6 @@ public class SubscriberDeferredScalar<I, O> implements Subscriber<I>, Completabl
 
     public final boolean compareAndSetState(int expected, int updated) {
         return STATE.compareAndSet(this, expected, updated);
-    }
-
-    @Override
-    public O get() {
-        return value;
     }
 
     @Override

@@ -86,11 +86,6 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public T get() {
-            return value;
-        }
-
-        @Override
         public void setValue(T value) {
             this.value = value;
         }

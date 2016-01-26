@@ -434,6 +434,13 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(), prefetch, defaultQueueSupplier());
     }
 
+    @SuppressWarnings("unchecked")
+    public final <U, R> PublisherBase<R> zipWith(Publisher<? extends U> other, BiFunction<? super T, ? super U, ? extends R> zipper) {
+        return zipArray(new Publisher[] { this, other }, a -> {
+            return zipper.apply((T)a[0], (U)a[1]);
+        });
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
@@ -454,7 +461,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         }
         return new PublisherBaseWrapper<>(source);
     }
-
+    
     // ---------------------------------------------------------------------------------------
     
     public static <T> PublisherBase<T> just(T value) {
@@ -494,4 +501,26 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     public static <T> PublisherBase<T> fromIterable(Iterable<? extends T> iterable) {
         return new PublisherIterable<>(iterable);
     }
+
+    @SafeVarargs
+    public static <T, R> PublisherBase<R> zip(Function<? super Object[], ? extends R> zipper, Publisher<? extends T>... sources) {
+        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), BUFFER_SIZE);
+    }
+    
+    public static <T, R> PublisherBase<R> zipArray(Publisher<? extends T>[] sources, Function<? super Object[], ? extends R> zipper) {
+        return zipArray(sources, zipper, BUFFER_SIZE);
+    }
+
+    public static <T, R> PublisherBase<R> zipIterable(Iterable<? extends Publisher<? extends T>> sources, Function<? super Object[], ? extends R> zipper) {
+        return zipIterable(sources, zipper, BUFFER_SIZE);
+    }
+
+    public static <T, R> PublisherBase<R> zipArray(Publisher<? extends T>[] sources, Function<? super Object[], ? extends R> zipper, int prefetch) {
+        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), prefetch);
+    }
+
+    public static <T, R> PublisherBase<R> zipIterable(Iterable<? extends Publisher<? extends T>> sources, Function<? super Object[], ? extends R> zipper, int prefetch) {
+        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), prefetch);
+    }
+
 }
