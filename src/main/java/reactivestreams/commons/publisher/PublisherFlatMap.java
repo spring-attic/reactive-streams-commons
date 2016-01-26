@@ -813,8 +813,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void request(long n) {
             if (!synchronousSource) {
-                long p = produced + 1;
-                if (p == limit) {
+                long p = produced + n;
+                if (p >= limit) {
                     produced = 0L;
                     s.request(p);
                 } else {
