@@ -551,7 +551,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         public long getPending() {
             int nonEmpties = 0;
             for(int i =0; i < subscribers.length; i++){
-                if(!subscribers[i].queue.isEmpty()){
+                if(subscribers[i].queue != null && subscribers[i].queue .isEmpty()){
                     nonEmpties++;
                 }
             }
