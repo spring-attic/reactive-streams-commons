@@ -105,10 +105,34 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
 
     public final void set(Subscription s) {
         if (cancelled) {
+            s.cancel();
             return;
         }
 
         Objects.requireNonNull(s);
+        
+        if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
+            Subscription a = actual;
+            
+            if (a != null) {
+                a.cancel();
+            }
+            
+            actual = s;
+            
+            long r = requested;
+            if (r != 0L) {
+                s.request(r);
+            }
+            
+            if (WIP.decrementAndGet(this) == 0) {
+                return;
+            }
+
+            drainLoop();
+
+            return;
+        }
 
         Subscription a = MISSED_SUBSCRIPTION.getAndSet(this, s);
         if (a != null) {
