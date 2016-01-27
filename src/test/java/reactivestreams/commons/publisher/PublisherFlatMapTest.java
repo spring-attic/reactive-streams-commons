@@ -2,12 +2,13 @@ package reactivestreams.commons.publisher;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
 
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Publisher;
 
-import reactivestreams.commons.processor.UnicastProcessor;
+import reactivestreams.commons.processor.*;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
@@ -487,4 +488,40 @@ public class PublisherFlatMapTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void singleSubscriberOnly() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        AtomicInteger emission = new AtomicInteger();
+        
+        PublisherBase<Integer> source = PublisherBase.range(1, 2).doOnNext(v -> emission.getAndIncrement());
+        
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
+        
+        source.flatMap(v -> v == 1 ? source1 : source2, false, 1).subscribe(ts);
+        
+        Assert.assertEquals(1, emission.get());
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
+        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        
+        source1.onNext(1);
+        source2.onNext(10);
+        
+        source1.onComplete();
+        
+        source2.onNext(2);
+        source2.onComplete();
+        
+        ts.assertValues(1, 2)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }
