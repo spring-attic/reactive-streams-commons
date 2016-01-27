@@ -258,13 +258,13 @@ implements Processor<T, T> {
     
     void request(long n) {
         if (SubscriptionHelper.validate(n)) {
-            BackpressureHelper.addAndGet(REQUESTED, this, n);
             if (enableOperatorFusion) {
                 Subscriber<? super T> a = actual;
                 if (a != null) {
                     a.onNext(null); // in op-fusion, onNext(null) is the indicator of more data
                 }
             } else {
+                BackpressureHelper.addAndGet(REQUESTED, this, n);
                 drain();
             }
         }
@@ -278,8 +278,10 @@ implements Processor<T, T> {
 
         doTerminate();
 
-        if (WIP.getAndIncrement(this) == 0) {
-            queue.clear();
+        if (!enableOperatorFusion) {
+            if (WIP.getAndIncrement(this) == 0) {
+                queue.clear();
+            }
         }
     }
     
