@@ -1,5 +1,7 @@
 package reactivestreams.commons.processor;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -9,7 +11,9 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.FusionSubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -22,7 +26,7 @@ import reactivestreams.commons.util.*;
  */
 public final class UnicastProcessor<T> 
 extends PublisherBase<T>
-implements Processor<T, T> {
+implements Processor<T, T>, FusionSubscription<T> {
 
     final Queue<T> queue;
     
@@ -226,7 +230,7 @@ implements Processor<T, T> {
     public void subscribe(Subscriber<? super T> s) {
         if (once == 0 && ONCE.compareAndSet(this, 0, 1)) {
             
-            s.onSubscribe(new UnicastSubscription());
+            s.onSubscribe(this);
             actual = s;
             if (cancelled) {
                 actual = null;
@@ -253,10 +257,10 @@ implements Processor<T, T> {
 
     @Override
     public int getMode() {
-        return 0;
+        return INNER;
     }
-    
-    void request(long n) {
+
+    public void request(long n) {
         if (SubscriptionHelper.validate(n)) {
             if (enableOperatorFusion) {
                 Subscriber<? super T> a = actual;
@@ -270,7 +274,7 @@ implements Processor<T, T> {
         }
     }
     
-    void cancel() {
+    public void cancel() {
         if (cancelled) {
             return;
         }
@@ -285,15 +289,86 @@ implements Processor<T, T> {
         }
     }
     
-    T poll() {
+    public T poll() {
         return queue.poll();
     }
 
-    T peek() {
+    public T peek() {
         return queue.peek();
     }
 
-    boolean isEmpty() {
+    @Override
+    public boolean add(T t) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean offer(T t) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public T remove() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public T element() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public int size() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public Object[] toArray() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public <T1> T1[] toArray(T1[] a) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean isEmpty() {
         return queue.isEmpty();
     }
 
@@ -301,47 +376,8 @@ implements Processor<T, T> {
         queue.clear();
     }
 
-    void enableOperatorFusion() {
+    public boolean enableOperatorFusion() {
         enableOperatorFusion = true;
-    }
-    
-    final class UnicastSubscription 
-    extends AsynchronousSource<T>
-    implements Subscription {
-        
-        @Override
-        public void request(long n) {
-            UnicastProcessor.this.request(n);
-        }
-        
-        @Override
-        public void cancel() {
-            UnicastProcessor.this.cancel();
-        }
-
-        @Override
-        public T poll() {
-            return UnicastProcessor.this.poll();
-        }
-
-        @Override
-        public T peek() {
-            return UnicastProcessor.this.peek();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return UnicastProcessor.this.isEmpty();
-        }
-
-        @Override
-        public void clear() {
-            UnicastProcessor.this.clear();
-        }
-
-        @Override
-        public void enableOperatorFusion() {
-            UnicastProcessor.this.enableOperatorFusion();
-        }
+        return false;
     }
 }

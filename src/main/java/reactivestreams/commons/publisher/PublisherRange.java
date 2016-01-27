@@ -3,7 +3,6 @@ package reactivestreams.commons.publisher;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
@@ -12,7 +11,7 @@ import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ScalarSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSource;
+import reactivestreams.commons.util.SynchronousSubscription;
 
 /**
  * Emits a range of integer values.
@@ -54,8 +53,8 @@ extends PublisherBase<Integer> {
     }
 
     static final class RangeSubscription
-    extends SynchronousSource<Integer>
-      implements Subscription, Cancellable, Requestable, Completable, Producer {
+            extends SynchronousSubscription<Integer>
+      implements Cancellable, Requestable, Completable, Producer {
 
         final Subscriber<? super Integer> actual;
 

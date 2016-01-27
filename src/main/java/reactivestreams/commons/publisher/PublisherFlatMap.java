@@ -22,14 +22,13 @@ import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.AsynchronousSource;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.CancelledSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.FusionSubscription;
 import reactivestreams.commons.util.ScalarSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSource;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
@@ -900,18 +899,19 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
-                if (s instanceof SynchronousSource) {
-                    mode = SYNC;
-                    queue = (SynchronousSource<R>)s;
-                    done = true;
-                    parent.drain();
-                    return;
-                } else 
-                if (s instanceof AsynchronousSource) {
-                    AsynchronousSource<R> as = (AsynchronousSource<R>)s;
-                    mode = ASYNC;
-                    queue = as;
-                    as.enableOperatorFusion();
+                if (s instanceof FusionSubscription) {
+                    FusionSubscription<R> f = (FusionSubscription<R>)s;
+                    queue = f;
+                    if(f.enableOperatorFusion()){
+                        mode = SYNC;
+                        done = true;
+                        parent.drain();
+                        return;
+                    }
+                    else {
+                        mode = ASYNC;
+                        f.enableOperatorFusion();
+                    }
                 }
                 s.request(prefetch);
             }

@@ -128,7 +128,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherAny<>(this, predicate);
     }
     
-    public final PublisherBase<Boolean> contains(T value) {
+    public final PublisherBase<Boolean> exists(T value) {
         return any(v -> Objects.equals(v, value));
     }
     

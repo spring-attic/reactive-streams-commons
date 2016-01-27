@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.MultiReceiver;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.state.Cancellable;
@@ -15,7 +14,7 @@ import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSource;
+import reactivestreams.commons.util.SynchronousSubscription;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -41,8 +40,8 @@ extends PublisherBase<T> {
     }
 
     static final class ArraySubscription<T>
-    extends SynchronousSource<T>
-      implements Subscription, Producer, Requestable, Cancellable, MultiReceiver {
+            extends SynchronousSubscription<T>
+      implements Producer, Requestable, Cancellable, MultiReceiver {
         final Subscriber<? super T> actual;
 
         final T[] array;

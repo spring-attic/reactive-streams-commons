@@ -28,7 +28,7 @@ import reactivestreams.commons.util.CancelledSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSource;
+import reactivestreams.commons.util.SynchronousSubscription;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
@@ -801,10 +801,10 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
-                if (s instanceof SynchronousSource) {
+                if (s instanceof SynchronousSubscription) {
                     synchronousMode = true;
                     
-                    queue = (SynchronousSource<T>)s;
+                    queue = (SynchronousSubscription<T>)s;
                     done = true;
                     parent.drain();
                 } else {
