@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package reactivestreams.commons.publisher;
 
 import java.util.Iterator;
@@ -21,8 +6,8 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.graph.Publishable;
-import reactivestreams.commons.graph.Subscribable;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.state.Requestable;
@@ -37,7 +22,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherIterable<T> 
 extends PublisherBase<T>
-        implements Publishable {
+        implements Receiver {
 
     final Iterable<? extends T> iterable;
 
@@ -93,7 +78,7 @@ extends PublisherBase<T>
     }
 
     static final class IterableSubscription<T>
-            implements Subscribable, Completable, Requestable, Cancellable, Subscription {
+            implements Producer, Completable, Requestable, Cancellable, Subscription {
 
         final Subscriber<? super T> actual;
 

@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package reactivestreams.commons.publisher;
 
 import java.util.Arrays;
@@ -28,8 +13,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.graph.PublishableMany;
-import reactivestreams.commons.graph.Subscribable;
+import reactivestreams.commons.flow.MultiReceiver;
+import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
@@ -37,7 +22,15 @@ import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.AsynchronousSource;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.ScalarSubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.SynchronousSource;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Maps a sequence of values each into a Publisher and flattens them 
@@ -123,8 +116,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherFlatMapMain<T, R> 
-    implements Subscriber<T>, Subscription,
-               PublishableMany, Requestable, Completable, Subscribable,
+    implements Subscriber<T>, Subscription, MultiReceiver, Requestable, Completable, Producer,
                Cancellable, Backpressurable, Failurable {
         
         final Subscriber<? super R> actual;
@@ -859,8 +851,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     }
     
     static final class PublisherFlatMapInner<R> 
-    implements Subscriber<R>, Subscription,
-               Subscribable,
+    implements Subscriber<R>, Subscription, Producer,
                Backpressurable,
                Cancellable,
                Completable,

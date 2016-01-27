@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package reactivestreams.commons.publisher;
 
 import java.util.Arrays;
@@ -28,8 +13,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.graph.PublishableMany;
-import reactivestreams.commons.graph.Subscribable;
+import reactivestreams.commons.flow.MultiReceiver;
+import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
@@ -53,7 +38,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T> the common input type
  * @param <R> the output value type
  */
-public final class PublisherZip<T, R> extends PublisherBase<R> implements Introspectable, PublishableMany {
+public final class PublisherZip<T, R> extends PublisherBase<R> implements Introspectable, MultiReceiver {
 
     final Publisher<? extends T>[] sources;
     
@@ -255,7 +240,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
     }
 
     static final class PublisherZipSingleCoordinator<T, R> extends SubscriberDeferredScalar<R, R>
-    implements PublishableMany, Backpressurable {
+            implements MultiReceiver, Backpressurable {
 
         final Function<? super Object[], ? extends R> zipper;
         
@@ -475,7 +460,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         }
     }
     
-    static final class PublisherZipCoordinator<T, R> implements Subscription, PublishableMany, Cancellable, Backpressurable, Completable, Requestable,
+    static final class PublisherZipCoordinator<T, R> implements Subscription, MultiReceiver, Cancellable, Backpressurable, Completable, Requestable,
                                                                 Failurable {
 
         final Subscriber<? super R> actual;
@@ -779,8 +764,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
     static final class PublisherZipInner<T> implements Subscriber<T>,
                                                        Backpressurable,
                                                        Completable,
-                                                       Prefetchable,
-                                                       Subscribable {
+                                                       Prefetchable, Producer {
         
         final PublisherZipCoordinator<T, ?> parent;
 
