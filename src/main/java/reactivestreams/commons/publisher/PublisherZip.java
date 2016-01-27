@@ -150,6 +150,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
                 }
                 srcs[n] = p;
             }
+            n++;
         }
         
         if (n == 0) {
@@ -202,7 +203,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
     }
 
     void handleBoth(Subscriber<? super R> s, Publisher<? extends T>[] srcs, Object[] scalars, int n, int sc) {
-        if (scalars != null) {
+        if (sc != 0) {
             if (n != sc) {
                 PublisherZipSingleCoordinator<T, R> coordinator = 
                         new PublisherZipSingleCoordinator<>(s, scalars, n, zipper);

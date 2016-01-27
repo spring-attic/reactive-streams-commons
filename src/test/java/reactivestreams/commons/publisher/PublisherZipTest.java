@@ -225,4 +225,207 @@ public class PublisherZipTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void sameLengthIterable() {
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source = PublisherBase.fromIterable(Arrays.asList(1, 2));
+        
+        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertValues(2, 4)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void sameLengthOptimizedIterable() {
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source = PublisherBase.range(1, 2);
+        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertValues(2, 4)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void sameLengthBackpressuredIterable() {
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase<Integer> source = PublisherBase.fromIterable(Arrays.asList(1, 2));
+        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(1);
+
+        ts.assertValue(2)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(2);
+        
+        ts.assertValues(2, 4)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void sameLengthOptimizedBackpressuredIterable() {
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase<Integer> source = PublisherBase.range(1, 2);
+        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(1);
+
+        ts.assertValue(2)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(2);
+        
+        ts.assertValues(2, 4)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void differentLengthIterable() {
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Arrays.asList(1, 2));
+        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertValues(2, 4)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void differentLengthOptIterable() {
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.range(1, 2);
+        PublisherBase<Integer> source2 = PublisherBase.range(1, 3);
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertValues(2, 4)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void emptyNonEmptyIterable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Collections.emptyList());
+        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void nonEmptyAndEmptyIterable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Collections.emptyList());
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void scalarNonScalarIterable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.just(1);
+        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertValues(2)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void scalarNonScalarBackpressuredIterable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase<Integer> source1 = PublisherBase.just(1);
+        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(1);
+        
+        ts.assertValues(2)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void scalarNonScalarOptIterable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.just(1);
+        PublisherBase<Integer> source2 = PublisherBase.range(1, 3);
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertValues(2)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void scalarScalarIterable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.just(1);
+        PublisherBase<Integer> source2 = PublisherBase.just(1);
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertValues(2)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void emptyScalarITerable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase<Integer> source1 = PublisherBase.empty();
+        PublisherBase<Integer> source2 = PublisherBase.just(1);
+        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+
 }
