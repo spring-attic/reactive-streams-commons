@@ -477,4 +477,14 @@ public class PublisherFlatMapTest {
         .assertComplete();
     }
 
+    @Test
+    public void testMaxConcurrency1() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1_000_000).flatMap(PublisherBase::just, false, 1).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
 }

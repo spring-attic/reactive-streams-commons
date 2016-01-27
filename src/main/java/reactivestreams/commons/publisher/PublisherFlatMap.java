@@ -180,9 +180,10 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             this.delayError = delayError;
             this.maxConcurrency = maxConcurrency;
             this.mainQueueSupplier = mainQueueSupplier;
-            this.prefetch = prefetch;
+            int pf = Math.min(maxConcurrency, prefetch);
+            this.prefetch = pf;
             this.innerQueueSupplier = innerQueueSupplier;
-            this.limit = prefetch - (prefetch >> 2);
+            this.limit = pf - (pf >> 2);
             SUBSCRIBERS.lazySet(this, EMPTY);
         }
 
