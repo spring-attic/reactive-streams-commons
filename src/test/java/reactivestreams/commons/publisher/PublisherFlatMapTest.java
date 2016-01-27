@@ -524,4 +524,37 @@ public class PublisherFlatMapTest {
         .assertComplete();
     }
 
+    @Test
+    public void flatMapUnbounded() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        AtomicInteger emission = new AtomicInteger();
+        
+        PublisherBase<Integer> source = PublisherBase.range(1, 1000).doOnNext(v -> emission.getAndIncrement());
+        
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
+        
+        source.flatMap(v -> v == 1 ? source1 : source2).subscribe(ts);
+        
+        Assert.assertEquals(1000, emission.get());
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
+        Assert.assertTrue("source2 no  subscribers?", source2.hasSubscribers());
+        
+        source1.onNext(1);
+        source1.onComplete();
+        
+        source2.onNext(2);
+        source2.onComplete();
+        
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }
