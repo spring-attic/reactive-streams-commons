@@ -54,6 +54,11 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
     
     @Override
     public void subscribe(Subscriber<? super R> s) {
+        
+        if (PublisherFlatMap.scalarSubscribe(source, s, mapper)) {
+            return;
+        }
+        
         Subscriber<T> parent = null;
         switch (errorMode) {
         case BOUNDARY:
@@ -304,14 +309,54 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                     consumed = c;
                                 }
                             }
-                            
+
                             active = true;
-                            
-                            p.subscribe(inner);
+
+                            if (p instanceof Supplier) {
+                                @SuppressWarnings("unchecked")
+                                Supplier<R> supplier = (Supplier<R>) p;
+                                
+                                R vr = supplier.get();
+                                if (vr == null) {
+                                    active = false;
+                                    continue;
+                                }
+                                
+                                inner.set(new WeakScalarSubscription<>(vr, inner));
+                                
+                            } else {
+                                p.subscribe(inner);
+                            }
                         }
                     }
                 } while (WIP.decrementAndGet(this) != 0);
             }
+        }
+    }
+    
+    static final class WeakScalarSubscription<T> implements Subscription {
+        final Subscriber<? super T> actual;
+        final T value;
+        boolean once;
+
+        public WeakScalarSubscription(T value, Subscriber<? super T> actual) {
+            this.value = value;
+            this.actual = actual;
+        }
+        
+        @Override
+        public void request(long n) {
+            if (n > 0 && !once) {
+                once = true;
+                Subscriber<? super T> a = actual;
+                a.onNext(value);
+                a.onComplete();
+            }
+        }
+        
+        @Override
+        public void cancel() {
+            
         }
     }
 
@@ -554,7 +599,21 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                             
                             active = true;
                             
-                            p.subscribe(inner);
+                            if (p instanceof Supplier) {
+                                @SuppressWarnings("unchecked")
+                                Supplier<R> supplier = (Supplier<R>) p;
+                                
+                                R vr = supplier.get();
+                                if (vr == null) {
+                                    active = false;
+                                    continue;
+                                }
+                                
+                                inner.set(new WeakScalarSubscription<>(vr, inner));
+                                
+                            } else {
+                                p.subscribe(inner);
+                            }
                         }
                     }
                 } while (WIP.decrementAndGet(this) != 0);

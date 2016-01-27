@@ -69,16 +69,23 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         this.innerQueueSupplier = Objects.requireNonNull(innerQueueSupplier, "innerQueueSupplier");
     }
 
-    @Override
-    public void subscribe(Subscriber<? super R> s) {
-        
+    /**
+     * Checks if the source is a Supplier and if the mapper's publisher output is also
+     * a supplier, thus avoiding subscribing to any of them.
+     * 
+     * @param source the source publisher
+     * @param s the end consumer
+     * @param mapper the mapper function
+     * @return true if the optimization worked
+     */
+    static <T, R> boolean scalarSubscribe(Publisher<? extends T> source, Subscriber<? super R> s, Function<? super T, ? extends Publisher<? extends R>> mapper) {
         if (source instanceof Supplier) {
             @SuppressWarnings("unchecked")
             T t = ((Supplier<? extends T>)source).get();
             
             if (t == null) {
                 EmptySubscription.complete(s);
-                return;
+                return true;
             }
             
             Publisher<? extends R> p;
@@ -88,12 +95,12 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             } catch (Throwable e) {
                 ExceptionHelper.throwIfFatal(e);
                 EmptySubscription.error(s, e);
-                return;
+                return true;
             }
             
             if (p == null) {
                 EmptySubscription.error(s, new NullPointerException("The mapper returned a null Publisher"));
-                return;
+                return true;
             }
             
             if (p instanceof Supplier) {
@@ -108,6 +115,16 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 p.subscribe(s);
             } 
             
+            return true;
+        }
+        
+        return false;
+    }
+    
+    @Override
+    public void subscribe(Subscriber<? super R> s) {
+        
+        if (scalarSubscribe(source, s, mapper)) {
             return;
         }
         
