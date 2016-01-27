@@ -67,7 +67,7 @@ public abstract class SynchronousSubscription<T> implements FusionSubscription<T
 	}
 
 	@Override
-	public boolean enableOperatorFusion() {
+	public boolean requestSyncFusion() {
 		return true;
 	}
 

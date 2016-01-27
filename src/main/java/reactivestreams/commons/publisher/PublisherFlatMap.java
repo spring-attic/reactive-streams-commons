@@ -875,7 +875,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         volatile boolean done;
         
         /** Represents the optimization mode of this inner subscriber. */
-        int mode;
+        int sourceMode;
         
         /** Running with regular, arbitrary source. */
         static final int NORMAL = 0;
@@ -895,22 +895,20 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             this.limit = prefetch - (prefetch >> 2);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
                 if (s instanceof FusionSubscription) {
+                    @SuppressWarnings("unchecked")
                     FusionSubscription<R> f = (FusionSubscription<R>)s;
                     queue = f;
-                    if(f.enableOperatorFusion()){
-                        mode = SYNC;
+                    if (f.requestSyncFusion()){
+                        sourceMode = SYNC;
                         done = true;
                         parent.drain();
                         return;
-                    }
-                    else {
-                        mode = ASYNC;
-                        f.enableOperatorFusion();
+                    } else {
+                        sourceMode = ASYNC;
                     }
                 }
                 s.request(prefetch);
@@ -919,7 +917,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
         @Override
         public void onNext(R t) {
-            if (mode == ASYNC) {
+            if (sourceMode == ASYNC) {
                 parent.drain();
             } else {
                 parent.innerNext(this, t);
@@ -929,7 +927,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void onError(Throwable t) {
             // we don't want to emit the same error twice in case of subscription-race in async mode
-            if (mode != ASYNC || ONCE.compareAndSet(this, 0, 1)) {
+            if (sourceMode != ASYNC || ONCE.compareAndSet(this, 0, 1)) {
                 parent.innerError(this, t);
             }
         }
@@ -943,7 +941,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
         @Override
         public void request(long n) {
-            if (mode != SYNC) {
+            if (sourceMode != SYNC) {
                 long p = produced + n;
                 if (p >= limit) {
                     produced = 0L;

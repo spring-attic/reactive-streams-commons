@@ -453,6 +453,18 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherHide<>(this);
     }
     
+    public final <R> PublisherBase<R> concatMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
+        return concatMap(mapper, PublisherConcatMap.ErrorMode.IMMEDIATE, BUFFER_SIZE);
+    }
+    
+    public final <R> PublisherBase<R> concatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, PublisherConcatMap.ErrorMode errorMode) {
+        return concatMap(mapper, errorMode, BUFFER_SIZE);
+    }
+
+    public final <R> PublisherBase<R> concatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, PublisherConcatMap.ErrorMode errorMode, int prefetch) {
+        return new PublisherConcatMap<>(this, mapper, defaultQueueSupplier(), prefetch, errorMode);
+    }
+
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

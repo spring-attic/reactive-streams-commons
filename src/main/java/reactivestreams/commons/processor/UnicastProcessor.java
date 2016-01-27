@@ -260,6 +260,7 @@ implements Processor<T, T>, FusionSubscription<T> {
         return INNER;
     }
 
+    @Override
     public void request(long n) {
         if (SubscriptionHelper.validate(n)) {
             if (enableOperatorFusion) {
@@ -274,6 +275,7 @@ implements Processor<T, T>, FusionSubscription<T> {
         }
     }
     
+    @Override
     public void cancel() {
         if (cancelled) {
             return;
@@ -289,10 +291,12 @@ implements Processor<T, T>, FusionSubscription<T> {
         }
     }
     
+    @Override
     public T poll() {
         return queue.poll();
     }
 
+    @Override
     public T peek() {
         return queue.peek();
     }
@@ -372,11 +376,13 @@ implements Processor<T, T>, FusionSubscription<T> {
         return queue.isEmpty();
     }
 
+    @Override
     public void clear() {
         queue.clear();
     }
 
-    public boolean enableOperatorFusion() {
+    @Override
+    public boolean requestSyncFusion() {
         enableOperatorFusion = true;
         return false;
     }

@@ -51,6 +51,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   by a start Publisher's element and a signal of a derived Publisher
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
   - `PublisherCombineLatest` : combines the latest values of many sources through a function
+  - `PublisherConcatMap` : Maps each upstream value into a Publisher and concatenates them into one sequence of items
   - `PublisherCount` : counts the number of elements the source sequence emits
   - `PublisherDistinct` : filters out elements that have been seen previously according to a custom collection
   - `PublisherDistinctUntilChanged` : filters out subsequent and repeated elements
