@@ -545,7 +545,9 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                                 r = REQUESTED.addAndGet(this, -e);
                             }
                             e = 0L;
+                            again = true;
                         }
+                        
                     }
 
                     if (r != 0L) {

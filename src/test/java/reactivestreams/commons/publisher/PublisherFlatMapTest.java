@@ -1,6 +1,6 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.*;
 
@@ -148,6 +148,122 @@ public class PublisherFlatMapTest {
         PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.<Integer>empty()).subscribe(ts);
         
         ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void flatMapOfJust() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherRange(1, 1000).flatMap(PublisherBase::just).subscribe(ts);
+        
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void flatMapOfMixed() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherRange(1, 1000).flatMap(
+                v -> v % 2 == 0 ? PublisherBase.just(v) : PublisherBase.fromIterable(Arrays.asList(v)))
+        .subscribe(ts);
+        
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void flatMapOfMixedBackpressured() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        new PublisherRange(1, 1000).flatMap(v -> v % 2 == 0 ? PublisherBase.just(v) : PublisherBase.fromIterable(Arrays.asList(v))).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500);
+
+        ts.assertValueCount(500)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(500);
+
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void flatMapOfMixedBackpressured1() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        new PublisherRange(1, 1000).flatMap(v -> v % 2 == 0 ? PublisherBase.just(v) : PublisherBase.fromIterable(Arrays.asList(v))).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500);
+
+        ts.assertValueCount(500)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(501);
+
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void flatMapOfJustBackpressured() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        new PublisherRange(1, 1000).flatMap(PublisherBase::just).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500);
+
+        ts.assertValueCount(500)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(500);
+
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void flatMapOfJustBackpressured1() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        new PublisherRange(1, 1000).flatMap(PublisherBase::just).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500);
+
+        ts.assertValueCount(500)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(501);
+
+        ts.assertValueCount(1000)
         .assertNoError()
         .assertComplete();
     }
