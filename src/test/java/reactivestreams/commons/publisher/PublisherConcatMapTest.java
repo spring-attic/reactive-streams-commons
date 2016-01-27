@@ -83,6 +83,17 @@ public class PublisherConcatMapTest {
     }
 
     @Test
+    public void normalLongRunJust() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1000_000).concatMap(v -> PublisherBase.just(v)).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
     public void normalLongRun2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
@@ -104,6 +115,18 @@ public class PublisherConcatMapTest {
         .assertComplete();
     }
 
+    @Test
+    public void normalLongRunJustBoundary() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1000_000).concatMap(v -> PublisherBase.just(v), ErrorMode.BOUNDARY).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    
     @Test
     public void normalLongRunBoundary2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
@@ -369,4 +392,5 @@ public class PublisherConcatMapTest {
         Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
     }
 
+    
 }

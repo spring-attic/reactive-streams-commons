@@ -82,7 +82,7 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
 
     volatile boolean cancelled;
 
-    boolean unbounded;
+    protected boolean unbounded;
     
     public SubscriberMultiSubscription(Subscriber<? super O> subscriber) {
         this.subscriber = subscriber;
@@ -354,5 +354,9 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
     @Override
     public boolean isStarted() {
         return upstream() != null;
+    }
+    
+    public final boolean isUnbounded() {
+        return unbounded;
     }
 }

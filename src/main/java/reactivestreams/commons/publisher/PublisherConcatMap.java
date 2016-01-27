@@ -255,7 +255,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         
         void drain() {
             if (WIP.getAndIncrement(this) == 0) {
-                do {
+                for (;;) {
                     if (cancelled) {
                         return;
                     }
@@ -310,7 +310,6 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 }
                             }
 
-                            active = true;
 
                             if (p instanceof Supplier) {
                                 @SuppressWarnings("unchecked")
@@ -318,18 +317,36 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 
                                 R vr = supplier.get();
                                 if (vr == null) {
-                                    active = false;
                                     continue;
                                 }
                                 
-                                inner.set(new WeakScalarSubscription<>(vr, inner));
+                                if (inner.isUnbounded()) {
+                                    if (guard == 0 && GUARD.compareAndSet(this, 0, 1)) {
+                                        actual.onNext(vr);
+                                        if (!GUARD.compareAndSet(this, 1, 0)) {
+                                            Throwable e = ExceptionHelper.terminate(ERROR, this);
+                                            if (e != ExceptionHelper.TERMINATED) {
+                                                actual.onError(e);
+                                            }
+                                            return;
+                                        }
+                                    }
+                                    continue;
+                                } else {
+                                    active = true;
+                                    inner.set(new WeakScalarSubscription<>(vr, inner));
+                                }
                                 
                             } else {
+                                active = true;
                                 p.subscribe(inner);
                             }
                         }
                     }
-                } while (WIP.decrementAndGet(this) != 0);
+                    if (WIP.decrementAndGet(this) == 0) {
+                        break;
+                    }
+                }
             }
         }
     }
@@ -523,7 +540,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         
         void drain() {
             if (WIP.getAndIncrement(this) == 0) {
-                do {
+                
+                for (;;) {
                     if (cancelled) {
                         return;
                     }
@@ -532,16 +550,14 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                         
                         boolean d = done;
                         
-                        if (!veryEnd) {
-                            if (d) {
-                                Throwable ex = error;
-                                if (ex != null) {
-                                    ex = ExceptionHelper.terminate(ERROR, this);
-                                    if (ex != ExceptionHelper.TERMINATED) {
-                                        actual.onError(ex);
-                                    }
-                                    return;
+                        if (d && !veryEnd) {
+                            Throwable ex = error;
+                            if (ex != null) {
+                                ex = ExceptionHelper.terminate(ERROR, this);
+                                if (ex != ExceptionHelper.TERMINATED) {
+                                    actual.onError(ex);
                                 }
+                                return;
                             }
                         }
                         
@@ -597,26 +613,32 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 }
                             }
                             
-                            active = true;
-                            
                             if (p instanceof Supplier) {
                                 @SuppressWarnings("unchecked")
                                 Supplier<R> supplier = (Supplier<R>) p;
                                 
                                 R vr = supplier.get();
                                 if (vr == null) {
-                                    active = false;
                                     continue;
                                 }
                                 
-                                inner.set(new WeakScalarSubscription<>(vr, inner));
-                                
+                                if (inner.isUnbounded()) {
+                                    actual.onNext(vr);
+                                    continue;
+                                } else {
+                                    active = true;
+                                    inner.set(new WeakScalarSubscription<>(vr, inner));
+                                }
                             } else {
+                                active = true;
                                 p.subscribe(inner);
                             }
                         }
                     }
-                } while (WIP.decrementAndGet(this) != 0);
+                    if (WIP.decrementAndGet(this) == 0) {
+                        break;
+                    }
+                }
             }
         }
     }
