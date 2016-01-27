@@ -37,14 +37,7 @@ import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.CancelledSubscription;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.ScalarSubscription;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSource;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.util.*;
 
 /**
  * Maps a sequence of values each into a Publisher and flattens them 
@@ -891,7 +884,20 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         volatile boolean done;
         
-        boolean synchronousSource;
+        /** Represents the optimization mode of this inner subscriber. */
+        int mode;
+        
+        /** Running with regular, arbitrary source. */
+        static final int NORMAL = 0;
+        /** Running with a source that implements SynchronousSource. */
+        static final int SYNC = 1;
+        /** Running with a source that implements AsynchronousSource. */
+        static final int ASYNC = 2;
+
+        volatile int once;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherFlatMapInner> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherFlatMapInner.class, "once");
         
         public PublisherFlatMapInner(PublisherFlatMapMain<?, R> parent, int prefetch) {
             this.parent = parent;
@@ -904,35 +910,49 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
                 if (s instanceof SynchronousSource) {
-                    synchronousSource = true;
+                    mode = SYNC;
                     queue = (SynchronousSource<R>)s;
                     done = true;
                     parent.drain();
-                } else {
-                    s.request(prefetch);
+                    return;
+                } else 
+                if (s instanceof AsynchronousSource) {
+                    AsynchronousSource<R> as = (AsynchronousSource<R>)s;
+                    mode = ASYNC;
+                    queue = as;
+                    as.enableOperatorFusion();
                 }
+                s.request(prefetch);
             }
         }
 
         @Override
         public void onNext(R t) {
-            parent.innerNext(this, t);
+            if (mode == ASYNC) {
+                parent.drain();
+            } else {
+                parent.innerNext(this, t);
+            }
         }
 
         @Override
         public void onError(Throwable t) {
-            parent.innerError(this, t);
+            // we don't want to emit the same error twice in case of subscription-race in async mode
+            if (mode != ASYNC || ONCE.compareAndSet(this, 0, 1)) {
+                parent.innerError(this, t);
+            }
         }
 
         @Override
         public void onComplete() {
+            // onComplete is practically idempotent so there is no risk due to subscription-race in async mode
             done = true;
             parent.drain();
         }
 
         @Override
         public void request(long n) {
-            if (!synchronousSource) {
+            if (mode != SYNC) {
                 long p = produced + n;
                 if (p >= limit) {
                     produced = 0L;

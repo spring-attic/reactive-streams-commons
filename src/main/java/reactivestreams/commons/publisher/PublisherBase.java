@@ -456,6 +456,18 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         });
     }
     
+    /**
+     * Hides the identity of this Publisher, including its Subscription type.
+     * <p>
+     * This operator is aimed at preventing certain operator optimizations such
+     * as operator macro- and micro-fusion.
+     * 
+     * @return the new PublisherBase hiding this Publisher
+     */
+    public final PublisherBase<T> hide() {
+        return new PublisherHide<>(this);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

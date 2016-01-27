@@ -1,12 +1,13 @@
 package reactivestreams.commons.publisher;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.function.*;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
@@ -264,6 +265,214 @@ public class PublisherFlatMapTest {
         ts.request(501);
 
         ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void asyncFusionBefore() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        for (int i = 0; i < 1000; i++) {
+            up.onNext(i);
+        }
+        up.onComplete();
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void asyncFusionAfter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertNoError();
+        
+        for (int i = 0; i < 1000; i++) {
+            up.onNext(i);
+        }
+        up.onComplete();
+
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void asyncFusionConcurrently() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertNoError();
+        
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        try {
+
+            exec.execute(() -> {
+                ThreadLocalRandom tlr = ThreadLocalRandom.current();
+                
+                for (int i = 0; i < 1000; i++) {
+                    up.onNext(i);
+                    if (tlr.nextInt(10) == 0) {
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException ex) {
+                            break;
+                        }
+                    }
+                }
+                up.onComplete();
+            });
+            
+            ts.await(1, TimeUnit.SECONDS);
+            
+            ts.assertValueCount(1000)
+            .assertNoError()
+            .assertComplete();
+        
+        } finally {
+            exec.shutdownNow();
+        }
+    }
+
+    @Test
+    public void asyncFusionConcurrentlyBackpressured() throws Exception {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertNoError();
+        
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        try {
+
+            exec.execute(() -> {
+                ThreadLocalRandom tlr = ThreadLocalRandom.current();
+                
+                for (int i = 0; i < 1000; i++) {
+                    up.onNext(i);
+                    if (tlr.nextInt(10) == 0) {
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException ex) {
+                            break;
+                        }
+                    }
+                }
+                up.onComplete();
+            });
+            
+            ts.assertNoValues()
+            .assertNotComplete()
+            .assertNoError();
+
+            ts.request(500);
+
+            Thread.sleep(200);
+            
+            ts.assertValueCount(500)
+            .assertNotComplete()
+            .assertNoError();
+
+            ts.request(500);
+
+            ts.await(1, TimeUnit.SECONDS);
+            
+            ts.assertValueCount(1000)
+            .assertNoError()
+            .assertComplete();
+        
+        } finally {
+            exec.shutdownNow();
+        }
+    }
+
+    @Test
+    public void asyncFusionErrorBefore() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        up.onError(new RuntimeException("forced failure"));
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertError(RuntimeException.class)
+        .assertErrorMessage("forced failure")
+        .assertNotComplete();
+    }
+
+    @Test
+    public void asyncFusionErrorAfter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertNoError();
+
+        up.onError(new RuntimeException("forced failure"));
+        
+        ts.assertNoValues()
+        .assertError(RuntimeException.class)
+        .assertErrorMessage("forced failure")
+        .assertNotComplete();
+    }
+
+    @Test
+    public void asyncFusionCompleteBefore() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        up.onComplete();
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void asyncFusionCompleteAfter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+
+        ts.assertNoValues()
+        .assertNotComplete()
+        .assertNoError();
+
+        up.onComplete();
+        
+        ts.assertNoValues()
         .assertNoError()
         .assertComplete();
     }

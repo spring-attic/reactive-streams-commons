@@ -9,8 +9,7 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.*;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -56,6 +55,8 @@ implements Processor<T, T> {
     @SuppressWarnings("rawtypes")
     static final AtomicLongFieldUpdater<UnicastProcessor> REQUESTED =
             AtomicLongFieldUpdater.newUpdater(UnicastProcessor.class, "requested");
+    
+    volatile boolean enableOperatorFusion;
     
     public UnicastProcessor(Queue<T> queue) {
         this(queue, null);
@@ -170,7 +171,14 @@ implements Processor<T, T> {
             error = new IllegalStateException("The queue is full");
             done = true;
         }
-        drain();
+        if (enableOperatorFusion) {
+            Subscriber<? super T> a = actual;
+            if (a != null) {
+                a.onNext(null); // in op-fusion, onNext(null) is the indicator of more data
+            }
+        } else {
+            drain();
+        }
     }
     
     @Override
@@ -184,7 +192,14 @@ implements Processor<T, T> {
 
         doTerminate();
         
-        drain();
+        if (enableOperatorFusion) {
+            Subscriber<? super T> a = actual;
+            if (a != null) {
+                a.onError(t);
+            }
+        } else {
+            drain();
+        }
     }
     
     @Override
@@ -197,7 +212,14 @@ implements Processor<T, T> {
 
         doTerminate();
         
-        drain();
+        if (enableOperatorFusion) {
+            Subscriber<? super T> a = actual;
+            if (a != null) {
+                a.onComplete();
+            }
+        } else {
+            drain();
+        }
     }
     
     @Override
@@ -209,7 +231,20 @@ implements Processor<T, T> {
             if (cancelled) {
                 actual = null;
             } else {
-                drain();
+                if (enableOperatorFusion) {
+                    if (done) {
+                        Throwable e = error;
+                        if (e != null) {
+                            s.onError(e);
+                        } else {
+                            s.onComplete();
+                        }
+                    } else {
+                        s.onNext(null);
+                    }
+                } else {
+                    drain();
+                }
             }
         } else {
             s.onError(new IllegalStateException("This processor allows only a single Subscriber"));
@@ -224,7 +259,14 @@ implements Processor<T, T> {
     void request(long n) {
         if (SubscriptionHelper.validate(n)) {
             BackpressureHelper.addAndGet(REQUESTED, this, n);
-            drain();
+            if (enableOperatorFusion) {
+                Subscriber<? super T> a = actual;
+                if (a != null) {
+                    a.onNext(null); // in op-fusion, onNext(null) is the indicator of more data
+                }
+            } else {
+                drain();
+            }
         }
     }
     
@@ -241,7 +283,30 @@ implements Processor<T, T> {
         }
     }
     
-    final class UnicastSubscription implements Subscription {
+    T poll() {
+        return queue.poll();
+    }
+
+    T peek() {
+        return queue.peek();
+    }
+
+    boolean isEmpty() {
+        return queue.isEmpty();
+    }
+
+    public void clear() {
+        queue.clear();
+    }
+
+    void enableOperatorFusion() {
+        enableOperatorFusion = true;
+    }
+    
+    final class UnicastSubscription 
+    extends AsynchronousSource<T>
+    implements Subscription {
+        
         @Override
         public void request(long n) {
             UnicastProcessor.this.request(n);
@@ -250,6 +315,31 @@ implements Processor<T, T> {
         @Override
         public void cancel() {
             UnicastProcessor.this.cancel();
+        }
+
+        @Override
+        public T poll() {
+            return UnicastProcessor.this.poll();
+        }
+
+        @Override
+        public T peek() {
+            return UnicastProcessor.this.peek();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return UnicastProcessor.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            UnicastProcessor.this.clear();
+        }
+
+        @Override
+        public void enableOperatorFusion() {
+            UnicastProcessor.this.enableOperatorFusion();
         }
     }
 }
