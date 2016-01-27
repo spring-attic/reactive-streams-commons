@@ -82,6 +82,8 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
 
     volatile boolean cancelled;
 
+    boolean unbounded;
+    
     public SubscriberMultiSubscription(Subscriber<? super O> subscriber) {
         this.subscriber = subscriber;
     }
@@ -118,12 +120,18 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
     @Override
     public final void request(long n) {
         if (SubscriptionHelper.validate(n)) {
-
+            if (unbounded) {
+                return;
+            }
             if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
                 long r = requested;
 
                 if (r != Long.MAX_VALUE) {
-                    requested = BackpressureHelper.addCap(r, n);
+                    r = BackpressureHelper.addCap(r, n);
+                    requested = r;
+                    if (r == Long.MAX_VALUE) {
+                        unbounded = true;
+                    }
                 }
                 Subscription a = actual;
                 if (a != null) {
@@ -146,6 +154,9 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
     }
 
     public final void producedOne() {
+        if (unbounded) {
+            return;
+        }
         if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
             long r = requested;
 
@@ -156,6 +167,8 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
                     r = 0;
                 }
                 requested = r;
+            } else {
+                unbounded = true;
             }
 
             if (WIP.decrementAndGet(this) == 0) {
@@ -173,32 +186,35 @@ public abstract class SubscriberMultiSubscription<I, O> implements Subscription,
     }
 
     public final void produced(long n) {
-        if (SubscriptionHelper.validate(n)) {
-            if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
-                long r = requested;
+        if (unbounded) {
+            return;
+        }
+        if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
+            long r = requested;
 
-                if (r != Long.MAX_VALUE) {
-                    long u = r - n;
-                    if (u < 0L) {
-                        SubscriptionHelper.reportMoreProduced();
-                        u = 0;
-                    }
-                    requested = u;
+            if (r != Long.MAX_VALUE) {
+                long u = r - n;
+                if (u < 0L) {
+                    SubscriptionHelper.reportMoreProduced();
+                    u = 0;
                 }
+                requested = u;
+            } else {
+                unbounded = true;
+            }
 
-                if (WIP.decrementAndGet(this) == 0) {
-                    return;
-                }
-
-                drainLoop();
-
+            if (WIP.decrementAndGet(this) == 0) {
                 return;
             }
 
-            BackpressureHelper.addAndGet(MISSED_PRODUCED, this, n);
+            drainLoop();
 
-            drain();
+            return;
         }
+
+        BackpressureHelper.addAndGet(MISSED_PRODUCED, this, n);
+
+        drain();
     }
 
     @Override
