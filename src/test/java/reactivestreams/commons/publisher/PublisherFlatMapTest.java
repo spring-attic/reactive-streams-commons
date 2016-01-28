@@ -598,4 +598,14 @@ public class PublisherFlatMapTest {
         .assertComplete();
     }
 
+    @Test
+    public void innerMapSyncFusion() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1)).subscribe(ts);;
+
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
 }

@@ -179,13 +179,21 @@ implements Fuseable {
         @Override
         public R poll() {
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
-            return mapper.apply(s.poll());
+            T v = s.poll();
+            if (v != null) {
+                return mapper.apply(v);
+            }
+            return null;
         }
 
         @Override
         public R peek() {
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
-            return mapper.apply(s.peek());
+            T v = s.peek();
+            if (v != null) {
+                return mapper.apply(v);
+            }
+            return null;
         }
 
         @Override
