@@ -97,7 +97,14 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
             if (p instanceof Supplier) {
                 Supplier<T> supplier = (Supplier<T>) p;
                 
-                T v = supplier.get();
+                T v;
+                
+                try {
+                    v = supplier.get();
+                } catch (Throwable e) {
+                    EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                    return;
+                }
                 
                 if (v == null) {
                     EmptySubscription.complete(s);
@@ -141,6 +148,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         handleBoth(s, srcs, scalars, n, sc);
     }
 
+    @SuppressWarnings("unchecked")
     void handleArrayMode(Subscriber<? super R> s, Publisher<? extends T>[] srcs) {
         
         int n = srcs.length;
@@ -162,8 +170,14 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
             }
             
             if (p instanceof Supplier) {
-                @SuppressWarnings("unchecked")
-                Object v = ((Supplier<? extends T>)p).get();
+                Object v;
+                
+                try {
+                    v = ((Supplier<? extends T>)p).get();
+                } catch (Throwable e) {
+                    EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                    return;
+                }
                 
                 if (v == null) {
                     EmptySubscription.complete(s);

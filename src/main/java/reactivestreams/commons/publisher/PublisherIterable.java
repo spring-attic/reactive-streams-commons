@@ -26,9 +26,7 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.*;
 
 /**
  * Emits the contents of an Iterable source.
@@ -93,6 +91,7 @@ extends PublisherBase<T>
     }
 
     static final class IterableSubscription<T>
+    extends SynchronousSubscription<T>
             implements Producer, Completable, Requestable, Cancellable, Subscription {
 
         final Subscriber<? super T> actual;
@@ -106,6 +105,19 @@ extends PublisherBase<T>
         static final AtomicLongFieldUpdater<IterableSubscription> REQUESTED =
           AtomicLongFieldUpdater.newUpdater(IterableSubscription.class, "requested");
 
+        int state;
+        
+        /** Indicates that the iterator's hasNext returned true before but the value is not yet retrieved. */
+        static final int STATE_HAS_NEXT_NO_VALUE = 0;
+        /** Indicates that there is a value available in current. */
+        static final int STATE_HAS_NEXT_HAS_VALUE = 1;
+        /** Indicates that there are no more values available. */
+        static final int STATE_NO_NEXT = 2;
+        /** Indicates that the value has been consumed and a new value should be retrieved. */
+        static final int STATE_CALL_HAS_NEXT = 3;
+        
+        T current;
+        
         public IterableSubscription(Subscriber<? super T> actual, Iterator<? extends T> iterator) {
             this.actual = actual;
             this.iterator = iterator;
@@ -274,5 +286,63 @@ extends PublisherBase<T>
             return requested;
         }
 
+        @Override
+        public void clear() {
+            // no op
+        }
+        
+        @Override
+        public boolean isEmpty() {
+           int s = state;
+           if (s == STATE_NO_NEXT) {
+               return true;
+           } else
+           if (s == STATE_HAS_NEXT_HAS_VALUE || s == STATE_HAS_NEXT_NO_VALUE) {
+               return false;
+           } else
+           if (iterator.hasNext()) {
+               state = STATE_HAS_NEXT_NO_VALUE;
+               return false;
+           }
+           state = STATE_NO_NEXT;
+           return true;
+        }
+        
+        @Override
+        public T peek() {
+            if (!isEmpty()) {
+                T c;
+                if (state == STATE_HAS_NEXT_NO_VALUE) {
+                    c = iterator.next();
+                    current = c;
+                    state = STATE_HAS_NEXT_HAS_VALUE;
+                } else {
+                    c = current;
+                }
+                return c;
+            }
+            return null;
+        }
+        
+        @Override
+        public T poll() {
+            if (!isEmpty()) {
+                T c;
+                if (state == STATE_HAS_NEXT_NO_VALUE) {
+                    c = iterator.next();
+                } else {
+                    c = current;
+                    current = null;
+                }
+                state = STATE_CALL_HAS_NEXT;
+                return c;
+            }
+            return null;
+        }
+        
+        @Override
+        public boolean requestSyncFusion() {
+            return true;
+        }
     }
 }

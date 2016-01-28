@@ -557,4 +557,45 @@ public class PublisherFlatMapTest {
         .assertComplete();
     }
 
+    @Test
+    public void syncFusionIterable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            list.add(i);
+        }
+        
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.fromIterable(list)).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void syncFusionRange() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(v, 1000)).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void syncFusionArray() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        Integer[] array = new Integer[1000];
+        Arrays.fill(array, 777);
+        
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.fromArray(array)).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }

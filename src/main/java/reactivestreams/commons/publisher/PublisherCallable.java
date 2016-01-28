@@ -18,7 +18,7 @@ import reactivestreams.commons.util.ExceptionHelper;
  */
 public final class PublisherCallable<T> 
 extends PublisherBase<T>
-        implements Receiver {
+        implements Receiver, Supplier<T> {
 
     final Callable<? extends T> callable;
 
@@ -57,5 +57,14 @@ extends PublisherBase<T>
         }
 
         sds.complete(t);
+    }
+    
+    @Override
+    public T get() {
+        try {
+            return callable.call();
+        } catch (Throwable e) {
+            throw ExceptionHelper.propagate(e);
+        }
     }
 }

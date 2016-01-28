@@ -8,6 +8,7 @@ import org.reactivestreams.*;
 
 import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.util.*;
+import reactor.core.util.Exceptions;
 
 /**
  * Maps each upstream value into a Publisher and concatenates them into one
@@ -315,7 +316,17 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 @SuppressWarnings("unchecked")
                                 Supplier<R> supplier = (Supplier<R>) p;
                                 
-                                R vr = supplier.get();
+                                R vr;
+                                
+                                try {
+                                    vr = supplier.get();
+                                } catch (Throwable e) {
+                                    s.cancel();
+                                    actual.onError(Exceptions.unwrap(e));
+                                    return;
+                                }
+                                
+                                
                                 if (vr == null) {
                                     continue;
                                 }
@@ -617,7 +628,16 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 @SuppressWarnings("unchecked")
                                 Supplier<R> supplier = (Supplier<R>) p;
                                 
-                                R vr = supplier.get();
+                                R vr;
+                                
+                                try {
+                                    vr = supplier.get();
+                                } catch (Throwable e) {
+                                    s.cancel();
+                                    actual.onError(ExceptionHelper.unwrap(e));
+                                    return;
+                                }
+                                
                                 if (vr == null) {
                                     continue;
                                 }

@@ -46,6 +46,7 @@ import reactivestreams.commons.util.FusionSubscription;
 import reactivestreams.commons.util.ScalarSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
+import reactor.core.util.Exceptions;
 
 /**
  * Maps a sequence of values each into a Publisher and flattens them 
@@ -94,10 +95,17 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
      * @param mapper the mapper function
      * @return true if the optimization worked
      */
+    @SuppressWarnings("unchecked")
     static <T, R> boolean scalarSubscribe(Publisher<? extends T> source, Subscriber<? super R> s, Function<? super T, ? extends Publisher<? extends R>> mapper) {
         if (source instanceof Supplier) {
-            @SuppressWarnings("unchecked")
-            T t = ((Supplier<? extends T>)source).get();
+            T t;
+            
+            try {
+                t = ((Supplier<? extends T>)source).get();
+            } catch (Throwable e) {
+                EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                return true;
+            }
             
             if (t == null) {
                 EmptySubscription.complete(s);
@@ -120,8 +128,15 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
             
             if (p instanceof Supplier) {
-                @SuppressWarnings("unchecked")
-                R v = ((Supplier<R>)p).get();
+                R v;
+                
+                try {
+                    v = ((Supplier<R>)p).get();
+                } catch (Throwable e) {
+                    EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                    return true;
+                }
+                
                 if (v != null) {
                     s.onSubscribe(new ScalarSubscription<>(s, v));
                 } else {
@@ -326,6 +341,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onNext(T t) {
             if (done) {
@@ -352,8 +368,14 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
             
             if (p instanceof Supplier) {
-                @SuppressWarnings("unchecked")
-                R v = ((Supplier<R>)p).get();
+                R v;
+                try {
+                    v = ((Supplier<R>)p).get();
+                } catch (Throwable e) {
+                    s.cancel();
+                    onError(Exceptions.unwrap(e));
+                    return;
+                }
                 emitScalar(v);
             } else {
                 PublisherFlatMapInner<R> inner = new PublisherFlatMapInner<>(this, prefetch);

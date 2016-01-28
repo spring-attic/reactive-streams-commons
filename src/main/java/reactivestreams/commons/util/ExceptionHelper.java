@@ -77,6 +77,7 @@ public enum ExceptionHelper {
      * Unwrap a particular {@code Throwable} only if it is a wrapped UpstreamException or DownstreamException
      *
      * @param t the root cause
+     * @return the unwrapped exception
      */
     public static Throwable unwrap(Throwable t) {
         if (t instanceof ReactiveException) {
@@ -85,6 +86,25 @@ public enum ExceptionHelper {
         return t;
     }
 
+    /**
+     * Throws the exception if it is a regular runtimeException or wraps
+     * it into a ReactiveException.
+     * <p>
+     * Use unwrap to get back the original cause.
+     * <p>
+     * The method calls throwIfFatal().
+     * 
+     * @param e the exception to propagate
+     * @return dummy return type to allow using throw with the function call
+     */
+    public static RuntimeException propagate(Throwable e) {
+        throwIfFatal(e);
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException)e;
+        }
+        throw new ReactiveException(e);
+    }
+    
     /**
      * Throw an unchecked {@link RuntimeException} that will be propagated upstream
      *
