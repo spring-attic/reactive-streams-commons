@@ -15,38 +15,15 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.MultiReceiver;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.state.Backpressurable;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
-import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.state.Prefetchable;
-import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.CancelledSubscription;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.FusionSubscription;
-import reactivestreams.commons.util.ScalarSubscription;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
-import reactor.core.util.Exceptions;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.*;
+import reactivestreams.commons.util.*;
 
 /**
  * Maps a sequence of values each into a Publisher and flattens them 
@@ -373,7 +350,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     v = ((Supplier<R>)p).get();
                 } catch (Throwable e) {
                     s.cancel();
-                    onError(Exceptions.unwrap(e));
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
                 emitScalar(v);
