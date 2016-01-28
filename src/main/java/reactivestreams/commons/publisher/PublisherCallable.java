@@ -47,7 +47,7 @@ extends PublisherBase<T>
             t = callable.call();
         } catch (Throwable e) {
             ExceptionHelper.throwIfFatal(e);
-            s.onError(e);
+            s.onError(ExceptionHelper.unwrap(e));
             return;
         }
 
