@@ -167,7 +167,7 @@ public interface Fuseable {
 		}
 
 		@Override
-		public Queue<T> queue() {
+		public final Queue<T> queue() {
 			return this;
 		}
 	}
