@@ -1,7 +1,11 @@
 package reactivestreams.commons.publisher;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherMapTest {
@@ -78,5 +82,34 @@ public class PublisherMapTest {
           .assertNoValues()
           .assertNotComplete()
         ;
+    }
+    
+    @Test
+    public void syncFusion() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 10).map(v -> v + 1).subscribe(ts);
+        
+        ts.assertValues(2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void asyncFusion() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        up.map(v -> v + 1).subscribe(ts);
+        
+        for (int i = 1; i < 11; i++) {
+            up.onNext(i);
+        }
+        up.onComplete();
+        
+        ts.assertValues(2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+        .assertNoError()
+        .assertComplete();
     }
 }

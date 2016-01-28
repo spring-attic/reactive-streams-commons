@@ -21,17 +21,19 @@ import java.util.function.Function;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.*;
-import reactivestreams.commons.publisher.PublisherMapFuseable.PublisherMapFuseableSubscriber;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.util.*;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
- *
+ * <p>
+ * This variant allows composing fuseable stages.
+ * 
  * @param <T> the source value type
  * @param <R> the result value type
  */
-public final class PublisherMap<T, R> extends PublisherSource<T, R> {
+public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
+implements Fuseable {
 
     final Function<? super T, ? extends R> mapper;
 
@@ -42,8 +44,11 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
      * @param mapper the mapper function
      * @throws NullPointerException if either {@code source} or {@code mapper} is null.
      */
-    public PublisherMap(Publisher<? extends T> source, Function<? super T, ? extends R> mapper) {
+    public PublisherMapFuseable(Publisher<? extends T> source, Function<? super T, ? extends R> mapper) {
         super(source);
+        if (!(source instanceof Fuseable)) {
+            throw new IllegalArgumentException("The source must implement the Fuseable interface for this operator to work");
+        }
         this.mapper = Objects.requireNonNull(mapper, "mapper");
     }
 
@@ -53,29 +58,29 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
 
     @Override
     public void subscribe(Subscriber<? super R> s) {
-        if (source instanceof Fuseable) {
-            source.subscribe(new PublisherMapFuseableSubscriber<>(s, mapper));
-        }
-        source.subscribe(new PublisherMapSubscriber<>(s, mapper));
+        source.subscribe(new PublisherMapFuseableSubscriber<>(s, mapper));
     }
 
-    static final class PublisherMapSubscriber<T, R> implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+    static final class PublisherMapFuseableSubscriber<T, R> 
+    extends SynchronousSubscription<R>
+    implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
         boolean done;
 
-        Subscription s;
+        FusionSubscription<T> s;
 
-        public PublisherMapSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
+        public PublisherMapFuseableSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = s;
+                this.s = (FusionSubscription<T>)s;
 
                 actual.onSubscribe(this);
             }
@@ -169,6 +174,33 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void cancel() {
             s.cancel();
+        }
+
+        @Override
+        public R poll() {
+            // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
+            return mapper.apply(s.poll());
+        }
+
+        @Override
+        public R peek() {
+            // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
+            return mapper.apply(s.peek());
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return s.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            s.clear();
+        }
+
+        @Override
+        public boolean requestSyncFusion() {
+            return s.requestSyncFusion();
         }
     }
 }

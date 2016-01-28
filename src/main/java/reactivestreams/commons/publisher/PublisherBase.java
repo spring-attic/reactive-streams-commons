@@ -1,28 +1,14 @@
 package reactivestreams.commons.publisher;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.LongConsumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 import java.util.stream.Stream;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.util.Fuseable;
 
 /**
  * Experimental base class with fluent API.
@@ -53,6 +39,9 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <R> PublisherBase<R> map(Function<? super T, ? extends R> mapper) {
+        if (this instanceof Fuseable) {
+            return new PublisherMapFuseable<>(this, mapper);
+        }
         return new PublisherMap<>(this, mapper);
     }
     

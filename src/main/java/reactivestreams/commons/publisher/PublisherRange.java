@@ -18,21 +18,17 @@ package reactivestreams.commons.publisher;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Subscriber;
+
 import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ScalarSubscription;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSubscription;
+import reactivestreams.commons.state.*;
+import reactivestreams.commons.util.*;
 
 /**
  * Emits a range of integer values.
  */
 public final class PublisherRange 
-extends PublisherBase<Integer> {
+extends PublisherBase<Integer> 
+implements Fuseable {
 
     final long start;
 
