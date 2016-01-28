@@ -211,32 +211,55 @@ implements Fuseable {
 
         @Override
         public T poll() {
-            for (;;) {
-                T v = s.poll();
-
-                if (v == null) {
-                    return null;
+            if (sourceMode == ASYNC) {
+                long dropped = 0;
+                for (;;) {
+                    T v = s.poll();
+    
+                    if (v == null || predicate.test(v)) {
+                        if (dropped != 0) {
+                            request(dropped);
+                        }
+                        return v;
+                    }
+                    dropped++;
                 }
-                
-                if (predicate.test(v)) {
-                    return v;
+            } else {
+                for (;;) {
+                    T v = s.poll();
+    
+                    if (v == null || predicate.test(v)) {
+                        return v;
+                    }
                 }
             }
         }
 
         @Override
         public T peek() {
-            for (;;) {
-                T v = s.peek();
-
-                if (v == null) {
-                    return null;
+            if (sourceMode == ASYNC) {
+                long dropped = 0;
+                for (;;) {
+                    T v = s.peek();
+    
+                    if (v == null || predicate.test(v)) {
+                        if (dropped != 0) {
+                            request(dropped);
+                        }
+                        return v;
+                    }
+                    s.drop();
+                    dropped++;
                 }
-                
-                if (predicate.test(v)) {
-                    return v;
+            } else {
+                for (;;) {
+                    T v = s.peek();
+    
+                    if (v == null || predicate.test(v)) {
+                        return v;
+                    }
+                    s.drop();
                 }
-                s.drop();
             }
         }
 
