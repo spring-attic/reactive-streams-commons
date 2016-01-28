@@ -8,22 +8,22 @@ public class SimpleProcessorTest {
 
     @Test(expected = NullPointerException.class)
     public void onNextNull() {
-        new SimpleProcessor<Integer>().onNext(null);
+        SimpleProcessor.<Integer>create().onNext(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void onErrorNull() {
-        new SimpleProcessor<Integer>().onError(null);
+        SimpleProcessor.<Integer>create().onError(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void onSubscribeNull() {
-        new SimpleProcessor<Integer>().onSubscribe(null);
+        SimpleProcessor.<Integer>create().onSubscribe(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void subscribeNull() {
-        new SimpleProcessor<Integer>().subscribe(null);
+        SimpleProcessor.<Integer>create().subscribe(null);
     }
 
     @Test
