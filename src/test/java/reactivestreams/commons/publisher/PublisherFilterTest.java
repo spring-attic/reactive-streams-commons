@@ -1,8 +1,11 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.Test;
+
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherFilterTest {
@@ -92,5 +95,34 @@ public class PublisherFilterTest {
           .assertNotComplete()
           .assertError(RuntimeException.class)
           .assertErrorMessage("forced failure");
+    }
+    
+    @Test
+    public void syncFusion() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 10).filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        ts.assertValues(2, 4, 6, 8, 10)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void asyncFusion() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        up.filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        for (int i = 1; i < 11; i++) {
+            up.onNext(i);
+        }
+        up.onComplete();
+        
+        ts.assertValues(2, 4, 6, 8, 10)
+        .assertNoError()
+        .assertComplete();
     }
 }

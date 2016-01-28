@@ -21,7 +21,6 @@ import java.util.function.Predicate;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.*;
-import reactivestreams.commons.publisher.PublisherFilterFuseable.PublisherFilterFuseableSubscriber;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.util.*;
 
@@ -30,12 +29,16 @@ import reactivestreams.commons.util.*;
  *
  * @param <T> the value type
  */
-public final class PublisherFilter<T> extends PublisherSource<T, T> {
+public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
+implements Fuseable {
 
     final Predicate<? super T> predicate;
 
-    public PublisherFilter(Publisher<? extends T> source, Predicate<? super T> predicate) {
+    public PublisherFilterFuseable(Publisher<? extends T> source, Predicate<? super T> predicate) {
         super(source);
+        if (!(source instanceof Fuseable)) {
+            throw new IllegalArgumentException("The source must implement the Fuseable interface for this operator to work");
+        }
         this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
 
@@ -45,31 +48,30 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        if (source instanceof Fuseable) {
-            source.subscribe(new PublisherFilterFuseableSubscriber<>(s, predicate));
-            return;
-        }
-        source.subscribe(new PublisherFilterSubscriber<>(s, predicate));
+        source.subscribe(new PublisherFilterFuseableSubscriber<>(s, predicate));
     }
 
-    static final class PublisherFilterSubscriber<T> implements Subscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+    static final class PublisherFilterFuseableSubscriber<T> 
+    extends SynchronousSubscription<T>
+    implements Subscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
 
-        Subscription s;
+        FusionSubscription<T> s;
 
         boolean done;
 
-        public PublisherFilterSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
+        public PublisherFilterFuseableSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = s;
+                this.s = (FusionSubscription<T>)s;
                 actual.onSubscribe(this);
             }
         }
@@ -156,6 +158,52 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
         @Override
         public void cancel() {
             s.cancel();
+        }
+
+        @Override
+        public T poll() {
+            for (;;) {
+                T v = s.poll();
+
+                if (v == null) {
+                    return null;
+                }
+                
+                if (predicate.test(v)) {
+                    return v;
+                }
+            }
+        }
+
+        @Override
+        public T peek() {
+            for (;;) {
+                T v = s.peek();
+
+                if (v == null) {
+                    return null;
+                }
+                
+                if (predicate.test(v)) {
+                    return v;
+                }
+                s.drop();
+            }
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return peek() == null;
+        }
+
+        @Override
+        public void clear() {
+            s.clear();
+        }
+        
+        @Override
+        public void drop() {
+            s.drop();
         }
     }
 }

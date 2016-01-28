@@ -40,5 +40,10 @@ public interface FusionSubscription<T> extends Queue<T>, Subscription {
 	 */
 	boolean requestSyncFusion();
 
-
+	/**
+	 * Requests the upstream to drop the current value.
+	 * <p>
+	 * This is allows fused intermediate operators to avoid peek/poll pairs.
+	 */
+	void drop();
 }

@@ -221,6 +221,9 @@ implements Fuseable {
             index = end;
         }
         
-        
+        @Override
+        public void drop() {
+            index++;
+        }
     }
 }

@@ -15,17 +15,13 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Requestable;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.*;
 import reactivestreams.commons.util.*;
 
 /**
@@ -35,7 +31,7 @@ import reactivestreams.commons.util.*;
  */
 public final class PublisherIterable<T> 
 extends PublisherBase<T>
-        implements Receiver {
+        implements Receiver, Fuseable {
 
     final Iterable<? extends T> iterable;
 
@@ -343,6 +339,12 @@ extends PublisherBase<T>
         @Override
         public boolean requestSyncFusion() {
             return true;
+        }
+        
+        @Override
+        public void drop() {
+            current = null;
+            state = STATE_CALL_HAS_NEXT;
         }
     }
 }

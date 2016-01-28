@@ -1,20 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import reactivestreams.commons.flow.MultiReceiver;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSubscription;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.*;
+import reactivestreams.commons.util.*;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -22,7 +15,8 @@ import reactivestreams.commons.util.SynchronousSubscription;
  * @param <T> the value type
  */
 public final class PublisherArray<T> 
-extends PublisherBase<T> {
+extends PublisherBase<T> 
+implements Fuseable {
     final T[] array;
 
     @SafeVarargs
@@ -213,6 +207,11 @@ extends PublisherBase<T> {
         @Override
         public void clear() {
             index = array.length;
+        }
+        
+        @Override
+        public void drop() {
+            index++;
         }
     }
 }

@@ -46,6 +46,9 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final PublisherBase<T> filter(Predicate<? super T> predicate) {
+        if (this instanceof Fuseable) {
+            return new PublisherFilterFuseable<>(this, predicate);
+        }
         return new PublisherFilter<>(this, predicate);
     }
     

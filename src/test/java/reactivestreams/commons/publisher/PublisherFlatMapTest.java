@@ -608,4 +608,16 @@ public class PublisherFlatMapTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void innerFilterSyncFusion() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0)).subscribe(ts);;
+
+        ts.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }

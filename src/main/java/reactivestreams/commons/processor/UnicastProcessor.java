@@ -1,19 +1,12 @@
 package reactivestreams.commons.processor;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.FusionSubscription;
-import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.*;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -26,7 +19,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class UnicastProcessor<T> 
 extends PublisherBase<T>
-implements Processor<T, T>, FusionSubscription<T> {
+implements Processor<T, T>, FusionSubscription<T>, Fuseable {
 
     final Queue<T> queue;
     
@@ -385,5 +378,10 @@ implements Processor<T, T>, FusionSubscription<T> {
     public boolean requestSyncFusion() {
         enableOperatorFusion = true;
         return false;
+    }
+    
+    @Override
+    public void drop() {
+        queue.poll();
     }
 }
