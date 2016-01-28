@@ -205,5 +205,10 @@ implements Fuseable {
         public void drop() {
             s.drop();
         }
+        
+        @Override
+        public boolean requestSyncFusion() {
+            return s.requestSyncFusion();
+        }
     }
 }
