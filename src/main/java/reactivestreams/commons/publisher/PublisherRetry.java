@@ -2,9 +2,9 @@ package reactivestreams.commons.publisher;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
 
 /**
  * Repeatedly subscribes to the source sequence if it signals any error
@@ -42,7 +42,7 @@ public final class PublisherRetry<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherRetrySubscriber<T>
-      extends SubscriberMultiSubscription<T, T> {
+            extends MultiSubscriptionSubscriber<T, T> {
 
         final Publisher<? extends T> source;
 

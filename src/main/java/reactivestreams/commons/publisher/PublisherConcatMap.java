@@ -1,13 +1,21 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
-import reactivestreams.commons.util.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Maps each upstream value into a Publisher and concatenates them into one
@@ -135,9 +143,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
             if (SubscriptionHelper.validate(this.s, s))  {
                 this.s = s;
 
-                if (s instanceof FusionSubscription) {
-                    @SuppressWarnings("unchecked")
-                    FusionSubscription<T> f = (FusionSubscription<T>)s;
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
                     queue = f;
                     if (f.requestSyncFusion()){
                         sourceMode = SYNC;
@@ -447,9 +454,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
             if (SubscriptionHelper.validate(this.s, s))  {
                 this.s = s;
 
-                if (s instanceof FusionSubscription) {
-                    @SuppressWarnings("unchecked")
-                    FusionSubscription<T> f = (FusionSubscription<T>)s;
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
                     queue = f;
                     if (f.requestSyncFusion()){
                         sourceMode = SYNC;
@@ -672,7 +678,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
     }
     
     static final class PublisherConcatMapInner<R>
-    extends SubscriberMultiSubscription<R, R> {
+            extends MultiSubscriptionSubscriber<R, R> {
         
         final PublisherConcatMapSupport<R> parent;
         

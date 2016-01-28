@@ -11,7 +11,7 @@ import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.DrainHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 
@@ -102,7 +102,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeLastOneSubscriber<T>
-            extends SubscriberDeferredScalar<T, T>
+            extends DeferredScalarSubscriber<T, T>
             implements Receiver {
 
         Subscription s;

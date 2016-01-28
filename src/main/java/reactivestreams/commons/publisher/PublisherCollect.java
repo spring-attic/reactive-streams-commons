@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -55,7 +55,7 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherCollectSubscriber<T, R>
-            extends SubscriberDeferredScalar<T, R>
+            extends DeferredScalarSubscriber<T, R>
             implements Receiver {
 
         final BiConsumer<? super R, ? super T> action;

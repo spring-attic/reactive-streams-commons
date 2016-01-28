@@ -11,7 +11,7 @@ import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.MultiReceiver;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
+import reactivestreams.commons.subscriber.DeferredSubscriptionSubscriber;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
 
@@ -248,7 +248,7 @@ extends PublisherBase<T>
         }
     }
 
-    static final class PublisherAmbSubscriber<T> extends SubscriberDeferredSubscription<T, T>
+    static final class PublisherAmbSubscriber<T> extends DeferredSubscriptionSubscriber<T, T>
             implements Introspectable {
         final PublisherAmbCoordinator<T> parent;
 

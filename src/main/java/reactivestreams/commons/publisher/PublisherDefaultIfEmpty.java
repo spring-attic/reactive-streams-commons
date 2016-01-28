@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -29,7 +29,7 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherDefaultIfEmptySubscriber<T>
-            extends SubscriberDeferredScalar<T, T>
+            extends DeferredScalarSubscriber<T, T>
             implements Receiver {
 
         Subscription s;

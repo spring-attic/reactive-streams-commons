@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.ExceptionHelper;
 
 /**
@@ -34,7 +34,7 @@ extends PublisherBase<T>
     @Override
     public void subscribe(Subscriber<? super T> s) {
 
-        SubscriberDeferredScalar<T, T> sds = new SubscriberDeferredScalar<>(s);
+        DeferredScalarSubscriber<T, T> sds = new DeferredScalarSubscriber<>(s);
 
         s.onSubscribe(sds);
 

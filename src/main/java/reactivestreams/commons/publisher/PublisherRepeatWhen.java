@@ -9,8 +9,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Loopback;
 import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
 import reactivestreams.commons.subscriber.SerializedSubscriber;
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -71,7 +71,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherRepeatWhenMainSubscriber<T> extends SubscriberMultiSubscription<T, T> {
+    static final class PublisherRepeatWhenMainSubscriber<T> extends MultiSubscriptionSubscriber<T, T> {
 
         final DeferredSubscription otherArbiter;
 

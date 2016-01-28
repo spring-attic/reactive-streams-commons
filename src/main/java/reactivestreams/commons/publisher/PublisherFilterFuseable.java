@@ -18,11 +18,17 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.flow.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.Loopback;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Filters out values that make a filter function return false.
@@ -30,7 +36,7 @@ import reactivestreams.commons.util.*;
  * @param <T> the value type
  */
 public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
-implements Fuseable {
+        implements Fuseable {
 
     final Predicate<? super T> predicate;
 
@@ -58,7 +64,7 @@ implements Fuseable {
 
         final Predicate<? super T> predicate;
 
-        FusionSubscription<T> s;
+        QueueSubscription<T> s;
 
         boolean done;
         
@@ -80,7 +86,7 @@ implements Fuseable {
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = (FusionSubscription<T>)s;
+                this.s = (QueueSubscription<T>)s;
                 actual.onSubscribe(this);
             }
         }

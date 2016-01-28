@@ -1,10 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.reactivestreams.Subscriber;
-
-import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 
 public final class PublisherFuture<T> extends PublisherBase<T> {
     
@@ -28,7 +30,7 @@ public final class PublisherFuture<T> extends PublisherBase<T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        SubscriberDeferredScalar<T, T> sds = new SubscriberDeferredScalar<>(s);
+        DeferredScalarSubscriber<T, T> sds = new DeferredScalarSubscriber<>(s);
         
         s.onSubscribe(sds);
         

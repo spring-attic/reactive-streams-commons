@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Loopback;
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
 import reactivestreams.commons.util.ExceptionHelper;
 
 /**
@@ -54,7 +54,7 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherResumeSubscriber<>(s, nextFactory));
     }
 
-    static final class PublisherResumeSubscriber<T> extends SubscriberMultiSubscription<T, T>
+    static final class PublisherResumeSubscriber<T> extends MultiSubscriptionSubscriber<T, T>
             implements Loopback {
 
         final Function<? super Throwable, ? extends Publisher<? extends T>> nextFactory;

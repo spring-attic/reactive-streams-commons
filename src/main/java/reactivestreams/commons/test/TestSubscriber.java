@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.subscriber.DeferredSubscriptionSubscriber;
 import reactivestreams.commons.subscriber.EmptySubscriber;
-import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -26,7 +26,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  *
  * @param <T> the value type.
  */
-public class TestSubscriber<T> extends SubscriberDeferredSubscription<T, T> {
+public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
     final List<T> values;
 

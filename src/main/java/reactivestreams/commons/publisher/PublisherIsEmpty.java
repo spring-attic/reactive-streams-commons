@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
@@ -18,7 +18,7 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
         source.subscribe(new PublisherIsEmptySubscriber<>(s));
     }
 
-    static final class PublisherIsEmptySubscriber<T> extends SubscriberDeferredScalar<T, Boolean>
+    static final class PublisherIsEmptySubscriber<T> extends DeferredScalarSubscriber<T, Boolean>
             implements Receiver {
         Subscription s;
 

@@ -6,7 +6,7 @@ import java.util.function.BooleanSupplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
 import reactivestreams.commons.util.ExceptionHelper;
 
 /**
@@ -37,7 +37,7 @@ public final class PublisherRepeatPredicate<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherRepeatPredicateSubscriber<T>
-      extends SubscriberMultiSubscription<T, T> {
+            extends MultiSubscriptionSubscriber<T, T> {
 
         final Publisher<? extends T> source;
 

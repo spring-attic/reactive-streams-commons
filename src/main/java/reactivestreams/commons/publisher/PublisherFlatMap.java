@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.MultiReceiver;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
@@ -42,7 +43,6 @@ import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.CancelledSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.FusionSubscription;
 import reactivestreams.commons.util.ScalarSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
@@ -955,9 +955,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
-                if (s instanceof FusionSubscription) {
-                    @SuppressWarnings("unchecked")
-                    FusionSubscription<R> f = (FusionSubscription<R>)s;
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<R> f = (Fuseable.QueueSubscription<R>)s;
                     queue = f;
                     if (f.requestSyncFusion()){
                         sourceMode = SYNC;

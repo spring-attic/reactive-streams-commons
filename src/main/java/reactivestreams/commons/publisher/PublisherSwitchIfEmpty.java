@@ -5,7 +5,7 @@ import java.util.Objects;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.flow.Loopback;
-import reactivestreams.commons.subscriber.SubscriberMultiSubscription;
+import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
 
 /**
  * Switches to another source if the first source turns out to be empty.
@@ -30,7 +30,7 @@ public final class PublisherSwitchIfEmpty<T> extends PublisherSource<T, T> {
         source.subscribe(parent);
     }
 
-    static final class PublisherSwitchIfEmptySubscriber<T> extends SubscriberMultiSubscription<T, T>
+    static final class PublisherSwitchIfEmptySubscriber<T> extends MultiSubscriptionSubscriber<T, T>
             implements Loopback {
 
         final Publisher<? extends T> other;

@@ -7,15 +7,14 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.MultiReceiver;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.Fuseable;
 import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSubscription;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -23,8 +22,8 @@ import reactivestreams.commons.util.SynchronousSubscription;
  * @param <T> the value type
  */
 public final class PublisherArray<T> 
-extends PublisherBase<T> 
-implements Fuseable {
+extends PublisherBase<T>
+        implements Fuseable {
     final T[] array;
 
     @SafeVarargs

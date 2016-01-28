@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
+import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
@@ -35,7 +35,7 @@ public final class PublisherAny<T> extends PublisherSource<T, Boolean> {
         source.subscribe(new PublisherAnySubscriber<T>(s, predicate));
     }
 
-    static final class PublisherAnySubscriber<T> extends SubscriberDeferredScalar<T, Boolean>
+    static final class PublisherAnySubscriber<T> extends DeferredScalarSubscriber<T, Boolean>
             implements Receiver {
         final Predicate<? super T> predicate;
 

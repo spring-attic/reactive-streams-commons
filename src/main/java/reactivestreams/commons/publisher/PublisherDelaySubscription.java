@@ -5,7 +5,7 @@ import java.util.Objects;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import reactivestreams.commons.subscriber.SubscriberDeferredSubscription;
+import reactivestreams.commons.subscriber.DeferredSubscriptionSubscriber;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
@@ -31,7 +31,7 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
     }
 
     static final class PublisherDelaySubscriptionOtherSubscriber<T, U>
-            extends SubscriberDeferredSubscription<U, T> {
+            extends DeferredSubscriptionSubscriber<U, T> {
 
         final Publisher<? extends T> source;
 
@@ -100,10 +100,10 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
 
             final Subscriber<? super T> actual;
 
-            final SubscriberDeferredSubscription<?, ?> arbiter;
+            final DeferredSubscriptionSubscriber<?, ?> arbiter;
 
             public PublisherDelaySubscriptionMainSubscriber(Subscriber<? super T> actual,
-                                                            SubscriberDeferredSubscription<?, ?> arbiter) {
+                                                            DeferredSubscriptionSubscriber<?, ?> arbiter) {
                 this.actual = actual;
                 this.arbiter = arbiter;
             }

@@ -15,7 +15,7 @@ import reactivestreams.commons.util.DeferredSubscription;
  * @param <I> the input value type
  * @param <O> the output value type
  */
-public class SubscriberDeferredSubscription<I, O>
+public class DeferredSubscriptionSubscriber<I, O>
         extends DeferredSubscription
 implements Subscription, Subscriber<I>, Producer {
 
@@ -26,7 +26,7 @@ implements Subscription, Subscriber<I>, Producer {
      * 
      * @param subscriber the actual subscriber
      */
-    public SubscriberDeferredSubscription(Subscriber<? super O> subscriber) {
+    public DeferredSubscriptionSubscriber(Subscriber<? super O> subscriber) {
         this.subscriber = Objects.requireNonNull(subscriber, "subscriber");
     }
 
@@ -37,7 +37,7 @@ implements Subscription, Subscriber<I>, Producer {
      * @param initialRequest
      * @throws IllegalArgumentException if initialRequest is negative
      */
-    public SubscriberDeferredSubscription(Subscriber<? super O> subscriber, long initialRequest) {
+    public DeferredSubscriptionSubscriber(Subscriber<? super O> subscriber, long initialRequest) {
         if (initialRequest < 0) {
             throw new IllegalArgumentException("initialRequest >= required but it was " + initialRequest);
         }

@@ -7,6 +7,7 @@ def includingCoreScope = ['amb',
 						  'callable',
 						  'switchifempty',
 						  /*'concatarray' ,*/ //managed by reactor-core but used by reactor-stream
+						  /*'concatmap' ,*/ //managed by reactor-core but used by reactor-stream
 						  /*'concatiterable' ,*/ //managed by reactor-core but used by  reactor-stream
 						  'error',
 						  'empty',
@@ -46,10 +47,6 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'ExceptionHelper'   : 'Exceptions',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
-					 //'SubscriberDeferSubscription'     : 'reactor.core.subscriber.SubscriberDeferSubscription',
-					 //'SubscriberMultiSubscription': 'reactor.core.subscriber.SubscriberMultiSubscription',
-					 //'ScalarSubscription'         : 'reactor.core.subscription.SubscriberScalar',
-					 //'SubscriberDeferScalar'  : 'reactor.core.subscriber.SubscriberScalarDelayed',
 					 'SimpleProcessor'      : 'reactor.core.publisher.ProcessorEmitter',
 					 'UnicastProcessor'      : 'reactor.rx.UnicastProcessor']
 
