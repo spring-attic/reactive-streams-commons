@@ -328,6 +328,11 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	else if (l.contains('DrainHelper') && target['DrainHelper']) {
 	  return null
 	}
+
+	l = l.replaceAll('Publisher([^ ]*)Fuseable\\.', apiClassName+'$1Fuseable.')
+	l = l.replaceAll('Publisher([^ ]*)FuseableSubscriber', target['api-inner']+'$1FuseableSubscriber') //naive double reference
+	// workaround
+
 	return l;
   }
 
