@@ -8,9 +8,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 /**
- * A micro API for stream fusion
- *
- * Marker interface indicating the publisher produces a {@link QueueSubscription}.
+ * A micro API for stream fusion, in particular marks producers that support a {@link QueueSubscription}.
  */
 public interface Fuseable {
 
