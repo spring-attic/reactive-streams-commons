@@ -839,10 +839,10 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
-                if (s instanceof Fuseable.QueueSubscription) {
-                    Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>) s;
+                if (s instanceof Fuseable.FusionSubscription) {
+                    Fuseable.FusionSubscription<T> f = (Fuseable.FusionSubscription<T>) s;
 
-                    queue = (Fuseable.QueueSubscription<T>)s;
+                    queue = f.queue();
                     
                     if (f.requestSyncFusion()) {
                         sourceMode = SYNC;

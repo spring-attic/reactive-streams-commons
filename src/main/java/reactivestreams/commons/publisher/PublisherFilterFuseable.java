@@ -16,6 +16,7 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
+import java.util.Queue;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
@@ -64,7 +65,8 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
 
         final Predicate<? super T> predicate;
 
-        QueueSubscription<T> s;
+        FusionSubscription<T> s;
+        Queue<T>              q;
 
         boolean done;
         
@@ -86,7 +88,8 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = (QueueSubscription<T>)s;
+                this.s = (FusionSubscription<T>)s;
+                this.q = this.s.queue();
                 actual.onSubscribe(this);
             }
         }
@@ -220,7 +223,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
             if (sourceMode == ASYNC) {
                 long dropped = 0;
                 for (;;) {
-                    T v = s.poll();
+                    T v = q.poll();
     
                     if (v == null || predicate.test(v)) {
                         if (dropped != 0) {
@@ -232,7 +235,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
                 }
             } else {
                 for (;;) {
-                    T v = s.poll();
+                    T v = q.poll();
     
                     if (v == null || predicate.test(v)) {
                         return v;
@@ -246,7 +249,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
             if (sourceMode == ASYNC) {
                 long dropped = 0;
                 for (;;) {
-                    T v = s.peek();
+                    T v = q.peek();
     
                     if (v == null || predicate.test(v)) {
                         if (dropped != 0) {
@@ -259,7 +262,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
                 }
             } else {
                 for (;;) {
-                    T v = s.peek();
+                    T v = q.peek();
     
                     if (v == null || predicate.test(v)) {
                         return v;
@@ -276,7 +279,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
 
         @Override
         public void clear() {
-            s.clear();
+            q.clear();
         }
         
         @Override

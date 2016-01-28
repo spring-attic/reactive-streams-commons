@@ -8,7 +8,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 /**
- * A micro API for stream fusion, in particular marks producers that support a {@link QueueSubscription}.
+ * A micro API for stream fusion, in particular marks producers that support a {@link FusionSubscription}.
  */
 public interface Fuseable {
 
@@ -47,7 +47,7 @@ public interface Fuseable {
 	 *
 	 * @param <T> the value type emitted
 	 */
-	interface QueueSubscription<T> extends Queue<T>, Subscription {
+	interface FusionSubscription<T> extends Subscription {
 
 		/**
 		 * Consumers of an Asynchronous FusionSubscription have to signal it to switch to a fused-mode
@@ -63,6 +63,14 @@ public interface Fuseable {
 		 * @return FALSE if asynchronous or TRUE if immediately ready
 		 */
 		boolean requestSyncFusion();
+
+		/**
+		 * @return the {@link Queue} view of the produced sequence, it's behavior is driven by the type of fusion:
+		 * sync or async
+		 *
+		 * @see #requestSyncFusion()
+		 */
+		Queue<T> queue();
 
 		/**
 		 * Requests the upstream to drop the current value.
@@ -82,7 +90,7 @@ public interface Fuseable {
 	 *
 	 * @param <T> the content value type
 	 */
-	abstract class SynchronousSubscription<T> implements QueueSubscription<T> {
+	abstract class SynchronousSubscription<T> implements FusionSubscription<T>, Queue<T> {
 		@Override
 		public final boolean offer(T e) {
 			throw new UnsupportedOperationException("Operators should not use this method!");
@@ -156,6 +164,11 @@ public interface Fuseable {
 		@Override
 		public final T element() {
 			throw new UnsupportedOperationException("Operators should not use this method!");
+		}
+
+		@Override
+		public Queue<T> queue() {
+			return this;
 		}
 	}
 }

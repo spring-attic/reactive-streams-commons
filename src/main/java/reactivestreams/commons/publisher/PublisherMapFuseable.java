@@ -16,6 +16,7 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
+import java.util.Queue;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -74,7 +75,8 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         boolean done;
 
-        QueueSubscription<T> s;
+        FusionSubscription<T> s;
+        Queue<T>              q;
 
         int sourceMode;
 
@@ -94,8 +96,8 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = (QueueSubscription<T>)s;
-
+                this.s = (FusionSubscription<T>)s;
+                this.q = this.s.queue();
                 actual.onSubscribe(this);
             }
         }
@@ -200,7 +202,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         @Override
         public R poll() {
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
-            T v = s.poll();
+            T v = q.poll();
             if (v != null) {
                 return mapper.apply(v);
             }
@@ -210,7 +212,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         @Override
         public R peek() {
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
-            T v = s.peek();
+            T v = q.peek();
             if (v != null) {
                 return mapper.apply(v);
             }
@@ -219,12 +221,12 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         @Override
         public boolean isEmpty() {
-            return s.isEmpty();
+            return q.isEmpty();
         }
 
         @Override
         public void clear() {
-            s.clear();
+            q.clear();
         }
 
         @Override
