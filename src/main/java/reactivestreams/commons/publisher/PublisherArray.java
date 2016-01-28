@@ -1,13 +1,21 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.flow.*;
-import reactivestreams.commons.state.*;
-import reactivestreams.commons.util.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import reactivestreams.commons.flow.MultiReceiver;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Requestable;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.Fuseable;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.SynchronousSubscription;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -167,7 +175,7 @@ implements Fuseable {
         }
 
         @Override
-        public long upstreamsCount() {
+        public long upstreamCount() {
             return array instanceof Publisher[] ? array.length : -1;
         }
 

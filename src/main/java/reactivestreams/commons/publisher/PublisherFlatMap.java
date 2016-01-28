@@ -891,7 +891,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public long upstreamsCount() {
+        public long upstreamCount() {
             return subscribers.length;
         }
 

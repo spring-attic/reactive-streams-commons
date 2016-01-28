@@ -34,7 +34,7 @@ extends PublisherBase<T>
     }
 
     @Override
-    public long upstreamsCount() {
+    public long upstreamCount() {
         return array.length;
     }
 

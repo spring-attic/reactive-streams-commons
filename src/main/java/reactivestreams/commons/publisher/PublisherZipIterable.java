@@ -219,7 +219,7 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public long upstreamsCount() {
+        public long upstreamCount() {
             return isStarted() ? 2 : 1;
         }
         

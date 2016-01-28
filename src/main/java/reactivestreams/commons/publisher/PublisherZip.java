@@ -15,16 +15,37 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.flow.*;
-import reactivestreams.commons.state.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.MultiReceiver;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.state.Prefetchable;
+import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.CancelledSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.FusionSubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Repeatedly takes one item from all source Publishers and 
@@ -244,7 +265,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
     }
 
     @Override
-    public long upstreamsCount() {
+    public long upstreamCount() {
         return sources == null ? -1 : sources.length;
     }
 
@@ -338,7 +359,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
 
         @Override
         public long getCapacity() {
-            return upstreamsCount();
+            return upstreamCount();
         }
 
         @Override
@@ -352,7 +373,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         }
 
         @Override
-        public long upstreamsCount() {
+        public long upstreamCount() {
             return subscribers.length;
         }
 
@@ -540,7 +561,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
 
         @Override
         public long getCapacity() {
-            return upstreamsCount();
+            return upstreamCount();
         }
 
         @Override
@@ -580,7 +601,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         }
 
         @Override
-        public long upstreamsCount() {
+        public long upstreamCount() {
             return subscribers.length;
         }
 
