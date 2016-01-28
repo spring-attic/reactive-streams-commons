@@ -48,7 +48,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'ExceptionHelper'   : 'Exceptions',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
-					 'SimpleProcessor'      : 'reactor.core.publisher.ReplayProcessor',
+					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
 					 'UnicastProcessor'      : 'reactor.rx.UnicastProcessor']
 
 //Reactor Core configuration
