@@ -15,37 +15,16 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.MultiReceiver;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.state.Backpressurable;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
-import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.state.Prefetchable;
-import reactivestreams.commons.state.Requestable;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.*;
 import reactivestreams.commons.subscriber.SubscriberDeferredScalar;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.CancelledSubscription;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.SynchronousSubscription;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.util.*;
 
 /**
  * Repeatedly takes one item from all source Publishers and 
@@ -799,7 +778,19 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         
         volatile boolean done;
         
-        boolean synchronousMode;
+        int sourceMode;
+        
+        /** Running with regular, arbitrary source. */
+        static final int NORMAL = 0;
+        /** Running with a source that implements SynchronousSource. */
+        static final int SYNC = 1;
+        /** Running with a source that implements AsynchronousSource. */
+        static final int ASYNC = 2;
+        
+        volatile int once;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherZipInner> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherZipInner.class, "once");
         
         public PublisherZipInner(PublisherZipCoordinator<T, ?> parent, int prefetch, int index, Supplier<? extends Queue<T>> queueSupplier) {
             this.parent = parent;
@@ -813,12 +804,20 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
-                if (s instanceof SynchronousSubscription) {
-                    synchronousMode = true;
+                if (s instanceof FusionSubscription) {
+                    FusionSubscription<T> f = (FusionSubscription<T>) s;
+
+                    queue = (FusionSubscription<T>)s;
                     
-                    queue = (SynchronousSubscription<T>)s;
-                    done = true;
-                    parent.drain();
+                    if (f.requestSyncFusion()) {
+                        sourceMode = SYNC;
+                        
+                        done = true;
+                        parent.drain();
+                        return;
+                    } else {
+                        sourceMode = ASYNC;
+                    }
                 } else {
                     
                     try {
@@ -830,20 +829,24 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
                         return;
                     }
                     
-                    s.request(prefetch);
                 }
+                s.request(prefetch);
             }
         }
 
         @Override
         public void onNext(T t) {
-            queue.offer(t);
+            if (sourceMode != ASYNC) {
+                queue.offer(t);
+            }
             parent.drain();
         }
 
         @Override
         public void onError(Throwable t) {
-            parent.error(t, index);
+            if (sourceMode != ASYNC || ONCE.compareAndSet(this, 0, 1)) {
+                parent.error(t, index);
+            }
         }
 
         @Override
@@ -897,7 +900,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         }
         
         void request(long n) {
-            if (!synchronousMode) {
+            if (sourceMode != SYNC) {
                 long p = produced + n;
                 if (p >= limit) {
                     produced = 0L;
