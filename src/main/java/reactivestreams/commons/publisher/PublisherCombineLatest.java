@@ -81,7 +81,7 @@ extends PublisherBase<R>
     }
 
     @Override
-    public long upstreamsCount() {
+    public long upstreamCount() {
         return array != null ? array.length : -1L;
     }
 
@@ -263,7 +263,7 @@ extends PublisherBase<R>
         }
 
         @Override
-        public long upstreamsCount() {
+        public long upstreamCount() {
             return subscribers.length;
         }
 

@@ -144,7 +144,7 @@ public final class SimpleProcessor<T>
     }
 
     @Override
-    public long downstreamsCount() {
+    public long downstreamCount() {
         return subscribers.length;
     }
 
