@@ -55,6 +55,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
     public void subscribe(Subscriber<? super R> s) {
         if (source instanceof Fuseable) {
             source.subscribe(new PublisherMapFuseableSubscriber<>(s, mapper));
+            return;
         }
         source.subscribe(new PublisherMapSubscriber<>(s, mapper));
     }
