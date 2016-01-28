@@ -1,14 +1,23 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
-
-import reactivestreams.commons.processor.*;
+import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
@@ -274,7 +283,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionBefore() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         for (int i = 0; i < 1000; i++) {
             up.onNext(i);
@@ -292,7 +301,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionAfter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -314,7 +323,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionConcurrently() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -356,7 +365,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionConcurrentlyBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -412,7 +421,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionErrorBefore() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         up.onError(new RuntimeException("forced failure"));
         
@@ -428,7 +437,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionErrorAfter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -448,7 +457,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionCompleteBefore() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         up.onComplete();
         
@@ -463,7 +472,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionCompleteAfter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -497,8 +506,8 @@ public class PublisherFlatMapTest {
         
         PublisherBase<Integer> source = PublisherBase.range(1, 2).doOnNext(v -> emission.getAndIncrement());
         
-        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
         
         source.flatMap(v -> v == 1 ? source1 : source2, false, 1).subscribe(ts);
         
@@ -532,8 +541,8 @@ public class PublisherFlatMapTest {
         
         PublisherBase<Integer> source = PublisherBase.range(1, 1000).doOnNext(v -> emission.getAndIncrement());
         
-        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
         
         source.flatMap(v -> v == 1 ? source1 : source2).subscribe(ts);
         
@@ -602,7 +611,7 @@ public class PublisherFlatMapTest {
     public void innerMapSyncFusion() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1)).subscribe(ts);;
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1)).subscribe(ts);
 
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -613,7 +622,7 @@ public class PublisherFlatMapTest {
     public void innerFilterSyncFusion() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0)).subscribe(ts);;
+        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0)).subscribe(ts);
 
         ts.assertValueCount(500_000)
         .assertNoError()

@@ -61,12 +61,27 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
             AtomicLongFieldUpdater.newUpdater(UnicastProcessor.class, "requested");
     
     volatile boolean enableOperatorFusion;
-    
-    public UnicastProcessor(Queue<T> queue) {
-        this(queue, null);
+
+	/**
+     * @param queue
+     * @param <T>
+     * @return a new {@link UnicastProcessor} instance using the given queue
+     */
+    public static <T> UnicastProcessor create(Queue<T> queue) {
+        return new UnicastProcessor<>(queue, null);
+    }
+
+	/**
+     * @param queue
+     * @param onTerminate
+     * @param <T>
+     * @return a new {@link UnicastProcessor} instance using the given queue
+     */
+    public static <T> UnicastProcessor create(Queue<T> queue, Runnable onTerminate) {
+        return new UnicastProcessor<>(queue, onTerminate);
     }
     
-    public UnicastProcessor(Queue<T> queue, Runnable onTerminate) {
+    UnicastProcessor(Queue<T> queue, Runnable onTerminate) {
         this.queue = queue;
         this.onTerminate = onTerminate;
     }

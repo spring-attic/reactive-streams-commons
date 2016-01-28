@@ -1,10 +1,14 @@
 package reactivestreams.commons.publisher;
 
 import java.util.NoSuchElementException;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import org.junit.*;
-
+import org.junit.Assert;
+import org.junit.Test;
 import reactivestreams.commons.processor.SimpleProcessor;
 
 public class BlockingFutureTest {
@@ -28,7 +32,7 @@ public class BlockingFutureTest {
     public void normal() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toFuture();
             
@@ -45,7 +49,7 @@ public class BlockingFutureTest {
     public void empty() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toFuture();
             
@@ -69,7 +73,7 @@ public class BlockingFutureTest {
     public void emptyDefault() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toFuture(1);
             
@@ -86,7 +90,7 @@ public class BlockingFutureTest {
     public void error() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toFuture();
             
@@ -111,7 +115,7 @@ public class BlockingFutureTest {
     public void normalCompletable() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toCompletableFuture();
             
@@ -128,7 +132,7 @@ public class BlockingFutureTest {
     public void emptyCompletable() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toCompletableFuture();
             
@@ -152,7 +156,7 @@ public class BlockingFutureTest {
     public void emptyDefaultCompletable() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toCompletableFuture(1);
             
@@ -169,7 +173,7 @@ public class BlockingFutureTest {
     public void errorCompletable() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toCompletableFuture();
             
@@ -194,7 +198,7 @@ public class BlockingFutureTest {
     public void normalCancelled() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toFuture();
             
@@ -217,7 +221,7 @@ public class BlockingFutureTest {
     public void normalCancelledCompletable() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toCompletableFuture();
             
@@ -240,7 +244,7 @@ public class BlockingFutureTest {
     public void composedCompletable() throws Exception {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
-            SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+            SimpleProcessor<Integer> sp = SimpleProcessor.create();
             
             Future<Integer> f = sp.toCompletableFuture().thenApply(v -> v + 1);
             

@@ -4,7 +4,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 
@@ -99,7 +98,7 @@ public class PublisherMapTest {
     public void asyncFusion() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         up.map(v -> v + 1).subscribe(ts);
         
@@ -117,7 +116,7 @@ public class PublisherMapTest {
     public void asyncFusionBackpressured() {
         TestSubscriber<Object> ts = new TestSubscriber<>(1);
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(w -> up.map(v -> v + 1)).subscribe(ts);
         

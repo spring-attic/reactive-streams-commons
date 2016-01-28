@@ -44,10 +44,10 @@ public class PublisherWindowStartEndTest {
     public void normal() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp4 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp4 = SimpleProcessor.create();
         
         sp1.window(sp2, v -> v == 1 ? sp3 : sp4).subscribe(ts);
         
@@ -86,10 +86,10 @@ public class PublisherWindowStartEndTest {
     public void normalStarterEnds() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp4 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp4 = SimpleProcessor.create();
         
         sp1.window(sp2, v -> v == 1 ? sp3 : sp4).subscribe(ts);
         
@@ -128,10 +128,10 @@ public class PublisherWindowStartEndTest {
     public void oneWindowOnly() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp4 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp4 = SimpleProcessor.create();
         
         sp1.window(sp2, v -> v == 1 ? sp3 : sp4).subscribe(ts);
         

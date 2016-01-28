@@ -18,9 +18,9 @@ public class PublisherSampleTest {
     }
 
     void sample(boolean complete, boolean which) {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        SimpleProcessor<Integer> main = SimpleProcessor.create();
 
-        SimpleProcessor<String> other = new SimpleProcessor<>();
+        SimpleProcessor<String> other = SimpleProcessor.create();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -103,9 +103,9 @@ public class PublisherSampleTest {
 
     @Test
     public void subscriberCancels() {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        SimpleProcessor<Integer> main = SimpleProcessor.create();
 
-        SimpleProcessor<String> other = new SimpleProcessor<>();
+        SimpleProcessor<String> other = SimpleProcessor.create();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -125,9 +125,9 @@ public class PublisherSampleTest {
     }
 
     public void completeImmediately(boolean which) {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        SimpleProcessor<Integer> main = SimpleProcessor.create();
 
-        SimpleProcessor<String> other = new SimpleProcessor<>();
+        SimpleProcessor<String> other = SimpleProcessor.create();
 
         if (which) {
             main.onComplete();

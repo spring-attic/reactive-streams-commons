@@ -46,8 +46,8 @@ public class PublisherWindowBeginEndTest {
             }
         };
 
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
         
         new PublisherRange(1, 10).window2(new PublisherRange(1, 3), v -> v == 1 ? sp2 : sp3).subscribe(ts1);
 
@@ -139,9 +139,9 @@ public class PublisherWindowBeginEndTest {
     public void empty() {
         TestSubscriber<PublisherBase<Integer>> ts1 = new TestSubscriber<>(0);
                 
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
         
         PublisherEmpty.<Integer>instance().window2(sp1, v -> v == 1 ? sp2 : sp3).subscribe(ts1);
         

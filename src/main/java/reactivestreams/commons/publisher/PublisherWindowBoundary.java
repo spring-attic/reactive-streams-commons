@@ -136,7 +136,7 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
                         Queue<T> processorQueue, Queue<Object> queue) {
             this.actual = actual;
             this.processorQueueSupplier = processorQueueSupplier;
-            this.window = new UnicastProcessor<>(processorQueue, this);
+            this.window = UnicastProcessor.create(processorQueue, this);
             this.open = 2;
             this.boundary = new PublisherWindowBoundaryOther<>(this);
             this.queue = queue;
@@ -287,7 +287,7 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
                             
                             OPEN.getAndIncrement(this);
                             
-                            w = new UnicastProcessor<>(pq, this);
+                            w = UnicastProcessor.create(pq, this);
                             
                             long r = requested;
                             if (r != 0L) {

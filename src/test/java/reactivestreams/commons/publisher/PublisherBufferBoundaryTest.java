@@ -29,8 +29,8 @@ public class PublisherBufferBoundaryTest {
     public void normal() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.buffer(sp2).subscribe(ts);
         
@@ -76,8 +76,8 @@ public class PublisherBufferBoundaryTest {
     public void mainError() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.buffer(sp2).subscribe(ts);
         
@@ -121,8 +121,8 @@ public class PublisherBufferBoundaryTest {
     public void otherError() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.buffer(sp2).subscribe(ts);
         
@@ -166,8 +166,8 @@ public class PublisherBufferBoundaryTest {
     public void bufferSupplierThrows() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.buffer(sp2, (Supplier<List<Integer>>)() -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
         
@@ -184,8 +184,8 @@ public class PublisherBufferBoundaryTest {
     public void bufferSupplierThrowsLater() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         int count[] = { 1 };
         
@@ -215,8 +215,8 @@ public class PublisherBufferBoundaryTest {
     public void bufferSupplierReturnsNUll() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.buffer(sp2, (Supplier<List<Integer>>)() -> null).subscribe(ts);
         

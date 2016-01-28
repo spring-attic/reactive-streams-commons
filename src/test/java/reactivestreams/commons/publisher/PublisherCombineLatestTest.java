@@ -62,8 +62,8 @@ public class PublisherCombineLatestTest {
     @SuppressWarnings("unchecked")
     @Test
     public void normal() {
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
         
@@ -118,8 +118,8 @@ public class PublisherCombineLatestTest {
 
     @Test
     public void normalIterable() {
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
         
@@ -259,8 +259,8 @@ public class PublisherCombineLatestTest {
     public void unpairedKeepsRequesting() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         new PublisherCombineLatest<>(new Publisher[] { sp1, sp2 }, a -> (Integer)a[0] + (Integer)a[1], qs, 16).subscribe(ts);
         

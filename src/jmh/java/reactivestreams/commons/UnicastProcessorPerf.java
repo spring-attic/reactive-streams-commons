@@ -29,7 +29,7 @@ public class UnicastProcessorPerf {
     @Benchmark
     public void loadCLQ(Blackhole bh) {
         int s = count;
-        UnicastProcessor<Integer> q = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> q = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         for (int i = 0; i < s; i++) {
             q.onNext(777);
         }
@@ -39,7 +39,7 @@ public class UnicastProcessorPerf {
     @Benchmark
     public void loadADQ(Blackhole bh) {
         int s = count;
-        UnicastProcessor<Integer> q = new UnicastProcessor<>(new ArrayDeque<>());
+        UnicastProcessor<Integer> q = UnicastProcessor.create(new ArrayDeque<>());
         for (int i = 0; i < s; i++) {
             q.onNext(777);
         }
@@ -49,7 +49,7 @@ public class UnicastProcessorPerf {
     @Benchmark
     public void replayCLQ(Blackhole bh) {
         int s = count;
-        UnicastProcessor<Integer> q = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> q = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         for (int i = 0; i < s; i++) {
             q.onNext(777);
         }
@@ -60,7 +60,7 @@ public class UnicastProcessorPerf {
     @Benchmark
     public void replayADQ(Blackhole bh) {
         int s = count;
-        UnicastProcessor<Integer> q = new UnicastProcessor<>(new ArrayDeque<>());
+        UnicastProcessor<Integer> q = UnicastProcessor.create(new ArrayDeque<>());
         for (int i = 0; i < s; i++) {
             q.onNext(777);
         }
@@ -71,7 +71,7 @@ public class UnicastProcessorPerf {
     @Benchmark
     public void passthroughCLQ(Blackhole bh) {
         int s = count;
-        UnicastProcessor<Integer> q = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> q = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
         q.subscribe(new PerfSubscriber(bh));
         for (int i = 0; i < s; i++) {
             q.onNext(777);
@@ -82,7 +82,7 @@ public class UnicastProcessorPerf {
     @Benchmark
     public void passthroughADQ(Blackhole bh) {
         int s = count;
-        UnicastProcessor<Integer> q = new UnicastProcessor<>(new ArrayDeque<>());
+        UnicastProcessor<Integer> q = UnicastProcessor.create(new ArrayDeque<>());
         q.subscribe(new PerfSubscriber(bh));
         for (int i = 0; i < s; i++) {
             q.onNext(777);

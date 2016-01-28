@@ -34,10 +34,10 @@ public class PublisherBufferStartEndTest {
     public void normal() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp4 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp4 = SimpleProcessor.create();
         
         sp1.buffer(sp2, v -> v == 1 ? sp3 : sp4).subscribe(ts);
         
@@ -90,9 +90,9 @@ public class PublisherBufferStartEndTest {
     public void startCompletes() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
         
         sp1.buffer(sp2, v -> sp3).subscribe(ts);
         

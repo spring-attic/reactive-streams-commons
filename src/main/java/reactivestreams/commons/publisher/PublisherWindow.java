@@ -163,7 +163,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                     return;
                 }
                 
-                w = new UnicastProcessor<>(q, this);
+                w = UnicastProcessor.create(q, this);
                 window = w;
                 
                 actual.onNext(w);
@@ -319,7 +319,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                     return;
                 }
                 
-                w = new UnicastProcessor<>(q, this);
+                w = UnicastProcessor.create(q, this);
                 window = w;
                 
                 actual.onNext(w);
@@ -507,7 +507,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                         return;
                     }
                     
-                    UnicastProcessor<T> w = new UnicastProcessor<>(q, this);
+                    UnicastProcessor<T> w = UnicastProcessor.create(q, this);
                     
                     windows.offer(w);
                     

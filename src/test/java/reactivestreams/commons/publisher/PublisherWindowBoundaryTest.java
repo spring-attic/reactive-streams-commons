@@ -43,8 +43,8 @@ public class PublisherWindowBoundaryTest {
     public void normal() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.window(sp2).subscribe(ts);
         
@@ -77,8 +77,8 @@ public class PublisherWindowBoundaryTest {
     public void normalOtherCompletes() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.window(sp2).subscribe(ts);
         
@@ -111,8 +111,8 @@ public class PublisherWindowBoundaryTest {
     public void mainError() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.window(sp2).subscribe(ts);
         
@@ -152,8 +152,8 @@ public class PublisherWindowBoundaryTest {
     public void otherError() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
         
         sp1.window(sp2).subscribe(ts);
         

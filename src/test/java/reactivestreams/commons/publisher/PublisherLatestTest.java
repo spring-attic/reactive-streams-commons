@@ -23,7 +23,7 @@ public class PublisherLatestTest {
 
     @Test
     public void backpressured() {
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        SimpleProcessor<Integer> tp = SimpleProcessor.create();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
@@ -54,7 +54,7 @@ public class PublisherLatestTest {
 
     @Test
     public void error() {
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        SimpleProcessor<Integer> tp = SimpleProcessor.create();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 

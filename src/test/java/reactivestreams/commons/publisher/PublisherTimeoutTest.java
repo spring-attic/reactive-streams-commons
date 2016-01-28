@@ -3,9 +3,9 @@ package reactivestreams.commons.publisher;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
-
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
@@ -86,9 +86,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutHasNoEffect() {
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source = SimpleProcessor.create();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        SimpleProcessor<Integer> tp = SimpleProcessor.create();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -110,9 +110,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutCompleteHasNoEffect() {
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source = SimpleProcessor.create();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        SimpleProcessor<Integer> tp = SimpleProcessor.create();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -134,9 +134,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutErrorHasNoEffect() {
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source = SimpleProcessor.create();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        SimpleProcessor<Integer> tp = SimpleProcessor.create();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -211,9 +211,9 @@ public class PublisherTimeoutTest {
     public void timeoutRequested() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source = SimpleProcessor.create();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        SimpleProcessor<Integer> tp = SimpleProcessor.create();
         
         source.timeout(tp, v -> tp).subscribe(ts);
         
