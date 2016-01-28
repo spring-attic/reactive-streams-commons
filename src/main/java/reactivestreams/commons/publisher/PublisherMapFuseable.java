@@ -71,6 +71,15 @@ implements Fuseable {
 
         FusionSubscription<T> s;
 
+        int sourceMode;
+
+        /** Running with regular, arbitrary source. */
+        static final int NORMAL = 0;
+        /** Running with a source that implements SynchronousSource. */
+        static final int SYNC = 1;
+        /** Running with a source that implements AsynchronousSource. */
+        static final int ASYNC = 2;
+        
         public PublisherMapFuseableSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
@@ -93,25 +102,32 @@ implements Fuseable {
                 return;
             }
 
-            R v;
-
-            try {
-                v = mapper.apply(t);
-            } catch (Throwable e) {
-                done = true;
-                s.cancel();
-                actual.onError(e);
-                return;
+            int m = sourceMode;
+            
+            if (m == 0) {
+                R v;
+    
+                try {
+                    v = mapper.apply(t);
+                } catch (Throwable e) {
+                    done = true;
+                    s.cancel();
+                    actual.onError(e);
+                    return;
+                }
+    
+                if (v == null) {
+                    done = true;
+                    s.cancel();
+                    actual.onError(new NullPointerException("The mapper returned a null value."));
+                    return;
+                }
+    
+                actual.onNext(v);
+            } else
+            if (m == 2) {
+                actual.onNext(null);
             }
-
-            if (v == null) {
-                done = true;
-                s.cancel();
-                actual.onError(new NullPointerException("The mapper returned a null value."));
-                return;
-            }
-
-            actual.onNext(v);
         }
 
         @Override
@@ -208,7 +224,9 @@ implements Fuseable {
 
         @Override
         public boolean requestSyncFusion() {
-            return s.requestSyncFusion();
+            boolean b = s.requestSyncFusion();
+            sourceMode = b ? SYNC : ASYNC;
+            return b;
         }
 
         @Override

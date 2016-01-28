@@ -112,4 +112,25 @@ public class PublisherMapTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void asyncFusionBackpressured() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(1);
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        PublisherBase.just(1).hide().flatMap(w -> up.map(v -> v + 1)).subscribe(ts);
+        
+        up.onNext(1);
+        
+        ts.assertValue(2)
+        .assertNoError()
+        .assertNotComplete();
+
+        up.onComplete();
+        
+        ts.assertValue(2)
+        .assertNoError()
+        .assertComplete();
+    }
 }

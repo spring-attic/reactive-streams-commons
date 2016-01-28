@@ -125,4 +125,58 @@ public class PublisherFilterTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void asyncFusionBackpressured() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(1);
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        PublisherBase.just(1).hide().flatMap(w -> up.filter(v -> (v & 1) == 0)).subscribe(ts);
+        
+        up.onNext(1);
+        up.onNext(2);
+        
+        ts.assertValue(2)
+        .assertNoError()
+        .assertNotComplete();
+
+        up.onComplete();
+        
+        ts.assertValue(2)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void asyncFusionBackpressured2() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(1);
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        
+        new PublisherFlatMap<>(
+                PublisherBase.just(1).hide(), 
+                w -> up.filter(v -> (v & 1) == 0),
+                false,
+                1,
+                PublisherBase.defaultQueueSupplier(),
+                1,
+                PublisherBase.defaultQueueSupplier()
+        )
+        .subscribe(ts);
+        
+        up.onNext(1);
+        up.onNext(2);
+        
+        ts.assertValue(2)
+        .assertNoError()
+        .assertNotComplete();
+
+        up.onComplete();
+        
+        ts.assertValue(2)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }

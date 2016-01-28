@@ -61,7 +61,16 @@ implements Fuseable {
         FusionSubscription<T> s;
 
         boolean done;
+        
+        int sourceMode;
 
+        /** Running with regular, arbitrary source. */
+        static final int NORMAL = 0;
+        /** Running with a source that implements SynchronousSource. */
+        static final int SYNC = 1;
+        /** Running with a source that implements AsynchronousSource. */
+        static final int ASYNC = 2;
+        
         public PublisherFilterFuseableSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
@@ -83,21 +92,28 @@ implements Fuseable {
                 return;
             }
 
-            boolean b;
-
-            try {
-                b = predicate.test(t);
-            } catch (Throwable e) {
-                s.cancel();
-
-                ExceptionHelper.throwIfFatal(e);
-                onError(ExceptionHelper.unwrap(e));
-                return;
-            }
-            if (b) {
-                actual.onNext(t);
-            } else {
-                s.request(1);
+            int m = sourceMode;
+            
+            if (m == 0) {
+                boolean b;
+    
+                try {
+                    b = predicate.test(t);
+                } catch (Throwable e) {
+                    s.cancel();
+    
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
+                    return;
+                }
+                if (b) {
+                    actual.onNext(t);
+                } else {
+                    s.request(1);
+                }
+            } else
+            if (m == 2) {
+                actual.onNext(null);
             }
         }
         
@@ -108,22 +124,30 @@ implements Fuseable {
                 return false;
             }
 
-            boolean b;
-
-            try {
-                b = predicate.test(t);
-            } catch (Throwable e) {
-                s.cancel();
-
-                ExceptionHelper.throwIfFatal(e);
-                onError(ExceptionHelper.unwrap(e));
+            int m = sourceMode;
+            
+            if (m == 0) {
+                boolean b;
+    
+                try {
+                    b = predicate.test(t);
+                } catch (Throwable e) {
+                    s.cancel();
+    
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
+                    return false;
+                }
+                if (b) {
+                    actual.onNext(t);
+                    return true;
+                }
                 return false;
+            } else
+            if (m == 2) {
+                actual.onNext(null);
             }
-            if (b) {
-                actual.onNext(t);
-                return true;
-            }
-            return false;
+            return true;
         }
 
         @Override
@@ -233,7 +257,9 @@ implements Fuseable {
         
         @Override
         public boolean requestSyncFusion() {
-            return s.requestSyncFusion();
+            boolean b = s.requestSyncFusion();
+            sourceMode = b ? SYNC : ASYNC;
+            return b;
         }
     }
 }
