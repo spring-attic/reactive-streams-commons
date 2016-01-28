@@ -18,6 +18,7 @@ def includingCoreScope = ['amb',
 						  'just',
 						  /*'lift',*/ //managed by reactor-core
 						  'map',
+						  //'mapfuseable',
 						  'never',
 						  'peek',
 						  'resume',

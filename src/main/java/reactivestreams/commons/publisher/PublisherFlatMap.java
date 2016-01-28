@@ -41,7 +41,6 @@ import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.CancelledSubscription;
-import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.ScalarSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -85,78 +84,10 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         this.innerQueueSupplier = Objects.requireNonNull(innerQueueSupplier, "innerQueueSupplier");
     }
 
-    /**
-     * Checks if the source is a Supplier and if the mapper's publisher output is also
-     * a supplier, thus avoiding subscribing to any of them.
-     * 
-     * @param source the source publisher
-     * @param s the end consumer
-     * @param mapper the mapper function
-     * @return true if the optimization worked
-     */
-    @SuppressWarnings("unchecked")
-    static <T, R> boolean scalarSubscribe(Publisher<? extends T> source, Subscriber<? super R> s, Function<? super T, ? extends Publisher<? extends R>> mapper) {
-        if (source instanceof Supplier) {
-            T t;
-            
-            try {
-                t = ((Supplier<? extends T>)source).get();
-            } catch (Throwable e) {
-                ExceptionHelper.throwIfFatal(e);
-                EmptySubscription.error(s, ExceptionHelper.unwrap(e));
-                return true;
-            }
-            
-            if (t == null) {
-                EmptySubscription.complete(s);
-                return true;
-            }
-            
-            Publisher<? extends R> p;
-            
-            try {
-                p = mapper.apply(t);
-            } catch (Throwable e) {
-                ExceptionHelper.throwIfFatal(e);
-                EmptySubscription.error(s, ExceptionHelper.unwrap(e));
-                return true;
-            }
-            
-            if (p == null) {
-                EmptySubscription.error(s, new NullPointerException("The mapper returned a null Publisher"));
-                return true;
-            }
-            
-            if (p instanceof Supplier) {
-                R v;
-                
-                try {
-                    v = ((Supplier<R>)p).get();
-                } catch (Throwable e) {
-                    ExceptionHelper.throwIfFatal(e);
-                    EmptySubscription.error(s, ExceptionHelper.unwrap(e));
-                    return true;
-                }
-                
-                if (v != null) {
-                    s.onSubscribe(new ScalarSubscription<>(s, v));
-                } else {
-                    EmptySubscription.complete(s);
-                }
-            } else {
-                p.subscribe(s);
-            } 
-            
-            return true;
-        }
-        
-        return false;
-    }
-    
     @Override
     public void subscribe(Subscriber<? super R> s) {
         
-        if (scalarSubscribe(source, s, mapper)) {
+        if (ScalarSubscription.trySubscribeScalarMap(source, s, mapper)) {
             return;
         }
         

@@ -102,7 +102,7 @@ public enum ExceptionHelper {
         if (e instanceof RuntimeException) {
             throw (RuntimeException)e;
         }
-        throw new ReactiveException(e);
+        throw new UpstreamException(e);
     }
     
     /**
