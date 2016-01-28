@@ -17,7 +17,7 @@ def includingCoreScope = ['amb',
 						  /*'iterable',*/ //managed by reactor-core but used by  reactor-stream
 						  'just',
 						  /*'lift',*/ //managed by reactor-core
-						  'map',
+						  //'map',//managed by reactor-core
 						  //'mapfuseable',
 						  'never',
 						  'peek',
@@ -30,7 +30,7 @@ def excludingStreamScope = includingCoreScope + ['generate',
 												 'timer', 'interval', 'blockingfuture',
 												 'blockingiterable', 'blockingstream',
 												 'lift', //Already managed by reactor-core
-												 'stream'] - ['map']
+												 'stream']
 
 //Common reactor helper references
 def reactorCommon = ['fn-backport'          : 'reactor.fn',
