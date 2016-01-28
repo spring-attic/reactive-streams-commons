@@ -67,7 +67,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
      * @param <T>
      * @return a new {@link UnicastProcessor} instance using the given queue
      */
-    public static <T> UnicastProcessor create(Queue<T> queue) {
+    public static <T> UnicastProcessor<T> create(Queue<T> queue) {
         return new UnicastProcessor<>(queue, null);
     }
 
@@ -77,7 +77,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
      * @param <T>
      * @return a new {@link UnicastProcessor} instance using the given queue
      */
-    public static <T> UnicastProcessor create(Queue<T> queue, Runnable onTerminate) {
+    public static <T> UnicastProcessor<T> create(Queue<T> queue, Runnable onTerminate) {
         return new UnicastProcessor<>(queue, onTerminate);
     }
     
