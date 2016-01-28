@@ -6,7 +6,7 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
-import reactivestreams.commons.internal.PerfSubscriber;
+import reactivestreams.commons.internal.*;
 import reactivestreams.commons.publisher.PublisherBase;
 
 
@@ -51,6 +51,21 @@ public class PublisherFilterPerf {
     @Benchmark
     public void rangeConcatMapRange(Blackhole bh) {
         rangeConcatMapRange.subscribe(new PerfSubscriber(bh));
+    }
+
+    @Benchmark
+    public void simpleSlowpath(Blackhole bh) {
+        simple.subscribe(new PerfSlowPathSubscriber(bh, 2_000_000));
+    }
+
+    @Benchmark
+    public void rangeFlatMapRangeSlowpath(Blackhole bh) {
+        rangeFlatMapRange.subscribe(new PerfSlowPathSubscriber(bh, 2_000_000));
+    }
+
+    @Benchmark
+    public void rangeConcatMapRangeSlowpath(Blackhole bh) {
+        rangeConcatMapRange.subscribe(new PerfSlowPathSubscriber(bh, 2_000_000));
     }
 
 }

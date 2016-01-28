@@ -53,7 +53,7 @@ implements Fuseable {
 
     static final class PublisherFilterFuseableSubscriber<T> 
     extends SynchronousSubscription<T>
-    implements Subscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+    implements Receiver, Producer, Loopback, Completable, Subscription, ConditionalSubscriber<T> {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -99,6 +99,31 @@ implements Fuseable {
             } else {
                 s.request(1);
             }
+        }
+        
+        @Override
+        public boolean tryOnNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return false;
+            }
+
+            boolean b;
+
+            try {
+                b = predicate.test(t);
+            } catch (Throwable e) {
+                s.cancel();
+
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
+                return false;
+            }
+            if (b) {
+                actual.onNext(t);
+                return true;
+            }
+            return false;
         }
 
         @Override

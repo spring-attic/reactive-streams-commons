@@ -60,6 +60,10 @@ implements Fuseable {
             return;
         }
         
+        if (s instanceof ConditionalSubscriber) {
+            s.onSubscribe(new RangeSubscriptionConditional((ConditionalSubscriber<? super Integer>)s, st, en));
+            return;
+        }
         s.onSubscribe(new RangeSubscription(s, st, en));
     }
 
@@ -221,6 +225,172 @@ implements Fuseable {
             index = end;
         }
         
+        @Override
+        public void drop() {
+            index++;
+        }
+    }
+    
+    static final class RangeSubscriptionConditional
+    extends SynchronousSubscription<Integer>
+    implements Cancellable, Requestable, Completable, Producer {
+
+        final ConditionalSubscriber<? super Integer> actual;
+
+        final long end;
+
+        volatile boolean cancelled;
+
+        long index;
+
+        volatile long requested;
+        static final AtomicLongFieldUpdater<RangeSubscriptionConditional> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(RangeSubscriptionConditional.class, "requested");
+
+        public RangeSubscriptionConditional(ConditionalSubscriber<? super Integer> actual, long start, long end) {
+            this.actual = actual;
+            this.index = start;
+            this.end = end;
+        }
+
+        @Override
+        public void request(long n) {
+            if (SubscriptionHelper.validate(n)) {
+                if (BackpressureHelper.addAndGet(REQUESTED, this, n) == 0) {
+                    if (n == Long.MAX_VALUE) {
+                        fastPath();
+                    } else {
+                        slowPath(n);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void cancel() {
+            cancelled = true;
+        }
+
+        void fastPath() {
+            final long e = end;
+            final Subscriber<? super Integer> a = actual;
+
+            for (long i = index; i != e; i++) {
+                if (cancelled) {
+                    return;
+                }
+
+                a.onNext((int) i);
+            }
+
+            if (cancelled) {
+                return;
+            }
+
+            a.onComplete();
+        }
+
+        void slowPath(long n) {
+            final ConditionalSubscriber<? super Integer> a = actual;
+
+            long f = end;
+            long e = 0;
+            long i = index;
+
+            for (; ; ) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                while (e != n && i != f) {
+
+                    boolean b = a.tryOnNext((int) i);
+
+                    if (cancelled) {
+                        return;
+                    }
+
+                    if (b) {
+                        e++;
+                    }
+                    i++;
+                }
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (i == f) {
+                    a.onComplete();
+                    return;
+                }
+
+                n = requested;
+                if (n == e) {
+                    index = i;
+                    n = REQUESTED.addAndGet(this, -e);
+                    if (n == 0) {
+                        return;
+                    }
+                    e = 0;
+                }
+            }
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return end != index;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return end == index;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Integer poll() {
+            long i = index++;
+            if (i == end) {
+                return null;
+            }
+            return (int)i;
+        }
+
+        @Override
+        public Integer peek() {
+            long i = index;
+            if (i == end) {
+                return null;
+            }
+            return (int)i;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return index == end;
+        }
+
+        @Override
+        public void clear() {
+            index = end;
+        }
+
         @Override
         public void drop() {
             index++;

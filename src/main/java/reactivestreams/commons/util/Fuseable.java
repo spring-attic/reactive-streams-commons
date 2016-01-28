@@ -17,9 +17,9 @@ public interface Fuseable {
     public interface ConditionalSubscriber<T> extends Subscriber<T> {
         /**
          * Try consuming the value and return true if successful.
-         * @param value the value to consume
+         * @param t the value to consume
          * @return true if consumed, false if dropped and a new value can be immediately sent
          */
-        boolean tryOnNext(T value);
+        boolean tryOnNext(T t);
     }
 }

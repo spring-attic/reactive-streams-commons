@@ -24,6 +24,7 @@ import reactivestreams.commons.flow.*;
 import reactivestreams.commons.publisher.PublisherFilterFuseable.PublisherFilterFuseableSubscriber;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.Fuseable.ConditionalSubscriber;
 
 /**
  * Filters out values that make a filter function return false.
@@ -52,7 +53,8 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherFilterSubscriber<>(s, predicate));
     }
 
-    static final class PublisherFilterSubscriber<T> implements Subscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+    static final class PublisherFilterSubscriber<T> 
+    implements Receiver, Producer, Loopback, Completable, Subscription, ConditionalSubscriber<T> {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -97,6 +99,31 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             } else {
                 s.request(1);
             }
+        }
+
+        @Override
+        public boolean tryOnNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return false;
+            }
+
+            boolean b;
+
+            try {
+                b = predicate.test(t);
+            } catch (Throwable e) {
+                s.cancel();
+
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
+                return false;
+            }
+            if (b) {
+                actual.onNext(t);
+                return true;
+            }
+            return false;
         }
 
         @Override
