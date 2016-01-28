@@ -273,14 +273,14 @@ implements Fuseable {
 
         void fastPath() {
             final long e = end;
-            final Subscriber<? super Integer> a = actual;
+            final ConditionalSubscriber<? super Integer> a = actual;
 
             for (long i = index; i != e; i++) {
                 if (cancelled) {
                     return;
                 }
 
-                a.onNext((int) i);
+                a.tryOnNext((int) i);
             }
 
             if (cancelled) {
