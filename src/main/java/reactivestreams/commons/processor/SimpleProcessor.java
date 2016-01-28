@@ -72,7 +72,7 @@ public final class SimpleProcessor<T>
     private Throwable error;
 
     public static <T> SimpleProcessor<T> create(){
-        return SimpleProcessor.create();
+        return new SimpleProcessor<>();
     }
 
     private SimpleProcessor(){
