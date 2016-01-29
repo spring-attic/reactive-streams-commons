@@ -1,13 +1,21 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.util.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.util.DeferredSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Subscribes to the source Publisher asynchronously through a scheduler function or
@@ -16,6 +24,13 @@ import reactivestreams.commons.util.*;
  * @param <T> the value type
  */
 public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
+
+    static final Runnable CANCELLED = new Runnable() {
+        @Override
+        public void run() {
+
+        }
+    };
 
     final Function<Runnable, Runnable> scheduler;
     
@@ -41,10 +56,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             boolean requestOn) {
         super(source);
         Objects.requireNonNull(executor, "executor");
-        this.scheduler = r -> {
-            Future<?> f = executor.submit(r);
-            return () -> f.cancel(true);
-        };
+        this.scheduler = new PublisherObserveOn.ExecutorServiceWorker(executor);
         this.eagerCancel = eagerCancel;
         this.requestOn = requestOn;
     }
@@ -68,7 +80,8 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         return false;
     }
     
-    static <T> void supplierScheduleOnSubscribe(T v, Subscriber<? super T> s, Function<Runnable, Runnable> scheduler, boolean eagerCancel) {
+    static <T> void supplierScheduleOnSubscribe(T v, final Subscriber<? super T> s, Function<Runnable, Runnable>
+            scheduler, boolean eagerCancel) {
         if (v == null) {
             if (eagerCancel) {
                 ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s);
@@ -76,7 +89,12 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
                 Runnable f = scheduler.apply(parent);
                 parent.setFuture(f);
             } else {
-                scheduler.apply(() -> EmptySubscription.complete(s));
+                scheduler.apply(new Runnable() {
+                    @Override
+                    public void run() {
+                        EmptySubscription.complete(s);
+                    }
+                });
             }
         } else {
             if (eagerCancel) {
@@ -97,22 +115,20 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
                 PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
                 s.onSubscribe(parent);
                 
-                Runnable f = scheduler.apply(() -> source.subscribe(parent));
+                Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source));
                 parent.setFuture(f);
             } else {
                 PublisherSubscribeOnEagerDirect<T> parent = new PublisherSubscribeOnEagerDirect<>(s);
                 s.onSubscribe(parent);
                 
-                Runnable f = scheduler.apply(() -> source.subscribe(parent));
+                Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source));
                 parent.setFuture(f);
             }
         } else {
             if (requestOn) {
-                scheduler.apply(() -> {
-                    source.subscribe(new PublisherSubscribeOnNonEager<>(s, scheduler));
-                });
+                scheduler.apply(new SourceSubscribeTask<>(new PublisherSubscribeOnNonEager<>(s, scheduler), source));
             } else {
-                scheduler.apply(() -> source.subscribe(s));
+                scheduler.apply(new SourceSubscribeTask<>(s, source));
             }
         }
     }
@@ -156,13 +172,29 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         }
         
         @Override
-        public void request(long n) {
-            scheduler.apply(() -> s.request(n));
+        public void request(final long n) {
+            scheduler.apply(new RequestTask(s, n));
         }
         
         @Override
         public void cancel() {
             s.cancel();
+        }
+
+        static final class RequestTask implements Runnable {
+
+            final long n;
+            final Subscription s;
+
+            RequestTask(Subscription s, long n) {
+                this.n = n;
+                this.s = s;
+            }
+
+            @Override
+            public void run() {
+                s.request(n);
+            }
         }
     }
     
@@ -175,8 +207,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSubscribeOnEagerDirect, Runnable> FUTURE =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherSubscribeOnEagerDirect.class, Runnable.class, "future");
-        
-        static final Runnable CANCELLED = () -> { };
         
         public PublisherSubscribeOnEagerDirect(Subscriber<? super T> actual) {
             this.actual = actual;
@@ -227,6 +257,13 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         
         final Function<Runnable, Runnable> scheduler;
 
+        static final Runnable FINISHED = new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        };
+
         Collection<Runnable> tasks;
         
         volatile boolean disposed;
@@ -235,10 +272,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherSubscribeOnClassic, Runnable> FUTURE =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherSubscribeOnClassic.class, Runnable.class, "future");
-
-        static final Runnable CANCELLED = () -> { };
-
-        static final Runnable FINISHED = () -> { };
 
         public PublisherSubscribeOnClassic(Subscriber<? super T> actual, Function<Runnable, Runnable> scheduler) {
             this.actual = actual;
@@ -269,10 +302,10 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                ScheduledRequest sr = new ScheduledRequest(n);
+                ScheduledRequest sr = new ScheduledRequest(n, this);
                 add(sr);
                 
-                Runnable f = scheduler.apply(sr::request);
+                Runnable f = scheduler.apply(new DeferredRequestTask(sr));
                 
                 sr.setFuture(f);
             }
@@ -343,17 +376,33 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         void requestInner(long n) {
             super.request(n);
         }
-        
-        final class ScheduledRequest 
+
+        static final class DeferredRequestTask implements Runnable {
+
+            final ScheduledRequest sr;
+
+            public DeferredRequestTask(ScheduledRequest sr) {
+                this.sr = sr;
+            }
+
+            @Override
+            public void run() {
+                sr.request();
+            }
+        }
+
+        static final class ScheduledRequest
         extends AtomicReference<Runnable>
         implements Runnable {
             /** */
             private static final long serialVersionUID = 2284024836904862408L;
             
             final long n;
-            
-            public ScheduledRequest(long n) {
+            final PublisherSubscribeOnClassic parent;
+
+            public ScheduledRequest(long n, PublisherSubscribeOnClassic parent) {
                 this.n = n;
+                this.parent = parent;
             }
             
             @Override
@@ -364,14 +413,14 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
                         return;
                     }
                     if (compareAndSet(a, CANCELLED)) {
-                        delete(this);
+                        parent.delete(this);
                         return;
                     }
                 }
             }
             
             void request() {
-                requestInner(n);
+                parent.requestInner(n);
 
                 for (;;) {
                     Runnable a = get();
@@ -379,7 +428,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
                         return;
                     }
                     if (compareAndSet(a, FINISHED)) {
-                        delete(this);
+                        parent.delete(this);
                         return;
                     }
                 }
@@ -421,8 +470,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         static final AtomicReferenceFieldUpdater<ScheduledSubscriptionEagerCancel, Runnable> FUTURE =
                 AtomicReferenceFieldUpdater.newUpdater(ScheduledSubscriptionEagerCancel.class, Runnable.class, "future");
 
-        static final Runnable CANCELLED = () -> { };
-        
         public ScheduledSubscriptionEagerCancel(Subscriber<? super T> actual, T value, Function<Runnable, Runnable> scheduler) {
             this.actual = actual;
             this.value = value;
@@ -515,10 +562,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
 
         public PublisherSubscribeOnValue(T value, ExecutorService executor, boolean eagerCancel) {
             this.value = value;
-            this.scheduler = r -> {
-                Future<?> f = executor.submit(r);
-                return () -> f.cancel(true);
-            };
+            this.scheduler = new PublisherObserveOn.ExecutorServiceWorker(executor);
             this.eagerCancel = eagerCancel;
         }
         
@@ -534,8 +578,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         volatile Runnable future;
         static final AtomicReferenceFieldUpdater<ScheduledEmptySubscriptionEager, Runnable> FUTURE =
                 AtomicReferenceFieldUpdater.newUpdater(ScheduledEmptySubscriptionEager.class, Runnable.class, "future");
-
-        static final Runnable CANCELLED = () -> { };
 
         public ScheduledEmptySubscriptionEager(Subscriber<?> actual) {
             this.actual = actual;
@@ -566,6 +608,22 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             if (!FUTURE.compareAndSet(this, null, f)) {
                 f.run();
             }
+        }
+    }
+
+    static final class SourceSubscribeTask<T> implements Runnable {
+
+        final Subscriber<? super T> actual;
+        final Publisher<? extends T> source;
+
+        public SourceSubscribeTask(Subscriber<? super T> s, Publisher<? extends T> source) {
+            this.actual = s;
+            this.source = source;
+        }
+
+        @Override
+        public void run() {
+            source.subscribe(actual);
         }
     }
 }

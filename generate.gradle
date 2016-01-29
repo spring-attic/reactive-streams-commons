@@ -39,22 +39,22 @@ def excludingStreamScope = includingCoreScope + ['generate',
 def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'api-single'           : 'reactor.core.publisher.Mono',
 					 'api-single-operator'  : 'reactor.core.publisher.MonoSource',
-					 'api-inner' 			: '',
+					 'api-inner'            : '',
 					 'test-type'            : false,
 					 'extra-packages'       : 'reactor.core',
 					 'header'               : '@since 2.5',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
 					 'packageScope'         : true,
-					 'FunctionHelper'   : 'FunctionUtils',
-					 'DrainHelper'  		 : 'reactor.rx.util.DrainUtils',
-					 'ExceptionHelper'   : 'Exceptions',
-					 'SubscribeOn'   : 'FluxPublishOn',
-					 'ObserveOn'   : 'FluxDispatchOn',
+					 'FunctionHelper'       : 'FunctionUtils',
+					 'DrainHelper'          : 'reactor.rx.util.DrainUtils',
+					 'ExceptionHelper'      : 'Exceptions',
+					 'SubscribeOn'          : 'PublishOn',
+					 'ObserveOn'            : 'DispatchOn',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
 					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
-					 'UnicastProcessor'      : 'reactor.rx.UnicastProcessor']
+					 'UnicastProcessor'     : 'reactor.rx.UnicastProcessor']
 
 //Reactor Core configuration
 def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
@@ -151,10 +151,10 @@ task generateTargetAPI(type: Sync) {
 
   rename { String fileName ->
 	if(target['ObserveOn'] && fileName.endsWith('ObserveOn.java')){
-	  fileName.replace('PublisherObserveOn', target['ObserveOn'])
+	  fileName.replace('PublisherObserveOn', apiClassName+target['ObserveOn'])
 	}
 	else if(target['SubscribeOn'] && fileName.endsWith('SubscribeOn.java')){
-	  fileName.replace('PublisherObserveOn', target['SubscribeOn'])
+	  fileName.replace('PublisherSubscribeOn', apiClassName+target['SubscribeOn'])
 	}
 	else{
 	  fileName.replace('Publisher', apiClassName)
@@ -301,16 +301,15 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	}
   }
 
-  def l
+  def l = line
   if(target['ObserveOn']) {
-	l = line.replaceAll('PublisherObserveOn', target['ObserveOn'])
+	l = l.replaceAll('ObserveOn', target['ObserveOn'])
   }
   if(target['SubscribeOn']) {
-	l = line.replaceAll('PublisherObserveOn', target['ObserveOn'])
+	l = l.replaceAll('SubscribeOn', target['SubscribeOn'])
   }
 
-  if (line.trim().startsWith('import')) {
-	l = line
+  if (l.trim().startsWith('import')) {
 	if (target.SimpleProcessor) {
 	  l = l.replace("reactivestreams.commons.processor.SimpleProcessor", target.SimpleProcessor)
 	}
