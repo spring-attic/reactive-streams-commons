@@ -70,6 +70,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
+        if (PublisherSubscribeOn.trySupplierScheduleOn(source, s, scheduler, true)) {
+            return;
+        }
         source.subscribe(new PublisherObserveOnSubscriber<>(s, scheduler, delayError, prefetch, queueSupplier));
     }
     

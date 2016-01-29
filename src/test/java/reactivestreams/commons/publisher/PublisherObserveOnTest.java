@@ -212,4 +212,37 @@ public class PublisherObserveOnTest {
         .assertNotComplete();
     }
 
+    @Test
+    public void classicJust() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.just(1).observeOn(exec).subscribe(ts);
+        
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void classicJustBackpressured() throws Exception {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase.just(1).observeOn(exec).subscribe(ts);
+        
+        Thread.sleep(100);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertNoError()
+        .assertComplete();
+    }
 }

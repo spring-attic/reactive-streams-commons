@@ -466,6 +466,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     /* public */final PublisherBase<T> observeOn(ExecutorService executor, boolean delayError, int prefetch) {
+        if (this instanceof Supplier) {
+            @SuppressWarnings("unchecked")
+            T value = ((Supplier<T>)this).get();
+            return new PublisherSubscribeOn.PublisherSubscribeOnValue<>(value, executor, true);
+        }
         return new PublisherObserveOn<>(this, executor, delayError, prefetch, defaultQueueSupplier());
     }
 
@@ -478,6 +483,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     /* public */final PublisherBase<T> observeOn(Function<Runnable, Runnable> executor, boolean delayError, int prefetch) {
+        if (this instanceof Supplier) {
+            @SuppressWarnings("unchecked")
+            T value = ((Supplier<T>)this).get();
+            return new PublisherSubscribeOn.PublisherSubscribeOnValue<>(value, executor, true);
+        }
         return new PublisherObserveOn<>(this, executor, delayError, prefetch, defaultQueueSupplier());
     }
 
@@ -486,6 +496,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     /* public */final PublisherBase<T> subscribeOn(ExecutorService executor, boolean eagerCancel, boolean requestOn) {
+        if (this instanceof Supplier) {
+            @SuppressWarnings("unchecked")
+            T value = ((Supplier<T>)this).get();
+            return new PublisherSubscribeOn.PublisherSubscribeOnValue<>(value, executor, eagerCancel);
+        }
         return new PublisherSubscribeOn<>(this, executor, eagerCancel, requestOn);
     }
 
@@ -494,6 +509,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler, boolean eagerCancel, boolean requestOn) {
+        if (this instanceof Supplier) {
+            @SuppressWarnings("unchecked")
+            T value = ((Supplier<T>)this).get();
+            return new PublisherSubscribeOn.PublisherSubscribeOnValue<>(value, scheduler, eagerCancel);
+        }
         return new PublisherSubscribeOn<>(this, scheduler, eagerCancel, requestOn);
     }
     
