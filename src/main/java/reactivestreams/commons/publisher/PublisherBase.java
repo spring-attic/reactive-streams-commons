@@ -481,6 +481,23 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherObserveOn<>(this, executor, delayError, prefetch, defaultQueueSupplier());
     }
 
+    /* public */final PublisherBase<T> subscribeOn(ExecutorService executor) {
+        return subscribeOn(executor, true, true);
+    }
+
+    /* public */final PublisherBase<T> subscribeOn(ExecutorService executor, boolean eagerCancel, boolean requestOn) {
+        return new PublisherSubscribeOn<>(this, executor, eagerCancel, requestOn);
+    }
+
+    /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler) {
+        return subscribeOn(scheduler, true, true);
+    }
+
+    /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler, boolean eagerCancel, boolean requestOn) {
+        return new PublisherSubscribeOn<>(this, scheduler, eagerCancel, requestOn);
+    }
+    
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
