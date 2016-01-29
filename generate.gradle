@@ -369,6 +369,12 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	l = l.replaceAll('Publisher([^ ]*)Other', target['api-inner']+'$1Other')
 	l = l.replaceAll('Publisher([^ ]*)Inner', target['api-inner']+'$1Inner')
 	l = l.replaceAll('Publisher([^ ]*)Inner', target['api-inner']+'$1Inner')
+	l = l.replaceAll('Publisher([^ ]*)OnClassic', target['api-inner']+'$1OnClassic')
+	l = l.replaceAll('Publisher([^ ]*)OnClassic', target['api-inner']+'$1OnClassic')
+	l = l.replaceAll('Publisher([^ ]*)EagerDirect', target['api-inner']+'$1EagerDirect')
+	l = l.replaceAll('Publisher([^ ]*)EagerDirect', target['api-inner']+'$1EagerDirect')
+	l = l.replaceAll('Publisher([^ ]*)NonEager', target['api-inner']+'$1NonEager')
+	l = l.replaceAll('Publisher([^ ]*)NonEager', target['api-inner']+'$1NonEager')
 	l = l.replaceAll('Publisher([^ ]*)Subscriber', target['api-inner']+'$1Subscriber')
 	l = l.replaceAll('Publisher([^ ]*)Subscriber', target['api-inner']+'$1Subscriber')
   }
