@@ -16,19 +16,13 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
-import java.util.Queue;
 import java.util.function.Function;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.Loopback;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.util.*;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
@@ -76,7 +70,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         boolean done;
 
         FusionSubscription<T> s;
-        Queue<T>              q;
 
         int sourceMode;
 
@@ -97,7 +90,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = (FusionSubscription<T>)s;
-                this.q = this.s.queue();
                 actual.onSubscribe(this);
             }
         }
@@ -202,7 +194,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         @Override
         public R poll() {
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
-            T v = q.poll();
+            T v = s.poll();
             if (v != null) {
                 return mapper.apply(v);
             }
@@ -212,7 +204,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         @Override
         public R peek() {
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
-            T v = q.peek();
+            T v = s.peek();
             if (v != null) {
                 return mapper.apply(v);
             }
@@ -221,12 +213,12 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         @Override
         public boolean isEmpty() {
-            return q.isEmpty();
+            return s.isEmpty();
         }
 
         @Override
         public void clear() {
-            q.clear();
+            s.clear();
         }
 
         @Override

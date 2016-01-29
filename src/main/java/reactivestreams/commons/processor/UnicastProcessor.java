@@ -1,17 +1,13 @@
 package reactivestreams.commons.processor;
 
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.*;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -305,11 +301,6 @@ implements Processor<T, T>, Fuseable.FusionSubscription<T>, Fuseable {
     }
 
     @Override
-    public Queue<T> queue() {
-        return queue;
-    }
-
-    @Override
     public boolean requestSyncFusion() {
         enableOperatorFusion = true;
         return false;
@@ -318,5 +309,95 @@ implements Processor<T, T>, Fuseable.FusionSubscription<T>, Fuseable {
     @Override
     public void drop() {
         queue.poll();
+    }
+
+    @Override
+    public boolean add(T e) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean offer(T e) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public T remove() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public T poll() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public T element() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public T peek() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public int size() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean isEmpty() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public Object[] toArray() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public <U> U[] toArray(U[] a) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        throw new UnsupportedOperationException("Operators should not use this method!");
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Operators should not use this method!");
     }
 }

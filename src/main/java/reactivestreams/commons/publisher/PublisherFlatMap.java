@@ -888,7 +888,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             if (SubscriptionHelper.setOnce(S, this, s)) {
                 if (s instanceof Fuseable.FusionSubscription) {
                     @SuppressWarnings("unchecked") Fuseable.FusionSubscription<R> f = (Fuseable.FusionSubscription<R>)s;
-                    queue = f.queue();
+                    queue = f;
                     if (f.requestSyncFusion()){
                         sourceMode = SYNC;
                         done = true;

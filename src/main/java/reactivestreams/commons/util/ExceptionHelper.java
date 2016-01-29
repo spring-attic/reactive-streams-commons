@@ -50,7 +50,7 @@ public enum ExceptionHelper {
      * Throws a particular {@code Throwable} only if it belongs to a set of "fatal" error varieties. These
      * varieties are as follows:
      * <ul>
-     * <li>{@link UpstreamException}</li>
+     * <li>{@code UpstreamException}</li>
      * <li>{@code StackOverflowError}</li>
      * <li>{@code VirtualMachineError}</li>
      * <li>{@code ThreadDeath}</li>
@@ -119,6 +119,7 @@ public enum ExceptionHelper {
      * Throw an unchecked {@link RuntimeException} that will be propagated upstream
      *
      * @param t the root cause
+     * @return the wrapped RuntimeException of UpstreamException
      */
     public static RuntimeException wrapUpstream(Throwable t) {
         if(t instanceof UpstreamException){
@@ -142,6 +143,7 @@ public enum ExceptionHelper {
      * Throw an unchecked {@link RuntimeException} that will be propagated upstream
      *
      * @param t the root cause
+     * @return the wrapped RuntimeException of DownstreamException
      */
     public static RuntimeException wrapDownstream(Throwable t) {
         if(t instanceof DownstreamException){

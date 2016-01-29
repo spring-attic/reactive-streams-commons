@@ -17,6 +17,8 @@ public final class ScalarSubscription<T> implements Subscription, Producer, Rece
      * Checks if the source is a Supplier and if the mapper's publisher output is also
      * a supplier, thus avoiding subscribing to any of them.
      *
+     * @param <T> the the upstream value type
+     * @param <R> the downstream value type
      * @param source the source publisher
      * @param s the end consumer
      * @param mapper the mapper function

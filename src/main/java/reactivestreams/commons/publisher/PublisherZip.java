@@ -842,7 +842,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
                 if (s instanceof Fuseable.FusionSubscription) {
                     Fuseable.FusionSubscription<T> f = (Fuseable.FusionSubscription<T>) s;
 
-                    queue = f.queue();
+                    queue = f;
                     
                     if (f.requestSyncFusion()) {
                         sourceMode = SYNC;

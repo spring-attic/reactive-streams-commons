@@ -23,13 +23,13 @@ public interface Introspectable {
 
     /**
      *
-     * @return
+     * @return the introspection mode, see constants
      */
     int getMode();
 
     /**
      *
-     * @return
+     * @return the name of the operator
      */
     String getName();
 

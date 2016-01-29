@@ -73,6 +73,7 @@ public final class UnsignalledExceptions {
      * Take an unsignalled exception that is masking anowher one due to callback failure.
      *
      * @param e the exception to handle, if null, a new NullPointerException is instantiated
+     * @param root an optional exception to suppress
      */
     public static void onErrorDropped(Throwable e, Throwable root) {
         if(root != null) {
