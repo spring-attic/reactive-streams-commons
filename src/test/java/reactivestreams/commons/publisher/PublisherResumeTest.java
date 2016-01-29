@@ -104,7 +104,7 @@ public class PublisherResumeTest {
 
     @Test
     public void someFirst() {
-        SimpleProcessor<Integer> tp = SimpleProcessor.create();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -124,7 +124,7 @@ public class PublisherResumeTest {
 
     @Test
     public void someFirstBackpressured() {
-        SimpleProcessor<Integer> tp = SimpleProcessor.create();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(10);
 

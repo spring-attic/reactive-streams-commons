@@ -176,7 +176,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
     implements Subscriber<Object>, Loopback {
         PublisherRetryWhenMainSubscriber<?> main;
 
-        final SimpleProcessor<Throwable> completionSignal = SimpleProcessor.create();
+        final SimpleProcessor<Throwable> completionSignal = new SimpleProcessor<>();
 
         @Override
         public void onSubscribe(Subscription s) {

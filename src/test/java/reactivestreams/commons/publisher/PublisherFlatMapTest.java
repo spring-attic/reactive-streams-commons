@@ -283,7 +283,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionBefore() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         for (int i = 0; i < 1000; i++) {
             up.onNext(i);
@@ -301,7 +301,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionAfter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -323,7 +323,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionConcurrently() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -365,7 +365,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionConcurrentlyBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -421,7 +421,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionErrorBefore() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         up.onError(new RuntimeException("forced failure"));
         
@@ -437,7 +437,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionErrorAfter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -457,7 +457,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionCompleteBefore() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         up.onComplete();
         
@@ -472,7 +472,7 @@ public class PublisherFlatMapTest {
     public void asyncFusionCompleteAfter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
 
@@ -506,8 +506,8 @@ public class PublisherFlatMapTest {
         
         PublisherBase<Integer> source = PublisherBase.range(1, 2).doOnNext(v -> emission.getAndIncrement());
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.flatMap(v -> v == 1 ? source1 : source2, false, 1).subscribe(ts);
         
@@ -541,8 +541,8 @@ public class PublisherFlatMapTest {
         
         PublisherBase<Integer> source = PublisherBase.range(1, 1000).doOnNext(v -> emission.getAndIncrement());
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.flatMap(v -> v == 1 ? source1 : source2).subscribe(ts);
         

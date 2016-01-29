@@ -362,7 +362,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
 
                             OPEN.getAndIncrement(this);
                             
-                            UnicastProcessor<T> w = UnicastProcessor.create(pq, this);
+                            UnicastProcessor<T> w = new UnicastProcessor<>(pq, this);
                             
                             WindowStartEndEnder<T, V> end = new WindowStartEndEnder<>(this, w);
                             

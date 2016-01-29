@@ -190,7 +190,7 @@ public class PublisherUsingTest {
 
         AtomicInteger cleanup = new AtomicInteger();
 
-        SimpleProcessor<Integer> tp = SimpleProcessor.create();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
 
         new PublisherUsing<>(() -> 1, r -> tp, cleanup::set, true).subscribe(ts);
 

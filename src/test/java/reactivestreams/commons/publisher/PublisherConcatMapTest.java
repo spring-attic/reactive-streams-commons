@@ -143,10 +143,10 @@ public class PublisherConcatMapTest {
     public void singleSubscriberOnly() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> source = SimpleProcessor.create();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.concatMap(v -> v == 1 ? source1 : source2).subscribe(ts);
         
@@ -178,10 +178,10 @@ public class PublisherConcatMapTest {
     public void singleSubscriberOnlyBoundary() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> source = SimpleProcessor.create();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.concatMap(v -> v == 1 ? source1 : source2, ErrorMode.BOUNDARY).subscribe(ts);
         
@@ -216,10 +216,10 @@ public class PublisherConcatMapTest {
     public void mainErrorsImmediate() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> source = SimpleProcessor.create();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.concatMap(v -> v == 1 ? source1 : source2).subscribe(ts);
         
@@ -249,10 +249,10 @@ public class PublisherConcatMapTest {
     public void mainErrorsBoundary() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> source = SimpleProcessor.create();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.concatMap(v -> v == 1 ? source1 : source2, ErrorMode.BOUNDARY).subscribe(ts);
         
@@ -289,10 +289,10 @@ public class PublisherConcatMapTest {
     public void innerErrorsImmediate() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> source = SimpleProcessor.create();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.concatMap(v -> v == 1 ? source1 : source2).subscribe(ts);
         
@@ -322,10 +322,10 @@ public class PublisherConcatMapTest {
     public void innerErrorsBoundary() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> source = SimpleProcessor.create();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.concatMap(v -> v == 1 ? source1 : source2, ErrorMode.BOUNDARY).subscribe(ts);
         
@@ -355,10 +355,10 @@ public class PublisherConcatMapTest {
     public void innerErrorsEnd() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> source = SimpleProcessor.create();
+        SimpleProcessor<Integer> source = new SimpleProcessor<>();
         
-        SimpleProcessor<Integer> source1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> source2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
         
         source.concatMap(v -> v == 1 ? source1 : source2, ErrorMode.END).subscribe(ts);
         

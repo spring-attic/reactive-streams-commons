@@ -51,7 +51,7 @@ public class PublisherDropTest {
 
     @Test
     public void someDrops() {
-        SimpleProcessor<Integer> tp = SimpleProcessor.create();
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 

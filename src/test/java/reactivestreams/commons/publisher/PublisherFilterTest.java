@@ -111,7 +111,7 @@ public class PublisherFilterTest {
     public void asyncFusion() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         up.filter(v -> (v & 1) == 0).subscribe(ts);
         
@@ -129,7 +129,7 @@ public class PublisherFilterTest {
     public void asyncFusionBackpressured() {
         TestSubscriber<Object> ts = new TestSubscriber<>(1);
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         PublisherBase.just(1).hide().flatMap(w -> up.filter(v -> (v & 1) == 0)).subscribe(ts);
         
@@ -151,7 +151,7 @@ public class PublisherFilterTest {
     public void asyncFusionBackpressured2() {
         TestSubscriber<Object> ts = new TestSubscriber<>(1);
 
-        UnicastProcessor<Integer> up = UnicastProcessor.create(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         new PublisherFlatMap<>(
                 PublisherBase.just(1).hide(), 

@@ -180,7 +180,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
     implements Subscriber<Object>, Loopback {
         PublisherRepeatWhenMainSubscriber<?> main;
 
-        final SimpleProcessor<Long> completionSignal = SimpleProcessor.create();
+        final SimpleProcessor<Long> completionSignal = new SimpleProcessor<>();
 
         @Override
         public void onSubscribe(Subscription s) {

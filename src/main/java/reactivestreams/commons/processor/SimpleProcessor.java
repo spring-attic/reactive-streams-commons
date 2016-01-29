@@ -71,13 +71,6 @@ public final class SimpleProcessor<T>
 
     private Throwable error;
 
-    public static <T> SimpleProcessor<T> create(){
-        return new SimpleProcessor<>();
-    }
-
-    private SimpleProcessor(){
-    }
-
     @Override
     public void onSubscribe(Subscription s) {
         Objects.requireNonNull(s, "s");

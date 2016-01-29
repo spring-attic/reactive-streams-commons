@@ -42,8 +42,8 @@ public class PublisherBufferBoundaryAndSizeTest {
     public void mixed() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
         sp1.buffer(sp2, 3).subscribe(ts);
 

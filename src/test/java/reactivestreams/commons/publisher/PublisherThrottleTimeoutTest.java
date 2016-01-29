@@ -29,9 +29,9 @@ public class PublisherThrottleTimeoutTest {
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
         
         sp1.throttleTimeout(v -> v == 1 ? sp2 : sp3).subscribe(ts);
         
@@ -68,8 +68,8 @@ public class PublisherThrottleTimeoutTest {
     public void mainError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
         sp1.throttleTimeout(v -> sp2).subscribe(ts);
         
@@ -89,8 +89,8 @@ public class PublisherThrottleTimeoutTest {
     public void throttlerError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
         sp1.throttleTimeout(v -> sp2).subscribe(ts);
         
@@ -110,7 +110,7 @@ public class PublisherThrottleTimeoutTest {
     public void throttlerReturnsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         
         sp1.throttleTimeout(v -> null).subscribe(ts);
         

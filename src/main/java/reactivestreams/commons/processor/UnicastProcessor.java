@@ -1,19 +1,13 @@
 package reactivestreams.commons.processor;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.*;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -62,28 +56,14 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
     
     volatile boolean enableOperatorFusion;
 
-	/**
-     * @param queue
-     * @param <T>
-     * @return a new {@link UnicastProcessor} instance using the given queue
-     */
-    public static <T> UnicastProcessor<T> create(Queue<T> queue) {
-        return new UnicastProcessor<>(queue, null);
+    public UnicastProcessor(Queue<T> queue) {
+        this.queue = Objects.requireNonNull(queue, "queue");
+        this.onTerminate = null;
     }
 
-	/**
-     * @param queue
-     * @param onTerminate
-     * @param <T>
-     * @return a new {@link UnicastProcessor} instance using the given queue
-     */
-    public static <T> UnicastProcessor<T> create(Queue<T> queue, Runnable onTerminate) {
-        return new UnicastProcessor<>(queue, onTerminate);
-    }
-    
-    UnicastProcessor(Queue<T> queue, Runnable onTerminate) {
-        this.queue = queue;
-        this.onTerminate = onTerminate;
+    public UnicastProcessor(Queue<T> queue, Runnable onTerminate) {
+        this.queue = Objects.requireNonNull(queue, "queue");
+        this.onTerminate = Objects.requireNonNull(onTerminate, "onTerminate");
     }
     
     void doTerminate() {

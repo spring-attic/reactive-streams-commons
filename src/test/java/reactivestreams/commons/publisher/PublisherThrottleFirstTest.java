@@ -25,9 +25,9 @@ public class PublisherThrottleFirstTest {
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
         
         sp1.throttleFirst(v -> v == 1 ? sp2 : sp3).subscribe(ts);
         
@@ -70,9 +70,9 @@ public class PublisherThrottleFirstTest {
     public void mainError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
         
         sp1.throttleFirst(v -> v == 1 ? sp2 : sp3).subscribe(ts);
         
@@ -93,9 +93,9 @@ public class PublisherThrottleFirstTest {
     public void throttlerError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp2 = SimpleProcessor.create();
-        SimpleProcessor<Integer> sp3 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
         
         sp1.throttleFirst(v -> v == 1 ? sp2 : sp3).subscribe(ts);
         
@@ -116,7 +116,7 @@ public class PublisherThrottleFirstTest {
     public void throttlerThrows() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         
         sp1.throttleFirst(v -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
         
@@ -134,7 +134,7 @@ public class PublisherThrottleFirstTest {
     public void throttlerReturnsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         
         sp1.throttleFirst(v -> null).subscribe(ts);
         

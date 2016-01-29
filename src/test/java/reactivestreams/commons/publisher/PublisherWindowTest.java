@@ -424,7 +424,7 @@ public class PublisherWindowTest {
     public void exactError() {
         TestSubscriber<Publisher<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
         new PublisherWindow<>(sp, 2, 2, pqs, oqs).subscribe(ts);
         
@@ -451,7 +451,7 @@ public class PublisherWindowTest {
     public void skipError() {
         TestSubscriber<Publisher<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
         new PublisherWindow<>(sp, 2, 3, pqs, oqs).subscribe(ts);
         
@@ -478,7 +478,7 @@ public class PublisherWindowTest {
     public void skipInGapError() {
         TestSubscriber<Publisher<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
         new PublisherWindow<>(sp, 1, 3, pqs, oqs).subscribe(ts);
         
@@ -502,7 +502,7 @@ public class PublisherWindowTest {
     public void overlapError() {
         TestSubscriber<Publisher<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp = SimpleProcessor.create();
+        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
         new PublisherWindow<>(sp, 2, 1, pqs, oqs).subscribe(ts);
         
