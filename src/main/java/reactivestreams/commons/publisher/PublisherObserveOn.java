@@ -149,17 +149,16 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                     FusionMode m = f.requestFusion(FusionMode.ANY);
                     
                     if (m == FusionMode.SYNC) {
-                        queue = f;
                         sourceMode = SYNC;
+                        queue = f;
                         done = true;
                         
                         actual.onSubscribe(this);
                         return;
                     } else
                     if (m == FusionMode.ASYNC) {
-                        queue = f;
                         sourceMode = ASYNC;
-                        
+                        queue = f;
                     } else {
                         try {
                             queue = queueSupplier.get();
@@ -196,6 +195,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 return;
             }
             if (!queue.offer(t)) {
+                s.cancel();
+                
                 error = new IllegalStateException("Queue is full?!");
                 done = true;
             }
