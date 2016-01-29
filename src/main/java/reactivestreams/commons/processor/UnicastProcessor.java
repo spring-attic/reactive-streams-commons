@@ -1,13 +1,19 @@
 package reactivestreams.commons.processor;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Processor;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -299,25 +305,24 @@ implements Processor<T, T>, Fuseable.FusionSubscription<T>, Fuseable {
             }
         }
     }
-
-    @Override
-    public boolean requestSyncFusion() {
-        enableOperatorFusion = true;
-        return false;
-    }
     
     @Override
-    public void drop() {
-        queue.poll();
+    public T poll() {
+        return queue.poll();
     }
 
     @Override
-    public boolean add(T e) {
+    public T peek() {
+        return queue.peek();
+    }
+
+    @Override
+    public boolean add(T t) {
         throw new UnsupportedOperationException("Operators should not use this method!");
     }
 
     @Override
-    public boolean offer(T e) {
+    public boolean offer(T t) {
         throw new UnsupportedOperationException("Operators should not use this method!");
     }
 
@@ -327,27 +332,12 @@ implements Processor<T, T>, Fuseable.FusionSubscription<T>, Fuseable {
     }
 
     @Override
-    public T poll() {
-        throw new UnsupportedOperationException("Operators should not use this method!");
-    }
-
-    @Override
     public T element() {
         throw new UnsupportedOperationException("Operators should not use this method!");
     }
 
     @Override
-    public T peek() {
-        throw new UnsupportedOperationException("Operators should not use this method!");
-    }
-
-    @Override
     public int size() {
-        throw new UnsupportedOperationException("Operators should not use this method!");
-    }
-
-    @Override
-    public boolean isEmpty() {
         throw new UnsupportedOperationException("Operators should not use this method!");
     }
 
@@ -367,7 +357,7 @@ implements Processor<T, T>, Fuseable.FusionSubscription<T>, Fuseable {
     }
 
     @Override
-    public <U> U[] toArray(U[] a) {
+    public <T1> T1[] toArray(T1[] a) {
         throw new UnsupportedOperationException("Operators should not use this method!");
     }
 
@@ -397,7 +387,23 @@ implements Processor<T, T>, Fuseable.FusionSubscription<T>, Fuseable {
     }
 
     @Override
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
+
+    @Override
     public void clear() {
-        throw new UnsupportedOperationException("Operators should not use this method!");
+        queue.clear();
+    }
+
+    @Override
+    public boolean requestSyncFusion() {
+        enableOperatorFusion = true;
+        return false;
+    }
+    
+    @Override
+    public void drop() {
+        queue.poll();
     }
 }
