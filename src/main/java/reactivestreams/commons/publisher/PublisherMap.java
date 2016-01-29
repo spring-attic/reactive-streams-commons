@@ -18,17 +18,12 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.Loopback;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
 import reactivestreams.commons.publisher.PublisherMapFuseable.PublisherMapFuseableSubscriber;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.util.*;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
@@ -60,6 +55,11 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
     public void subscribe(Subscriber<? super R> s) {
         if (source instanceof Fuseable) {
             source.subscribe(new PublisherMapFuseableSubscriber<>(s, mapper));
+            return;
+        }
+        if (s instanceof Fuseable.ConditionalSubscriber) {
+            Fuseable.ConditionalSubscriber<? super R> cs = (Fuseable.ConditionalSubscriber<? super R>) s;
+            source.subscribe(new PublisherMapConditionalSubscriber<>(cs, mapper));
             return;
         }
         source.subscribe(new PublisherMapSubscriber<>(s, mapper));
@@ -177,4 +177,146 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
             s.cancel();
         }
     }
+
+    static final class PublisherMapConditionalSubscriber<T, R> implements Fuseable.ConditionalSubscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+        final Fuseable.ConditionalSubscriber<? super R> actual;
+        final Function<? super T, ? extends R> mapper;
+
+        boolean done;
+
+        Subscription s;
+
+        public PublisherMapConditionalSubscriber(Fuseable.ConditionalSubscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
+            this.actual = actual;
+            this.mapper = mapper;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+
+                actual.onSubscribe(this);
+            }
+        }
+
+        @Override
+        public void onNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return;
+            }
+
+            R v;
+
+            try {
+                v = mapper.apply(t);
+            } catch (Throwable e) {
+                done = true;
+                s.cancel();
+                actual.onError(e);
+                return;
+            }
+
+            if (v == null) {
+                done = true;
+                s.cancel();
+                actual.onError(new NullPointerException("The mapper returned a null value."));
+                return;
+            }
+
+            actual.onNext(v);
+        }
+
+        @Override
+        public boolean tryOnNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return true;
+            }
+
+            R v;
+
+            try {
+                v = mapper.apply(t);
+            } catch (Throwable e) {
+                done = true;
+                s.cancel();
+                actual.onError(e);
+                return true;
+            }
+
+            if (v == null) {
+                done = true;
+                s.cancel();
+                actual.onError(new NullPointerException("The mapper returned a null value."));
+                return true;
+            }
+
+            return actual.tryOnNext(v);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+
+            done = true;
+
+            actual.onError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            if (done) {
+                return;
+            }
+            done = true;
+
+            actual.onComplete();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return mapper;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return null;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+        
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+        
+        @Override
+        public void cancel() {
+            s.cancel();
+        }
+    }
+
 }

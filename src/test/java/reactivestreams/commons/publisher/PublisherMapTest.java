@@ -132,4 +132,98 @@ public class PublisherMapTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void mapFilter() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        PublisherBase.range(0, 1_000_000).map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        ts.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void mapFilterBackpressured() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(0);
+
+        PublisherBase.range(0, 1_000_000).map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+
+        ts.assertNoError()
+        .assertNoValues()
+        .assertNotComplete()
+        ;
+        
+        ts.request(250_000);
+        
+        ts.assertValueCount(250_000)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(250_000);
+
+        ts.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void hiddenMapFilter() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        PublisherBase.range(0, 1_000_000).hide().map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        ts.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void hiddenMapFilterBackpressured() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(0);
+
+        PublisherBase.range(0, 1_000_000).hide().map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+
+        ts.assertNoError()
+        .assertNoValues()
+        .assertNotComplete()
+        ;
+        
+        ts.request(250_000);
+        
+        ts.assertValueCount(250_000)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(250_000);
+
+        ts.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void hiddenMapHiddenFilterBackpressured() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(0);
+
+        PublisherBase.range(0, 1_000_000).hide().map(v -> v + 1).hide().filter(v -> (v & 1) == 0).subscribe(ts);
+
+        ts.assertNoError()
+        .assertNoValues()
+        .assertNotComplete()
+        ;
+        
+        ts.request(250_000);
+        
+        ts.assertValueCount(250_000)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(250_000);
+
+        ts.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+    }
 }
