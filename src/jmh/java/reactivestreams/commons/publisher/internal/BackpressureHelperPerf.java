@@ -1,4 +1,4 @@
-package reactivestreams.commons.internal;
+package reactivestreams.commons.publisher.internal;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;

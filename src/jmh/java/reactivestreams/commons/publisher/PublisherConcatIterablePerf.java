@@ -1,20 +1,22 @@
-package reactivestreams.commons;
+package reactivestreams.commons.publisher;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.internal.PerfSubscriber;
-import reactivestreams.commons.publisher.PublisherConcatArray;
+
+import reactivestreams.commons.publisher.PublisherConcatIterable;
 import reactivestreams.commons.publisher.PublisherEmpty;
 import reactivestreams.commons.publisher.PublisherRange;
+import reactivestreams.commons.publisher.internal.PerfSubscriber;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 
 /**
  * Example benchmark. Run from command line as
  * <br>
- * gradle jmh -Pjmh='PublisherConcatArrayPerf'
+ * gradle jmh -Pjmh='PublisherConcatIterablePerf'
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)
@@ -22,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
 @State(Scope.Thread)
-public class PublisherConcatArrayPerf {
+public class PublisherConcatIterablePerf {
 
     @Param({"1", "1000", "1000000"})
     int count;
@@ -42,15 +44,18 @@ public class PublisherConcatArrayPerf {
     }
 
     Publisher<Integer> createSource1() {
-        return new PublisherConcatArray<>(new PublisherRange(0, count), PublisherEmpty.<Integer>instance());
+        return new PublisherConcatIterable<>(Arrays.asList(new PublisherRange(0, count), PublisherEmpty
+          .<Integer>instance()));
     }
 
     Publisher<Integer> createSource2() {
-        return new PublisherConcatArray<>(PublisherEmpty.<Integer>instance(), new PublisherRange(0, count));
+        return new PublisherConcatIterable<>(Arrays.asList(PublisherEmpty.<Integer>instance(), new PublisherRange(0,
+          count)));
     }
 
     Publisher<Integer> createSource3() {
-        return new PublisherConcatArray<>(new PublisherRange(0, count / 2), new PublisherRange(0, count / 2));
+        return new PublisherConcatIterable<>(Arrays.asList(new PublisherRange(0, count / 2), new PublisherRange(0,
+          count / 2)));
     }
 
     @Benchmark

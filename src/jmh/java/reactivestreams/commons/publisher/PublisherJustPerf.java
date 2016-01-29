@@ -1,11 +1,11 @@
-package reactivestreams.commons;
+package reactivestreams.commons.publisher;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.internal.PerfSubscriber;
-import reactivestreams.commons.publisher.PublisherArray;
-import reactivestreams.commons.publisher.PublisherRetry;
+
+import reactivestreams.commons.publisher.PublisherJust;
+import reactivestreams.commons.publisher.internal.PerfSubscriber;
 
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Example benchmark. Run from command line as
  * <br>
- * gradle jmh -Pjmh='PublisherRetryPerf'
+ * gradle jmh -Pjmh='PublisherJustPerf'
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)
@@ -21,44 +21,31 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
 @State(Scope.Thread)
-public class PublisherRetryPerf {
+public class PublisherJustPerf {
 
-    @Param({"1", "1000", "1000000"})
-    int count;
-
-    Integer[] array;
-
-    Publisher<Integer> source;
+    Publisher<Integer> just;
 
     PerfSubscriber sharedSubscriber;
 
     @Setup
     public void setup(Blackhole bh) {
-        array = new Integer[count];
-        for (int i = 0; i < count; i++) {
-            array[i] = 777;
-        }
-        source = createSource();
+        just = new PublisherJust<>(777);
         sharedSubscriber = new PerfSubscriber(bh);
-    }
-
-    Publisher<Integer> createSource() {
-        return new PublisherRetry<>(new PublisherArray<>(array));
     }
 
     @Benchmark
     public void standard(Blackhole bh) {
-        source.subscribe(new PerfSubscriber(bh));
+        just.subscribe(new PerfSubscriber(bh));
     }
 
     @Benchmark
     public void shared() {
-        source.subscribe(sharedSubscriber);
+        just.subscribe(sharedSubscriber);
     }
 
     @Benchmark
     public void createNew(Blackhole bh) {
-        Publisher<Integer> p = createSource();
+        Publisher<Integer> p = new PublisherJust<>(777);
         bh.consume(p);
         p.subscribe(new PerfSubscriber(bh));
     }

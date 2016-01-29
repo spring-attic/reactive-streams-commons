@@ -1,4 +1,4 @@
-package reactivestreams.commons;
+package reactivestreams.commons.publisher;
 
 import java.util.concurrent.TimeUnit;
 
@@ -6,14 +6,14 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
-import reactivestreams.commons.internal.*;
 import reactivestreams.commons.publisher.PublisherBase;
+import reactivestreams.commons.publisher.internal.PerfSubscriber;
 
 
 /**
  * Example benchmark. Run from command line as
  * <br>
- * gradle jmh -Pjmh='PublisherFilterPerf'
+ * gradle jmh -Pjmh='PublisherMapPerf'
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)
@@ -21,7 +21,7 @@ import reactivestreams.commons.publisher.PublisherBase;
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
 @State(Scope.Thread)
-public class PublisherFilterPerf {
+public class PublisherMapPerf {
     
     Publisher<Integer> simple;
 
@@ -31,11 +31,11 @@ public class PublisherFilterPerf {
     
     @Setup
     public void setup() {
-        simple = PublisherBase.range(1, 1_000_000).filter(v -> (v & 1) == 0);
+        simple = PublisherBase.range(1, 1_000_000).map(v -> v + 1);
         
-        rangeFlatMapRange = PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0));
+        rangeFlatMapRange = PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1));
 
-        rangeConcatMapRange = PublisherBase.range(1, 1000).concatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0));
+        rangeConcatMapRange = PublisherBase.range(1, 1000).concatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1));
     }
     
     @Benchmark
@@ -51,21 +51,6 @@ public class PublisherFilterPerf {
     @Benchmark
     public void rangeConcatMapRange(Blackhole bh) {
         rangeConcatMapRange.subscribe(new PerfSubscriber(bh));
-    }
-
-    @Benchmark
-    public void simpleSlowpath(Blackhole bh) {
-        simple.subscribe(new PerfSlowPathSubscriber(bh, 2_000_000));
-    }
-
-    @Benchmark
-    public void rangeFlatMapRangeSlowpath(Blackhole bh) {
-        rangeFlatMapRange.subscribe(new PerfSlowPathSubscriber(bh, 2_000_000));
-    }
-
-    @Benchmark
-    public void rangeConcatMapRangeSlowpath(Blackhole bh) {
-        rangeConcatMapRange.subscribe(new PerfSlowPathSubscriber(bh, 2_000_000));
     }
 
 }

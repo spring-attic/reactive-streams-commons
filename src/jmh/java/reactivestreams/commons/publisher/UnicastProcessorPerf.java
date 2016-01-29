@@ -1,4 +1,4 @@
-package reactivestreams.commons;
+package reactivestreams.commons.publisher;
 
 import java.util.ArrayDeque;
 import java.util.concurrent.*;
@@ -6,8 +6,8 @@ import java.util.concurrent.*;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import reactivestreams.commons.internal.PerfSubscriber;
 import reactivestreams.commons.processor.UnicastProcessor;
+import reactivestreams.commons.publisher.internal.PerfSubscriber;
 
 
 /**

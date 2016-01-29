@@ -1,4 +1,4 @@
-package reactivestreams.commons.internal;
+package reactivestreams.commons.publisher.internal;
 
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Subscriber;

@@ -1,21 +1,19 @@
-package reactivestreams.commons;
+package reactivestreams.commons.publisher;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.internal.PerfSlowPathSubscriber;
-import reactivestreams.commons.internal.PerfSubscriber;
-import reactivestreams.commons.publisher.PublisherIterable;
 
-import java.util.Arrays;
-import java.util.List;
+import reactivestreams.commons.publisher.PublisherArray;
+import reactivestreams.commons.publisher.internal.*;
+
 import java.util.concurrent.TimeUnit;
 
 
 /**
  * Example benchmark. Run from command line as
  * <br>
- * gradle jmh -Pjmh='PublisherIterablePerf'
+ * gradle jmh -Pjmh='PublisherArrayPerf'
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)
@@ -23,12 +21,12 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
 @State(Scope.Thread)
-public class PublisherIterablePerf {
+public class PublisherArrayPerf {
 
     @Param({"1", "1000", "1000000"})
     int count;
 
-    List<Integer> list;
+    Integer[] array;
 
     Publisher<Integer> source;
 
@@ -37,18 +35,17 @@ public class PublisherIterablePerf {
 
     @Setup
     public void setup(Blackhole bh) {
-        Integer[] a = new Integer[count];
+        array = new Integer[count];
         for (int i = 0; i < count; i++) {
-            a[i] = 777;
+            array[i] = 777;
         }
-        list = Arrays.asList(a);
         source = createSource();
         sharedSubscriber1 = new PerfSubscriber(bh);
         sharedSubscriber2 = new PerfSlowPathSubscriber(bh, count);
     }
 
     Publisher<Integer> createSource() {
-        return new PublisherIterable<>(list);
+        return new PublisherArray<>(array);
     }
 
     @Benchmark
@@ -84,4 +81,5 @@ public class PublisherIterablePerf {
         bh.consume(p);
         p.subscribe(new PerfSlowPathSubscriber(bh, count));
     }
+
 }
