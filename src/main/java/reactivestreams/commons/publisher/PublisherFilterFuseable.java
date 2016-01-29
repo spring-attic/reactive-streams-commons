@@ -285,10 +285,12 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         }
         
         @Override
-        public boolean requestSyncFusion() {
-            boolean b = s.requestSyncFusion();
-            sourceMode = b ? SYNC : ASYNC;
-            return b;
+        public FusionMode requestFusion(FusionMode requestedMode) {
+            FusionMode m = s.requestFusion(requestedMode);
+            if (m != FusionMode.NONE) {
+                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+            }
+            return m;
         }
     }
 }

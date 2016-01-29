@@ -11,6 +11,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.Fuseable.FusionMode;
 import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -146,17 +147,29 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
 
                 if (s instanceof Fuseable.QueueSubscription) {
                     @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
-                    queue = f;
-                    if (f.requestSyncFusion()){
+                    FusionMode m = f.requestFusion(FusionMode.ANY);
+                    if (m == FusionMode.SYNC){
                         sourceMode = SYNC;
+                        queue = f;
                         done = true;
                         
                         actual.onSubscribe(this);
                         
                         drain();
                         return;
-                    } else {
+                    } else 
+                    if (m == FusionMode.ASYNC) {
                         sourceMode = ASYNC;
+                        queue = f;
+                    } else {
+                        try {
+                            queue = queueSupplier.get();
+                        } catch (Throwable ex) {
+                            s.cancel();
+                            
+                            EmptySubscription.error(actual, ex);
+                            return;
+                        }
                     }
                 } else {
                     try {
@@ -457,17 +470,31 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
 
                 if (s instanceof Fuseable.QueueSubscription) {
                     @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
-                    queue = f;
-                    if (f.requestSyncFusion()){
+                    
+                    FusionMode m = f.requestFusion(FusionMode.ANY);
+                    
+                    if (m == FusionMode.SYNC){
                         sourceMode = SYNC;
+                        queue = f;
                         done = true;
                         
                         actual.onSubscribe(this);
                         
                         drain();
                         return;
-                    } else {
+                    } else 
+                    if (m == FusionMode.ASYNC) {
                         sourceMode = ASYNC;
+                        queue = f;
+                    } else {
+                        try {
+                            queue = queueSupplier.get();
+                        } catch (Throwable ex) {
+                            s.cancel();
+                            
+                            EmptySubscription.error(actual, ex);
+                            return;
+                        }
                     }
                 } else {
                     try {

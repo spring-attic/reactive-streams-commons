@@ -18,16 +18,11 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.Loopback;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.util.*;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
@@ -227,10 +222,12 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         }
 
         @Override
-        public boolean requestSyncFusion() {
-            boolean b = s.requestSyncFusion();
-            sourceMode = b ? SYNC : ASYNC;
-            return b;
+        public FusionMode requestFusion(FusionMode requestedMode) {
+            FusionMode m = s.requestFusion(requestedMode);
+            if (m != FusionMode.NONE) {
+                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+            }
+            return m;
         }
 
         @Override

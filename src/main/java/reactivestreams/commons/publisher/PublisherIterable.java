@@ -337,11 +337,6 @@ extends PublisherBase<T>
         }
         
         @Override
-        public boolean requestSyncFusion() {
-            return true;
-        }
-        
-        @Override
         public void drop() {
             current = null;
             state = STATE_CALL_HAS_NEXT;
@@ -598,11 +593,6 @@ extends PublisherBase<T>
                 return c;
             }
             return null;
-        }
-        
-        @Override
-        public boolean requestSyncFusion() {
-            return true;
         }
         
         @Override

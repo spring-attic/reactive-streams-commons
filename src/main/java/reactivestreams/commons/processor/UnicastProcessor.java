@@ -397,9 +397,12 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
     }
 
     @Override
-    public boolean requestSyncFusion() {
-        enableOperatorFusion = true;
-        return false;
+    public FusionMode requestFusion(FusionMode requestedMode) {
+        if (requestedMode == FusionMode.ANY || requestedMode == FusionMode.ASYNC) {
+            enableOperatorFusion = true;
+            return FusionMode.ASYNC;
+        }
+        return FusionMode.NONE;
     }
     
     @Override
