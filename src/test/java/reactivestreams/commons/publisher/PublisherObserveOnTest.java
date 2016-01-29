@@ -245,4 +245,45 @@ public class PublisherObserveOnTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void filtered() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 2_000_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void normalFilteredBackpressured() throws Exception {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase.range(1, 2_000_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500_000);
+        
+        Thread.sleep(250);
+        
+        ts.assertValueCount(500_000)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(500_000);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }
