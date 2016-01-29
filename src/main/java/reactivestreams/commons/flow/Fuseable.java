@@ -66,7 +66,7 @@ public interface Fuseable {
 		boolean requestSyncFusion();
 
 		/**
-		 * @return the {@link Queue} view of the produced sequence, it's behavior is driven by the type of fusion:
+		 * @return the {@link Queue} view of the produced sequence, its behavior is driven by the type of fusion:
 		 * sync or async
 		 *
 		 * @see #requestSyncFusion()
