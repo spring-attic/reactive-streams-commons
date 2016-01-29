@@ -61,7 +61,7 @@ public enum SubscriptionHelper {
         }
         return false;
     }
-    
+
     public static <F> boolean replace(AtomicReferenceFieldUpdater<F, Subscription> field, F instance, Subscription s) {
         for (;;) {
             Subscription a = field.get(instance);
