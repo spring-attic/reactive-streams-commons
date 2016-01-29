@@ -26,7 +26,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class UnicastProcessor<T> 
 extends PublisherBase<T>
-implements Processor<T, T>, Fuseable.FusionSubscription<T>, Fuseable {
+implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
 
     final Queue<T> queue;
     

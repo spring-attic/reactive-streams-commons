@@ -144,8 +144,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
             if (SubscriptionHelper.validate(this.s, s))  {
                 this.s = s;
 
-                if (s instanceof Fuseable.FusionSubscription) {
-                    @SuppressWarnings("unchecked") Fuseable.FusionSubscription<T> f = (Fuseable.FusionSubscription<T>)s;
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
                     queue = f;
                     if (f.requestSyncFusion()){
                         sourceMode = SYNC;
@@ -455,8 +455,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
             if (SubscriptionHelper.validate(this.s, s))  {
                 this.s = s;
 
-                if (s instanceof Fuseable.FusionSubscription) {
-                    @SuppressWarnings("unchecked") Fuseable.FusionSubscription<T> f = (Fuseable.FusionSubscription<T>)s;
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
                     queue = f;
                     if (f.requestSyncFusion()){
                         sourceMode = SYNC;
