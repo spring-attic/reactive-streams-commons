@@ -61,7 +61,7 @@ public class PublisherObserveOnTest {
         
         ts.request(500_000);
         
-        Thread.sleep(100);
+        Thread.sleep(250);
         
         ts.assertValueCount(500_000)
         .assertNoError()
@@ -101,7 +101,7 @@ public class PublisherObserveOnTest {
         
         ts.request(500_000);
         
-        Thread.sleep(100);
+        Thread.sleep(250);
         
         ts.assertValueCount(500_000)
         .assertNoError()
@@ -155,7 +155,7 @@ public class PublisherObserveOnTest {
         
         ts.request(500_000);
         
-        Thread.sleep(100);
+        Thread.sleep(250);
         
         ts.assertValueCount(500_000)
         .assertNoError()
