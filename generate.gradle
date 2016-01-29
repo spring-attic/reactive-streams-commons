@@ -12,8 +12,10 @@ def includingCoreScope = ['amb',
 						  'error',
 						  'empty',
 						  'next',
+						  'observeon',
+						  'subscribeon',
 						  'flatmap',
-						  'ignoreelements',
+						  ///'ignoreelements',
 						  /*'iterable',*/ //managed by reactor-core but used by  reactor-stream
 						  'just',
 						  /*'lift',*/ //managed by reactor-core
@@ -47,6 +49,8 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'FunctionHelper'   : 'FunctionUtils',
 					 'DrainHelper'  		 : 'reactor.rx.util.DrainUtils',
 					 'ExceptionHelper'   : 'Exceptions',
+					 'SubscribeOn'   : 'FluxPublishOn',
+					 'ObserveOn'   : 'FluxDispatchOn',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
 					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
@@ -145,7 +149,16 @@ task generateTargetAPI(type: Sync) {
 	exclude 'PublisherSource.java'
   }
 
-  rename { String fileName -> fileName.replace('Publisher', apiClassName)
+  rename { String fileName ->
+	if(target['ObserveOn'] && fileName.endsWith('ObserveOn.java')){
+	  fileName.replace('PublisherObserveOn', target['ObserveOn'])
+	}
+	else if(target['SubscribeOn'] && fileName.endsWith('SubscribeOn.java')){
+	  fileName.replace('PublisherObserveOn', target['SubscribeOn'])
+	}
+	else{
+	  fileName.replace('Publisher', apiClassName)
+	}
   }
 
   filter { String line -> replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass)
@@ -288,8 +301,16 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	}
   }
 
+  def l
+  if(target['ObserveOn']) {
+	l = line.replaceAll('PublisherObserveOn', target['ObserveOn'])
+  }
+  if(target['SubscribeOn']) {
+	l = line.replaceAll('PublisherObserveOn', target['ObserveOn'])
+  }
+
   if (line.trim().startsWith('import')) {
-	def l = line
+	l = line
 	if (target.SimpleProcessor) {
 	  l = l.replace("reactivestreams.commons.processor.SimpleProcessor", target.SimpleProcessor)
 	}
@@ -335,8 +356,6 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 
 	return l;
   }
-
-  def l = line
 
   if(target['tabs']){
 	l = l.replaceAll(' '*4, '\t' * target['tabs'])
@@ -391,6 +410,7 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   if (target.SimpleProcessor) {
+	l = l.replace('new SimpleProcessor<>', target.SimpleProcessor+'.create')
 	l = l.replace('SimpleProcessor', target.SimpleProcessor)
   }
 

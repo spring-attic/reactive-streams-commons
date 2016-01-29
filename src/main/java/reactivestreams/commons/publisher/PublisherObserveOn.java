@@ -1,15 +1,24 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Fuseable.FusionMode;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits events on a different thread specified by a scheduler callback.
@@ -52,10 +61,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
         }
         Objects.requireNonNull(executor, "executor");
-        this.scheduler = r -> {
-            Future<?> f = executor.submit(r);
-            return () -> f.cancel(true); 
-        };
+        this.scheduler = new ExecutorServiceWorker(executor);
+
         this.delayError = delayError;
         this.prefetch = prefetch;
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
@@ -387,6 +394,35 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         @Override
         public void cancel() {
             run.run();
+        }
+    }
+
+    static class ExecutorServiceWorker implements Function<Runnable, Runnable> {
+
+        final ExecutorService executor;
+
+        public ExecutorServiceWorker(ExecutorService executor) {
+            this.executor = executor;
+        }
+
+        @Override
+        public Runnable apply(Runnable runnable) {
+            final Future<?> f = executor.submit(runnable);
+            return new CancelTask(f);
+        }
+
+        static class CancelTask implements Runnable {
+
+            private final Future<?> f;
+
+            public CancelTask(Future<?> f) {
+                this.f = f;
+            }
+
+            @Override
+            public void run() {
+                f.cancel(true);
+            }
         }
     }
 }
