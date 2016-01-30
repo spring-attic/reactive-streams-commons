@@ -492,7 +492,12 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     /* public */final PublisherBase<T> subscribeOn(ExecutorService executor) {
-        return subscribeOn(executor, true, true);
+        if (this instanceof Fuseable.ScalarSupplier) {
+            @SuppressWarnings("unchecked")
+            T value = ((Supplier<T>)this).get();
+            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), true);
+        }
+        return new PublisherSubscribeOn<>(this, fromExecutor(executor));
     }
 
     /* public */final PublisherBase<T> subscribeOn(ExecutorService executor, boolean eagerCancel, boolean requestOn) {
@@ -501,11 +506,16 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
             T value = ((Supplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), eagerCancel);
         }
-        return new PublisherSubscribeOn<>(this, fromExecutor(executor), eagerCancel, requestOn);
+        return new PublisherSubscribeOnOther<>(this, fromExecutor(executor), eagerCancel, requestOn);
     }
 
     /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler) {
-        return subscribeOn(scheduler, true, true);
+        if (this instanceof Fuseable.ScalarSupplier) {
+            @SuppressWarnings("unchecked")
+            T value = ((Supplier<T>)this).get();
+            return new PublisherSubscribeOnValue<>(value, scheduler, true);
+        }
+        return new PublisherSubscribeOn<>(this, scheduler);
     }
 
     /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler, boolean eagerCancel, boolean requestOn) {
@@ -514,7 +524,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
             T value = ((Supplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, scheduler, eagerCancel);
         }
-        return new PublisherSubscribeOn<>(this, scheduler, eagerCancel, requestOn);
+        return new PublisherSubscribeOnOther<>(this, scheduler, eagerCancel, requestOn);
     }
     
     

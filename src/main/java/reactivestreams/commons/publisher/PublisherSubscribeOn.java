@@ -33,19 +33,11 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
 
     final Function<Runnable, Runnable> scheduler;
     
-    final boolean eagerCancel;
-    
-    final boolean requestOn;
-    
     public PublisherSubscribeOn(
             Publisher<? extends T> source, 
-            Function<Runnable, Runnable> scheduler,
-            boolean eagerCancel, 
-            boolean requestOn) {
+            Function<Runnable, Runnable> scheduler) {
         super(source);
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
-        this.eagerCancel = eagerCancel;
-        this.requestOn = requestOn;
     }
 
     @Override
