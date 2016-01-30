@@ -68,6 +68,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             } else {
                 s.onSubscribe(new ScheduledSubscriptionEagerCancel<>(s, v, scheduler));
             }
+            return;
         }
         
         if (s instanceof Fuseable.ConditionalSubscriber) {

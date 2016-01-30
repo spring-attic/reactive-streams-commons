@@ -1,14 +1,22 @@
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.SpscArrayQueue;
 
 public class PublisherObserveOnTest {
 
@@ -300,5 +308,62 @@ public class PublisherObserveOnTest {
         
         Assert.assertEquals(1, count.get());
     }
+
+    @Test
+    public void prefetchAmountOnlyLoop() {
+        for (int i = 0; i < 100000; i++) {
+            prefetchAmountOnly();
+        }
+    }
     
+    @Test
+    public void prefetchAmountOnly() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        ConcurrentLinkedQueue<Long> clq = new ConcurrentLinkedQueue<>();
+        
+        PublisherBase.range(1, 2).hide()
+        .doOnRequest(v -> {
+            clq.offer(v);
+        })
+        .observeOn(exec)
+        .subscribe(ts);
+        
+        ts.await(100, TimeUnit.SECONDS);
+        
+        ts.assertValues(1, 2)
+        .assertNoError()
+        .assertComplete();
+
+        int s = clq.size();
+        Assert.assertTrue("More requests?" + clq, s == 1 || s == 2 || s == 3);
+        Assert.assertEquals((Long)(long)PublisherBase.BUFFER_SIZE, clq.poll());
+    }
+    
+    @Test
+    public void boundedQueueLoop() {
+        for (int i = 0; i < 1000; i++) {
+//            if (i % 100 == 0) {
+//                System.out.println("-- " + i);
+//            }
+            boundedQueue();
+        }
+    }
+    
+    @Test
+    public void boundedQueue() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherObserveOn<>(PublisherBase.range(1, 100_000).hide(),
+                PublisherBase.fromExecutor(exec), true, 128, () -> new SpscArrayQueue<>(128)
+        )
+        .subscribe(ts);
+        
+        ts.await(1, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(100_000)
+        .assertNoError()
+        .assertComplete();
+
+    }
 }

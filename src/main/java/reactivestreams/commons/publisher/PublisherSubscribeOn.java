@@ -57,6 +57,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             } else {
                 s.onSubscribe(new ScheduledSubscriptionEagerCancel<>(s, v, scheduler));
             }
+            return;
         }
         
         PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
