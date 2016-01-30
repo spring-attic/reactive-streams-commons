@@ -63,7 +63,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
         s.onSubscribe(parent);
         
-        Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source, scheduler));
+        Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source));
         parent.setFuture(f);
     }
     
@@ -376,10 +376,27 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         final Subscriber<? super T> actual;
         
         final Publisher<? extends T> source;
+
+        public SourceSubscribeTask(Subscriber<? super T> s, Publisher<? extends T> source) {
+            this.actual = s;
+            this.source = source;
+        }
+
+        @Override
+        public void run() {
+            source.subscribe(actual);
+        }
+    }
+
+    static final class SourceSubscribeTaskScheduled<T> implements Runnable {
+
+        final Subscriber<? super T> actual;
+        
+        final Publisher<? extends T> source;
         
         final Function<Runnable, Runnable> scheduler;
 
-        public SourceSubscribeTask(Subscriber<? super T> s, Publisher<? extends T> source, Function<Runnable, Runnable> scheduler) {
+        public SourceSubscribeTaskScheduled(Subscriber<? super T> s, Publisher<? extends T> source, Function<Runnable, Runnable> scheduler) {
             this.actual = s;
             this.source = source;
             this.scheduler = scheduler;
@@ -388,9 +405,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         @Override
         public void run() {
             source.subscribe(actual);
-            if (scheduler != null) {
-                scheduler.apply(null);
-            }
+            scheduler.apply(null);
         }
     }
 }

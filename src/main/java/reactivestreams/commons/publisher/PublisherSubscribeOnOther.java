@@ -14,6 +14,7 @@ import reactivestreams.commons.publisher.PublisherSubscribeOn.PublisherSubscribe
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledEmptySubscriptionEager;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledSubscriptionEagerCancel;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.SourceSubscribeTask;
+import reactivestreams.commons.publisher.PublisherSubscribeOn.SourceSubscribeTaskScheduled;
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -104,20 +105,20 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
                 PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
                 s.onSubscribe(parent);
                 
-                Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source, scheduler));
+                Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source));
                 parent.setFuture(f);
             } else {
                 PublisherSubscribeOnEagerDirect<T> parent = new PublisherSubscribeOnEagerDirect<>(s, scheduler);
                 s.onSubscribe(parent);
                 
-                Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source, scheduler));
+                Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source));
                 parent.setFuture(f);
             }
         } else {
             if (requestOn) {
-                scheduler.apply(new SourceSubscribeTask<>(new PublisherSubscribeOnNonEager<>(s, scheduler), source, null));
+                scheduler.apply(new SourceSubscribeTask<>(new PublisherSubscribeOnNonEager<>(s, scheduler), source));
             } else {
-                scheduler.apply(new SourceSubscribeTask<>(s, source, scheduler));
+                scheduler.apply(new SourceSubscribeTaskScheduled<>(s, source, scheduler));
             }
         }
     }
