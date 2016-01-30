@@ -23,15 +23,15 @@ public enum SubscriptionHelper {
     }
 
     public static void reportSubscriptionSet() {
-        new IllegalStateException("Subscription already set").printStackTrace();
+        UnsignalledExceptions.onErrorDropped(new IllegalStateException("Subscription already set"));
     }
 
     public static void reportBadRequest(long n) {
-        new IllegalArgumentException("request amount > 0 required but it was " + n).printStackTrace();
+        UnsignalledExceptions.onErrorDropped(new IllegalArgumentException("request amount > 0 required but it was " + n));
     }
 
     public static void reportMoreProduced() {
-        new IllegalStateException("More produced than requested").printStackTrace();
+        UnsignalledExceptions.onErrorDropped(new IllegalStateException("More produced than requested"));
     }
 
     public static boolean validate(long n) {

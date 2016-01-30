@@ -47,9 +47,4 @@ public enum BackpressureHelper {
             }
         }
     }
-
-    public static void reportBadRequest(long n) {
-        new IllegalArgumentException("Request amount must be positive but it is " + n).printStackTrace();
-    }
-
 }

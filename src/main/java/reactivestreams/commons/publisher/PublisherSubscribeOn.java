@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -124,9 +125,9 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         static final class RequestTask implements Runnable {
 
             final long n;
-            final PublisherSubscribeOnClassic parent;
+            final PublisherSubscribeOnClassic<?> parent;
 
-            public RequestTask(long n, PublisherSubscribeOnClassic parent) {
+            public RequestTask(long n, PublisherSubscribeOnClassic<?> parent) {
                 this.n = n;
                 this.parent = parent;
             }
