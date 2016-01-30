@@ -1,6 +1,8 @@
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
@@ -18,7 +20,20 @@ public class PublisherSubscribeOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", ForkJoinPool.commonPool());
-        ctb.addRef("scheduler", (Function<Runnable, Runnable>)r -> r);
+        ctb.addRef("schedulerFactory", (Callable<Function<Runnable, Runnable>>)() -> r -> r);
+        
+        ctb.test();
+    }
+    
+    @Test
+    public void constructors2() {
+        ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherSubscribeOnOther.class);
+        
+        ctb.addRef("source", PublisherBase.never());
+        ctb.addRef("executor", ForkJoinPool.commonPool());
+        ctb.addRef("schedulerFactory", (Callable<Function<Runnable, Runnable>>)() -> r -> r);
+        
+        ctb.test();
     }
     
     @Test

@@ -2,9 +2,9 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,7 +28,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
 
-    final Function<Runnable, Runnable> scheduler;
+    final Callable<Function<Runnable, Runnable>> schedulerFactory;
     
     final boolean delayError;
     
@@ -38,7 +38,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
     
     public PublisherObserveOn(
             Publisher<? extends T> source, 
-            Function<Runnable, Runnable> scheduler, 
+            Callable<Function<Runnable, Runnable>> schedulerFactory, 
             boolean delayError,
             int prefetch,
             Supplier<? extends Queue<T>> queueSupplier) {
@@ -46,7 +46,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
         }
-        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
+        this.schedulerFactory = Objects.requireNonNull(schedulerFactory, "schedulerFactory");
         this.delayError = delayError;
         this.prefetch = prefetch;
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
@@ -54,6 +54,22 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
+        
+        Function<Runnable, Runnable> scheduler;
+        
+        try {
+            scheduler = schedulerFactory.call();
+        } catch (Throwable e) {
+            ExceptionHelper.throwIfFatal(e);
+            EmptySubscription.error(s, e);
+            return;
+        }
+        
+        if (scheduler == null) {
+            EmptySubscription.error(s, new NullPointerException("The schedulerFactory returned a null Function"));
+            return;
+        }
+        
         if (source instanceof Supplier) {
             @SuppressWarnings("unchecked")
             Supplier<T> supplier = (Supplier<T>) source;
@@ -63,8 +79,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             if (v == null) {
                 ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s, scheduler);
                 s.onSubscribe(parent);
-                Runnable f = scheduler.apply(parent);
-                parent.setFuture(f);
+                scheduler.apply(parent);
             } else {
                 s.onSubscribe(new ScheduledSubscriptionEagerCancel<>(s, v, scheduler));
             }
@@ -112,15 +127,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         static final AtomicLongFieldUpdater<PublisherObserveOnSubscriber> REQUESTED =
                 AtomicLongFieldUpdater.newUpdater(PublisherObserveOnSubscriber.class, "requested");
 
-        volatile IndexedCancellable task;
-        @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherObserveOnSubscriber,IndexedCancellable> TASK =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherObserveOnSubscriber.class, IndexedCancellable.class, "task");
-        
-        static final IndexedCancellable TERMINATED = new TerminatedIndexedCancellable();
-        
-        long index;
-        
         int sourceMode;
         
         static final int NORMAL = 0;
@@ -236,7 +242,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             }
             
             cancelled = true;
-            cancelTask();
             scheduler.apply(null);
             
             if (WIP.getAndIncrement(this) == 0) {
@@ -245,41 +250,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             }
         }
         
-        void cancelTask() {
-            IndexedCancellable a = task;
-            if (a != TERMINATED) {
-                a = TASK.getAndSet(this, TERMINATED);
-                if (a != null && a != TERMINATED) {
-                    a.cancel();
-                }
-            }
-        }
-        
         void trySchedule() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
-            long idx = index++;
-            
-            Runnable f = scheduler.apply(this);
-            
-            RunnableIndexedCancellable next = null;
-            for (;;) {
-                IndexedCancellable curr = task;
-                if (curr == TERMINATED) {
-                    f.run();
-                    return;
-                }
-                if (curr != null && curr.index() > idx) {
-                    return;
-                }
-                if (next == null) {
-                    next = new RunnableIndexedCancellable(idx, f);
-                }
-                if (TASK.compareAndSet(this, curr, next)) {
-                    return;
-                }
-            }
+            scheduler.apply(this);
         }
         
         @Override
@@ -406,15 +381,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         static final AtomicLongFieldUpdater<PublisherObserveOnConditionalSubscriber> REQUESTED =
                 AtomicLongFieldUpdater.newUpdater(PublisherObserveOnConditionalSubscriber.class, "requested");
 
-        volatile IndexedCancellable task;
-        @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherObserveOnConditionalSubscriber,IndexedCancellable> TASK =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherObserveOnConditionalSubscriber.class, IndexedCancellable.class, "task");
-        
-        static final IndexedCancellable TERMINATED = new TerminatedIndexedCancellable();
-        
-        long index;
-        
         int sourceMode;
         
         static final int NORMAL = 0;
@@ -530,7 +496,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             }
             
             cancelled = true;
-            cancelTask();
             scheduler.apply(null);
             
             if (WIP.getAndIncrement(this) == 0) {
@@ -539,41 +504,12 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             }
         }
         
-        void cancelTask() {
-            IndexedCancellable a = task;
-            if (a != TERMINATED) {
-                a = TASK.getAndSet(this, TERMINATED);
-                if (a != null && a != TERMINATED) {
-                    a.cancel();
-                }
-            }
-        }
-        
         void trySchedule() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
-            long idx = index++;
             
-            Runnable f = scheduler.apply(this);
-            
-            RunnableIndexedCancellable next = null;
-            for (;;) {
-                IndexedCancellable curr = task;
-                if (curr == TERMINATED) {
-                    f.run();
-                    return;
-                }
-                if (curr != null && curr.index() > idx) {
-                    return;
-                }
-                if (next == null) {
-                    next = new RunnableIndexedCancellable(idx, f);
-                }
-                if (TASK.compareAndSet(this, curr, next)) {
-                    return;
-                }
-            }
+            scheduler.apply(this);
         }
         
         @Override
@@ -668,44 +604,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             }
             
             return false;
-        }
-    }
-
-    interface IndexedCancellable {
-        long index();
-        
-        void cancel();
-    }
-    
-    static final class TerminatedIndexedCancellable implements IndexedCancellable {
-        @Override
-        public long index() {
-            return Long.MAX_VALUE;
-        }
-
-        @Override
-        public void cancel() {
-            
-        }
-        
-    }
-    
-    static final class RunnableIndexedCancellable implements IndexedCancellable {
-        final long index;
-        final Runnable run;
-        public RunnableIndexedCancellable(long index, Runnable run) {
-            this.index = index;
-            this.run = run;
-        }
-        
-        @Override
-        public long index() {
-            return index;
-        }
-        
-        @Override
-        public void cancel() {
-            run.run();
         }
     }
 }

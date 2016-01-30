@@ -1,10 +1,8 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -14,6 +12,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.util.DeferredSubscription;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -24,24 +24,32 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
 
-    static final Runnable CANCELLED = new Runnable() {
-        @Override
-        public void run() {
-
-        }
-    };
-
-    final Function<Runnable, Runnable> scheduler;
+    final Callable<Function<Runnable, Runnable>> schedulerFactory;
     
     public PublisherSubscribeOn(
             Publisher<? extends T> source, 
-            Function<Runnable, Runnable> scheduler) {
+            Callable<Function<Runnable, Runnable>> schedulerFactory) {
         super(source);
-        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
+        this.schedulerFactory = Objects.requireNonNull(schedulerFactory, "schedulerFactory");
     }
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
+        Function<Runnable, Runnable> scheduler;
+        
+        try {
+            scheduler = schedulerFactory.call();
+        } catch (Throwable e) {
+            ExceptionHelper.throwIfFatal(e);
+            EmptySubscription.error(s, e);
+            return;
+        }
+        
+        if (scheduler == null) {
+            EmptySubscription.error(s, new NullPointerException("The schedulerFactory returned a null Function"));
+            return;
+        }
+        
         if (source instanceof Supplier) {
             
             @SuppressWarnings("unchecked")
@@ -52,8 +60,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             if (v == null) {
                 ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s, scheduler);
                 s.onSubscribe(parent);
-                Runnable f = scheduler.apply(parent);
-                parent.setFuture(f);
+                scheduler.apply(parent);
             } else {
                 s.onSubscribe(new ScheduledSubscriptionEagerCancel<>(s, v, scheduler));
             }
@@ -63,8 +70,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
         s.onSubscribe(parent);
         
-        Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source));
-        parent.setFuture(f);
+        scheduler.apply(new SourceSubscribeTask<>(parent, source));
     }
     
     static final class PublisherSubscribeOnClassic<T>
@@ -73,26 +79,9 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         
         final Function<Runnable, Runnable> scheduler;
 
-        static final Runnable FINISHED = new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        };
-
-        Collection<Runnable> tasks;
-        
-        volatile boolean disposed;
-
-        volatile Runnable future;
-        @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherSubscribeOnClassic, Runnable> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherSubscribeOnClassic.class, Runnable.class, "future");
-
         public PublisherSubscribeOnClassic(Subscriber<? super T> actual, Function<Runnable, Runnable> scheduler) {
             this.actual = actual;
             this.scheduler = scheduler;
-            this.tasks = new LinkedList<>();
         }
         
         @Override
@@ -120,154 +109,18 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                ScheduledRequest sr = new ScheduledRequest(n, this);
-                add(sr);
-                
-                Runnable f = scheduler.apply(new DeferredRequestTask(sr));
-                
-                sr.setFuture(f);
+                scheduler.apply(() -> requestInner(n));
             }
         }
         
         @Override
         public void cancel() {
             super.cancel();
-            Runnable a = future;
-            if (a != CANCELLED) {
-                a = FUTURE.getAndSet(this, CANCELLED);
-                if (a != null && a != CANCELLED) {
-                    a.run();
-                }
-            }
-            dispose();
             scheduler.apply(null);
-        }
-        
-        void setFuture(Runnable run) {
-            if (!FUTURE.compareAndSet(this, null, run)) {
-                run.run();
-            }
-        }
-
-        boolean add(Runnable run) {
-            if (!disposed) {
-                synchronized (this) {
-                    if (!disposed) {
-                        tasks.add(run);
-                        return true;
-                    }
-                }
-            }
-            run.run();
-            return false;
-        }
-
-        void delete(Runnable run) {
-            if (!disposed) {
-                synchronized (this) {
-                    if (!disposed) {
-                        tasks.remove(run);
-                    }
-                }
-            }
-        }
-        
-        void dispose() {
-            if (disposed) {
-                return;
-            }
-            
-            Collection<Runnable> list;
-            synchronized (this) {
-                if (disposed) {
-                    return;
-                }
-                disposed = true;
-                list = tasks;
-                tasks = null;
-            }
-            
-            for (Runnable r : list) {
-                r.run();
-            }
         }
         
         void requestInner(long n) {
             super.request(n);
-        }
-
-        static final class DeferredRequestTask implements Runnable {
-
-            final ScheduledRequest sr;
-
-            public DeferredRequestTask(ScheduledRequest sr) {
-                this.sr = sr;
-            }
-
-            @Override
-            public void run() {
-                sr.request();
-            }
-        }
-
-        static final class ScheduledRequest
-        extends AtomicReference<Runnable>
-        implements Runnable {
-            /** */
-            private static final long serialVersionUID = 2284024836904862408L;
-            
-            final long n;
-            final PublisherSubscribeOnClassic<?> parent;
-
-            public ScheduledRequest(long n, PublisherSubscribeOnClassic<?> parent) {
-                this.n = n;
-                this.parent = parent;
-            }
-            
-            @Override
-            public void run() {
-                for (;;) {
-                    Runnable a = get();
-                    if (a == FINISHED) {
-                        return;
-                    }
-                    if (compareAndSet(a, CANCELLED)) {
-                        parent.delete(this);
-                        return;
-                    }
-                }
-            }
-            
-            void request() {
-                parent.requestInner(n);
-
-                for (;;) {
-                    Runnable a = get();
-                    if (a == CANCELLED) {
-                        return;
-                    }
-                    if (compareAndSet(a, FINISHED)) {
-                        parent.delete(this);
-                        return;
-                    }
-                }
-            }
-            
-            void setFuture(Runnable f) {
-                for (;;) {
-                    Runnable a = get();
-                    if (a == FINISHED) {
-                        return;
-                    }
-                    if (a == CANCELLED) {
-                        f.run();
-                        return;
-                    }
-                    if (compareAndSet(null, f)) {
-                        return;
-                    }
-                }
-            }
         }
     }
     
@@ -310,13 +163,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         @Override
         public void cancel() {
             ONCE.lazySet(this, 1);
-            Runnable a = future;
-            if (a != CANCELLED) {
-                a = FUTURE.getAndSet(this, CANCELLED);
-                if (a != null && a != CANCELLED) {
-                    a.run();
-                }
-            }
             scheduler.apply(null);
         }
         
@@ -333,10 +179,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
 
         final Function<Runnable, Runnable> scheduler;
 
-        volatile Runnable future;
-        static final AtomicReferenceFieldUpdater<ScheduledEmptySubscriptionEager, Runnable> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(ScheduledEmptySubscriptionEager.class, Runnable.class, "future");
-
         public ScheduledEmptySubscriptionEager(Subscriber<?> actual, Function<Runnable, Runnable> scheduler) {
             this.actual = actual;
             this.scheduler = scheduler;
@@ -349,25 +191,13 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         
         @Override
         public void cancel() {
-            Runnable a = future;
-            if (a != CANCELLED) {
-                a = FUTURE.getAndSet(this, CANCELLED);
-                if (a != null && a != CANCELLED) {
-                    a.run();
-                }
-            }
+            scheduler.apply(null);
         }
         
         @Override
         public void run() {
             scheduler.apply(null);
             actual.onComplete();
-        }
-        
-        void setFuture(Runnable f) {
-            if (!FUTURE.compareAndSet(this, null, f)) {
-                f.run();
-            }
         }
     }
 

@@ -1,14 +1,35 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.util.ExecutorServiceScheduler;
 
 /**
  * Experimental base class with fluent API.
@@ -474,21 +495,21 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier());
     }
 
-    /* public */final PublisherBase<T> observeOn(Function<Runnable, Runnable> executor) {
-        return observeOn(executor, true, BUFFER_SIZE);
+    /* public */final PublisherBase<T> observeOn(Callable<Function<Runnable, Runnable>> schedulerFactory) {
+        return observeOn(schedulerFactory, true, BUFFER_SIZE);
     }
 
-    /* public */final PublisherBase<T> observeOn(Function<Runnable, Runnable> executor, boolean delayError) {
-        return observeOn(executor, delayError, BUFFER_SIZE);
+    /* public */final PublisherBase<T> observeOn(Callable<Function<Runnable, Runnable>> schedulerFactory, boolean delayError) {
+        return observeOn(schedulerFactory, delayError, BUFFER_SIZE);
     }
     
-    /* public */final PublisherBase<T> observeOn(Function<Runnable, Runnable> executor, boolean delayError, int prefetch) {
+    /* public */final PublisherBase<T> observeOn(Callable<Function<Runnable, Runnable>> schedulerFactory, boolean delayError, int prefetch) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, executor, true);
+            return new PublisherSubscribeOnValue<>(value, schedulerFactory, true);
         }
-        return new PublisherObserveOn<>(this, executor, delayError, prefetch, defaultQueueSupplier());
+        return new PublisherObserveOn<>(this, schedulerFactory, delayError, prefetch, defaultQueueSupplier());
     }
 
     /* public */final PublisherBase<T> subscribeOn(ExecutorService executor) {
@@ -509,22 +530,22 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherSubscribeOnOther<>(this, fromExecutor(executor), eagerCancel, requestOn);
     }
 
-    /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler) {
+    /* public */final PublisherBase<T> subscribeOn(Callable<Function<Runnable, Runnable>> schedulerFactory) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, scheduler, true);
+            return new PublisherSubscribeOnValue<>(value, schedulerFactory, true);
         }
-        return new PublisherSubscribeOn<>(this, scheduler);
+        return new PublisherSubscribeOn<>(this, schedulerFactory);
     }
 
-    /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler, boolean eagerCancel, boolean requestOn) {
+    /* public */final PublisherBase<T> subscribeOn(Callable<Function<Runnable, Runnable>> schedulerFactory, boolean eagerCancel, boolean requestOn) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, scheduler, eagerCancel);
+            return new PublisherSubscribeOnValue<>(value, schedulerFactory, eagerCancel);
         }
-        return new PublisherSubscribeOnOther<>(this, scheduler, eagerCancel, requestOn);
+        return new PublisherSubscribeOnOther<>(this, schedulerFactory, eagerCancel, requestOn);
     }
     
     
@@ -655,18 +676,8 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         }
     };
     
-    static Function<Runnable, Runnable> fromExecutor(ExecutorService executor) {
+    static Callable<Function<Runnable, Runnable>> fromExecutor(ExecutorService executor) {
         Objects.requireNonNull(executor, "executor");
-        return new Function<Runnable, Runnable>() {
-            @Override
-            public Runnable apply(Runnable task) {
-                // null indicates a terminal call
-                if (task != null) {
-                    Future<?> f = executor.submit(task);
-                    return () -> f.cancel(true);
-                }
-                return null;
-            }
-        };
+        return new ExecutorServiceScheduler(executor);
     }
 }
