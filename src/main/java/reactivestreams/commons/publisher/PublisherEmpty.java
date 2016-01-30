@@ -15,10 +15,10 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+
+import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.util.EmptySubscription;
 
@@ -30,7 +30,7 @@ import reactivestreams.commons.util.EmptySubscription;
  */
 public final class PublisherEmpty 
 extends PublisherBase<Object>
-implements Supplier<Object>, Completable {
+implements Fuseable.ScalarSupplier<Object>, Completable {
 
     private static final Publisher<Object> INSTANCE = new PublisherEmpty();
 

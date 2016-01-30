@@ -3,6 +3,7 @@ package reactivestreams.commons.flow;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -173,5 +174,15 @@ public interface Fuseable {
         public final T element() {
             throw new UnsupportedOperationException("Operators should not use this method!");
         }
+    }
+    
+    /**
+     * Marker interface indicating that the target can return a value or null
+     * immediately and thus a viable target for assembly-time optimizations.
+     * 
+     * @param <T> the value type returned
+     */
+    interface ScalarSupplier<T> extends Supplier<T> {
+        
     }
 }

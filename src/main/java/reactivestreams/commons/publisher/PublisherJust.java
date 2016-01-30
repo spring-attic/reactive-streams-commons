@@ -1,15 +1,16 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
+
+import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.util.ScalarSubscription;
 
 public final class PublisherJust<T> 
 extends PublisherBase<T>
-implements Supplier<T>, Receiver {
+implements Fuseable.ScalarSupplier<T>, Receiver {
 
     final T value;
 
