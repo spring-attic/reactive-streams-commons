@@ -35,7 +35,7 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         }
     };
 
-    final Callable<Consumer<Runnable>> schedulerFactory;
+    final Callable<? extends Consumer<Runnable>> schedulerFactory;
     
     final boolean eagerCancel;
     
@@ -43,7 +43,7 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
     
     public PublisherSubscribeOnOther(
             Publisher<? extends T> source, 
-            Callable<Consumer<Runnable>> schedulerFactory,
+            Callable<? extends Consumer<Runnable>> schedulerFactory,
             boolean eagerCancel, 
             boolean requestOn) {
         super(source);

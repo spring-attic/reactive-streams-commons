@@ -39,7 +39,7 @@ public class PublisherObserveOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", exec);
-        ctb.addRef("schedulerFactory", (Callable<Consumer<Runnable>>)() -> r -> { });
+        ctb.addRef("schedulerFactory", (Callable<? extends Consumer<Runnable>>)() -> r -> { });
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
         ctb.addRef("queueSupplier", PublisherBase.defaultQueueSupplier());
         

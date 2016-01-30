@@ -23,11 +23,11 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
 
-    final Callable<Consumer<Runnable>> schedulerFactory;
+    final Callable<? extends Consumer<Runnable>> schedulerFactory;
     
     public PublisherSubscribeOn(
             Publisher<? extends T> source, 
-            Callable<Consumer<Runnable>> schedulerFactory) {
+            Callable<? extends Consumer<Runnable>> schedulerFactory) {
         super(source);
         this.schedulerFactory = Objects.requireNonNull(schedulerFactory, "schedulerFactory");
     }

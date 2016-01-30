@@ -20,7 +20,7 @@ public class PublisherSubscribeOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", ForkJoinPool.commonPool());
-        ctb.addRef("schedulerFactory", (Callable<Consumer<Runnable>>)() -> r -> { });
+        ctb.addRef("schedulerFactory", (Callable<? extends Consumer<Runnable>>)() -> r -> { });
         
         ctb.test();
     }
@@ -31,7 +31,7 @@ public class PublisherSubscribeOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", ForkJoinPool.commonPool());
-        ctb.addRef("schedulerFactory", (Callable<Consumer<Runnable>>)() -> r -> { });
+        ctb.addRef("schedulerFactory", (Callable<? extends Consumer<Runnable>>)() -> r -> { });
         
         ctb.test();
     }

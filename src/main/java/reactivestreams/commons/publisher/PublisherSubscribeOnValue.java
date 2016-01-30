@@ -18,12 +18,12 @@ final class PublisherSubscribeOnValue<T> extends PublisherBase<T> {
 
     final T value;
     
-    final Callable<Consumer<Runnable>> schedulerFactory;
+    final Callable<? extends Consumer<Runnable>> schedulerFactory;
 
     final boolean eagerCancel;
 
     public PublisherSubscribeOnValue(T value, 
-            Callable<Consumer<Runnable>> schedulerFactory, 
+            Callable<? extends Consumer<Runnable>> schedulerFactory, 
             boolean eagerCancel) {
         this.value = value;
         this.schedulerFactory = Objects.requireNonNull(schedulerFactory, "schedulerFactory");

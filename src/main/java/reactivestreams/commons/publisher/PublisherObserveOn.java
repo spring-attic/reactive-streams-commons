@@ -28,7 +28,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
 
-    final Callable<Consumer<Runnable>> schedulerFactory;
+    final Callable<? extends Consumer<Runnable>> schedulerFactory;
     
     final boolean delayError;
     
@@ -38,7 +38,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
     
     public PublisherObserveOn(
             Publisher<? extends T> source, 
-            Callable<Consumer<Runnable>> schedulerFactory, 
+            Callable<? extends Consumer<Runnable>> schedulerFactory, 
             boolean delayError,
             int prefetch,
             Supplier<? extends Queue<T>> queueSupplier) {
