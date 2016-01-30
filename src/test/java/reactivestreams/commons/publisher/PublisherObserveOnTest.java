@@ -366,4 +366,32 @@ public class PublisherObserveOnTest {
         .assertComplete();
 
     }
+
+    @Test
+    public void boundedQueueFilterLoop() {
+        for (int i = 0; i < 1000; i++) {
+//            if (i % 100 == 0) {
+//                System.out.println("-- " + i);
+//            }
+            boundedQueueFilter();
+        }
+    }
+    
+    @Test
+    public void boundedQueueFilter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new PublisherObserveOn<>(PublisherBase.range(1, 100_000).hide(),
+                PublisherBase.fromExecutor(exec), true, 128, () -> new SpscArrayQueue<>(128)
+        ).filter(v -> (v & 1) == 0)
+        .subscribe(ts);
+        
+        ts.await(1, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(50_000)
+        .assertNoError()
+        .assertComplete();
+
+    }
+
 }
