@@ -1,15 +1,25 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Fuseable.FusionMode;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledEmptySubscriptionEager;
+import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledSubscriptionEagerCancel;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits events on a different thread specified by a scheduler callback.
@@ -27,7 +37,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
     final int prefetch;
     
     public PublisherObserveOn(
-            Publisher<? extends T> source, Function<Runnable, Runnable> scheduler, 
+            Publisher<? extends T> source, 
+            Function<Runnable, Runnable> scheduler, 
             boolean delayError,
             int prefetch,
             Supplier<? extends Queue<T>> queueSupplier) {
@@ -41,29 +52,24 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
     }
 
-    public PublisherObserveOn(
-            Publisher<? extends T> source, 
-            ExecutorService executor, 
-            boolean delayError,
-            int prefetch,
-            Supplier<? extends Queue<T>> queueSupplier) {
-        super(source);
-        if (prefetch <= 0) {
-            throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
-        }
-        Objects.requireNonNull(executor, "executor");
-        this.scheduler = new ExecutorServiceWorker(executor);
-
-        this.delayError = delayError;
-        this.prefetch = prefetch;
-        this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
-    }
-
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        if (PublisherSubscribeOn.trySupplierScheduleOn(source, s, scheduler, true)) {
-            return;
+        if (source instanceof Supplier) {
+            @SuppressWarnings("unchecked")
+            Supplier<T> supplier = (Supplier<T>) source;
+            
+            T v = supplier.get();
+            
+            if (v == null) {
+                ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s);
+                s.onSubscribe(parent);
+                Runnable f = scheduler.apply(parent);
+                parent.setFuture(f);
+            } else {
+                s.onSubscribe(new ScheduledSubscriptionEagerCancel<>(s, v, scheduler));
+            }
         }
+        
         if (s instanceof Fuseable.ConditionalSubscriber) {
             Fuseable.ConditionalSubscriber<? super T> cs = (Fuseable.ConditionalSubscriber<? super T>) s;
             source.subscribe(new PublisherObserveOnConditionalSubscriber<>(cs, scheduler, delayError, prefetch, queueSupplier));
@@ -685,35 +691,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         @Override
         public void cancel() {
             run.run();
-        }
-    }
-
-    static class ExecutorServiceWorker implements Function<Runnable, Runnable> {
-
-        final ExecutorService executor;
-
-        public ExecutorServiceWorker(ExecutorService executor) {
-            this.executor = executor;
-        }
-
-        @Override
-        public Runnable apply(Runnable runnable) {
-            final Future<?> f = executor.submit(runnable);
-            return new CancelTask(f);
-        }
-
-        static class CancelTask implements Runnable {
-
-            private final Future<?> f;
-
-            public CancelTask(Future<?> f) {
-                this.f = f;
-            }
-
-            @Override
-            public void run() {
-                f.cancel(true);
-            }
         }
     }
 }
