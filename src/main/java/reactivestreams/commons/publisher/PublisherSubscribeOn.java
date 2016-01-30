@@ -398,9 +398,9 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             private static final long serialVersionUID = 2284024836904862408L;
             
             final long n;
-            final PublisherSubscribeOnClassic parent;
+            final PublisherSubscribeOnClassic<?> parent;
 
-            public ScheduledRequest(long n, PublisherSubscribeOnClassic parent) {
+            public ScheduledRequest(long n, PublisherSubscribeOnClassic<?> parent) {
                 this.n = n;
                 this.parent = parent;
             }
