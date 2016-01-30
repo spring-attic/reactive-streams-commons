@@ -634,6 +634,19 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return fromIterable(sources).flatMap(IDENTITY_FUNCTION);
     }
 
+    public static PublisherBase<Long> timer(long delay, TimeUnit unit, ScheduledExecutorService executor) {
+        return new PublisherTimer(delay, unit, executor);
+    }
+
+    public static PublisherBase<Long> interval(long period, TimeUnit unit, ScheduledExecutorService executor) {
+        return interval(period, period, unit, executor);
+    }
+
+    public static PublisherBase<Long> interval(long initialDelay,long period, TimeUnit unit, ScheduledExecutorService executor) {
+        return new PublisherInterval(initialDelay, period, unit, executor);
+    }
+
+    
     @SuppressWarnings("rawtypes")
     static final Function IDENTITY_FUNCTION = new Function() {
         @Override
@@ -647,8 +660,12 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new Function<Runnable, Runnable>() {
             @Override
             public Runnable apply(Runnable task) {
-                Future<?> f = executor.submit(task);
-                return () -> f.cancel(true);
+                // null indicates a terminal call
+                if (task != null) {
+                    Future<?> f = executor.submit(task);
+                    return () -> f.cancel(true);
+                }
+                return null;
             }
         };
     }

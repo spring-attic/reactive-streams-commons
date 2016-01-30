@@ -44,8 +44,11 @@ public final class PublisherInterval extends PublisherBase<Long> {
             TimeUnit unit, 
             ScheduledExecutorService executor, int dummy) {
         this(initialDelay, period, unit, (r, d) -> {
-            Future<?> f = executor.schedule(r, d, unit);
-            return () -> f.cancel(true);
+            if (r != null) {
+                Future<?> f = executor.schedule(r, d, unit);
+                return () -> f.cancel(true);
+            }
+            return null;
         }, () -> unit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS));
     }
 
@@ -150,6 +153,7 @@ public final class PublisherInterval extends PublisherBase<Long> {
                     a.run.run();
                 }
             }
+            asyncExecutor.apply(null, null);
         }
         
         public void setCancel(long index, Runnable r) {

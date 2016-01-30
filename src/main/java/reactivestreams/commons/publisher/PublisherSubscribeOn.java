@@ -50,7 +50,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             T v = supplier.get();
             
             if (v == null) {
-                ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s);
+                ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s, scheduler);
                 s.onSubscribe(parent);
                 Runnable f = scheduler.apply(parent);
                 parent.setFuture(f);
@@ -63,7 +63,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
         s.onSubscribe(parent);
         
-        Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source));
+        Runnable f = scheduler.apply(new SourceSubscribeTask<>(parent, source, scheduler));
         parent.setFuture(f);
     }
     
@@ -107,11 +107,13 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         
         @Override
         public void onError(Throwable t) {
+            scheduler.apply(null);
             actual.onError(t);
         }
         
         @Override
         public void onComplete() {
+            scheduler.apply(null);
             actual.onComplete();
         }
         
@@ -138,6 +140,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
                 }
             }
             dispose();
+            scheduler.apply(null);
         }
         
         void setFuture(Runnable run) {
@@ -314,24 +317,29 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
                     a.run();
                 }
             }
+            scheduler.apply(null);
         }
         
         @Override
         public void run() {
             actual.onNext(value);
+            scheduler.apply(null);
             actual.onComplete();
         }
     }
 
     static final class ScheduledEmptySubscriptionEager implements Subscription, Runnable {
         final Subscriber<?> actual;
-        
+
+        final Function<Runnable, Runnable> scheduler;
+
         volatile Runnable future;
         static final AtomicReferenceFieldUpdater<ScheduledEmptySubscriptionEager, Runnable> FUTURE =
                 AtomicReferenceFieldUpdater.newUpdater(ScheduledEmptySubscriptionEager.class, Runnable.class, "future");
 
-        public ScheduledEmptySubscriptionEager(Subscriber<?> actual) {
+        public ScheduledEmptySubscriptionEager(Subscriber<?> actual, Function<Runnable, Runnable> scheduler) {
             this.actual = actual;
+            this.scheduler = scheduler;
         }
         
         @Override
@@ -352,6 +360,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         
         @Override
         public void run() {
+            scheduler.apply(null);
             actual.onComplete();
         }
         
@@ -365,16 +374,23 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
     static final class SourceSubscribeTask<T> implements Runnable {
 
         final Subscriber<? super T> actual;
+        
         final Publisher<? extends T> source;
+        
+        final Function<Runnable, Runnable> scheduler;
 
-        public SourceSubscribeTask(Subscriber<? super T> s, Publisher<? extends T> source) {
+        public SourceSubscribeTask(Subscriber<? super T> s, Publisher<? extends T> source, Function<Runnable, Runnable> scheduler) {
             this.actual = s;
             this.source = source;
+            this.scheduler = scheduler;
         }
 
         @Override
         public void run() {
             source.subscribe(actual);
+            if (scheduler != null) {
+                scheduler.apply(null);
+            }
         }
     }
 }

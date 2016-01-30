@@ -24,8 +24,11 @@ public final class PublisherTimer extends PublisherBase<Long> {
         Objects.requireNonNull(unit, "unit");
         Objects.requireNonNull(executor, "executor");
         asyncExecutor = r -> {
-            Future<?> f = executor.schedule(r, delay, unit);
-            return () -> f.cancel(true);
+            if (r != null) {
+                Future<?> f = executor.schedule(r, delay, unit);
+                return () -> f.cancel(true);
+            }
+            return null;
         };
     }
     
@@ -35,7 +38,7 @@ public final class PublisherTimer extends PublisherBase<Long> {
     
     @Override
     public void subscribe(Subscriber<? super Long> s) {
-        PublisherTimerRunnable r = new PublisherTimerRunnable(s);
+        PublisherTimerRunnable r = new PublisherTimerRunnable(s, asyncExecutor);
         
         s.onSubscribe(r);
         
@@ -45,6 +48,8 @@ public final class PublisherTimer extends PublisherBase<Long> {
     static final class PublisherTimerRunnable implements Runnable, Subscription {
         final Subscriber<? super Long> s;
         
+        final Function<Runnable, ? extends Runnable> asyncExecutor;
+        
         volatile Runnable cancel;
         static final AtomicReferenceFieldUpdater<PublisherTimerRunnable, Runnable> CANCEL =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherTimerRunnable.class, Runnable.class, "cancel");
@@ -53,8 +58,9 @@ public final class PublisherTimer extends PublisherBase<Long> {
         
         volatile boolean requested;
 
-        public PublisherTimerRunnable(Subscriber<? super Long> s) {
+        public PublisherTimerRunnable(Subscriber<? super Long> s, Function<Runnable, ? extends Runnable> asyncExecutor) {
             this.s = s;
+            this.asyncExecutor = asyncExecutor;
         }
         
         public void setCancel(Runnable cancel) {
@@ -69,6 +75,7 @@ public final class PublisherTimer extends PublisherBase<Long> {
                 if (cancel != CANCELLED) {
                     s.onNext(0L);
                 }
+                asyncExecutor.apply(null);
                 if (cancel != CANCELLED) {
                     s.onComplete();
                 }
@@ -86,6 +93,7 @@ public final class PublisherTimer extends PublisherBase<Long> {
                     c.run();
                 }
             }
+            asyncExecutor.apply(null);
         }
         
         @Override
