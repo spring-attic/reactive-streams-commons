@@ -9,12 +9,10 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.publisher.PublisherSubscribeOn.PublisherSubscribeOnClassic;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledEmptySubscriptionEager;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledSubscriptionEagerCancel;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.SourceSubscribeTask;
-import reactivestreams.commons.publisher.PublisherSubscribeOn.SourceSubscribeTaskScheduled;
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -284,6 +282,27 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
             actual.onNext(value);
             scheduler.accept(null);
             actual.onComplete();
+        }
+    }
+
+    static final class SourceSubscribeTaskScheduled<T> implements Runnable {
+
+        final Subscriber<? super T> actual;
+
+        final Publisher<? extends T> source;
+
+        final Consumer<Runnable> scheduler;
+
+        public SourceSubscribeTaskScheduled(Subscriber<? super T> s, Publisher<? extends T> source, Consumer<Runnable> scheduler) {
+            this.actual = s;
+            this.source = source;
+            this.scheduler = scheduler;
+        }
+
+        @Override
+        public void run() {
+            source.subscribe(actual);
+            scheduler.accept(null);
         }
     }
 }

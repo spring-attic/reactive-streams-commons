@@ -9,7 +9,6 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -108,10 +107,10 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                scheduler.accept(() -> requestInner(n));
+                scheduler.accept(new RequestTask(n, this));
             }
         }
-        
+
         @Override
         public void cancel() {
             super.cancel();
@@ -120,6 +119,22 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         
         void requestInner(long n) {
             super.request(n);
+        }
+
+        static final class RequestTask implements Runnable {
+
+            final long n;
+            final PublisherSubscribeOnClassic parent;
+
+            public RequestTask(long n, PublisherSubscribeOnClassic parent) {
+                this.n = n;
+                this.parent = parent;
+            }
+
+            @Override
+            public void run() {
+                parent.requestInner(n);
+            }
         }
     }
     
@@ -209,24 +224,4 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class SourceSubscribeTaskScheduled<T> implements Runnable {
-
-        final Subscriber<? super T> actual;
-        
-        final Publisher<? extends T> source;
-        
-        final Consumer<Runnable> scheduler;
-
-        public SourceSubscribeTaskScheduled(Subscriber<? super T> s, Publisher<? extends T> source, Consumer<Runnable> scheduler) {
-            this.actual = s;
-            this.source = source;
-            this.scheduler = scheduler;
-        }
-
-        @Override
-        public void run() {
-            source.subscribe(actual);
-            scheduler.accept(null);
-        }
-    }
 }
