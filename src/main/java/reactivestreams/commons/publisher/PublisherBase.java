@@ -579,6 +579,10 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherIterable<>(iterable);
     }
 
+    public static <T> PublisherBase<T> fromCallable(Callable<? extends T> callable) {
+        return new PublisherCallable<>(callable);
+    }
+    
     @SafeVarargs
     public static <T, R> PublisherBase<R> zip(Function<? super Object[], ? extends R> zipper, Publisher<? extends T>... sources) {
         return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), BUFFER_SIZE);
@@ -599,5 +603,32 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     public static <T, R> PublisherBase<R> zipIterable(Iterable<? extends Publisher<? extends T>> sources, Function<? super Object[], ? extends R> zipper, int prefetch) {
         return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), prefetch);
     }
+    
+    @SafeVarargs
+    public static <T> PublisherBase<T> concatArray(Publisher<? extends T>... sources) {
+        return new PublisherConcatArray<>(sources);
+    }
 
+    public static <T> PublisherBase<T> concatIterable(Iterable<? extends Publisher<? extends T>> sources) {
+        return new PublisherConcatIterable<>(sources);
+    }
+
+    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    public static <T> PublisherBase<T> mergeArray(Publisher<? extends T>... sources) {
+        return fromArray(sources).flatMap(IDENTITY_FUNCTION);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> PublisherBase<T> mergeIterable(Iterable<? extends Publisher<? extends T>> sources) {
+        return fromIterable(sources).flatMap(IDENTITY_FUNCTION);
+    }
+
+    @SuppressWarnings("rawtypes")
+    static final Function IDENTITY_FUNCTION = new Function() {
+        @Override
+        public Object apply(Object t) {
+            return t;
+        }
+    };
 }

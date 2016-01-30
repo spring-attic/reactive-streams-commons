@@ -1,6 +1,7 @@
 package reactivestreams.commons.publisher;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.junit.*;
@@ -286,4 +287,18 @@ public class PublisherObserveOnTest {
         .assertComplete();
     }
 
+    @Test
+    public void callableEvaluatedTheRightTime() {
+        
+        AtomicInteger count = new AtomicInteger();
+        
+        PublisherBase<Integer> p = new PublisherCallable<>(() -> count.incrementAndGet()).observeOn(ForkJoinPool.commonPool());
+        
+        Assert.assertEquals(0, count.get());
+        
+        p.subscribe(new TestSubscriber<>());
+        
+        Assert.assertEquals(1, count.get());
+    }
+    
 }
