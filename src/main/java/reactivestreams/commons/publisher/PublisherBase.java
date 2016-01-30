@@ -468,7 +468,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     /* public */final PublisherBase<T> observeOn(ExecutorService executor, boolean delayError, int prefetch) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
-            T value = ((Supplier<T>)this).get();
+            T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), true);
         }
         return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier());
@@ -485,7 +485,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     /* public */final PublisherBase<T> observeOn(Function<Runnable, Runnable> executor, boolean delayError, int prefetch) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
-            T value = ((Supplier<T>)this).get();
+            T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, executor, true);
         }
         return new PublisherObserveOn<>(this, executor, delayError, prefetch, defaultQueueSupplier());
@@ -494,7 +494,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     /* public */final PublisherBase<T> subscribeOn(ExecutorService executor) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
-            T value = ((Supplier<T>)this).get();
+            T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), true);
         }
         return new PublisherSubscribeOn<>(this, fromExecutor(executor));
@@ -503,7 +503,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     /* public */final PublisherBase<T> subscribeOn(ExecutorService executor, boolean eagerCancel, boolean requestOn) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
-            T value = ((Supplier<T>)this).get();
+            T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), eagerCancel);
         }
         return new PublisherSubscribeOnOther<>(this, fromExecutor(executor), eagerCancel, requestOn);
@@ -512,7 +512,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
-            T value = ((Supplier<T>)this).get();
+            T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, scheduler, true);
         }
         return new PublisherSubscribeOn<>(this, scheduler);
@@ -521,7 +521,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     /* public */final PublisherBase<T> subscribeOn(Function<Runnable, Runnable> scheduler, boolean eagerCancel, boolean requestOn) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
-            T value = ((Supplier<T>)this).get();
+            T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, scheduler, eagerCancel);
         }
         return new PublisherSubscribeOnOther<>(this, scheduler, eagerCancel, requestOn);
