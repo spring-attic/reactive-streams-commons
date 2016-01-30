@@ -2,7 +2,7 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
 
@@ -18,12 +18,12 @@ final class PublisherSubscribeOnValue<T> extends PublisherBase<T> {
 
     final T value;
     
-    final Callable<Function<Runnable, Runnable>> schedulerFactory;
+    final Callable<Consumer<Runnable>> schedulerFactory;
 
     final boolean eagerCancel;
 
     public PublisherSubscribeOnValue(T value, 
-            Callable<Function<Runnable, Runnable>> schedulerFactory, 
+            Callable<Consumer<Runnable>> schedulerFactory, 
             boolean eagerCancel) {
         this.value = value;
         this.schedulerFactory = Objects.requireNonNull(schedulerFactory, "schedulerFactory");
@@ -32,7 +32,7 @@ final class PublisherSubscribeOnValue<T> extends PublisherBase<T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        Function<Runnable, Runnable> scheduler;
+        Consumer<Runnable> scheduler;
         
         try {
             scheduler = schedulerFactory.call();

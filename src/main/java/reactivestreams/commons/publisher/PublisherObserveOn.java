@@ -5,7 +5,7 @@ import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
@@ -28,7 +28,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
 
-    final Callable<Function<Runnable, Runnable>> schedulerFactory;
+    final Callable<Consumer<Runnable>> schedulerFactory;
     
     final boolean delayError;
     
@@ -38,7 +38,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
     
     public PublisherObserveOn(
             Publisher<? extends T> source, 
-            Callable<Function<Runnable, Runnable>> schedulerFactory, 
+            Callable<Consumer<Runnable>> schedulerFactory, 
             boolean delayError,
             int prefetch,
             Supplier<? extends Queue<T>> queueSupplier) {
@@ -55,7 +55,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
     @Override
     public void subscribe(Subscriber<? super T> s) {
         
-        Function<Runnable, Runnable> scheduler;
+        Consumer<Runnable> scheduler;
         
         try {
             scheduler = schedulerFactory.call();
@@ -79,7 +79,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             if (v == null) {
                 ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s, scheduler);
                 s.onSubscribe(parent);
-                scheduler.apply(parent);
+                scheduler.accept(parent);
             } else {
                 s.onSubscribe(new ScheduledSubscriptionEagerCancel<>(s, v, scheduler));
             }
@@ -99,7 +99,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         
         final Subscriber<? super T> actual;
         
-        final Function<Runnable, Runnable> scheduler;
+        final Consumer<Runnable> scheduler;
         
         final boolean delayError;
         
@@ -135,7 +135,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         
         public PublisherObserveOnSubscriber(
                 Subscriber<? super T> actual,
-                Function<Runnable, Runnable> scheduler,
+                Consumer<Runnable> scheduler,
                 boolean delayError,
                 int prefetch,
                 Supplier<? extends Queue<T>> queueSupplier) {
@@ -174,7 +174,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         } catch (Throwable e) {
                             ExceptionHelper.throwIfFatal(e);
                             s.cancel();
-                            scheduler.apply(null);
+                            scheduler.accept(null);
                             
                             EmptySubscription.error(actual, e);
                             return;
@@ -186,7 +186,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                     } catch (Throwable e) {
                         ExceptionHelper.throwIfFatal(e);
                         s.cancel();
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         
                         EmptySubscription.error(actual, e);
                         return;
@@ -242,7 +242,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             }
             
             cancelled = true;
-            scheduler.apply(null);
+            scheduler.accept(null);
             
             if (WIP.getAndIncrement(this) == 0) {
                 s.cancel();
@@ -254,7 +254,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
-            scheduler.apply(this);
+            scheduler.accept(this);
         }
         
         @Override
@@ -312,14 +312,14 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
                 s.cancel();
-                scheduler.apply(null);
+                scheduler.accept(null);
                 queue.clear();
                 return true;
             }
             if (d) {
                 if (delayError) {
                     if (empty) {
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         Throwable e = error;
                         if (e != null) {
                             a.onError(e);
@@ -331,13 +331,13 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 } else {
                     Throwable e = error;
                     if (e != null) {
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         queue.clear();
                         a.onError(e);
                         return true;
                     } else 
                     if (empty) {
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         a.onComplete();
                         return true;
                     }
@@ -353,7 +353,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         
         final Fuseable.ConditionalSubscriber<? super T> actual;
         
-        final Function<Runnable, Runnable> scheduler;
+        final Consumer<Runnable> scheduler;
         
         final boolean delayError;
         
@@ -389,7 +389,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         
         public PublisherObserveOnConditionalSubscriber(
                 Fuseable.ConditionalSubscriber<? super T> actual,
-                Function<Runnable, Runnable> scheduler,
+                Consumer<Runnable> scheduler,
                 boolean delayError,
                 int prefetch,
                 Supplier<? extends Queue<T>> queueSupplier) {
@@ -428,7 +428,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         } catch (Throwable e) {
                             ExceptionHelper.throwIfFatal(e);
                             s.cancel();
-                            scheduler.apply(null);
+                            scheduler.accept(null);
                             
                             EmptySubscription.error(actual, e);
                             return;
@@ -440,7 +440,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                     } catch (Throwable e) {
                         ExceptionHelper.throwIfFatal(e);
                         s.cancel();
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         
                         EmptySubscription.error(actual, e);
                         return;
@@ -496,7 +496,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             }
             
             cancelled = true;
-            scheduler.apply(null);
+            scheduler.accept(null);
             
             if (WIP.getAndIncrement(this) == 0) {
                 s.cancel();
@@ -509,7 +509,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 return;
             }
             
-            scheduler.apply(this);
+            scheduler.accept(this);
         }
         
         @Override
@@ -572,13 +572,13 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             if (cancelled) {
                 s.cancel();
                 queue.clear();
-                scheduler.apply(null);
+                scheduler.accept(null);
                 return true;
             }
             if (d) {
                 if (delayError) {
                     if (empty) {
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         Throwable e = error;
                         if (e != null) {
                             a.onError(e);
@@ -590,13 +590,13 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 } else {
                     Throwable e = error;
                     if (e != null) {
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         queue.clear();
                         a.onError(e);
                         return true;
                     } else 
                     if (empty) {
-                        scheduler.apply(null);
+                        scheduler.accept(null);
                         a.onComplete();
                         return true;
                     }

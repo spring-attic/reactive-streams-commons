@@ -4,7 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,7 +20,7 @@ public class PublisherSubscribeOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", ForkJoinPool.commonPool());
-        ctb.addRef("schedulerFactory", (Callable<Function<Runnable, Runnable>>)() -> r -> r);
+        ctb.addRef("schedulerFactory", (Callable<Consumer<Runnable>>)() -> r -> { });
         
         ctb.test();
     }
@@ -31,7 +31,7 @@ public class PublisherSubscribeOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", ForkJoinPool.commonPool());
-        ctb.addRef("schedulerFactory", (Callable<Function<Runnable, Runnable>>)() -> r -> r);
+        ctb.addRef("schedulerFactory", (Callable<Consumer<Runnable>>)() -> r -> { });
         
         ctb.test();
     }

@@ -3,7 +3,7 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
@@ -35,7 +35,7 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         }
     };
 
-    final Callable<Function<Runnable, Runnable>> schedulerFactory;
+    final Callable<Consumer<Runnable>> schedulerFactory;
     
     final boolean eagerCancel;
     
@@ -43,7 +43,7 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
     
     public PublisherSubscribeOnOther(
             Publisher<? extends T> source, 
-            Callable<Function<Runnable, Runnable>> schedulerFactory,
+            Callable<Consumer<Runnable>> schedulerFactory,
             boolean eagerCancel, 
             boolean requestOn) {
         super(source);
@@ -55,7 +55,7 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
     static <T> boolean trySupplierScheduleOn(
             Publisher<? extends T> p, 
             Subscriber<? super T> s, 
-            Function<Runnable, Runnable> scheduler,
+            Consumer<Runnable> scheduler,
             boolean eagerCancel) {
         if (p instanceof Supplier) {
             
@@ -71,15 +71,15 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         return false;
     }
     
-    static <T> void supplierScheduleOnSubscribe(T v, final Subscriber<? super T> s, Function<Runnable, Runnable>
+    static <T> void supplierScheduleOnSubscribe(T v, final Subscriber<? super T> s, Consumer<Runnable>
             scheduler, boolean eagerCancel) {
         if (v == null) {
             if (eagerCancel) {
                 ScheduledEmptySubscriptionEager parent = new ScheduledEmptySubscriptionEager(s, scheduler);
                 s.onSubscribe(parent);
-                scheduler.apply(parent);
+                scheduler.accept(parent);
             } else {
-                scheduler.apply(new Runnable() {
+                scheduler.accept(new Runnable() {
                     @Override
                     public void run() {
                         EmptySubscription.complete(s);
@@ -97,7 +97,7 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
     
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        Function<Runnable, Runnable> scheduler;
+        Consumer<Runnable> scheduler;
         
         try {
             scheduler = schedulerFactory.call();
@@ -120,18 +120,18 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
                 PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
                 s.onSubscribe(parent);
                 
-                scheduler.apply(new SourceSubscribeTask<>(parent, source));
+                scheduler.accept(new SourceSubscribeTask<>(parent, source));
             } else {
                 PublisherSubscribeOnEagerDirect<T> parent = new PublisherSubscribeOnEagerDirect<>(s, scheduler);
                 s.onSubscribe(parent);
                 
-                scheduler.apply(new SourceSubscribeTask<>(parent, source));
+                scheduler.accept(new SourceSubscribeTask<>(parent, source));
             }
         } else {
             if (requestOn) {
-                scheduler.apply(new SourceSubscribeTask<>(new PublisherSubscribeOnNonEager<>(s, scheduler), source));
+                scheduler.accept(new SourceSubscribeTask<>(new PublisherSubscribeOnNonEager<>(s, scheduler), source));
             } else {
-                scheduler.apply(new SourceSubscribeTaskScheduled<>(s, source, scheduler));
+                scheduler.accept(new SourceSubscribeTaskScheduled<>(s, source, scheduler));
             }
         }
     }
@@ -139,12 +139,12 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
     static final class PublisherSubscribeOnNonEager<T> implements Subscriber<T>, Subscription {
         final Subscriber<? super T> actual;
 
-        final Function<Runnable, Runnable> scheduler;
+        final Consumer<Runnable> scheduler;
         
         Subscription s;
         
         public PublisherSubscribeOnNonEager(Subscriber<? super T> actual,
-                Function<Runnable, Runnable> scheduler) {
+                Consumer<Runnable> scheduler) {
             this.actual = actual;
             this.scheduler = scheduler;
         }
@@ -166,25 +166,25 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         
         @Override
         public void onError(Throwable t) {
-            scheduler.apply(null);
+            scheduler.accept(null);
             actual.onError(t);
         }
         
         @Override
         public void onComplete() {
-            scheduler.apply(null);
+            scheduler.accept(null);
             actual.onComplete();
         }
         
         @Override
         public void request(final long n) {
-            scheduler.apply(new RequestTask(s, n));
+            scheduler.accept(new RequestTask(s, n));
         }
         
         @Override
         public void cancel() {
             s.cancel();
-            scheduler.apply(null);
+            scheduler.accept(null);
         }
 
         static final class RequestTask implements Runnable {
@@ -209,9 +209,9 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
     implements Subscriber<T> {
         final Subscriber<? super T> actual;
 
-        final Function<Runnable, Runnable> scheduler;
+        final Consumer<Runnable> scheduler;
 
-        public PublisherSubscribeOnEagerDirect(Subscriber<? super T> actual, Function<Runnable, Runnable> scheduler) {
+        public PublisherSubscribeOnEagerDirect(Subscriber<? super T> actual, Consumer<Runnable> scheduler) {
             this.actual = actual;
             this.scheduler = scheduler;
         }
@@ -228,20 +228,20 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         
         @Override
         public void onError(Throwable t) {
-            scheduler.apply(null);
+            scheduler.accept(null);
             actual.onError(t);
         }
         
         @Override
         public void onComplete() {
-            scheduler.apply(null);
+            scheduler.accept(null);
             actual.onComplete();
         }
         
         @Override
         public void cancel() {
             super.cancel();
-            scheduler.apply(null);
+            scheduler.accept(null);
         }
     }
     
@@ -251,14 +251,14 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         
         final T value;
         
-        final Function<Runnable, Runnable> scheduler;
+        final Consumer<Runnable> scheduler;
 
         volatile int once;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<ScheduledSubscriptionNonEagerCancel> ONCE =
                 AtomicIntegerFieldUpdater.newUpdater(ScheduledSubscriptionNonEagerCancel.class, "once");
 
-        public ScheduledSubscriptionNonEagerCancel(Subscriber<? super T> actual, T value, Function<Runnable, Runnable> scheduler) {
+        public ScheduledSubscriptionNonEagerCancel(Subscriber<? super T> actual, T value, Consumer<Runnable> scheduler) {
             this.actual = actual;
             this.value = value;
             this.scheduler = scheduler;
@@ -268,7 +268,7 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 if (ONCE.compareAndSet(this, 0, 1)) {
-                    scheduler.apply(this);
+                    scheduler.accept(this);
                 }
             }
         }
@@ -276,13 +276,13 @@ public final class PublisherSubscribeOnOther<T> extends PublisherSource<T, T> {
         @Override
         public void cancel() {
             once = 1;
-            scheduler.apply(null);
+            scheduler.accept(null);
         }
         
         @Override
         public void run() {
             actual.onNext(value);
-            scheduler.apply(null);
+            scheduler.accept(null);
             actual.onComplete();
         }
     }

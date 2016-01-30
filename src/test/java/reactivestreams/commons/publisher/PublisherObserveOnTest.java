@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -39,7 +39,7 @@ public class PublisherObserveOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", exec);
-        ctb.addRef("schedulerFactory", (Callable<Function<Runnable, Runnable>>)() -> r -> r);
+        ctb.addRef("schedulerFactory", (Callable<Consumer<Runnable>>)() -> r -> { });
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
         ctb.addRef("queueSupplier", PublisherBase.defaultQueueSupplier());
         

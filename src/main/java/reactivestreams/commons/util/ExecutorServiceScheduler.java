@@ -7,12 +7,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
  * An Rsc scheduler which uses a backing ExecutorService to schedule Runnables for async operators. 
  */
-public final class ExecutorServiceScheduler implements Callable<Function<Runnable, Runnable>> {
+public final class ExecutorServiceScheduler implements Callable<Consumer<Runnable>> {
 
     static final Runnable EMPTY = new Runnable() {
         @Override
@@ -32,11 +32,11 @@ public final class ExecutorServiceScheduler implements Callable<Function<Runnabl
     }
     
     @Override
-    public Function<Runnable, Runnable> call() throws Exception {
+    public Consumer<Runnable> call() throws Exception {
         return new ExecutorServiceWorker(executor);
     }
 
-    static final class ExecutorServiceWorker implements Function<Runnable, Runnable> {
+    static final class ExecutorServiceWorker implements Consumer<Runnable> {
         
         final ExecutorService executor;
         
@@ -50,20 +50,16 @@ public final class ExecutorServiceScheduler implements Callable<Function<Runnabl
         }
         
         @Override
-        public Runnable apply(Runnable t) {
+        public void accept(Runnable t) {
             if (t == null) {
                 terminate();
-                return EMPTY;
             }
             
             ScheduledRunnable sr = new ScheduledRunnable(t, this);
             if (add(sr)) {
-                Future<?> f = executor.submit(sr::runTask);
+                Future<?> f = executor.submit(sr);
                 sr.setFuture(f);
-                return sr;
             }
-            
-            return EMPTY;
         }
         
         boolean add(ScheduledRunnable sr) {
@@ -97,6 +93,7 @@ public final class ExecutorServiceScheduler implements Callable<Function<Runnabl
                     }
                     coll = tasks;
                     tasks = null;
+                    terminated = true;
                 }
                 for (ScheduledRunnable sr : coll) {
                     sr.cancelFuture();
@@ -120,7 +117,8 @@ public final class ExecutorServiceScheduler implements Callable<Function<Runnabl
             this.parent = parent;
         }
         
-        public void runTask() {
+        @Override
+        public void run() {
             try {
                 try {
                     task.run();
@@ -141,23 +139,6 @@ public final class ExecutorServiceScheduler implements Callable<Function<Runnabl
             }
         }
         
-        @Override
-        public void run() {
-            for (;;) {
-                Future<?> a = get();
-                if (a == FINISHED) {
-                    return;
-                }
-                if (compareAndSet(a, CANCELLED)) {
-                    if (a != null) {
-                        a.cancel(true);
-                    }
-                    parent.delete(this);
-                    return;
-                }
-            }
-        }
-
         void cancelFuture() {
             for (;;) {
                 Future<?> a = get();
