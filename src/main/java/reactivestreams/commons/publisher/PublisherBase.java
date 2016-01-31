@@ -30,6 +30,7 @@ import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.util.ExecutorServiceScheduler;
+import reactivestreams.commons.util.SpscArrayQueue;
 
 /**
  * Experimental base class with fluent API.
@@ -55,8 +56,16 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     };
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    static <T> Supplier<Queue<T>> defaultQueueSupplier() {
-        return (Supplier)QUEUE_SUPPLIER;
+    static <T> Supplier<Queue<T>> defaultQueueSupplier(final int capacity) {
+        if (capacity == Integer.MAX_VALUE) {
+            return (Supplier)QUEUE_SUPPLIER;
+        }
+        return new Supplier<Queue<T>>() {
+            @Override
+            public Queue<T> get() {
+                return new SpscArrayQueue<>(capacity);
+            }
+        };
     }
     
     public final <R> PublisherBase<R> map(Function<? super T, ? extends R> mapper) {
@@ -90,7 +99,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <R> PublisherBase<R> switchMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
-        return new PublisherSwitchMap<>(this, mapper, defaultQueueSupplier(), BUFFER_SIZE);
+        return new PublisherSwitchMap<>(this, mapper, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE);
     }
     
     public final PublisherBase<T> retryWhen(Function<? super PublisherBase<Throwable>, ? extends Publisher<? extends Object>> whenFunction) {
@@ -118,15 +127,15 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     public final <U, V, C extends Collection<? super T>> PublisherBase<C> buffer(
             Publisher<U> start, Function<? super U, ? extends Publisher<V>> end, 
                     Supplier<C> bufferSupplier) {
-        return new PublisherBufferStartEnd<>(this, start, end, bufferSupplier, defaultQueueSupplier());
+        return new PublisherBufferStartEnd<>(this, start, end, bufferSupplier, defaultQueueSupplier(Integer.MAX_VALUE));
     }
 
     public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other) {
-        return new PublisherWindowBoundary<>(this, other, defaultQueueSupplier(), defaultQueueSupplier());
+        return new PublisherWindowBoundary<>(this, other, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE));
     }
 
     public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other, int maxSize) {
-        return new PublisherWindowBoundaryAndSize<>(this, other, defaultQueueSupplier(), defaultQueueSupplier(), maxSize);
+        return new PublisherWindowBoundaryAndSize<>(this, other, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE), maxSize);
     }
 
     public final PublisherBase<T> accumulate(BiFunction<T, ? super T, T> accumulator) {
@@ -326,11 +335,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U, V> PublisherBase<PublisherBase<T>> window(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
-        return new PublisherWindowStartEnd<>(this, start, end, defaultQueueSupplier(), defaultQueueSupplier());
+        return new PublisherWindowStartEnd<>(this, start, end, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE));
     }
 
     public final <U, V> PublisherBase<PublisherBase<T>> window2(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
-        return new PublisherWindowBeginEnd<>(this, start, end, defaultQueueSupplier(), BUFFER_SIZE);
+        return new PublisherWindowBeginEnd<>(this, start, end, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE);
     }
 
     public final PublisherBase<T> takeLast(int n) {
@@ -370,7 +379,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U> PublisherBase<T> throttleTimeout(Function<? super T, ? extends Publisher<U>> throttler) {
-        return new PublisherThrottleTimeout<>(this, throttler, defaultQueueSupplier());
+        return new PublisherThrottleTimeout<>(this, throttler, defaultQueueSupplier(Integer.MAX_VALUE));
     }
     
     public final Iterable<T> toIterable() {
@@ -378,7 +387,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final Iterable<T> toIterable(long batchSize) {
-        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier());
+        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier(Integer.MAX_VALUE));
     }
     
     public final Stream<T> stream() {
@@ -386,7 +395,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final Stream<T> stream(long batchSize) {
-        return new BlockingStream<>(this, batchSize, defaultQueueSupplier()).stream();
+        return new BlockingStream<>(this, batchSize, defaultQueueSupplier(Integer.MAX_VALUE)).stream();
     }
 
     public final Stream<T> parallelStream() {
@@ -394,7 +403,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final Stream<T> parallelStream(long batchSize) {
-        return new BlockingStream<>(this, batchSize, defaultQueueSupplier()).parallelStream();
+        return new BlockingStream<>(this, batchSize, defaultQueueSupplier(Integer.MAX_VALUE)).parallelStream();
     }
 
     public final Future<T> toFuture() {
@@ -414,11 +423,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U> PublisherBase<List<T>> buffer(Publisher<U> other, int maxSize) {
-        return new PublisherBufferBoundaryAndSize<>(this, other, () -> new ArrayList<>(), maxSize, defaultQueueSupplier());
+        return new PublisherBufferBoundaryAndSize<>(this, other, () -> new ArrayList<>(), maxSize, defaultQueueSupplier(Integer.MAX_VALUE));
     }
 
     public final <U, C extends Collection<? super T>> PublisherBase<C> buffer(Publisher<U> other, int maxSize, Supplier<C> bufferSupplier) {
-        return new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultQueueSupplier());
+        return new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultQueueSupplier(Integer.MAX_VALUE));
     }
 
     @Override
@@ -444,7 +453,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> PublisherBase<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency, int prefetch) {
-        return new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(), prefetch, defaultQueueSupplier());
+        return new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(maxConcurrency), prefetch, defaultQueueSupplier(prefetch));
     }
 
     @SuppressWarnings("unchecked")
@@ -475,7 +484,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> PublisherBase<R> concatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, PublisherConcatMap.ErrorMode errorMode, int prefetch) {
-        return new PublisherConcatMap<>(this, mapper, defaultQueueSupplier(), prefetch, errorMode);
+        return new PublisherConcatMap<>(this, mapper, defaultQueueSupplier(Integer.MAX_VALUE), prefetch, errorMode);
     }
 
     /* public */final PublisherBase<T> observeOn(ExecutorService executor) {
@@ -492,7 +501,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), true);
         }
-        return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier());
+        return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier(prefetch));
     }
 
     /* public */final PublisherBase<T> observeOn(Callable<? extends Consumer<Runnable>> schedulerFactory) {
@@ -509,7 +518,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
             return new PublisherSubscribeOnValue<>(value, schedulerFactory, true);
         }
-        return new PublisherObserveOn<>(this, schedulerFactory, delayError, prefetch, defaultQueueSupplier());
+        return new PublisherObserveOn<>(this, schedulerFactory, delayError, prefetch, defaultQueueSupplier(prefetch));
     }
 
     /* public */final PublisherBase<T> subscribeOn(ExecutorService executor) {
@@ -616,7 +625,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     
     @SafeVarargs
     public static <T, R> PublisherBase<R> zip(Function<? super Object[], ? extends R> zipper, Publisher<? extends T>... sources) {
-        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), BUFFER_SIZE);
+        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
     
     public static <T, R> PublisherBase<R> zipArray(Publisher<? extends T>[] sources, Function<? super Object[], ? extends R> zipper) {
@@ -628,11 +637,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public static <T, R> PublisherBase<R> zipArray(Publisher<? extends T>[] sources, Function<? super Object[], ? extends R> zipper, int prefetch) {
-        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), prefetch);
+        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch);
     }
 
     public static <T, R> PublisherBase<R> zipIterable(Iterable<? extends Publisher<? extends T>> sources, Function<? super Object[], ? extends R> zipper, int prefetch) {
-        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(), prefetch);
+        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch);
     }
     
     @SafeVarargs

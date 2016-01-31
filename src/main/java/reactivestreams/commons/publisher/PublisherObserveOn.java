@@ -105,6 +105,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         
         final int prefetch;
         
+        final int limit;
+        
         final Supplier<? extends Queue<T>> queueSupplier;
         
         Subscription s;
@@ -133,6 +135,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         static final int SYNC = 1;
         static final int ASYNC = 2;
         
+        long produced;
+        
         public PublisherObserveOnSubscriber(
                 Subscriber<? super T> actual,
                 Consumer<Runnable> scheduler,
@@ -144,6 +148,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             this.delayError = delayError;
             this.prefetch = prefetch;
             this.queueSupplier = queueSupplier;
+            if (prefetch != Integer.MAX_VALUE) {
+                this.limit = prefetch - (prefetch >> 2);
+            } else {
+                this.limit = Integer.MAX_VALUE;
+            }
         }
         
         @Override
@@ -261,17 +270,72 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             scheduler.accept(this);
         }
         
-        @Override
-        public void run() {
+        void runSync() {
             int missed = 1;
             
             final Subscriber<? super T> a = actual;
             final Queue<T> q = queue;
-            
+
+            long e = produced;
+
             for (;;) {
                 
                 long r = requested;
-                long e = 0;
+                
+                while (e != r) {
+                    T v = q.poll();
+
+                    if (cancelled) {
+                        scheduler.accept(null);
+                        return;
+                    }
+                    if (v == null) {
+                        scheduler.accept(null);
+                        a.onComplete();
+                        return;
+                    }
+                    
+                    a.onNext(v);
+                    
+                    e++;
+                }
+                
+                if (e == r) {
+                    if (cancelled) {
+                        scheduler.accept(null);
+                        return;
+                    }
+                    if (q.isEmpty()) {
+                        scheduler.accept(null);
+                        a.onComplete();
+                        return;
+                    }
+                }
+
+                int w = wip;
+                if (missed == w) {
+                    produced = e;
+                    missed = WIP.addAndGet(this, -missed);
+                    if (missed == 0) {
+                        break;
+                    }
+                } else {
+                    missed = w;
+                }
+            }
+        }
+        
+        void runAsync() {
+            int missed = 1;
+            
+            final Subscriber<? super T> a = actual;
+            final Queue<T> q = queue;
+
+            long e = produced;
+
+            for (;;) {
+                
+                long r = requested;
                 
                 while (e != r) {
                     boolean d = done;
@@ -289,6 +353,13 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                     a.onNext(v);
                     
                     e++;
+                    if (e == limit) {
+                        if (r != Long.MAX_VALUE) {
+                            r = REQUESTED.addAndGet(this, -e);
+                        }
+                        s.request(e);
+                        e = 0L;
+                    }
                 }
                 
                 if (e == r) {
@@ -297,19 +368,25 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                     }
                 }
                 
-                if (e != 0L) {
-                    if (sourceMode != SYNC) {
-                        s.request(e);
+                int w = wip;
+                if (missed == w) {
+                    produced = e;
+                    missed = WIP.addAndGet(this, -missed);
+                    if (missed == 0) {
+                        break;
                     }
-                    if (r != Long.MAX_VALUE) {
-                        REQUESTED.addAndGet(this, -e);
-                    }
+                } else {
+                    missed = w;
                 }
-                
-                missed = WIP.addAndGet(this, -missed);
-                if (missed == 0) {
-                    break;
-                }
+            }
+        }
+        
+        @Override
+        public void run() {
+            if (sourceMode == SYNC) {
+                runSync();
+            } else {
+                runAsync();
             }
         }
         
@@ -363,6 +440,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         
         final int prefetch;
         
+        final int limit;
+
         final Supplier<? extends Queue<T>> queueSupplier;
         
         Subscription s;
@@ -390,6 +469,10 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         static final int NORMAL = 0;
         static final int SYNC = 1;
         static final int ASYNC = 2;
+
+        long produced;
+        
+        long consumed;
         
         public PublisherObserveOnConditionalSubscriber(
                 Fuseable.ConditionalSubscriber<? super T> actual,
@@ -402,6 +485,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             this.delayError = delayError;
             this.prefetch = prefetch;
             this.queueSupplier = queueSupplier;
+            if (prefetch != Integer.MAX_VALUE) {
+                this.limit = prefetch - (prefetch >> 2);
+            } else {
+                this.limit = Integer.MAX_VALUE;
+            }
         }
         
         @Override
@@ -520,20 +608,75 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             scheduler.accept(this);
         }
         
-        @Override
-        public void run() {
+        void runSync() {
+            int missed = 1;
+            
+            final Fuseable.ConditionalSubscriber<? super T> a = actual;
+            final Queue<T> q = queue;
+
+            long e = produced;
+
+            for (;;) {
+                
+                long r = requested;
+                
+                while (e != r) {
+                    T v = q.poll();
+
+                    if (cancelled) {
+                        scheduler.accept(null);
+                        return;
+                    }
+                    if (v == null) {
+                        scheduler.accept(null);
+                        a.onComplete();
+                        return;
+                    }
+                    
+                    if (a.tryOnNext(v)) {
+                        e++;
+                    }
+                }
+                
+                if (e == r) {
+                    if (cancelled) {
+                        scheduler.accept(null);
+                        return;
+                    }
+                    if (q.isEmpty()) {
+                        scheduler.accept(null);
+                        a.onComplete();
+                        return;
+                    }
+                }
+
+                int w = wip;
+                if (missed == w) {
+                    produced = e;
+                    missed = WIP.addAndGet(this, -missed);
+                    if (missed == 0) {
+                        break;
+                    }
+                } else {
+                    missed = w;
+                }
+            }
+        }
+        
+        void runAsync() {
             int missed = 1;
             
             final Fuseable.ConditionalSubscriber<? super T> a = actual;
             final Queue<T> q = queue;
             
+            long emitted = produced;
+            long polled = consumed;
+            
             for (;;) {
                 
                 long r = requested;
-                long e = 0L;
-                long f = 0L;
                 
-                while (e != r) {
+                while (emitted != r) {
                     boolean d = done;
                     T v = q.poll();
                     boolean empty = v == null;
@@ -545,34 +688,46 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                     if (empty) {
                         break;
                     }
-                    
+
                     if (a.tryOnNext(v)) {
-                        e++;
+                        emitted++;
                     }
-                    f++;
+                    
+                    polled++;
+                    
+                    if (polled == limit) {
+                        s.request(polled);
+                        polled = 0L;
+                    }
                 }
                 
-                if (e == r) {
+                if (emitted == r) {
                     if (checkTerminated(done, q.isEmpty(), a)) {
                         return;
                     }
                 }
                 
-                if (f != 0L) {
-                    if (sourceMode != SYNC) {
-                        s.request(f);
+                int w = wip;
+                if (missed == w) {
+                    produced = emitted;
+                    consumed = polled;
+                    missed = WIP.addAndGet(this, -missed);
+                    if (missed == 0) {
+                        break;
                     }
+                } else {
+                    missed = w;
                 }
-                if (e != 0L) {
-                    if (r != Long.MAX_VALUE) {
-                        REQUESTED.addAndGet(this, -e);
-                    }
-                }
-                
-                missed = WIP.addAndGet(this, -missed);
-                if (missed == 0) {
-                    break;
-                }
+            }
+
+        }
+        
+        @Override
+        public void run() {
+            if (sourceMode == SYNC) {
+                runSync();
+            } else {
+                runAsync();
             }
         }
         

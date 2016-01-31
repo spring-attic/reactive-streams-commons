@@ -158,9 +158,9 @@ public class PublisherFilterTest {
                 w -> up.filter(v -> (v & 1) == 0),
                 false,
                 1,
-                PublisherBase.defaultQueueSupplier(),
+                PublisherBase.defaultQueueSupplier(Integer.MAX_VALUE),
                 1,
-                PublisherBase.defaultQueueSupplier()
+                PublisherBase.defaultQueueSupplier(Integer.MAX_VALUE)
         )
         .subscribe(ts);
         

@@ -41,7 +41,7 @@ public class PublisherObserveOnTest {
         ctb.addRef("executor", exec);
         ctb.addRef("schedulerFactory", (Callable<? extends Consumer<Runnable>>)() -> r -> { });
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
-        ctb.addRef("queueSupplier", PublisherBase.defaultQueueSupplier());
+        ctb.addRef("queueSupplier", PublisherBase.defaultQueueSupplier(Integer.MAX_VALUE));
         
         ctb.test();
     }
@@ -55,6 +55,33 @@ public class PublisherObserveOnTest {
         ts.await(5, TimeUnit.SECONDS);
         
         ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void normalBackpressured1() throws Exception {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase.range(1, 1_000).hide().observeOn(exec).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500);
+        
+        Thread.sleep(250);
+        
+        ts.assertValueCount(500)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(500);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(1_000)
         .assertNoError()
         .assertComplete();
     }
@@ -270,6 +297,19 @@ public class PublisherObserveOnTest {
     }
 
     @Test
+    public void filtered1() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 2_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(1000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
     public void normalFilteredBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
@@ -292,6 +332,33 @@ public class PublisherObserveOnTest {
         ts.await(5, TimeUnit.SECONDS);
         
         ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void normalFilteredBackpressured1() throws Exception {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase.range(1, 2_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(500);
+        
+        Thread.sleep(250);
+        
+        ts.assertValueCount(500)
+        .assertNoError()
+        .assertNotComplete();
+
+        ts.request(500);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(1_000)
         .assertNoError()
         .assertComplete();
     }
@@ -397,10 +464,10 @@ public class PublisherObserveOnTest {
 
     @Test
     public void withFlatMapLoop() {
-        for (int i = 0; i < 1000; i++) {
-            if (i % 100 == 0) {
-                System.out.println("-- " + i);
-            }
+        for (int i = 0; i < 200; i++) {
+//            if (i % 100 == 0) {
+//                System.out.println("-- " + i);
+//            }
             withFlatMap();
         }
     }
