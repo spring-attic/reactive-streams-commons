@@ -383,7 +383,15 @@ public class PublisherObserveOnTest {
             prefetchAmountOnly();
         }
     }
+
     @Test
+    public void diamondLoop() {
+        for(int i = 0; i < 100000; i++){
+            diamond();
+        }
+    }
+
+
     public void diamond() {
 
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
