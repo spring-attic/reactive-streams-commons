@@ -7,6 +7,11 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
+/**
+ * A bounded, array backed, single-producer single-consumer queue.
+ * 
+ * @param <T> the value type
+ */
 public final class SpscArrayQueue<T> extends AtomicReferenceArray<T> implements Queue<T> {
     /** */
     private static final long serialVersionUID = 494623116936946976L;
