@@ -27,7 +27,7 @@ import reactivestreams.commons.util.SpscArrayQueue;
 /**
  * Example benchmark. Run from command line as
  * <br>
- * gradle jmh -Pjmh='HotMapScanPerfPerf'
+ * gradle jmh -Pjmh='RangeFlatMapObserveOnPerf'
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)

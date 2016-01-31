@@ -13,7 +13,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
+import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
@@ -368,7 +368,7 @@ public class PublisherObserveOnTest {
         
         AtomicInteger count = new AtomicInteger();
         
-        PublisherBase<Integer> p = new PublisherCallable<>(() -> count.incrementAndGet()).observeOn(ForkJoinPool.commonPool());
+        PublisherBase<Integer> p = new PublisherCallable<>(count::incrementAndGet).observeOn(ForkJoinPool.commonPool());
         
         Assert.assertEquals(0, count.get());
         
@@ -382,6 +382,26 @@ public class PublisherObserveOnTest {
         for (int i = 0; i < 100000; i++) {
             prefetchAmountOnly();
         }
+    }
+    @Test
+    public void diamond() {
+
+        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase<Integer> fork1 = sp.map(d -> d).observeOn(exec);
+        PublisherBase<Integer> fork2 = sp.map(d -> d).observeOn(exec);
+
+        ts.request(256);
+        PublisherBase.mergeArray(fork1, fork2).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
+
+
+        new PublisherRange(0, 128).hide().observeOn(ForkJoinPool.commonPool()).subscribe(sp);
+
+        ts.await();
+        ts.assertValueCount(256)
+          .assertNoError()
+          .assertComplete();
     }
     
     @Test

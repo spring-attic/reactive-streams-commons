@@ -78,7 +78,7 @@ public interface Fuseable {
     /**
      * Indicates what fusion mode the QueueSubscription can support.
      */
-    public enum FusionMode {
+    enum FusionMode {
         /** Indicates the QueueSubscription can't support the requested mode. */
         NONE,
         /** Indicates the QueueSubscription can perform sync-fusion. */
