@@ -395,4 +395,26 @@ public class PublisherObserveOnTest {
 
     }
 
+    @Test
+    public void withFlatMapLoop() {
+        for (int i = 0; i < 1000; i++) {
+            if (i % 100 == 0) {
+                System.out.println("-- " + i);
+            }
+            withFlatMap();
+        }
+    }
+
+    
+    @Test
+    public void withFlatMap() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 100_000).flatMap(PublisherBase::just).observeOn(exec).subscribe(ts);
+        
+        ts.await(5, TimeUnit.SECONDS);
+        ts.assertValueCount(100_000)
+        .assertNoError()
+        .assertComplete();
+    }
 }
