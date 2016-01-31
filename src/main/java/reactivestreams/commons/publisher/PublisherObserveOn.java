@@ -195,7 +195,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 
                 actual.onSubscribe(this);
                 
-                s.request(prefetch);
+                if (prefetch == Integer.MAX_VALUE) {
+                    s.request(Long.MAX_VALUE);
+                } else {
+                    s.request(prefetch);
+                }
             }
         }
         
@@ -449,7 +453,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 
                 actual.onSubscribe(this);
                 
-                s.request(prefetch);
+                if (prefetch == Integer.MAX_VALUE) {
+                    s.request(Long.MAX_VALUE);
+                } else {
+                    s.request(prefetch);
+                }
             }
         }
         
