@@ -7,8 +7,9 @@ import java.util.function.*;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.*;
 
 public class PublisherZipTest {
 
@@ -426,6 +427,64 @@ public class PublisherZipTest {
         ts.assertNoValues()
         .assertNoError()
         .assertComplete();
+    }
+
+    @Test
+    public void syncFusionMapToNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 10)
+        .<Integer, Integer>zipWith(PublisherBase.range(1, 2).map(v -> v == 2 ? null : v), (a, b) -> a + b).subscribe(ts);
+        
+        ts.assertValue(2)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void syncFusionMapToNullFilter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 10)
+        .<Integer, Integer>zipWith(PublisherBase.range(1, 2).map(v -> v == 2 ? null : v).filter(v -> true), (a, b) -> a + b).subscribe(ts);
+        
+        ts.assertValue(2)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void asyncFusionMapToNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        up.onNext(1);
+        up.onNext(2);
+        up.onComplete();
+        
+        PublisherBase.range(1, 10)
+        .<Integer, Integer>zipWith(up.map(v -> v == 2 ? null : v), (a, b) -> a + b).subscribe(ts);
+        
+        ts.assertValue(2)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void asyncFusionMapToNullFilter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        up.onNext(1);
+        up.onNext(2);
+        up.onComplete();
+
+        PublisherBase.range(1, 10)
+        .<Integer, Integer>zipWith(up.map(v -> v == 2 ? null : v).filter(v -> true), (a, b) -> a + b).subscribe(ts);
+        
+        ts.assertValue(2)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
     }
 
 }

@@ -666,7 +666,26 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
 
                         boolean d = inner.done;
                         Queue<T> q = inner.queue;
-                        boolean f = q == null || q.isEmpty();
+                        boolean f;
+                        
+                        if (q != null) {
+                            try {
+                                f = q.isEmpty();
+                            } catch (Throwable ex) {
+                                ExceptionHelper.throwIfFatal(ex);
+                                
+                                cancelAll();
+                                
+                                ExceptionHelper.addThrowable(ERROR, this, ex);
+                                ex = ExceptionHelper.terminate(ERROR, this);
+                                
+                                a.onError(ex);
+                                
+                                return;
+                            }
+                        } else {
+                            f = true;
+                        }
 
                         if (d && f) {
                             done = true;
@@ -693,7 +712,20 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
 
                     for (int j = 0; j < n; j++) {
                         PublisherZipInner<T> inner = qs[j];
-                        values[j] = inner.queue.poll();
+                        try {
+                            values[j] = inner.queue.poll();
+                        } catch (Throwable ex) {
+                            ExceptionHelper.throwIfFatal(ex);
+                            
+                            cancelAll();
+                            
+                            ExceptionHelper.addThrowable(ERROR, this, ex);
+                            ex = ExceptionHelper.terminate(ERROR, this);
+                            
+                            a.onError(ex);
+                            
+                            return;
+                        }
                     }
                     
                     R v;
@@ -753,7 +785,26 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
 
                         boolean d = inner.done;
                         Queue<T> q = inner.queue;
-                        boolean f = q == null || q.isEmpty();
+                        boolean f;
+                        
+                        if (q != null) {
+                            try {
+                                f = q.isEmpty();
+                            } catch (Throwable ex) {
+                                ExceptionHelper.throwIfFatal(ex);
+                                
+                                cancelAll();
+                                
+                                ExceptionHelper.addThrowable(ERROR, this, ex);
+                                ex = ExceptionHelper.terminate(ERROR, this);
+                                
+                                a.onError(ex);
+                                
+                                return;
+                            }
+                        } else {
+                            f = true;
+                        }
                         if (d && f) {
                             done = true;
                             break;

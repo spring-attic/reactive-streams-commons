@@ -8,10 +8,11 @@ import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import reactivestreams.commons.processor.SimpleProcessor;
+
+import reactivestreams.commons.processor.*;
 import reactivestreams.commons.publisher.PublisherConcatMap.ErrorMode;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.*;
 
 public class PublisherConcatMapTest {
 
@@ -393,5 +394,60 @@ public class PublisherConcatMapTest {
         Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
     }
 
+
+    @Test
+    public void syncFusionMapToNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 2).map(v -> v == 2 ? null : v).concatMap(PublisherBase::just).subscribe(ts);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void syncFusionMapToNullFilter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 2).map(v -> v == 2 ? null : v).filter(v -> true).concatMap(PublisherBase::just).subscribe(ts);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void asyncFusionMapToNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        up.onNext(1);
+        up.onNext(2);
+        up.onComplete();
+        
+        up.map(v -> v == 2 ? null : v).concatMap(PublisherBase::just).subscribe(ts);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void asyncFusionMapToNullFilter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        up.onNext(1);
+        up.onNext(2);
+        up.onComplete();
+
+
+        up.map(v -> v == 2 ? null : v).filter(v -> true).concatMap(PublisherBase::just).subscribe(ts);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
     
 }
