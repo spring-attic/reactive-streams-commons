@@ -582,7 +582,21 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                                 }
                                 
                                 if (e == r) {
-                                    if (d && q.isEmpty()) {
+                                    boolean empty;
+                                    
+                                    try {
+                                        empty = q.isEmpty();
+                                    } catch (Throwable ex) {
+                                        ExceptionHelper.throwIfFatal(ex);
+                                        inner.cancel();
+                                        if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                                            UnsignalledExceptions.onErrorDropped(ex);
+                                        }
+                                        empty = true;
+                                        d = true;
+                                    }
+                                    
+                                    if (d && empty) {
                                         remove(inner);
                                         again = true;
                                         replenishMain++;

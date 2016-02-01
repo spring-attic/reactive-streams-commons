@@ -202,7 +202,11 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
             T v = s.poll();
             if (v != null) {
-                return mapper.apply(v);
+                R u = mapper.apply(v);
+                if (u == null) {
+                    throw new NullPointerException();
+                }
+                return u;
             }
             return null;
         }
@@ -212,7 +216,11 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
             T v = s.peek();
             if (v != null) {
-                return mapper.apply(v);
+                R u = mapper.apply(v);
+                if (u == null) {
+                    throw new NullPointerException();
+                }
+                return u;
             }
             return null;
         }
@@ -414,7 +422,11 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
             T v = s.poll();
             if (v != null) {
-                return mapper.apply(v);
+                R u = mapper.apply(v);
+                if (u == null) {
+                    throw new NullPointerException();
+                }
+                return u;
             }
             return null;
         }
@@ -424,7 +436,11 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
             // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
             T v = s.peek();
             if (v != null) {
-                return mapper.apply(v);
+                R u = mapper.apply(v);
+                if (u == null) {
+                    throw new NullPointerException();
+                }
+                return u;
             }
             return null;
         }

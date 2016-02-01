@@ -629,4 +629,25 @@ public class PublisherFlatMapTest {
         .assertComplete();
     }
 
+    @Test
+    public void innerSyncMapToNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.just(1).hide().flatMap(v -> PublisherBase.range(1, 2).map(w -> w == 2 ? null : w)).subscribe(ts);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+    
+    @Test
+    public void innerSyncMapFilterToNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        PublisherBase.just(1).hide().flatMap(v -> PublisherBase.range(1, 2).map(w -> w == 2 ? null : w).filter(w -> true)).subscribe(ts);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
 }

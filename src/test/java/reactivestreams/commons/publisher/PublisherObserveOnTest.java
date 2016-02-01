@@ -1,5 +1,6 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -508,8 +509,106 @@ public class PublisherObserveOnTest {
         PublisherBase.range(1, 100_000).flatMap(PublisherBase::just).observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
+        
         ts.assertValueCount(100_000)
         .assertNoError()
         .assertComplete();
     }
+    
+    @Test
+    public void syncSourceWithNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromArray(1, null, 1).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void syncSourceWithNull2() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromIterable(Arrays.asList(1, null, 1)).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedsyncSourceWithNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromArray(1, 2).map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedsyncSourceWithNullHidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromArray(1, 2).hide().map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedsyncSourceWithNull2() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedsyncSourceWithNull2Hidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromIterable(Arrays.asList(1, 2)).hide().map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedFilteredSyncSourceWithNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromArray(1, 2).map(v -> v == 2 ? null : v).filter(v -> true).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedFilteredSyncSourceWithNull2() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).filter(v -> true).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
 }

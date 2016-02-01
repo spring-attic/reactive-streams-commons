@@ -283,7 +283,17 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 long r = requested;
                 
                 while (e != r) {
-                    T v = q.poll();
+                    T v;
+                    
+                    try {
+                        v = q.poll();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        scheduler.accept(null);
+                        
+                        a.onError(ex);
+                        return;
+                    }
 
                     if (cancelled) {
                         scheduler.accept(null);
@@ -305,7 +315,20 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         scheduler.accept(null);
                         return;
                     }
-                    if (q.isEmpty()) {
+                    
+                    boolean empty;
+                    
+                    try {
+                        empty = q.isEmpty();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        scheduler.accept(null);
+                        
+                        a.onError(ex);
+                        return;
+                    }
+                    
+                    if (empty) {
                         scheduler.accept(null);
                         a.onComplete();
                         return;
@@ -621,7 +644,16 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 long r = requested;
                 
                 while (e != r) {
-                    T v = q.poll();
+                    T v;
+                    try {
+                        v = q.poll();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        scheduler.accept(null);
+                        
+                        a.onError(ex);
+                        return;
+                    }
 
                     if (cancelled) {
                         scheduler.accept(null);
@@ -643,7 +675,20 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         scheduler.accept(null);
                         return;
                     }
-                    if (q.isEmpty()) {
+                    
+                    boolean empty;
+                    
+                    try {
+                        empty = q.isEmpty();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        scheduler.accept(null);
+                        
+                        a.onError(ex);
+                        return;
+                    }
+                    
+                    if (empty) {
                         scheduler.accept(null);
                         a.onComplete();
                         return;
