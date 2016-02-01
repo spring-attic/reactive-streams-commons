@@ -582,6 +582,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                                 }
                                 
                                 if (e == r) {
+                                    d = inner.done;
                                     boolean empty;
                                     
                                     try {

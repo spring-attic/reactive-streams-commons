@@ -564,6 +564,19 @@ public class PublisherObserveOnTest {
     }
 
     @Test
+    public void mappedsyncSourceWithNullPostFilterHidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        PublisherBase.fromArray(1, 2).hide().map(v -> v == 2 ? null : v)
+        .observeOn(exec).filter(v -> true).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
     public void mappedsyncSourceWithNull2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         PublisherBase.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
@@ -603,6 +616,41 @@ public class PublisherObserveOnTest {
     public void mappedFilteredSyncSourceWithNull2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         PublisherBase.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).filter(v -> true).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedAsyncSourceWithNull() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        up.onNext(1);
+        up.onNext(2);
+        up.onComplete();
+        
+        up.map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
+
+    @Test
+    public void mappedAsyncSourceWithNullPostFilter() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        up.onNext(1);
+        up.onNext(2);
+        up.onComplete();
+        
+        up.map(v -> v == 2 ? null : v).observeOn(exec)
+        .filter(v -> true).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         

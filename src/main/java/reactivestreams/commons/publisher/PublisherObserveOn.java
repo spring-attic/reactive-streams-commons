@@ -362,7 +362,21 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 
                 while (e != r) {
                     boolean d = done;
-                    T v = q.poll();
+                    T v;
+                    
+                    try {
+                        v = q.poll();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+
+                        s.cancel();
+                        scheduler.accept(null);
+                        q.clear();
+                        
+                        a.onError(ex);
+                        return;
+                    }
+                    
                     boolean empty = v == null;
                     
                     if (checkTerminated(d, empty, a)) {
@@ -386,7 +400,22 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 }
                 
                 if (e == r) {
-                    if (checkTerminated(done, q.isEmpty(), a)) {
+                    boolean d = done;
+                    boolean empty;
+                    try {
+                        empty = q.isEmpty();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+
+                        s.cancel();
+                        scheduler.accept(null);
+                        q.clear();
+                        
+                        a.onError(ex);
+                        return;
+                    }
+
+                    if (checkTerminated(d, empty, a)) {
                         return;
                     }
                 }
@@ -723,7 +752,19 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 
                 while (emitted != r) {
                     boolean d = done;
-                    T v = q.poll();
+                    T v;
+                    try {
+                        v = q.poll();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+
+                        s.cancel();
+                        scheduler.accept(null);
+                        q.clear();
+                        
+                        a.onError(ex);
+                        return;
+                    }
                     boolean empty = v == null;
                     
                     if (checkTerminated(d, empty, a)) {
@@ -747,7 +788,22 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 }
                 
                 if (emitted == r) {
-                    if (checkTerminated(done, q.isEmpty(), a)) {
+                    boolean d = done;
+                    boolean empty;
+                    try {
+                        empty = q.isEmpty();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+
+                        s.cancel();
+                        scheduler.accept(null);
+                        q.clear();
+                        
+                        a.onError(ex);
+                        return;
+                    }
+
+                    if (checkTerminated(d, empty, a)) {
                         return;
                     }
                 }
