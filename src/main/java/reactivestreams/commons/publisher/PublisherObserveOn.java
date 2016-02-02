@@ -95,6 +95,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         }
         
         if (s instanceof Fuseable.ConditionalSubscriber) {
+            @SuppressWarnings("unchecked")
             Fuseable.ConditionalSubscriber<? super T> cs = (Fuseable.ConditionalSubscriber<? super T>) s;
             source.subscribe(new PublisherObserveOnConditionalSubscriber<>(cs, scheduler, delayError, prefetch, queueSupplier));
             return;
@@ -285,39 +286,34 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             }
         }
 
-        @Override
-        public long requestedFromDownstream() {
-            return requested;
-        }
-
         void trySchedule() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
             scheduler.accept(this);
         }
-        
+
         void runSync() {
             int missed = 1;
-            
+
             final Subscriber<? super T> a = actual;
             final Queue<T> q = queue;
 
             long e = produced;
 
             for (;;) {
-                
+
                 long r = requested;
-                
+
                 while (e != r) {
                     T v;
-                    
+
                     try {
                         v = q.poll();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
                         scheduler.accept(null);
-                        
+
                         a.onError(ex);
                         return;
                     }
@@ -331,30 +327,30 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         a.onComplete();
                         return;
                     }
-                    
+
                     a.onNext(v);
-                    
+
                     e++;
                 }
-                
+
                 if (e == r) {
                     if (cancelled) {
                         scheduler.accept(null);
                         return;
                     }
-                    
+
                     boolean empty;
-                    
+
                     try {
                         empty = q.isEmpty();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
                         scheduler.accept(null);
-                        
+
                         a.onError(ex);
                         return;
                     }
-                    
+
                     if (empty) {
                         scheduler.accept(null);
                         a.onComplete();
@@ -374,23 +370,23 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                 }
             }
         }
-        
+
         void runAsync() {
             int missed = 1;
-            
+
             final Subscriber<? super T> a = actual;
             final Queue<T> q = queue;
 
             long e = produced;
 
             for (;;) {
-                
+
                 long r = requested;
-                
+
                 while (e != r) {
                     boolean d = done;
                     T v;
-                    
+
                     try {
                         v = q.poll();
                     } catch (Throwable ex) {
@@ -399,23 +395,23 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         s.cancel();
                         scheduler.accept(null);
                         q.clear();
-                        
+
                         a.onError(ex);
                         return;
                     }
-                    
+
                     boolean empty = v == null;
-                    
+
                     if (checkTerminated(d, empty, a)) {
                         return;
                     }
-                    
+
                     if (empty) {
                         break;
                     }
-                    
+
                     a.onNext(v);
-                    
+
                     e++;
                     if (e == limit) {
                         if (r != Long.MAX_VALUE) {
@@ -425,7 +421,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         e = 0L;
                     }
                 }
-                
+
                 if (e == r) {
                     boolean d = done;
                     boolean empty;
@@ -437,7 +433,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         s.cancel();
                         scheduler.accept(null);
                         q.clear();
-                        
+
                         a.onError(ex);
                         return;
                     }
@@ -446,7 +442,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         return;
                     }
                 }
-                
+
                 int w = wip;
                 if (missed == w) {
                     produced = e;
@@ -459,7 +455,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                 }
             }
         }
-        
+
         @Override
         public void run() {
             if (sourceMode == SYNC) {
@@ -468,7 +464,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                 runAsync();
             }
         }
-        
+
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
                 s.cancel();
@@ -495,7 +491,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         queue.clear();
                         a.onError(e);
                         return true;
-                    } else 
+                    } else
                     if (empty) {
                         scheduler.accept(null);
                         a.onComplete();
@@ -503,8 +499,13 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     }
                 }
             }
-            
+
             return false;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return queue == null ? prefetch : (prefetch - queue.size());
         }
 
         @Override
@@ -549,7 +550,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         @Override
         public long expectedFromUpstream() {
-            return produced;
+            return queue == null ? requested : (requested - queue.size());
         }
 
         @Override
@@ -962,7 +963,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         @Override
         public long expectedFromUpstream() {
-            return produced;
+            return queue == null ? prefetch : (prefetch - queue.size());
         }
 
         @Override
@@ -982,7 +983,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         @Override
         public long requestedFromDownstream() {
-            return requested;
+            return queue == null ? requested : (requested - queue.size());
         }
 
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
