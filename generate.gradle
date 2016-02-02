@@ -14,6 +14,7 @@ def includingCoreScope = ['amb',
 						  'next',
 						  'observeon',
 						  'subscribeon',
+						  'subscribeonvalue',
 						  'flatmap',
 						  ///'ignoreelements',
 						  /*'iterable',*/ //managed by reactor-core but used by  reactor-stream
@@ -150,15 +151,15 @@ task generateTargetAPI(type: Sync) {
   }
 
   rename { String fileName ->
-	if(target['ObserveOn'] && fileName.endsWith('ObserveOn.java')){
-	  fileName.replace('PublisherObserveOn', apiClassName+target['ObserveOn'])
+
+	if(target['ObserveOn'] && fileName.contains('ObserveOn')){
+	  fileName =fileName.replace('ObserveOn', target['ObserveOn'])
 	}
-	else if(target['SubscribeOn'] && fileName.endsWith('SubscribeOn.java')){
-	  fileName.replace('PublisherSubscribeOn', apiClassName+target['SubscribeOn'])
+	else if(target['SubscribeOn'] && fileName.contains('SubscribeOn')){
+	  fileName = fileName.replace('SubscribeOn', target['SubscribeOn'])
 	}
-	else{
-	  fileName.replace('Publisher', apiClassName)
-	}
+
+	fileName.replace('Publisher', apiClassName)
   }
 
   filter { String line -> replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass)
