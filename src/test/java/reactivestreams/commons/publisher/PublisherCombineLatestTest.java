@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.junit.Test;
@@ -252,6 +255,30 @@ public class PublisherCombineLatestTest {
         .assertError(NullPointerException.class)
         .assertNotComplete();
         
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void intervalResultInCorrectTotalCouples() {
+        TestSubscriber<Long[]> ts = new TestSubscriber<>();
+
+        ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
+
+        new PublisherCombineLatest<>(new Publisher[] {
+                PublisherBase.interval(50, TimeUnit.MILLISECONDS, exec).take(20),
+                PublisherBase.interval(100, TimeUnit.MILLISECONDS, exec).take(20)
+        },
+        a -> Arrays.asList(a[0] , a[1]), qs, 128)
+           // .doOnNext(System.out::println)
+            .subscribe(ts);
+
+        ts.await();
+        ts.assertValueCount(38)
+          .assertComplete()
+          .assertNoError();
+
+        exec.shutdown();
+
     }
 
     @SuppressWarnings("unchecked")
