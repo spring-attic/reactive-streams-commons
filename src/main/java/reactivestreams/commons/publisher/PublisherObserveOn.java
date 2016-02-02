@@ -95,7 +95,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         }
         
         if (s instanceof Fuseable.ConditionalSubscriber) {
-            @SuppressWarnings("unchecked")
             Fuseable.ConditionalSubscriber<? super T> cs = (Fuseable.ConditionalSubscriber<? super T>) s;
             source.subscribe(new PublisherObserveOnConditionalSubscriber<>(cs, scheduler, delayError, prefetch, queueSupplier));
             return;

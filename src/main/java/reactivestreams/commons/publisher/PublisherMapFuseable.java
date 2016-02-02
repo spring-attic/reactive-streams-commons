@@ -62,7 +62,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void subscribe(Subscriber<? super R> s) {
         if (s instanceof Fuseable.ConditionalSubscriber) {
             
