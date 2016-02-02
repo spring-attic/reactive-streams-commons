@@ -222,8 +222,6 @@ extends PublisherBase<R>
         static final AtomicReferenceFieldUpdater<PublisherCombineLatestCoordinator, Throwable> ERROR =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherCombineLatestCoordinator.class, Throwable.class, "error");
         
-        static final Throwable TERMINAL_ERROR = new Throwable();
-        
         public PublisherCombineLatestCoordinator(Subscriber<? super R> actual, 
                 Function<Object[], R> combiner, int n, Queue<SourceAndArray> queue,
                 int bufferSize) {
@@ -334,30 +332,12 @@ extends PublisherBase<R>
         
         void innerError(Throwable e) {
             
-            for (;;) {
-                Throwable ex = error;
-                
-                if (ex == TERMINAL_ERROR) {
-                    UnsignalledExceptions.onErrorDropped(ex);
-                    return;
-                }
-                
-                Throwable u;
-                if (ex == null) {
-                    u = e;
-                } else {
-                    u = new RuntimeException("Multiple exceptions");
-                    u.addSuppressed(ex);
-                    u.addSuppressed(e);
-                }
-                
-                if (ERROR.compareAndSet(this, ex, u)) {
-                    done = true;
-                    break;
-                }
+            if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                done = true;
+                drain();
+            } else {
+                UnsignalledExceptions.onErrorDropped(e);
             }
-            
-            drain();
         }
         
         void drain() {
@@ -437,9 +417,9 @@ extends PublisherBase<R>
             }
             
             if (d) {
-                Throwable e = ERROR.getAndSet(this, TERMINAL_ERROR);
+                Throwable e = ExceptionHelper.terminate(ERROR, this);
                 
-                if (e != null) {
+                if (e != null && e != ExceptionHelper.TERMINATED) {
                     cancelAll();
                     q.clear();
                     a.onError(e);
