@@ -1,14 +1,14 @@
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.*;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Subscription;
+
+import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.*;
 
 public class PublisherPeekTest {
     @Test(expected = NullPointerException.class)
@@ -212,6 +212,90 @@ public class PublisherPeekTest {
             //fatal publisher exception (UpstreamException)
             Assert.assertTrue(ExceptionHelper.unwrap(e) == err);
         }
+    }
+
+    @Test
+    public void syncFusionAvailable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 2).doOnNext(v -> { }).subscribe(ts);
+        
+        Subscription s = ts.upstream();
+        Assert.assertTrue("Non-fuseable upstream: " + s, s instanceof Fuseable.QueueSubscription);
+    }
+
+    @Test
+    public void asyncFusionAvailable() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        new UnicastProcessor<Integer>(new SpscArrayQueue<>(2)).doOnNext(v -> { }).subscribe(ts);
+        
+        Subscription s = ts.upstream();
+        Assert.assertTrue("Non-fuseable upstream" + s, s instanceof Fuseable.QueueSubscription);
+    }
+
+    @Test
+    public void conditionalFusionAvailable() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+        
+        PublisherBase.wrap(u -> {
+            if (!(u instanceof Fuseable.ConditionalSubscriber)) {
+                EmptySubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
+            } else {
+                EmptySubscription.complete(u);
+            }
+        }).doOnNext(v -> { }).filter(v -> true).subscribe(ts);
+        
+        ts.assertNoError()
+        .assertNoValues()
+        .assertComplete();
+    }
+
+    @Test
+    public void conditionalFusionAvailableWithFuseable() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+        
+        PublisherBase.wrapFuseable(u -> {
+            if (!(u instanceof Fuseable.ConditionalSubscriber)) {
+                EmptyQueueSubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
+            } else {
+                EmptyQueueSubscription.complete(u);
+            }
+        }).doOnNext(v -> { }).filter(v -> true).subscribe(ts);
+        
+        ts.assertNoError()
+        .assertNoValues()
+        .assertComplete();
+    }
+    
+    @Test
+    public void syncCompleteCalled() {
+        AtomicBoolean onComplete = new AtomicBoolean();
+
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 2).doOnComplete(() -> onComplete.set(true)).subscribe(ts);
+        
+        ts.assertNoError()
+        .assertValues(1, 2)
+        .assertComplete();
+        
+        Assert.assertTrue("onComplete not called back", onComplete.get());
+    }
+
+    @Test
+    public void syncdoAfterTerminateCalled() {
+        AtomicBoolean onTerminate = new AtomicBoolean();
+
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        PublisherBase.range(1, 2).doAfterTerminate(() -> onTerminate.set(true)).subscribe(ts);
+        
+        ts.assertNoError()
+        .assertValues(1, 2)
+        .assertComplete();
+        
+        Assert.assertTrue("onComplete not called back", onTerminate.get());
     }
 
 }

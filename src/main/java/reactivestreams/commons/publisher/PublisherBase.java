@@ -9,6 +9,7 @@ import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.subscriber.DropAllSubscriber;
 import reactivestreams.commons.util.*;
 
 /**
@@ -210,30 +211,51 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final PublisherBase<T> doOnSubscribe(Consumer<? super Subscription> onSubscribe) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, onSubscribe, null, null, null, null, null, null);
+        }
         return new PublisherPeek<>(this, onSubscribe, null, null, null, null, null, null);
     }
     
     public final PublisherBase<T> doOnNext(Consumer<? super T> onNext) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, null, onNext, null, null, null, null, null);
+        }
         return new PublisherPeek<>(this, null, onNext, null, null, null, null, null);
     }
 
     public final PublisherBase<T> doOnError(Consumer<? super Throwable> onError) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, null, null, onError, null, null, null, null);
+        }
         return new PublisherPeek<>(this, null, null, onError, null, null, null, null);
     }
 
     public final PublisherBase<T> doOnComplete(Runnable onComplete) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, null, null, null, onComplete, null, null, null);
+        }
         return new PublisherPeek<>(this, null, null, null, onComplete, null, null, null);
     }
     
     public final PublisherBase<T> doAfterTerminate(Runnable onAfterTerminate) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, null, null, null, null, onAfterTerminate, null, null);
+        }
         return new PublisherPeek<>(this, null, null, null, null, onAfterTerminate, null, null);
     }
 
     public final PublisherBase<T> doOnRequest(LongConsumer onRequest) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, null, null, null, null, null, onRequest, null);
+        }
         return new PublisherPeek<>(this, null, null, null, null, null, onRequest, null);
     }
     
     public final PublisherBase<T> doOnCancel(Runnable onCancel) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, null, null, null, null, null, null, onCancel);
+        }
         return new PublisherPeek<>(this, null, null, null, null, null, null, onCancel);
     }
 
@@ -537,6 +559,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     
+    public final Runnable subscribe() {
+        subscribe(DropAllSubscriber.INSTANCE);
+        return () -> { }; // FIXME proper cancellation support?
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
@@ -549,7 +576,19 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
             source.subscribe(s);
         }
     }
-    
+
+    static final class PublisherBaseFuseableWrapper<T> extends PublisherSource<T, T> 
+    implements Fuseable {
+        public PublisherBaseFuseableWrapper(Publisher<? extends T> source) {
+            super(source);
+        }
+        
+        @Override
+        public void subscribe(Subscriber<? super T> s) {
+            source.subscribe(s);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> PublisherBase<T> wrap(Publisher<? extends T> source) {
         if (source instanceof PublisherBase) {
@@ -557,7 +596,24 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         }
         return new PublisherBaseWrapper<>(source);
     }
-    
+
+    /**
+     * Wraps an arbitrary publisher source into a PublisherBase instance which also
+     * implements Fuseable indicating the source publisher can deal with the
+     * operator fusion API internally.
+     * 
+     * @param <T> the value type
+     * @param source the publisher to wrap
+     * @return the PublisherBase instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> PublisherBase<T> wrapFuseable(Publisher<? extends T> source) {
+        if (source instanceof PublisherBase) {
+            return (PublisherBase<T>)source;
+        }
+        return new PublisherBaseFuseableWrapper<>(source);
+    }
+
     // ---------------------------------------------------------------------------------------
     
     public static <T> PublisherBase<T> just(T value) {

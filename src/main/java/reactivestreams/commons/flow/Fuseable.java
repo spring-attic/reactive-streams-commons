@@ -73,6 +73,13 @@ public interface Fuseable {
          * This is allows fused intermediate operators to avoid peek/poll pairs.
          */
         void drop();
+        
+        /** Operational mode constant: Running with regular, arbitrary source. */
+        static final int NORMAL = 0;
+        /** Operational mode constant: Running with a source that acts as a synchronous source. */
+        static final int SYNC = 1;
+        /** Operational mode constant: Running with a source that acts as an asynchronous source. */
+        static final int ASYNC = 2;
     }
 
     /**

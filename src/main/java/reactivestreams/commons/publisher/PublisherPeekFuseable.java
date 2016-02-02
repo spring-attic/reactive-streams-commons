@@ -5,8 +5,6 @@ import java.util.function.*;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.*;
-import reactivestreams.commons.flow.Fuseable.ConditionalSubscriber;
-import reactivestreams.commons.publisher.PublisherPeekFuseable.*;
 import reactivestreams.commons.util.*;
 
 /**
@@ -20,8 +18,7 @@ import reactivestreams.commons.util.*;
  *
  * @param <T> the value type
  */
-public final class PublisherPeek<T> extends PublisherSource<T, T>
-implements PublisherPeekHelper<T> {
+public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implements Fuseable, PublisherPeekHelper<T> {
 
     final Consumer<? super Subscription> onSubscribeCall;
 
@@ -37,11 +34,15 @@ implements PublisherPeekHelper<T> {
 
     final Runnable onCancelCall;
 
-    public PublisherPeek(Publisher<? extends T> source, Consumer<? super Subscription> onSubscribeCall,
+    public PublisherPeekFuseable(Publisher<? extends T> source, Consumer<? super Subscription> onSubscribeCall,
                          Consumer<? super T> onNextCall, Consumer<? super Throwable> onErrorCall, Runnable
                            onCompleteCall,
                          Runnable onAfterTerminateCall, LongConsumer onRequestCall, Runnable onCancelCall) {
         super(source);
+        if (!(source instanceof Fuseable)) {
+            throw new IllegalArgumentException("The source must implement the Fuseable interface for this operator to work");
+        }
+        
         this.onSubscribeCall = onSubscribeCall;
         this.onNextCall = onNextCall;
         this.onErrorCall = onErrorCall;
@@ -51,30 +52,28 @@ implements PublisherPeekHelper<T> {
         this.onCancelCall = onCancelCall;
     }
 
-    
-    
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        if (source instanceof Fuseable) {
-            source.subscribe(new PublisherPeekFuseableSubscriber<>(s, this));
-            return;
-        }
         if (s instanceof ConditionalSubscriber) {
-            source.subscribe(new PublisherPeekConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, this));
+            source.subscribe(new PublisherPeekFuseableConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, this));
             return;
         }
-        source.subscribe(new PublisherPeekSubscriber<>(s, this));
+        source.subscribe(new PublisherPeekFuseableSubscriber<>(s, this));
     }
-    
-    static final class PublisherPeekSubscriber<T> implements Subscriber<T>, Subscription, Receiver, Producer {
+
+    static final class PublisherPeekFuseableSubscriber<T> 
+    extends SynchronousSubscription<T>
+    implements Subscriber<T>, Receiver, Producer {
 
         final Subscriber<? super T> actual;
 
         final PublisherPeekHelper<T> parent;
 
-        Subscription s;
+        QueueSubscription<T> s;
 
-        public PublisherPeekSubscriber(Subscriber<? super T> actual, PublisherPeekHelper<T> parent) {
+        int sourceMode;
+
+        public PublisherPeekFuseableSubscriber(Subscriber<? super T> actual, PublisherPeekHelper<T> parent) {
             this.actual = actual;
             this.parent = parent;
         }
@@ -110,6 +109,7 @@ implements PublisherPeekHelper<T> {
             s.cancel();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onSubscribe(Subscription s) {
             if(parent.onSubscribeCall() != null) {
@@ -123,24 +123,29 @@ implements PublisherPeekHelper<T> {
                     return;
                 }
             }
-            this.s = s;
+            this.s = (QueueSubscription<T>)s;
             actual.onSubscribe(this);
         }
 
         @Override
         public void onNext(T t) {
-            if(parent.onNextCall() != null) {
-                try {
-                    parent.onNextCall().accept(t);
+            if (sourceMode == NORMAL) {
+                if (parent.onNextCall() != null) {
+                    try {
+                        parent.onNextCall().accept(t);
+                    }
+                    catch (Throwable e) {
+                        cancel();
+                        ExceptionHelper.throwIfFatal(e);
+                        onError(ExceptionHelper.unwrap(e));
+                        return;
+                    }
                 }
-                catch (Throwable e) {
-                    cancel();
-                    ExceptionHelper.throwIfFatal(e);
-                    onError(ExceptionHelper.unwrap(e));
-                    return;
-                }
+                actual.onNext(t);
+            } else 
+            if (sourceMode == ASYNC) {
+                actual.onNext(null);
             }
-            actual.onNext(t);
         }
 
         @Override
@@ -207,17 +212,76 @@ implements PublisherPeekHelper<T> {
         public Object upstream() {
             return s;
         }
+        
+        @Override
+        public T poll() {
+            T v = s.poll();
+            if (v != null && parent.onNextCall() != null) {
+                parent.onNextCall().accept(v);
+            }
+            if (v == null && sourceMode == SYNC) {
+                parent.onCompleteCall().run();
+                parent.onAfterTerminateCall().run();
+            }
+            return v;
+        }
+
+        @Override
+        public T peek() {
+            T v = s.peek();
+            if (v != null && parent.onNextCall() != null) {
+                parent.onNextCall().accept(v);
+            }
+            if (v == null && sourceMode == SYNC) {
+                parent.onCompleteCall().run();
+                parent.onAfterTerminateCall().run();
+            }
+            return v;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return s.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            s.clear();
+        }
+
+        @Override
+        public FusionMode requestFusion(FusionMode requestedMode) {
+            FusionMode m = s.requestFusion(requestedMode);
+            if (m != FusionMode.NONE) {
+                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+            }
+            return m;
+        }
+
+        @Override
+        public void drop() {
+            s.drop();
+        }
+        
+        @Override
+        public int size() {
+            return s.size();
+        }
     }
 
-    static final class PublisherPeekConditionalSubscriber<T> implements ConditionalSubscriber<T>, Subscription, Receiver, Producer {
+    static final class PublisherPeekFuseableConditionalSubscriber<T> 
+    extends SynchronousSubscription<T>
+    implements ConditionalSubscriber<T>, Receiver, Producer {
 
         final ConditionalSubscriber<? super T> actual;
 
         final PublisherPeekHelper<T> parent;
 
-        Subscription s;
+        QueueSubscription<T> s;
 
-        public PublisherPeekConditionalSubscriber(ConditionalSubscriber<? super T> actual, PublisherPeekHelper<T> parent) {
+        int sourceMode;
+
+        public PublisherPeekFuseableConditionalSubscriber(ConditionalSubscriber<? super T> actual, PublisherPeekHelper<T> parent) {
             this.actual = actual;
             this.parent = parent;
         }
@@ -253,6 +317,7 @@ implements PublisherPeekHelper<T> {
             s.cancel();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onSubscribe(Subscription s) {
             if(parent.onSubscribeCall() != null) {
@@ -266,41 +331,53 @@ implements PublisherPeekHelper<T> {
                     return;
                 }
             }
-            this.s = s;
+            this.s = (QueueSubscription<T>)s;
             actual.onSubscribe(this);
         }
 
         @Override
         public void onNext(T t) {
-            if(parent.onNextCall() != null) {
-                try {
-                    parent.onNextCall().accept(t);
+            if (sourceMode == NORMAL) {
+                if (parent.onNextCall() != null) {
+                    try {
+                        parent.onNextCall().accept(t);
+                    }
+                    catch (Throwable e) {
+                        cancel();
+                        ExceptionHelper.throwIfFatal(e);
+                        onError(ExceptionHelper.unwrap(e));
+                        return;
+                    }
                 }
-                catch (Throwable e) {
-                    cancel();
-                    ExceptionHelper.throwIfFatal(e);
-                    onError(ExceptionHelper.unwrap(e));
-                    return;
-                }
+                actual.onNext(t);
+            } else 
+            if (sourceMode == ASYNC) {
+                actual.onNext(null);
             }
-            actual.onNext(t);
         }
-
+        
         @Override
         public boolean tryOnNext(T t) {
-            if(parent.onNextCall() != null) {
-                try {
-                    parent.onNextCall().accept(t);
+            if (sourceMode == NORMAL) {
+                if (parent.onNextCall() != null) {
+                    try {
+                        parent.onNextCall().accept(t);
+                    }
+                    catch (Throwable e) {
+                        cancel();
+                        ExceptionHelper.throwIfFatal(e);
+                        onError(ExceptionHelper.unwrap(e));
+                        return true;
+                    }
                 }
-                catch (Throwable e) {
-                    cancel();
-                    ExceptionHelper.throwIfFatal(e);
-                    onError(ExceptionHelper.unwrap(e));
-                    return true;
-                }
+                return actual.tryOnNext(t);
+            } else 
+            if (sourceMode == ASYNC) {
+                actual.onNext(null);
             }
-            return actual.tryOnNext(t);
+            return true;
         }
+        
 
         @Override
         public void onError(Throwable t) {
@@ -365,6 +442,61 @@ implements PublisherPeekHelper<T> {
         @Override
         public Object upstream() {
             return s;
+        }
+        
+        @Override
+        public T poll() {
+            T v = s.poll();
+            if (v != null && parent.onNextCall() != null) {
+                parent.onNextCall().accept(v);
+            }
+            if (v == null && sourceMode == SYNC) {
+                parent.onCompleteCall().run();
+                parent.onAfterTerminateCall().run();
+            }
+            return v;
+        }
+
+        @Override
+        public T peek() {
+            T v = s.peek();
+            if (v != null && parent.onNextCall() != null) {
+                parent.onNextCall().accept(v);
+            }
+            if (v == null && sourceMode == SYNC) {
+                parent.onCompleteCall().run();
+                parent.onAfterTerminateCall().run();
+            }
+            return v;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return s.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            s.clear();
+        }
+
+        @Override
+        public FusionMode requestFusion(FusionMode requestedMode) {
+            FusionMode m = s.requestFusion(requestedMode);
+            if (m != FusionMode.NONE) {
+                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+            }
+            return m;
+        }
+
+        @Override
+        public void drop() {
+            s.drop();
+        }
+        
+        @Override
+        public int size() {
+            return s.size();
         }
     }
 
@@ -373,42 +505,30 @@ implements PublisherPeekHelper<T> {
         return onSubscribeCall;
     }
 
-
-
     @Override
     public Consumer<? super T> onNextCall() {
         return onNextCall;
     }
-
-
 
     @Override
     public Consumer<? super Throwable> onErrorCall() {
         return onErrorCall;
     }
 
-
-
     @Override
     public Runnable onCompleteCall() {
         return onCompleteCall;
     }
-
-
 
     @Override
     public Runnable onAfterTerminateCall() {
         return onAfterTerminateCall;
     }
 
-
-
     @Override
     public LongConsumer onRequestCall() {
         return onRequestCall;
     }
-
-
 
     @Override
     public Runnable onCancelCall() {

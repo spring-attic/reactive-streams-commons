@@ -79,13 +79,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         int sourceMode;
 
-        /** Running with regular, arbitrary source. */
-        static final int NORMAL = 0;
-        /** Running with a source that implements SynchronousSource. */
-        static final int SYNC = 1;
-        /** Running with a source that implements AsynchronousSource. */
-        static final int ASYNC = 2;
-        
         public PublisherMapFuseableSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
@@ -109,7 +102,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
             int m = sourceMode;
             
-            if (m == 0) {
+            if (m == NORMAL) {
                 R v;
     
                 try {
@@ -130,7 +123,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
     
                 actual.onNext(v);
             } else
-            if (m == 2) {
+            if (m == ASYNC) {
                 actual.onNext(null);
             }
         }
@@ -267,13 +260,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         int sourceMode;
 
-        /** Running with regular, arbitrary source. */
-        static final int NORMAL = 0;
-        /** Running with a source that implements SynchronousSource. */
-        static final int SYNC = 1;
-        /** Running with a source that implements AsynchronousSource. */
-        static final int ASYNC = 2;
-        
         public PublisherMapFuseableConditionalSubscriber(Fuseable.ConditionalSubscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
