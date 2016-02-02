@@ -5,7 +5,6 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
-
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 
@@ -47,6 +46,14 @@ final class PublisherSubscribeOnValue<T> extends PublisherBase<T> {
             return;
         }
 
-        PublisherSubscribeOnOther.supplierScheduleOnSubscribe(value, s, scheduler, eagerCancel);
+        if (value == null) {
+            PublisherSubscribeOn.ScheduledEmptySubscriptionEager parent =
+                    new PublisherSubscribeOn.ScheduledEmptySubscriptionEager(s, scheduler);
+            s.onSubscribe(parent);
+            scheduler.accept(parent);
+        }
+        else {
+            s.onSubscribe(new PublisherSubscribeOn.ScheduledSubscriptionEagerCancel<>(s, value, scheduler));
+        }
     }
 }
