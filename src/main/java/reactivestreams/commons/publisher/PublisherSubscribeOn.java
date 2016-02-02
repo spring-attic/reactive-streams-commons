@@ -9,7 +9,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
+import reactivestreams.commons.flow.Loopback;
+import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -21,7 +22,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
+public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> implements Loopback {
 
     final Callable<? extends Consumer<Runnable>> schedulerFactory;
     
@@ -71,9 +72,19 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
         
         scheduler.accept(new SourceSubscribeTask<>(parent, source));
     }
-    
+
+    @Override
+    public Object connectedInput() {
+        return schedulerFactory;
+    }
+
+    @Override
+    public Object connectedOutput() {
+        return null;
+    }
+
     static final class PublisherSubscribeOnClassic<T>
-    extends DeferredSubscription implements Subscriber<T> {
+    extends DeferredSubscription implements Subscriber<T>, Producer, Loopback {
         final Subscriber<? super T> actual;
         
         final Consumer<Runnable> scheduler;
@@ -122,24 +133,40 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             super.request(n);
         }
 
-        static final class RequestTask implements Runnable {
+        @Override
+        public Object downstream() {
+            return actual;
+        }
 
-            final long n;
-            final PublisherSubscribeOnClassic<?> parent;
+        @Override
+        public Object connectedOutput() {
+            return scheduler;
+        }
 
-            public RequestTask(long n, PublisherSubscribeOnClassic<?> parent) {
-                this.n = n;
-                this.parent = parent;
-            }
+        @Override
+        public Object connectedInput() {
+            return null;
+        }
+    }
 
-            @Override
-            public void run() {
-                parent.requestInner(n);
-            }
+    static final class RequestTask implements Runnable {
+
+        final long n;
+        final PublisherSubscribeOnClassic<?> parent;
+
+        public RequestTask(long n, PublisherSubscribeOnClassic<?> parent) {
+            this.n = n;
+            this.parent = parent;
+        }
+
+        @Override
+        public void run() {
+            parent.requestInner(n);
         }
     }
     
-    static final class ScheduledSubscriptionEagerCancel<T> implements Subscription, Runnable {
+    static final class ScheduledSubscriptionEagerCancel<T>
+            implements Subscription, Runnable, Producer, Loopback {
 
         final Subscriber<? super T> actual;
         
@@ -179,9 +206,24 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             scheduler.accept(null);
             actual.onComplete();
         }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return scheduler;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return value;
+        }
     }
 
-    static final class ScheduledEmptySubscriptionEager implements Subscription, Runnable {
+    static final class ScheduledEmptySubscriptionEager implements Subscription, Runnable, Producer, Loopback {
         final Subscriber<?> actual;
 
         final Consumer<Runnable> scheduler;
@@ -190,21 +232,36 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> {
             this.actual = actual;
             this.scheduler = scheduler;
         }
-        
+
         @Override
         public void request(long n) {
             SubscriptionHelper.validate(n);
         }
-        
+
         @Override
         public void cancel() {
             scheduler.accept(null);
         }
-        
+
         @Override
         public void run() {
             scheduler.accept(null);
             actual.onComplete();
+        }
+
+        @Override
+        public Object connectedInput() {
+            return scheduler;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return null;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
         }
     }
 

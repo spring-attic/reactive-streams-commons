@@ -43,6 +43,11 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
         }
     }
 
+    @Override
+    public long getCapacity() {
+        return n;
+    }
+
     static final class PublisherTakeLastZeroSubscriber<T> implements Subscriber<T>, Producer, Subscription,
                                                                      Receiver {
 

@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import org.reactivestreams.Publisher;
 import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.state.Backpressurable;
 
 /**
  * Keep reference to the upstream Publisher in order to apply operator Subscribers
@@ -13,7 +14,7 @@ import reactivestreams.commons.flow.Receiver;
  */
 public abstract class PublisherSource<T, R> 
     extends PublisherBase<R>
-        implements Receiver {
+        implements Receiver, Backpressurable {
 
     final protected Publisher<? extends T> source;
 
@@ -31,4 +32,13 @@ public abstract class PublisherSource<T, R>
         return source;
     }
 
+    @Override
+    public long getPending() {
+        return -1L;
+    }
+
+    @Override
+    public long getCapacity() {
+        return Long.MAX_VALUE;
+    }
 }

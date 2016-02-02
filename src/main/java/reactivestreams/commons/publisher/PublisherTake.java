@@ -61,6 +61,11 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherTakeSubscriber<>(s, n));
     }
 
+    @Override
+    public long getCapacity() {
+        return n;
+    }
+
     static final class PublisherTakeSubscriber<T>
       implements Subscriber<T>, Subscription, Completable, Receiver, Prefetchable, Backpressurable, Producer {
 

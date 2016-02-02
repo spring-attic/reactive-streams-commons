@@ -45,8 +45,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T> the source value type
  * @param <C> the buffer collection type
  */
-public final class PublisherBuffer<T, C extends Collection<? super T>> extends PublisherSource<T, C>
-        implements Backpressurable {
+public final class PublisherBuffer<T, C extends Collection<? super T>> extends PublisherSource<T, C>  {
 
     final int size;
 
@@ -87,11 +86,6 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
     @Override
     public long getCapacity() {
         return size;
-    }
-
-    @Override
-    public long getPending() {
-        return -1L;
     }
 
     static final class PublisherBufferExactSubscriber<T, C extends Collection<? super T>>

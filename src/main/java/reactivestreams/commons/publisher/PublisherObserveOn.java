@@ -11,11 +11,19 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Fuseable.FusionMode;
+import reactivestreams.commons.flow.Loopback;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledEmptySubscriptionEager;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledSubscriptionEagerCancel;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Prefetchable;
+import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -26,7 +34,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
+public final class PublisherObserveOn<T> extends PublisherSource<T, T> implements Loopback {
 
     final Callable<? extends Consumer<Runnable>> schedulerFactory;
     
@@ -87,15 +95,30 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         }
         
         if (s instanceof Fuseable.ConditionalSubscriber) {
+            @SuppressWarnings("unchecked")
             Fuseable.ConditionalSubscriber<? super T> cs = (Fuseable.ConditionalSubscriber<? super T>) s;
             source.subscribe(new PublisherObserveOnConditionalSubscriber<>(cs, scheduler, delayError, prefetch, queueSupplier));
             return;
         }
         source.subscribe(new PublisherObserveOnSubscriber<>(s, scheduler, delayError, prefetch, queueSupplier));
     }
-    
+
+    @Override
+    public Object connectedInput() {
+        return null;
+    }
+
+    @Override
+    public Object connectedOutput() {
+        return schedulerFactory;
+    }
+
+
+
     static final class PublisherObserveOnSubscriber<T>
-    implements Subscriber<T>, Subscription, Runnable {
+    implements Subscriber<T>, Subscription, Runnable,
+               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Failurable,
+               Requestable, Completable {
         
         final Subscriber<? super T> actual;
         
@@ -262,35 +285,35 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 queue.clear();
             }
         }
-        
+
         void trySchedule() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
             scheduler.accept(this);
         }
-        
+
         void runSync() {
             int missed = 1;
-            
+
             final Subscriber<? super T> a = actual;
             final Queue<T> q = queue;
 
             long e = produced;
 
             for (;;) {
-                
+
                 long r = requested;
-                
+
                 while (e != r) {
                     T v;
-                    
+
                     try {
                         v = q.poll();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
                         scheduler.accept(null);
-                        
+
                         a.onError(ex);
                         return;
                     }
@@ -304,30 +327,30 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         a.onComplete();
                         return;
                     }
-                    
+
                     a.onNext(v);
-                    
+
                     e++;
                 }
-                
+
                 if (e == r) {
                     if (cancelled) {
                         scheduler.accept(null);
                         return;
                     }
-                    
+
                     boolean empty;
-                    
+
                     try {
                         empty = q.isEmpty();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
                         scheduler.accept(null);
-                        
+
                         a.onError(ex);
                         return;
                     }
-                    
+
                     if (empty) {
                         scheduler.accept(null);
                         a.onComplete();
@@ -347,23 +370,23 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 }
             }
         }
-        
+
         void runAsync() {
             int missed = 1;
-            
+
             final Subscriber<? super T> a = actual;
             final Queue<T> q = queue;
 
             long e = produced;
 
             for (;;) {
-                
+
                 long r = requested;
-                
+
                 while (e != r) {
                     boolean d = done;
                     T v;
-                    
+
                     try {
                         v = q.poll();
                     } catch (Throwable ex) {
@@ -372,23 +395,23 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         s.cancel();
                         scheduler.accept(null);
                         q.clear();
-                        
+
                         a.onError(ex);
                         return;
                     }
-                    
+
                     boolean empty = v == null;
-                    
+
                     if (checkTerminated(d, empty, a)) {
                         return;
                     }
-                    
+
                     if (empty) {
                         break;
                     }
-                    
+
                     a.onNext(v);
-                    
+
                     e++;
                     if (e == limit) {
                         if (r != Long.MAX_VALUE) {
@@ -398,7 +421,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         e = 0L;
                     }
                 }
-                
+
                 if (e == r) {
                     boolean d = done;
                     boolean empty;
@@ -410,7 +433,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         s.cancel();
                         scheduler.accept(null);
                         q.clear();
-                        
+
                         a.onError(ex);
                         return;
                     }
@@ -419,7 +442,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         return;
                     }
                 }
-                
+
                 int w = wip;
                 if (missed == w) {
                     produced = e;
@@ -432,7 +455,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 }
             }
         }
-        
+
         @Override
         public void run() {
             if (sourceMode == SYNC) {
@@ -441,7 +464,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 runAsync();
             }
         }
-        
+
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
                 s.cancel();
@@ -468,7 +491,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                         queue.clear();
                         a.onError(e);
                         return true;
-                    } else 
+                    } else
                     if (empty) {
                         scheduler.accept(null);
                         a.onComplete();
@@ -476,13 +499,79 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                     }
                 }
             }
-            
+
             return false;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return queue == null ? prefetch : (prefetch - queue.size());
+        }
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue != null ? queue.size() : -1L;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !cancelled && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return null;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return scheduler;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return queue == null ? requested : (requested - queue.size());
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
         }
     }
 
     static final class PublisherObserveOnConditionalSubscriber<T>
-    implements Subscriber<T>, Subscription, Runnable {
+    implements Subscriber<T>, Subscription, Runnable,
+               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Failurable, Completable, Requestable {
         
         final Fuseable.ConditionalSubscriber<? super T> actual;
         
@@ -831,7 +920,72 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 runAsync();
             }
         }
-        
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue != null ? queue.size() : -1;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !cancelled && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return null;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return scheduler;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return queue == null ? prefetch : (prefetch - queue.size());
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return queue == null ? requested : (requested - queue.size());
+        }
+
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
                 s.cancel();

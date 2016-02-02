@@ -86,7 +86,12 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
             source.subscribe(new WindowOverlapSubscriber<>(s, size, skip, processorQueueSupplier, overflowQueue));
         }
     }
-    
+
+    @Override
+    public long getCapacity() {
+        return size;
+    }
+
     static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
         
         final Subscriber<? super PublisherBase<T>> actual;
