@@ -18,11 +18,16 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.flow.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.Loopback;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
@@ -57,6 +62,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void subscribe(Subscriber<? super R> s) {
         if (s instanceof Fuseable.ConditionalSubscriber) {
             

@@ -1,13 +1,26 @@
 package reactivestreams.commons.processor;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Processor;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.publisher.PublisherBase;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Requestable;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -20,7 +33,8 @@ import reactivestreams.commons.util.*;
  */
 public final class UnicastProcessor<T> 
 extends PublisherBase<T>
-implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
+implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable,
+           Producer, Receiver, Failurable, Completable, Cancellable, Requestable {
 
     final Queue<T> queue;
     
@@ -388,5 +402,40 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
     @Override
     public void drop() {
         queue.poll();
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return once == 1 && !done && !cancelled;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return done;
+    }
+
+    @Override
+    public Throwable getError() {
+        return error;
+    }
+
+    @Override
+    public Object downstream() {
+        return actual;
+    }
+
+    @Override
+    public Object upstream() {
+        return onTerminate;
+    }
+
+    @Override
+    public long requestedFromDownstream() {
+        return requested;
     }
 }

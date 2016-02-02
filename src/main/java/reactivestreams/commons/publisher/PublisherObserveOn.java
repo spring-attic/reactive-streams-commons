@@ -11,11 +11,19 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Fuseable.FusionMode;
+import reactivestreams.commons.flow.Loopback;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledEmptySubscriptionEager;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledSubscriptionEagerCancel;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Prefetchable;
+import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -26,7 +34,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
+public final class PublisherObserveOn<T> extends PublisherSource<T, T> implements Loopback {
 
     final Callable<? extends Consumer<Runnable>> schedulerFactory;
     
@@ -93,9 +101,23 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
         }
         source.subscribe(new PublisherObserveOnSubscriber<>(s, scheduler, delayError, prefetch, queueSupplier));
     }
-    
+
+    @Override
+    public Object connectedInput() {
+        return null;
+    }
+
+    @Override
+    public Object connectedOutput() {
+        return schedulerFactory;
+    }
+
+
+
     static final class PublisherObserveOnSubscriber<T>
-    implements Subscriber<T>, Subscription, Runnable {
+    implements Subscriber<T>, Subscription, Runnable,
+               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Failurable,
+               Requestable, Completable {
         
         final Subscriber<? super T> actual;
         
@@ -262,7 +284,12 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 queue.clear();
             }
         }
-        
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
         void trySchedule() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
@@ -479,10 +506,71 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
             
             return false;
         }
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue != null ? queue.size() : -1L;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !cancelled && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return null;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return scheduler;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return produced;
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 
     static final class PublisherObserveOnConditionalSubscriber<T>
-    implements Subscriber<T>, Subscription, Runnable {
+    implements Subscriber<T>, Subscription, Runnable,
+               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Failurable, Completable, Requestable {
         
         final Fuseable.ConditionalSubscriber<? super T> actual;
         
@@ -831,7 +919,72 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> {
                 runAsync();
             }
         }
-        
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue != null ? queue.size() : -1;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !cancelled && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return null;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return scheduler;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return produced;
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
                 s.cancel();
