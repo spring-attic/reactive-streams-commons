@@ -289,10 +289,10 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         }
         
         @Override
-        public FusionMode requestFusion(FusionMode requestedMode) {
-            FusionMode m = s.requestFusion(requestedMode);
-            if (m != FusionMode.NONE) {
-                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+        public int requestFusion(int requestedMode) {
+            int m = s.requestFusion(requestedMode);
+            if (m != Fuseable.NONE) {
+                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
             }
             return m;
         }
@@ -535,10 +535,10 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         }
         
         @Override
-        public FusionMode requestFusion(FusionMode requestedMode) {
-            FusionMode m = s.requestFusion(requestedMode);
-            if (m != FusionMode.NONE) {
-                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+        public int requestFusion(int requestedMode) {
+            int m = s.requestFusion(requestedMode);
+            if (m != Fuseable.NONE) {
+                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
             }
             return m;
         }

@@ -107,7 +107,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
             int m = sourceMode;
             
-            if (m == NORMAL) {
+            if (m == NONE) {
                 R v;
     
                 try {
@@ -234,10 +234,10 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         }
 
         @Override
-        public FusionMode requestFusion(FusionMode requestedMode) {
-            FusionMode m = s.requestFusion(requestedMode);
-            if (m != FusionMode.NONE) {
-                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+        public int requestFusion(int requestedMode) {
+            int m = s.requestFusion(requestedMode);
+            if (m != Fuseable.NONE) {
+                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
             }
             return m;
         }
@@ -452,10 +452,10 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         }
 
         @Override
-        public FusionMode requestFusion(FusionMode requestedMode) {
-            FusionMode m = s.requestFusion(requestedMode);
-            if (m != FusionMode.NONE) {
-                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+        public int requestFusion(int requestedMode) {
+            int m = s.requestFusion(requestedMode);
+            if (m != Fuseable.NONE) {
+                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
             }
             return m;
         }

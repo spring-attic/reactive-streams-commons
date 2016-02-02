@@ -13,6 +13,15 @@ import org.reactivestreams.Subscription;
  */
 public interface Fuseable {
 
+    /** Operational mode constant: Running with regular, arbitrary source. */
+    int NONE = 0;
+    /** Operational mode constant: Running with a source that acts as a synchronous source. */
+    int SYNC = 1;
+    /** Operational mode constant: Running with a source that acts as an asynchronous source. */
+    int ASYNC = 2;
+    /** Operational mode constant: QueueSubscription should decide what fusion it performs (input only). */
+    int ANY = 3;
+
     /**
      * A subscriber variant that can immediately tell if it consumed
      * the value or not, avoiding the usual request(1) for dropped
@@ -65,7 +74,7 @@ public interface Fuseable {
          * @param requestedMode the mode to request
          * @return the fusion mode activated
          */
-        FusionMode requestFusion(FusionMode requestedMode);
+        int requestFusion(int requestedMode);
 
         /**
          * Requests the upstream to drop the current value.
@@ -73,28 +82,9 @@ public interface Fuseable {
          * This is allows fused intermediate operators to avoid peek/poll pairs.
          */
         void drop();
-        
-        /** Operational mode constant: Running with regular, arbitrary source. */
-        static final int NORMAL = 0;
-        /** Operational mode constant: Running with a source that acts as a synchronous source. */
-        static final int SYNC = 1;
-        /** Operational mode constant: Running with a source that acts as an asynchronous source. */
-        static final int ASYNC = 2;
     }
 
-    /**
-     * Indicates what fusion mode the QueueSubscription can support.
-     */
-    enum FusionMode {
-        /** Indicates the QueueSubscription can't support the requested mode. */
-        NONE,
-        /** Indicates the QueueSubscription can perform sync-fusion. */
-        SYNC,
-        /** Indicates the QueueSubscription can perform only async-fusion. */
-        ASYNC,
-        /** Indicates the QueueSubscription should decide what fusion it performs (input only). */
-        ANY
-    }
+
     
     /**
      * Base class for synchronous sources which have fixed size and can
@@ -158,8 +148,8 @@ public interface Fuseable {
         }
 
         @Override
-        public FusionMode requestFusion(FusionMode requestedMode) {
-            return FusionMode.SYNC;
+        public int requestFusion(int requestedMode) {
+            return Fuseable.SYNC;
         }
         
         @Override

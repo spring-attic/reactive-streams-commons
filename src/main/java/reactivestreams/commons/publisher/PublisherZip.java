@@ -29,7 +29,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.Fuseable.FusionMode;
 import reactivestreams.commons.flow.MultiReceiver;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
@@ -894,16 +893,16 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
                 if (s instanceof Fuseable.QueueSubscription) {
                     Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>) s;
 
-                    FusionMode m = f.requestFusion(FusionMode.ANY);
+                    int m = f.requestFusion(Fuseable.ANY);
                     
-                    if (m == FusionMode.SYNC) {
+                    if (m == Fuseable.SYNC) {
                         sourceMode = SYNC;
                         queue = f;
                         done = true;
                         parent.drain();
                         return;
                     } else 
-                    if (m == FusionMode.ASYNC) {
+                    if (m == Fuseable.ASYNC) {
                         sourceMode = ASYNC;
                         queue = f;
                     } else {

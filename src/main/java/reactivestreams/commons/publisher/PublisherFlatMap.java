@@ -32,7 +32,6 @@ import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.MultiReceiver;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.flow.Fuseable.FusionMode;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
@@ -904,15 +903,15 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             if (SubscriptionHelper.setOnce(S, this, s)) {
                 if (s instanceof Fuseable.QueueSubscription) {
                     @SuppressWarnings("unchecked") Fuseable.QueueSubscription<R> f = (Fuseable.QueueSubscription<R>)s;
-                    FusionMode m = f.requestFusion(FusionMode.ANY);
-                    if (m == FusionMode.SYNC){
+                    int m = f.requestFusion(Fuseable.ANY);
+                    if (m == Fuseable.SYNC){
                         sourceMode = SYNC;
                         queue = f;
                         done = true;
                         parent.drain();
                         return;
                     } else 
-                    if (m == FusionMode.ASYNC) {
+                    if (m == Fuseable.ASYNC) {
                         sourceMode = ASYNC;
                         queue = f;
                     }

@@ -1,11 +1,16 @@
 package reactivestreams.commons.publisher;
 
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.flow.*;
-import reactivestreams.commons.util.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
 
 /**
  * Peek into the lifecycle events and signals of a sequence.
@@ -129,7 +134,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onNext(T t) {
-            if (sourceMode == NORMAL) {
+            if (sourceMode == NONE) {
                 if (parent.onNextCall() != null) {
                     try {
                         parent.onNextCall().accept(t);
@@ -250,10 +255,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
         }
 
         @Override
-        public FusionMode requestFusion(FusionMode requestedMode) {
-            FusionMode m = s.requestFusion(requestedMode);
-            if (m != FusionMode.NONE) {
-                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+        public int requestFusion(int requestedMode) {
+            int m = s.requestFusion(requestedMode);
+            if (m != Fuseable.NONE) {
+                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
             }
             return m;
         }
@@ -337,7 +342,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onNext(T t) {
-            if (sourceMode == NORMAL) {
+            if (sourceMode == NONE) {
                 if (parent.onNextCall() != null) {
                     try {
                         parent.onNextCall().accept(t);
@@ -358,7 +363,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
         
         @Override
         public boolean tryOnNext(T t) {
-            if (sourceMode == NORMAL) {
+            if (sourceMode == NONE) {
                 if (parent.onNextCall() != null) {
                     try {
                         parent.onNextCall().accept(t);
@@ -481,10 +486,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
         }
 
         @Override
-        public FusionMode requestFusion(FusionMode requestedMode) {
-            FusionMode m = s.requestFusion(requestedMode);
-            if (m != FusionMode.NONE) {
-                sourceMode = m == FusionMode.SYNC ? SYNC : ASYNC;
+        public int requestFusion(int requestedMode) {
+            int m = s.requestFusion(requestedMode);
+            if (m != Fuseable.NONE) {
+                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
             }
             return m;
         }
@@ -533,5 +538,164 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
     @Override
     public Runnable onCancelCall() {
         return onCancelCall;
+    }
+
+    static final class PublisherPeekConditionalSubscriber<T> implements ConditionalSubscriber<T>, Subscription, Receiver, Producer {
+
+        final ConditionalSubscriber<? super T> actual;
+
+        final PublisherPeekHelper<T> parent;
+
+        Subscription s;
+
+        public PublisherPeekConditionalSubscriber(ConditionalSubscriber<? super T> actual, PublisherPeekHelper<T> parent) {
+            this.actual = actual;
+            this.parent = parent;
+        }
+
+        @Override
+        public void request(long n) {
+            if(parent.onRequestCall() != null) {
+                try {
+                    parent.onRequestCall().accept(n);
+                }
+                catch (Throwable e) {
+                    cancel();
+                    onError(ExceptionHelper.unwrap(e));
+                    return;
+                }
+            }
+            s.request(n);
+        }
+
+        @Override
+        public void cancel() {
+            if(parent.onCancelCall() != null) {
+                try {
+                    parent.onCancelCall().run();
+                }
+                catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    s.cancel();
+                    onError(ExceptionHelper.unwrap(e));
+                    return;
+                }
+            }
+            s.cancel();
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if(parent.onSubscribeCall() != null) {
+                try {
+                    parent.onSubscribeCall().accept(s);
+                }
+                catch (Throwable e) {
+                    s.cancel();
+                    actual.onSubscribe(EmptySubscription.INSTANCE);
+                    onError(e);
+                    return;
+                }
+            }
+            this.s = s;
+            actual.onSubscribe(this);
+        }
+
+        @Override
+        public void onNext(T t) {
+            if(parent.onNextCall() != null) {
+                try {
+                    parent.onNextCall().accept(t);
+                }
+                catch (Throwable e) {
+                    cancel();
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
+                    return;
+                }
+            }
+            actual.onNext(t);
+        }
+
+        @Override
+        public boolean tryOnNext(T t) {
+            if(parent.onNextCall() != null) {
+                try {
+                    parent.onNextCall().accept(t);
+                }
+                catch (Throwable e) {
+                    cancel();
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
+                    return true;
+                }
+            }
+            return actual.tryOnNext(t);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            if(parent.onErrorCall() != null) {
+                ExceptionHelper.throwIfFatal(t);
+                parent.onErrorCall().accept(t);
+            }
+
+            actual.onError(t);
+
+            if(parent.onAfterTerminateCall() != null) {
+                try {
+                    parent.onAfterTerminateCall().run();
+                }
+                catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    Throwable _e = ExceptionHelper.unwrap(e);
+                    e.addSuppressed(ExceptionHelper.unwrap(t));
+                    if(parent.onErrorCall() != null) {
+                        parent.onErrorCall().accept(_e);
+                    }
+                    actual.onError(_e);
+                }
+            }
+        }
+
+        @Override
+        public void onComplete() {
+            if(parent.onCompleteCall() != null) {
+                try {
+                    parent.onCompleteCall().run();
+                }
+                catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    onError(ExceptionHelper.unwrap(e));
+                    return;
+                }
+            }
+
+            actual.onComplete();
+
+            if(parent.onAfterTerminateCall() != null) {
+                try {
+                    parent.onAfterTerminateCall().run();
+                }
+                catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    Throwable _e = ExceptionHelper.unwrap(e);
+                    if(parent.onErrorCall() != null) {
+                        parent.onErrorCall().accept(_e);
+                    }
+                    actual.onError(_e);
+                }
+            }
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
 }

@@ -1,11 +1,10 @@
 package reactivestreams.commons.util;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
 
 import org.reactivestreams.Subscriber;
-
 import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.Fuseable.FusionMode;
 import reactivestreams.commons.state.Introspectable;
 
 /**
@@ -147,8 +146,8 @@ public enum EmptyQueueSubscription implements Fuseable.QueueSubscription<Object>
     }
 
     @Override
-    public FusionMode requestFusion(FusionMode requestedMode) {
-        return FusionMode.NONE;
+    public int requestFusion(int requestedMode) {
+        return Fuseable.NONE;
     }
 
     @Override
