@@ -296,6 +296,11 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
             }
             return m;
         }
+        
+        @Override
+        public int size() {
+            return s.size();
+        }
     }
 
     static final class PublisherFilterFuseableConditionalSubscriber<T> 
@@ -522,6 +527,11 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         @Override
         public void drop() {
             s.drop();
+        }
+        
+        @Override
+        public int size() {
+            return s.size();
         }
         
         @Override

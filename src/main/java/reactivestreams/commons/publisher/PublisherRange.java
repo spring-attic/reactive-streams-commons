@@ -219,6 +219,11 @@ extends PublisherBase<Integer>
         public void drop() {
             index++;
         }
+        
+        @Override
+        public int size() {
+            return (int)(end - index);
+        }
     }
     
     static final class RangeSubscriptionConditional
@@ -384,6 +389,11 @@ extends PublisherBase<Integer>
         @Override
         public void drop() {
             index++;
+        }
+
+        @Override
+        public int size() {
+            return (int)(end - index);
         }
     }
 }

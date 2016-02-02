@@ -81,7 +81,15 @@ public final class SpscArrayQueue<T> extends AtomicReferenceArray<T> implements 
 
     @Override
     public int size() {
-        throw new UnsupportedOperationException();
+        long ci = consumerIndex.get();
+        for (;;) {
+            long pi = producerIndex.get();
+            long ci2 = consumerIndex.get();
+            if (ci == ci2) {
+                return (int)(pi - ci);
+            }
+            ci = ci2;
+        }
     }
 
     @Override

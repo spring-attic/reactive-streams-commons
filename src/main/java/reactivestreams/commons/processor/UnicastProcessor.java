@@ -318,7 +318,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable {
 
     @Override
     public int size() {
-        throw new UnsupportedOperationException("Operators should not use this method!");
+        return queue.size();
     }
 
     @Override

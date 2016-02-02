@@ -248,6 +248,11 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         public void drop() {
             s.drop();
         }
+        
+        @Override
+        public int size() {
+            return s.size();
+        }
     }
 
     static final class PublisherMapFuseableConditionalSubscriber<T, R> 
@@ -467,6 +472,11 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         @Override
         public void drop() {
             s.drop();
+        }
+        
+        @Override
+        public int size() {
+            return s.size();
         }
     }
 }
