@@ -37,6 +37,8 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     int completions;
 
     int subscriptions;
+    
+    boolean subscriberVerified;
 
     public TestSubscriber() {
         this(EmptySubscriber.instance(), Long.MAX_VALUE);
@@ -62,19 +64,21 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         subscriptions++;
         if (!set(s)) {
             if (!isCancelled()) {
-                errors.add(new IllegalStateException("subscription already set"));
+                errors.add(new IllegalStateException("Subscription already set: " + subscriptions));
             }
         }
     }
 
     @Override
     public void onNext(T t) {
+        verifySubscription();
         values.add(t);
         subscriber.onNext(t);
     }
 
     @Override
     public void onError(Throwable t) {
+        verifySubscription();
         errors.add(t);
         subscriber.onError(t);
         cdl.countDown();
@@ -82,11 +86,21 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
     @Override
     public void onComplete() {
+        verifySubscription();
         completions++;
         subscriber.onComplete();
         cdl.countDown();
     }
 
+    void verifySubscription() {
+        if (!subscriberVerified) {
+            subscriberVerified = true;
+            if (subscriptions != 1) {
+                errors.add(new IllegalStateException("Exactly 1 onSubscribe call expected but it was " + subscriptions));
+            }
+        }
+    }
+    
     @Override
     public void request(long n) {
         if (SubscriptionHelper.validate(n)) {

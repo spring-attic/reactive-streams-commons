@@ -37,7 +37,8 @@ public class PublisherIntervalTest {
         try {
             TestSubscriber<Long> ts = new TestSubscriber<>();
             
-            ts.onNext(System.currentTimeMillis());
+            ts.values().add(System.currentTimeMillis());
+            
             new PublisherInterval(100, 100, TimeUnit.MILLISECONDS, exec)
             .take(5)
             .map(v -> System.currentTimeMillis()).subscribe(ts);

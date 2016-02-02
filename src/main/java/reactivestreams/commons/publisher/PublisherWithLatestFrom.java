@@ -158,11 +158,13 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
         public void onError(Throwable t) {
             if (main == null) {
                 if (MAIN.compareAndSet(this, null, CancelledSubscription.INSTANCE)) {
+                    cancelOther();
+
                     EmptySubscription.error(actual, t);
                     return;
                 }
             }
-            cancel();
+            cancelOther();
 
             otherValue = null;
             actual.onError(t);
@@ -176,6 +178,36 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
             actual.onComplete();
         }
 
+        void otherError(Throwable t) {
+            if (main == null) {
+                if (MAIN.compareAndSet(this, null, CancelledSubscription.INSTANCE)) {
+                    cancelMain();
+
+                    EmptySubscription.error(actual, t);
+                    return;
+                }
+            }
+            cancelMain();
+            
+            otherValue = null;
+            actual.onError(t);
+        }
+        
+        void otherComplete() {
+            if (otherValue == null) {
+                if (main == null) {
+                    if (MAIN.compareAndSet(this, null, CancelledSubscription.INSTANCE)) {
+                        cancelMain();
+
+                        EmptySubscription.complete(actual);
+                        return;
+                    }
+                }
+                cancelMain();
+                
+                actual.onComplete();
+            }
+        }
     }
 
     static final class PublisherWithLatestFromOtherSubscriber<U> implements Subscriber<U> {
@@ -199,19 +231,12 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
 
         @Override
         public void onError(Throwable t) {
-            main.onError(t);
+            main.otherError(t);
         }
 
         @Override
         public void onComplete() {
-            PublisherWithLatestFromSubscriber<?, U, ?> m = main;
-            if (m.otherValue == null) {
-                m.cancelMain();
-
-                m.onComplete();
-            }
+            main.otherComplete();
         }
-
-
     }
 }
