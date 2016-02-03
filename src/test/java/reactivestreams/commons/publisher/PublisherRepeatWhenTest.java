@@ -1,5 +1,7 @@
 package reactivestreams.commons.publisher;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Test;
 import reactivestreams.commons.test.TestSubscriber;
 
@@ -136,6 +138,24 @@ public class PublisherRepeatWhenTest {
         ts.request(8);
         
         ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2)
+        .assertNoError()
+        .assertNotComplete();
+    }
+
+    @Test
+    public void retryAlwaysScalar() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+
+        AtomicInteger count = new AtomicInteger();
+
+        new PublisherJust<>(1)
+                .map( d -> count.incrementAndGet())
+                .repeatWhen(v -> v)
+                .subscribe(ts);
+
+        ts.request(8);
+
+        ts.assertValues(1, 2, 3, 4, 5, 6, 7, 8)
         .assertNoError()
         .assertNotComplete();
     }
