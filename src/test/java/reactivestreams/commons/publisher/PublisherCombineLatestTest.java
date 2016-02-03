@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 
@@ -263,18 +262,18 @@ public class PublisherCombineLatestTest {
     public void intervalResultInCorrectTotalCouples() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
 
         new PublisherCombineLatest<>(new Publisher[] {
-                PublisherBase.interval(50, TimeUnit.MILLISECONDS, exec).take(20),
-                PublisherBase.interval(100, TimeUnit.MILLISECONDS, exec).take(20)
+                PublisherBase.interval(100, TimeUnit.MILLISECONDS, exec).take(20),
+                PublisherBase.interval(100, 50, TimeUnit.MILLISECONDS, exec).take(20)
         },
         a -> Arrays.asList(a[0] , a[1]), qs, 128)
            // .doOnNext(System.out::println)
             .subscribe(ts);
 
         ts.await();
-        ts.assertValueCount(38)
+        ts.assertValueCount(39)
           .assertComplete()
           .assertNoError();
 
