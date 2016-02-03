@@ -257,9 +257,9 @@ public class PublisherPeekTest {
         
         PublisherBase.wrapFuseable(u -> {
             if (!(u instanceof Fuseable.ConditionalSubscriber)) {
-                EmptyQueueSubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
+                EmptySubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
             } else {
-                EmptyQueueSubscription.complete(u);
+                EmptySubscription.complete(u);
             }
         }).doOnNext(v -> { }).filter(v -> true).subscribe(ts);
         

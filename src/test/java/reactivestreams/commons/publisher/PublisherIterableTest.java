@@ -1,6 +1,6 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
+import java.util.*;
 
 import org.junit.Test;
 import reactivestreams.commons.test.TestSubscriber;
@@ -86,5 +86,15 @@ public class PublisherIterableTest {
           .assertError(NullPointerException.class);
     }
 
+    @Test
+    public void emptyMapped() {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+
+        PublisherBase.fromIterable(Collections.<Integer>emptyList()).map(v -> v + 1).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
 
 }
