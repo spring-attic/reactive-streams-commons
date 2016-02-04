@@ -70,7 +70,7 @@ public class CrossRangeFlatMapObserveOnPerf {
         PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2));
 
         source1 = source.observeOn(scheduler);
-        
+
         source2 = new PublisherObserveOn<>(source, scheduler, false, 256, () -> new SpscArrayQueue<>(256));
     }
     
@@ -78,13 +78,13 @@ public class CrossRangeFlatMapObserveOnPerf {
     public void tearDown() {
         exec.shutdown();
     }
-    
+
     @Benchmark
     public void benchDefault(Blackhole bh) {
         PerfAsyncSubscriber s = new PerfAsyncSubscriber(bh);
-        
+
         source1.subscribe(s);
-        
+
         s.await(count);
     }
 

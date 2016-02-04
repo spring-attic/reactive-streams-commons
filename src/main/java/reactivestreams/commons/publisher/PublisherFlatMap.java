@@ -33,9 +33,6 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
-import com.sun.media.jfxmediaimpl.MediaDisposer.Disposable;
-
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.MultiReceiver;
 import reactivestreams.commons.flow.Producer;
@@ -1555,7 +1552,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     }
     
     static final class InnerSubscriber<T, U> extends AtomicReference<Subscription> 
-    implements Subscriber<U>, Disposable {
+    implements Subscriber<U> {
         /** */
         private static final long serialVersionUID = -4606175640614850599L;
         final long id;
@@ -1626,8 +1623,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
         }
         
-        @Override
-        public void dispose() {
+        void dispose() {
             Subscription s = get();
             if (s != CANCELLED) {
                 s = getAndSet(CANCELLED);
