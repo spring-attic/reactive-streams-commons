@@ -704,7 +704,7 @@ public class PublisherObserveOnTest {
         int count = 1000000;
         
         PublisherBase.range(1, count)
-        .hide().flatMap(v -> PublisherBase.range(v, 2).hide())
+        .hide().flatMap(v -> PublisherBase.range(v, 2).hide(), false, 32)
         .hide().observeOn(exec).subscribe(ts);
         
         if (!ts.await(5, TimeUnit.SECONDS)) {
@@ -723,7 +723,7 @@ public class PublisherObserveOnTest {
         int count = 1000000;
         
         PublisherBase.range(1, count)
-        .flatMap(v -> PublisherBase.range(v, 2))
+        .flatMap(v -> PublisherBase.range(v, 2), false, 32)
         .observeOn(exec).subscribe(ts);
         
         if (!ts.await(5, TimeUnit.SECONDS)) {

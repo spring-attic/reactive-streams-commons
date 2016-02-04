@@ -97,8 +97,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             return;
         }
         
-//        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
-        source.subscribe(new MergeSubscriber<>(s, mapper, delayError, maxConcurrency, prefetch));
+        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
+//        source.subscribe(new MergeSubscriber<>(s, mapper, delayError, maxConcurrency, prefetch));
     }
 
     static final class PublisherFlatMapMain<T, R> 
@@ -155,9 +155,13 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         @SuppressWarnings("rawtypes")
         static final PublisherFlatMapInner[] TERMINATED = new PublisherFlatMapInner[0];
         
-        int last;
+        int lastIndex;
         
         int produced;
+        
+        long unique;
+        
+        long lastId;
         
         public PublisherFlatMapMain(Subscriber<? super R> actual,
                 Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency,
@@ -316,7 +320,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 }
                 emitScalar(v);
             } else {
-                PublisherFlatMapInner<R> inner = new PublisherFlatMapInner<>(this, prefetch);
+                PublisherFlatMapInner<R> inner = new PublisherFlatMapInner<>(this, prefetch, unique++);
                 if (add(inner)) {
                     
                     p.subscribe(inner);
@@ -357,10 +361,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                             produced = p;
                         }
                     }
-                    
-                    if (WIP.decrementAndGet(this) == 0) {
-                        return;
-                    }
                 } else {
                     Queue<R> q;
                     
@@ -391,8 +391,14 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                         } else {
                             UnsignalledExceptions.onErrorDropped(e);
                         }
+                        drainLoop();
+                        return;
                     }
                 }
+                if (WIP.decrementAndGet(this) == 0) {
+                    return;
+                }
+
                 drainLoop();
             } else {
                 Queue<R> q;
@@ -527,122 +533,218 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                         }
                         
                     }
-
-                    if (r != 0L) {
-                        
-                        int j = last;
-                        if (j >= n) {
-                            j = n - 1;
+                }
+                if (r != 0L && n != 0) {
+                    
+                    int j = lastIndex;
+                    if (j >= n) {
+                        j = 0;
+                    }
+                    
+                    for (int i = 0; i < n; i++) {
+                        if (cancelled) {
+                            scalarQueue = null;
+                            s.cancel();
+                            cancelAllInner();
+                            return;
                         }
                         
-                        for (int i = 0; i < n; i++) {
-                            if (cancelled) {
-                                return;
-                            }
-                            
-                            PublisherFlatMapInner<R> inner = as[j];
-                            
-                            d = inner.done;
-                            Queue<R> q = inner.queue;
-                            if (d && q == null) {
-                                remove(inner);
-                                again = true;
-                                replenishMain++;
-                            } else 
-                            if (q != null) {
-                                while (e != r) {
-                                    d = inner.done;
-                                    
-                                    R v;
-                                    
-                                    try {
-                                        v = q.poll();
-                                    } catch (Throwable ex) {
-                                        ExceptionHelper.throwIfFatal(ex);
-                                        inner.cancel();
-                                        if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
-                                            UnsignalledExceptions.onErrorDropped(ex);
-                                        }
-                                        v = null;
-                                        d = true;
+                        PublisherFlatMapInner<R> inner = as[j];
+                        
+                        d = inner.done;
+                        Queue<R> q = inner.queue;
+                        if (d && q == null) {
+                            remove(inner);
+                            again = true;
+                            replenishMain++;
+                        } else 
+                        if (q != null) {
+                            while (e != r) {
+                                d = inner.done;
+                                
+                                R v;
+                                
+                                try {
+                                    v = q.poll();
+                                } catch (Throwable ex) {
+                                    ExceptionHelper.throwIfFatal(ex);
+                                    inner.cancel();
+                                    if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                                        UnsignalledExceptions.onErrorDropped(ex);
                                     }
-                                    
-                                    boolean empty = v == null;
-                                    
-                                    if (checkTerminated(d, false, a)) {
-                                        return;
-                                    }
+                                    v = null;
+                                    d = true;
+                                }
+                                
+                                boolean empty = v == null;
+                                
+                                if (checkTerminated(d, false, a)) {
+                                    return;
+                                }
 
-                                    if (d && empty) {
-                                        remove(inner);
-                                        again = true;
-                                        replenishMain++;
-                                        break;
-                                    }
-                                    
-                                    if (empty) {
-                                        break;
-                                    }
-                                    
-                                    a.onNext(v);
-                                    
-                                    e++;
+                                if (d && empty) {
+                                    remove(inner);
+                                    again = true;
+                                    replenishMain++;
+                                    break;
                                 }
                                 
-                                if (e == r) {
-                                    d = inner.done;
-                                    boolean empty;
-                                    
-                                    try {
-                                        empty = q.isEmpty();
-                                    } catch (Throwable ex) {
-                                        ExceptionHelper.throwIfFatal(ex);
-                                        inner.cancel();
-                                        if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
-                                            UnsignalledExceptions.onErrorDropped(ex);
-                                        }
-                                        empty = true;
-                                        d = true;
-                                    }
-                                    
-                                    if (d && empty) {
-                                        remove(inner);
-                                        again = true;
-                                        replenishMain++;
-                                    }
+                                if (empty) {
+                                    break;
                                 }
                                 
-                                if (e != 0L) {
-                                    if (!inner.done) {
-                                        inner.request(e);
-                                    }
-                                    if (r != Long.MAX_VALUE) {
-                                        r = REQUESTED.addAndGet(this, -e);
-                                        if (r == 0L) {
-                                            last = j;
-                                            break; // 0 .. n - 1
-                                        }
-                                    }
-                                    e = 0L;
-                                }
+                                a.onNext(v);
+                                
+                                e++;
                             }
+                            
                             if (e == r) {
-                                last = i;
-                                break;
+                                d = inner.done;
+                                boolean empty;
+                                
+                                try {
+                                    empty = q.isEmpty();
+                                } catch (Throwable ex) {
+                                    ExceptionHelper.throwIfFatal(ex);
+                                    inner.cancel();
+                                    if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                                        UnsignalledExceptions.onErrorDropped(ex);
+                                    }
+                                    empty = true;
+                                    d = true;
+                                }
+                                
+                                if (d && empty) {
+                                    remove(inner);
+                                    again = true;
+                                    replenishMain++;
+                                }
                             }
-                            if (++j == n) {
-                                j = 0;
+                            
+                            if (e != 0L) {
+                                if (!inner.done) {
+                                    inner.request(e);
+                                }
+                                if (r != Long.MAX_VALUE) {
+                                    r = REQUESTED.addAndGet(this, -e);
+                                    if (r == 0L) {
+                                        break; // 0 .. n - 1
+                                    }
+                                }
+                                e = 0L;
                             }
+                        }
+                        
+                        if (r == 0L) {
+                            break;
+                        }
+                        
+                        if (++j == n) {
+                            j = 0;
                         }
                     }
+                    
+                    lastIndex = j;
                 }
                 
-                if (r == 0L) {
+//                boolean unbounded = r == Long.MAX_VALUE;
+//                
+//                if (n != 0) {
+//                    long startId = lastId;
+//                    int index = lastIndex;
+//                    
+//                    if (n <= index || as[index].id != startId) {
+//                        if (n <= index) {
+//                            index = 0;
+//                        }
+//                        int j = index;
+//                        for (int i = 0; i < n; i++) {
+//                            if (as[j].id == startId) {
+//                                break;
+//                            }
+//                            j++;
+//                            if (j == n) {
+//                                j = 0;
+//                            }
+//                        }
+//                        index = j;
+//                        lastIndex = j;
+//                        lastId = as[j].id;
+//                    }
+//                    
+//                    int j = index;
+//                    for (int i = 0; i < n; i++) {
+//                        if (checkTerminated(done, false, a)) {
+//                            return;
+//                        }
+//                        PublisherFlatMapInner<R> is = as[j];
+//                        
+//                        R o = null;
+//                        for (;;) {
+//                            long produced = 0;
+//                            while (r != 0L) {
+//                                if (checkTerminated(is.done, false, a)) {
+//                                    return;
+//                                }
+//                                Queue<R> q = is.queue;
+//                                if (q == null) {
+//                                    break;
+//                                }
+//                                o = q.poll();
+//                                if (o == null) {
+//                                    break;
+//                                }
+//
+//                                a.onNext(o);
+//                                
+//                                r--;
+//                                produced++;
+//                            }
+//                            if (produced != 0L) {
+//                                if (!unbounded) {
+//                                    r = REQUESTED.addAndGet(this, -produced);
+//                                } else {
+//                                    r = Long.MAX_VALUE;
+//                                }
+//                                is.request(produced);
+//                            }
+//                            if (r == 0 || o == null) {
+//                                break;
+//                            }
+//                        }
+//                        boolean innerDone = is.done;
+//                        Queue<R> innerQueue = is.queue;
+//                        if (innerDone && (innerQueue == null || innerQueue.isEmpty())) {
+//                            remove(is);
+//                            if (checkTerminated(true, false, a)) {
+//                                return;
+//                            }
+//                            replenishMain++;
+//                            again = true;
+//                        }
+//                        if (r == 0L) {
+//                            break;
+//                        }
+//                        
+//                        j++;
+//                        if (j == n) {
+//                            j = 0;
+//                        }
+//                    }
+//                    lastIndex = j;
+//                    lastId = as[j].id;
+//                }
+                
+                
+                if (r == 0L && n != 0) {
                     as = subscribers;
                     n = as.length;
                     
                     for (int i = 0; i < n; i++) {
                         if (cancelled) {
+                            scalarQueue = null;
+                            s.cancel();
+                            cancelAllInner();
                             return;
                         }
                         
@@ -740,10 +842,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     }
                     
                     inner.request(1);
-                    
-                    if (WIP.decrementAndGet(this) == 0) {
-                        return;
-                    }
                 } else {
                     Queue<R> q;
                     
@@ -771,8 +869,14 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                         } else {
                             UnsignalledExceptions.onErrorDropped(e);
                         }
+                        drainLoop();
+                        return;
                     }
                 }
+                if (WIP.decrementAndGet(this) == 0) {
+                    return;
+                }
+                
                 drainLoop();
             } else {
                 Queue<R> q;
@@ -885,6 +989,8 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         final int limit;
         
+        final long id;
+        
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherFlatMapInner, Subscription> S =
@@ -911,9 +1017,10 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         static final AtomicIntegerFieldUpdater<PublisherFlatMapInner> ONCE =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherFlatMapInner.class, "once");
         
-        public PublisherFlatMapInner(PublisherFlatMapMain<?, R> parent, int prefetch) {
+        public PublisherFlatMapInner(PublisherFlatMapMain<?, R> parent, int prefetch, long index) {
             this.parent = parent;
             this.prefetch = prefetch;
+            this.id = index;
             this.limit = prefetch - (prefetch >> 2);
         }
 
@@ -1264,11 +1371,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     return;
                 }
             } else {
-                Queue<U> q = inner.queue;
-                if (q == null) {
-                    q = new SpscArrayQueue<>(bufferSize);
-                    inner.queue = q;
-                }
+                Queue<U> q = getInnerQueue(inner);
                 if (!q.offer(value)) {
                     onError(new IllegalStateException("Inner queue full?!"));
                     return;
@@ -1623,7 +1726,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
         }
         
-        void dispose() {
+        public void dispose() {
             Subscription s = get();
             if (s != CANCELLED) {
                 s = getAndSet(CANCELLED);

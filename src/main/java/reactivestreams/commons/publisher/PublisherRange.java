@@ -189,10 +189,11 @@ extends PublisherBase<Integer>
 
         @Override
         public Integer poll() {
-            long i = index++;
+            long i = index;
             if (i == end) {
                 return null;
             }
+            index = i + 1;
             return (int)i;
         }
 
@@ -360,10 +361,11 @@ extends PublisherBase<Integer>
 
         @Override
         public Integer poll() {
-            long i = index++;
+            long i = index;
             if (i == end) {
                 return null;
             }
+            index = i + 1;
             return (int)i;
         }
 

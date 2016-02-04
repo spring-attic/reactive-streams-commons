@@ -67,7 +67,7 @@ public class CrossRangeFlatMapObserveOnPerf {
         
         ExecutorServiceScheduler scheduler = new ExecutorServiceScheduler(exec);
 
-        PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2));
+        PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, 32);
 
         source1 = source.observeOn(scheduler);
 
