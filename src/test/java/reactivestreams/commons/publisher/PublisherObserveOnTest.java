@@ -407,7 +407,7 @@ public class PublisherObserveOnTest {
 
         new PublisherRange(0, 128).hide().observeOn(ForkJoinPool.commonPool()).subscribe(sp);
 
-        ts.await();
+        ts.await(5, TimeUnit.SECONDS);
         ts.assertValueCount(256)
           .assertNoError()
           .assertComplete();
@@ -659,4 +659,79 @@ public class PublisherObserveOnTest {
         .assertNotComplete();
     }
 
+    @Test
+    public void crossRangeHidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        int count = 1000000;
+        
+        PublisherBase.range(1, count)
+        .hide().flatMap(v -> PublisherBase.range(v, 2).hide(), false, 1)
+        .hide().observeOn(exec).subscribe(ts);
+        
+        if (!ts.await(5, TimeUnit.SECONDS)) {
+            ts.cancel();
+        }
+        
+        ts.assertValueCount(count * 2)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void crossRange() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        int count = 1000000;
+        
+        PublisherBase.range(1, count)
+        .flatMap(v -> PublisherBase.range(v, 2), false, 1)
+        .observeOn(exec).subscribe(ts);
+        
+        if (!ts.await(5, TimeUnit.SECONDS)) {
+            ts.cancel();
+        }
+        
+        ts.assertValueCount(count * 2)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void crossRangeMaxHidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        int count = 1000000;
+        
+        PublisherBase.range(1, count)
+        .hide().flatMap(v -> PublisherBase.range(v, 2).hide())
+        .hide().observeOn(exec).subscribe(ts);
+        
+        if (!ts.await(5, TimeUnit.SECONDS)) {
+            ts.cancel();
+        }
+        
+        ts.assertValueCount(count * 2)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void crossRangeMax() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        int count = 1000000;
+        
+        PublisherBase.range(1, count)
+        .flatMap(v -> PublisherBase.range(v, 2))
+        .observeOn(exec).subscribe(ts);
+        
+        if (!ts.await(5, TimeUnit.SECONDS)) {
+            ts.cancel();
+        }
+        
+        ts.assertValueCount(count * 2)
+        .assertNoError()
+        .assertComplete();
+    }
 }
