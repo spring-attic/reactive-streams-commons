@@ -34,7 +34,7 @@ def excludingStreamScope = includingCoreScope + ['generate',
 												 'blockingiterable', 'blockingstream', 'hide', 'bufferboundaryandsize',
 												 'windowbeginend', 'windowboundaryandsize',
 												 'lift', //Already managed by reactor-core
-												 'stream']
+												 'stream'] - ['map', 'peek']
 
 //Common reactor helper references
 def reactorCommon = ['fn-backport'          : 'reactor.fn',
