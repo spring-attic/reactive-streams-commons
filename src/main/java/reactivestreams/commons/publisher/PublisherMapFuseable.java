@@ -237,7 +237,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         public int requestFusion(int requestedMode) {
             int m = s.requestFusion(requestedMode);
             if (m != Fuseable.NONE) {
-                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
+                sourceMode = m == Fuseable.SYNC ? SYNC : ((requestedMode & Fuseable.THREAD_BARRIER) != 0 ? NONE : ASYNC);
             }
             return m;
         }
@@ -455,7 +455,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         public int requestFusion(int requestedMode) {
             int m = s.requestFusion(requestedMode);
             if (m != Fuseable.NONE) {
-                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
+                sourceMode = m == Fuseable.SYNC ? SYNC : ((requestedMode & Fuseable.THREAD_BARRIER) != 0 ? NONE : ASYNC);
             }
             return m;
         }

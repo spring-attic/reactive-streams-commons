@@ -292,7 +292,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         public int requestFusion(int requestedMode) {
             int m = s.requestFusion(requestedMode);
             if (m != Fuseable.NONE) {
-                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
+                sourceMode = m == Fuseable.SYNC ? SYNC : ((requestedMode & Fuseable.THREAD_BARRIER) != 0 ? NONE : ASYNC);
             }
             return m;
         }
@@ -316,13 +316,6 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         
         int sourceMode;
 
-        /** Running with regular, arbitrary source. */
-        static final int NORMAL = 0;
-        /** Running with a source that implements SynchronousSource. */
-        static final int SYNC = 1;
-        /** Running with a source that implements AsynchronousSource. */
-        static final int ASYNC = 2;
-        
         public PublisherFilterFuseableConditionalSubscriber(ConditionalSubscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
@@ -538,7 +531,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         public int requestFusion(int requestedMode) {
             int m = s.requestFusion(requestedMode);
             if (m != Fuseable.NONE) {
-                sourceMode = m == Fuseable.SYNC ? SYNC : ASYNC;
+                sourceMode = m == Fuseable.SYNC ? SYNC : ((requestedMode & Fuseable.THREAD_BARRIER) != 0 ? NONE : ASYNC);
             }
             return m;
         }

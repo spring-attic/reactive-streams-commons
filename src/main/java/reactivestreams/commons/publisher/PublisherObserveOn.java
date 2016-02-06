@@ -152,10 +152,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         int sourceMode;
         
-        static final int NORMAL = 0;
-        static final int SYNC = 1;
-        static final int ASYNC = 2;
-        
         long produced;
         
         public PublisherObserveOnSubscriber(
@@ -185,10 +181,10 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     @SuppressWarnings("unchecked")
                     Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>) s;
                     
-                    int m = f.requestFusion(Fuseable.ANY);
+                    int m = f.requestFusion(Fuseable.ANY | Fuseable.THREAD_BARRIER);
                     
                     if (m == Fuseable.SYNC) {
-                        sourceMode = SYNC;
+                        sourceMode = Fuseable.SYNC;
                         queue = f;
                         done = true;
                         
@@ -196,7 +192,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         return;
                     } else
                     if (m == Fuseable.ASYNC) {
-                        sourceMode = ASYNC;
+                        sourceMode = Fuseable.ASYNC;
                         queue = f;
                     } else {
                         try {
@@ -235,7 +231,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         @Override
         public void onNext(T t) {
-            if (sourceMode == ASYNC) {
+            if (sourceMode == Fuseable.ASYNC) {
                 trySchedule();
                 return;
             }
@@ -456,7 +452,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         @Override
         public void run() {
-            if (sourceMode == SYNC) {
+            if (sourceMode == Fuseable.SYNC) {
                 runSync();
             } else {
                 runAsync();
@@ -605,10 +601,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         int sourceMode;
         
-        static final int NORMAL = 0;
-        static final int SYNC = 1;
-        static final int ASYNC = 2;
-
         long produced;
         
         long consumed;
@@ -640,10 +632,10 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     @SuppressWarnings("unchecked")
                     Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>) s;
                     
-                    int m = f.requestFusion(Fuseable.ANY);
+                    int m = f.requestFusion(Fuseable.ANY | Fuseable.THREAD_BARRIER);
                     
                     if (m == Fuseable.SYNC) {
-                        sourceMode = SYNC;
+                        sourceMode = Fuseable.SYNC;
                         queue = f;
                         done = true;
                         
@@ -651,7 +643,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         return;
                     } else
                     if (m == Fuseable.ASYNC) {
-                        sourceMode = ASYNC;
+                        sourceMode = Fuseable.ASYNC;
                         queue = f;
                     } else {
                         try {
@@ -690,7 +682,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         @Override
         public void onNext(T t) {
-            if (sourceMode == ASYNC) {
+            if (sourceMode == Fuseable.ASYNC) {
                 trySchedule();
                 return;
             }
@@ -912,7 +904,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         @Override
         public void run() {
-            if (sourceMode == SYNC) {
+            if (sourceMode == Fuseable.SYNC) {
                 runSync();
             } else {
                 runAsync();

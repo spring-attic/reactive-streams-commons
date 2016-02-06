@@ -21,6 +21,17 @@ public interface Fuseable {
     int ASYNC = 2;
     /** Operational mode constant: QueueSubscription should decide what fusion it performs (input only). */
     int ANY = 3;
+    /** 
+     * Indicates that the queue will be drained from another thread 
+     * thus any queue-exit computation may be invalid at that point.
+     * <p>
+     * For example, an {@code asyncSource.map().observeOn().subscribe()} sequence where {@code asyncSource}
+     * is async-fuseable, observeOn may fuse the whole sequence into a single Queue which invokes the mapper
+     * function on its {@code poll()} method that is on another thread that whereas the unfused sequence
+     * would have invoked the mapper on the previous thread. If such mapper is costly, it would escape its
+     * thread bound this way.
+     */
+    int THREAD_BARRIER = 4;
 
     /**
      * A subscriber variant that can immediately tell if it consumed

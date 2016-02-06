@@ -734,4 +734,42 @@ public class PublisherObserveOnTest {
         .assertNoError()
         .assertComplete();
     }
+    
+    @Test
+    public void threadBoundaryPreventsInvalidFusionFilter() {
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        
+        TestSubscriber<String> ts = new TestSubscriber<>();
+
+        up.map(v -> Thread.currentThread().getName()).observeOn(exec).subscribe(ts);
+
+        up.onNext(1);
+        up.onComplete();
+        
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(Thread.currentThread().getName())
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void threadBoundaryPreventsInvalidFusion() {
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
+        
+        String s = Thread.currentThread().getName();
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        up.filter(v -> s.equals(Thread.currentThread().getName())).observeOn(exec).subscribe(ts);
+
+        up.onNext(1);
+        up.onComplete();
+        
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValue(1)
+        .assertNoError()
+        .assertComplete();
+    }
 }
