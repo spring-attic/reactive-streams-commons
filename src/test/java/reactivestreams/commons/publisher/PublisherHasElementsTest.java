@@ -3,20 +3,20 @@ package reactivestreams.commons.publisher;
 import org.junit.Test;
 import reactivestreams.commons.test.TestSubscriber;
 
-public class PublisherIsEmptyTest {
+public class PublisherHasElementsTest {
 
     @Test(expected = NullPointerException.class)
     public void sourceNull() {
-        new PublisherIsEmpty<>(null);
+        new PublisherHasElements<>(null);
     }
 
     @Test
     public void emptySource() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>();
 
-        new PublisherIsEmpty<>(PublisherEmpty.instance()).subscribe(ts);
+        new PublisherHasElements<>(PublisherEmpty.instance()).subscribe(ts);
 
-        ts.assertValue(true)
+        ts.assertValue(false)
           .assertComplete()
           .assertNoError();
     }
@@ -25,7 +25,7 @@ public class PublisherIsEmptyTest {
     public void emptySourceBackpressured() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>(0);
 
-        new PublisherIsEmpty<>(PublisherEmpty.instance()).subscribe(ts);
+        new PublisherHasElements<>(PublisherEmpty.instance()).subscribe(ts);
 
         ts.assertNoValues()
           .assertNotComplete()
@@ -33,7 +33,7 @@ public class PublisherIsEmptyTest {
 
         ts.request(1);
 
-        ts.assertValue(true)
+        ts.assertValue(false)
           .assertComplete()
           .assertNoError();
     }
@@ -42,9 +42,9 @@ public class PublisherIsEmptyTest {
     public void nonEmptySource() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>();
 
-        new PublisherIsEmpty<>(new PublisherRange(1, 10)).subscribe(ts);
+        new PublisherHasElements<>(new PublisherRange(1, 10)).subscribe(ts);
 
-        ts.assertValue(false)
+        ts.assertValue(true)
           .assertComplete()
           .assertNoError();
     }
@@ -53,7 +53,7 @@ public class PublisherIsEmptyTest {
     public void nonEmptySourceBackpressured() {
         TestSubscriber<Boolean> ts = new TestSubscriber<>(0);
 
-        new PublisherIsEmpty<>(new PublisherRange(1, 10)).subscribe(ts);
+        new PublisherHasElements<>(new PublisherRange(1, 10)).subscribe(ts);
 
         ts.assertNoValues()
           .assertNotComplete()
@@ -61,7 +61,7 @@ public class PublisherIsEmptyTest {
 
         ts.request(1);
 
-        ts.assertValue(false)
+        ts.assertValue(true)
           .assertComplete()
           .assertNoError();
     }
