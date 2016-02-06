@@ -7,22 +7,22 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.SubscriptionHelper;
 
-public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
+public final class PublisherHasElements<T> extends PublisherSource<T, Boolean> {
 
-    public PublisherIsEmpty(Publisher<? extends T> source) {
+    public PublisherHasElements(Publisher<? extends T> source) {
         super(source);
     }
 
     @Override
     public void subscribe(Subscriber<? super Boolean> s) {
-        source.subscribe(new PublisherIsEmptySubscriber<>(s));
+        source.subscribe(new PublisherHasElementsSubscriber<>(s));
     }
 
-    static final class PublisherIsEmptySubscriber<T> extends DeferredScalarSubscriber<T, Boolean>
+    static final class PublisherHasElementsSubscriber<T> extends DeferredScalarSubscriber<T, Boolean>
             implements Receiver {
         Subscription s;
 
-        public PublisherIsEmptySubscriber(Subscriber<? super Boolean> actual) {
+        public PublisherHasElementsSubscriber(Subscriber<? super Boolean> actual) {
             super(actual);
         }
 
@@ -46,12 +46,12 @@ public final class PublisherIsEmpty<T> extends PublisherSource<T, Boolean> {
         public void onNext(T t) {
             s.cancel();
 
-            complete(false);
+            complete(true);
         }
 
         @Override
         public void onComplete() {
-            complete(true);
+            complete(false);
         }
 
         @Override
