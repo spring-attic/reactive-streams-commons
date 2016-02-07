@@ -163,6 +163,11 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         static final AtomicLongFieldUpdater<PublisherSubscribeOnPipeline> REQUESTED =
             AtomicLongFieldUpdater.newUpdater(PublisherSubscribeOnPipeline.class, "requested");
 
+        volatile int wip;
+
+        static final AtomicIntegerFieldUpdater<PublisherSubscribeOnPipeline> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherSubscribeOnPipeline.class, "wip");
+
         public PublisherSubscribeOnPipeline(Subscriber<? super T> actual, Consumer<Runnable> scheduler) {
             this.actual = actual;
             this.scheduler = scheduler;
@@ -193,7 +198,8 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if(BackpressureHelper.addAndGet(REQUESTED, this, n) == 0L){
+                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                if(WIP.getAndIncrement(this) == 0){
                     scheduler.accept(this);
                 }
             }
@@ -201,14 +207,21 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
 
         @Override
         public void run() {
-            long r = requested;
+            long r;
+            int missed = 1;
             for(;;){
-                if(r != 0) {
+                r = REQUESTED.getAndSet(this, 0L);
+
+                if(r != 0L) {
                     super.request(r);
                 }
 
-                r = REQUESTED.getAndSet(this, 0L);
-                if(r == 0) {
+                if(r == Long.MAX_VALUE){
+                    return;
+                }
+
+                missed = WIP.addAndGet(this, -missed);
+                if(missed == 0){
                     break;
                 }
             }
