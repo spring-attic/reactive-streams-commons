@@ -1,16 +1,40 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.subscriber.BlockingFirstSubscriber;
+import reactivestreams.commons.subscriber.BlockingLastSubscriber;
 import reactivestreams.commons.subscriber.DropAllSubscriber;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.subscriber.PeekLastSubscriber;
+import reactivestreams.commons.util.ExecutorServiceScheduler;
+import reactivestreams.commons.util.SpscArrayQueue;
 
 /**
  * Experimental base class with fluent API.
@@ -564,6 +588,44 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return () -> { }; // FIXME proper cancellation support?
     }
     
+    public final PublisherBase<T> aggregate(BiFunction<T, T, T> aggregator) {
+        return new PublisherAggregate<>(this, aggregator);
+    }
+
+    public final PublisherBase<T> reduce(BiFunction<T, T, T> aggregator) {
+        return aggregate(aggregator);
+    }
+    
+    public final T peekLast() {
+        PeekLastSubscriber<T> subscriber = new PeekLastSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.get();
+    }
+    
+    public final T blockingFirst() {
+        BlockingFirstSubscriber<T> subscriber = new BlockingFirstSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet();
+    }
+
+    public final T blockingFirst(long timeout, TimeUnit unit) {
+        BlockingFirstSubscriber<T> subscriber = new BlockingFirstSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet(timeout, unit);
+    }
+
+    public final T blockingLast() {
+        BlockingLastSubscriber<T> subscriber = new BlockingLastSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet();
+    }
+
+    public final T blockingLast(long timeout, TimeUnit unit) {
+        BlockingLastSubscriber<T> subscriber = new BlockingLastSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet(timeout, unit);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
@@ -626,6 +688,14 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
 
     public static <T> PublisherBase<T> never() {
         return PublisherNever.instance();
+    }
+    
+    public static <T> PublisherBase<T> error(Throwable error) {
+        return new PublisherError<>(error);
+    }
+
+    public static <T> PublisherBase<T> error(Supplier<? extends Throwable> errorSupplier) {
+        return new PublisherError<>(errorSupplier);
     }
 
     public static PublisherBase<Integer> range(int start, int count) {

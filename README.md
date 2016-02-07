@@ -41,6 +41,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
 ## Supported transformations
 
   - `PublisherAccumulate` : Accumulates the source values with an accumulator function and returns the intermediate results of this function application
+  - `PublisherAggregate` : Aggregates the source values with an aggergator function and emits the last result.
   - `PublisherAll` : emits a single true if all values of the source sequence match the predicate
   - `PublisherAny` : emits a single true if any value of the source sequence matches the predicate
   - `PublisherBuffer` : buffers certain number of subsequent elements and emits the buffers
@@ -107,6 +108,9 @@ I.e., these allow leaving the reactive-streams world.
   - `BlockingIterable` : an iterable that consumes a Publisher in a blocking fashion
   - `BlockingFuture` : can return a future that consumes the source entierly and returns the very last value
   - `BlockingStream` : allows creating sequential and parallel j.u.stream.Stream flows out of a source Publisher
+  - `PublisherBase.blockingFirst` : returns the very first value of the source, blocking if necessary; returns null for an empty sequence.
+  - `PublisherBase.blockingLast` : returns the very last value of the source, blocking if necessary; returns null for an empty sequence.
+  - `PublisherBase.peekLast` : returns the last value of a synchronous source or likely null for other or empty sequences.
 
 ## Travis status
 
