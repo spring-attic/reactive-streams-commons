@@ -53,6 +53,7 @@ public final class ExecutorServiceScheduler implements Callable<Consumer<Runnabl
         public void accept(Runnable t) {
             if (t == null) {
                 terminate();
+                return;
             }
             
             ScheduledRunnable sr = new ScheduledRunnable(t, this);
