@@ -3,6 +3,7 @@ package reactivestreams.commons.publisher;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -11,6 +12,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Loopback;
 import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.DeferredSubscription;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -68,6 +70,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         }
         
         PublisherSubscribeOnClassic<T> parent = new PublisherSubscribeOnClassic<>(s, scheduler);
+        //PublisherSubscribeOnPipeline<T> parent = new PublisherSubscribeOnPipeline<>(s, scheduler);
         s.onSubscribe(parent);
         
         scheduler.accept(new SourceSubscribeTask<>(parent, source));
@@ -84,38 +87,38 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
     }
 
     static final class PublisherSubscribeOnClassic<T>
-    extends DeferredSubscription implements Subscriber<T>, Producer, Loopback {
+            extends DeferredSubscription implements Subscriber<T>, Producer, Loopback {
         final Subscriber<? super T> actual;
-        
+
         final Consumer<Runnable> scheduler;
 
         public PublisherSubscribeOnClassic(Subscriber<? super T> actual, Consumer<Runnable> scheduler) {
             this.actual = actual;
             this.scheduler = scheduler;
         }
-        
+
         @Override
         public void onSubscribe(Subscription s) {
             set(s);
         }
-        
+
         @Override
         public void onNext(T t) {
             actual.onNext(t);
         }
-        
+
         @Override
         public void onError(Throwable t) {
             scheduler.accept(null);
             actual.onError(t);
         }
-        
+
         @Override
         public void onComplete() {
             scheduler.accept(null);
             actual.onComplete();
         }
-        
+
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
@@ -128,9 +131,93 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
             super.cancel();
             scheduler.accept(null);
         }
-        
+
         void requestInner(long n) {
             super.request(n);
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object connectedOutput() {
+            return scheduler;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return null;
+        }
+    }
+
+    static final class PublisherSubscribeOnPipeline<T>
+            extends DeferredSubscription implements Subscriber<T>, Producer, Loopback, Runnable {
+        final Subscriber<? super T> actual;
+
+        final Consumer<Runnable> scheduler;
+
+        volatile long requested;
+
+        static final AtomicLongFieldUpdater<PublisherSubscribeOnPipeline> REQUESTED =
+            AtomicLongFieldUpdater.newUpdater(PublisherSubscribeOnPipeline.class, "requested");
+
+        public PublisherSubscribeOnPipeline(Subscriber<? super T> actual, Consumer<Runnable> scheduler) {
+            this.actual = actual;
+            this.scheduler = scheduler;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            set(s);
+        }
+
+        @Override
+        public void onNext(T t) {
+            actual.onNext(t);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            scheduler.accept(null);
+            actual.onError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            scheduler.accept(null);
+            actual.onComplete();
+        }
+
+        @Override
+        public void request(long n) {
+            if (SubscriptionHelper.validate(n)) {
+                if(BackpressureHelper.addAndGet(REQUESTED, this, n) == 0L){
+                    scheduler.accept(this);
+                }
+            }
+        }
+
+        @Override
+        public void run() {
+            long r = requested;
+            for(;;){
+                if(r != 0) {
+                    super.request(r);
+                }
+
+                r = REQUESTED.getAndSet(this, 0L);
+                if(r == 0) {
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void cancel() {
+            super.cancel();
+            scheduler.accept(null);
         }
 
         @Override
