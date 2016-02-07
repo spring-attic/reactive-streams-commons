@@ -9,9 +9,11 @@ repositories {
 }
 
 dependencies {
-    compile 'io.projectreactor:reactive-streams-commons:0.1.0.BUILD-SNAPSHOT'
+    compile 'io.projectreactor:reactive-streams-commons:0.2.0.BUILD-SNAPSHOT'
 }
 ```
+
+[Snapshot](http://repo.spring.io/libs-snapshot/io/projectreactor/reactive-streams-commons/) directory.
 
 ## Supported datasources
 
