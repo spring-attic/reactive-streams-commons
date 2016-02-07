@@ -589,6 +589,9 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final PublisherBase<T> aggregate(BiFunction<T, T, T> aggregator) {
+        if (this instanceof Supplier) {
+            return this;
+        }
         return new PublisherAggregate<>(this, aggregator);
     }
 
