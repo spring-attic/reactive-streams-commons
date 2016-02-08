@@ -71,9 +71,9 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             return;
         }
         
-//        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
+        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
 //        source.subscribe(new MergeSubscriber<>(s, mapper, delayError, maxConcurrency, prefetch));
-        source.subscribe(new PublisherFlatMapMain2<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
+//        source.subscribe(new PublisherFlatMapMain2<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
     }
 
     static final class PublisherFlatMapMain<T, R> 

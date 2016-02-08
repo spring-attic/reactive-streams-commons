@@ -15,28 +15,14 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Param;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
 import reactivestreams.commons.publisher.internal.PerfAsyncSubscriber;
 import reactivestreams.commons.util.ExecutorServiceScheduler;
-import reactivestreams.commons.util.SpscArrayQueue;
 
 
 /**
@@ -50,14 +36,16 @@ import reactivestreams.commons.util.SpscArrayQueue;
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
 @State(Scope.Thread)
+@Timeout(time = 10, timeUnit = TimeUnit.SECONDS)
 public class CrossRangeFlatMapObserveOnPerf {
     
     @Param({"1", "1000", "1000000"})
     public int count;
     
+    @Param({"1", "2", "32", "128", "-1"})
+    public int maxConcurrency;
+    
     Publisher<Integer> source1;
-
-    Publisher<Integer> source2;
 
     ExecutorService exec;
     
@@ -67,11 +55,9 @@ public class CrossRangeFlatMapObserveOnPerf {
         
         ExecutorServiceScheduler scheduler = new ExecutorServiceScheduler(exec);
 
-        PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, 32);
-
-        source1 = source.observeOn(scheduler);
-
-        source2 = new PublisherObserveOn<>(source, scheduler, false, 256, () -> new SpscArrayQueue<>(256));
+        int m = maxConcurrency < 0 ? Integer.MAX_VALUE : maxConcurrency;
+        
+        source1 = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, m).observeOn(scheduler);
     }
     
     @TearDown
@@ -80,20 +66,11 @@ public class CrossRangeFlatMapObserveOnPerf {
     }
 
     @Benchmark
-    public void benchDefault(Blackhole bh) {
+    public void bench(Blackhole bh) {
         PerfAsyncSubscriber s = new PerfAsyncSubscriber(bh);
 
         source1.subscribe(s);
 
-        s.await(count);
-    }
-
-    @Benchmark
-    public void benchSpsc(Blackhole bh) {
-        PerfAsyncSubscriber s = new PerfAsyncSubscriber(bh);
-        
-        source2.subscribe(s);
-        
         s.await(count);
     }
 }
