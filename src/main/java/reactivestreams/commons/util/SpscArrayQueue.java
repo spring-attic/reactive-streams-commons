@@ -22,16 +22,8 @@ public final class SpscArrayQueue<T> extends AtomicReferenceArray<T> implements 
     
     final int mask;
     
-    static final int powerOf2(int v) {
-        int j = 1;
-        while (j < v) {
-            j *= 2;
-        }
-        return j;
-    }
-    
     public SpscArrayQueue(int capacity) {
-        super(powerOf2(capacity));
+        super(PowerOf2.roundUp(capacity));
         producerIndex = new AtomicLong();
         consumerIndex = new AtomicLong();
         mask = length() - 1;

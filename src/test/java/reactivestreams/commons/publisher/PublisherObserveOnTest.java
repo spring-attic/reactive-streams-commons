@@ -17,8 +17,7 @@ import org.junit.Test;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
-import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.*;
 
 public class PublisherObserveOnTest {
 
@@ -688,13 +687,21 @@ public class PublisherObserveOnTest {
         .flatMap(v -> PublisherBase.range(v, 2), false, 1)
         .observeOn(exec).subscribe(ts);
         
-        if (!ts.await(5, TimeUnit.SECONDS)) {
+        if (!ts.await(10, TimeUnit.SECONDS)) {
             ts.cancel();
         }
         
         ts.assertValueCount(count * 2)
         .assertNoError()
         .assertComplete();
+    }
+
+    @Test
+    public void crossRangeMaxHiddenLoop() {
+        for (int i = 0; i < 50; i++) {
+//            System.out.println("crossRangeMaxHidden >> " + i);
+            crossRangeMaxHidden();
+        }
     }
 
     @Test
@@ -707,7 +714,7 @@ public class PublisherObserveOnTest {
         .hide().flatMap(v -> PublisherBase.range(v, 2).hide(), false, 32)
         .hide().observeOn(exec).subscribe(ts);
         
-        if (!ts.await(5, TimeUnit.SECONDS)) {
+        if (!ts.await(10, TimeUnit.SECONDS)) {
             ts.cancel();
         }
         
@@ -716,6 +723,14 @@ public class PublisherObserveOnTest {
         .assertComplete();
     }
 
+    @Test
+    public void crossRangeMaxLoop() {
+        for (int i = 0; i < 50; i++) {
+//            System.out.println("crossRangeMaxLoop >> " + i);
+            crossRangeMax();
+        }
+    }
+    
     @Test
     public void crossRangeMax() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
@@ -726,7 +741,7 @@ public class PublisherObserveOnTest {
         .flatMap(v -> PublisherBase.range(v, 2), false, 32)
         .observeOn(exec).subscribe(ts);
         
-        if (!ts.await(5, TimeUnit.SECONDS)) {
+        if (!ts.await(10, TimeUnit.SECONDS)) {
             ts.cancel();
         }
         
@@ -734,7 +749,34 @@ public class PublisherObserveOnTest {
         .assertNoError()
         .assertComplete();
     }
-    
+
+    @Test
+    public void crossRangeMaxUnboundedLoop() {
+        for (int i = 0; i < 50; i++) {
+//            System.out.println("crossRangeMaxUnbounded >> " + i);
+            crossRangeMaxUnbounded();
+        }
+    }
+
+    @Test
+    public void crossRangeMaxUnbounded() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        int count = 1000000;
+        
+        PublisherBase.range(1, count)
+        .flatMap(v -> PublisherBase.range(v, 2))
+        .observeOn(exec).subscribe(ts);
+        
+        if (!ts.await(10, TimeUnit.SECONDS)) {
+            ts.cancel();
+        }
+        
+        ts.assertValueCount(count * 2)
+        .assertNoError()
+        .assertComplete();
+    }
+
     @Test
     public void threadBoundaryPreventsInvalidFusionFilter() {
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
@@ -772,4 +814,64 @@ public class PublisherObserveOnTest {
         .assertNoError()
         .assertComplete();
     }
+    
+    @Test
+    public void crossRangePerfDefaultLoop() {
+        for (int i = 0; i < 100000; i++) {
+            if (i % 2000 == 0)
+//            System.out.println("crossRangePerfDefault >> " + i);
+            crossRangePerfDefault();
+        }
+    }
+    
+    @Test
+    public void crossRangePerfDefault() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        ExecutorServiceScheduler scheduler = new ExecutorServiceScheduler(exec);
+
+        int count = 1000;
+        
+        PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, 32);
+
+        source.observeOn(scheduler).subscribe(ts);
+
+        if (!ts.await(10, TimeUnit.SECONDS)) {
+            ts.cancel();
+        }
+        
+        ts.assertValueCount(count * 2)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void crossRangePerfDefaultLoop2() {
+        ExecutorServiceScheduler scheduler = new ExecutorServiceScheduler(exec);
+
+        int count = 1000;
+
+        for (int j = 1; j < 1024; j *= 2) {
+//            System.out.println("crossRangePerfDefaultLoop2 >>>> " + j);
+            
+            PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, j).observeOn(scheduler);
+    
+            for (int i = 0; i < 10000; i++) {
+//                if (i % 2000 == 0)
+//                System.out.println("crossRangePerfDefault >> " + i);
+                TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+                source.subscribe(ts);
+        
+                if (!ts.await(10, TimeUnit.SECONDS)) {
+                    ts.cancel();
+                }
+                
+                ts.assertValueCount(count * 2)
+                .assertNoError()
+                .assertComplete();
+            }
+        }
+    }
+
 }
