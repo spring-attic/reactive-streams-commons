@@ -697,8 +697,16 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherError<>(error);
     }
 
+    public static <T> PublisherBase<T> error(Throwable error, boolean whenRequested) {
+        return new PublisherError<>(error, whenRequested);
+    }
+
     public static <T> PublisherBase<T> error(Supplier<? extends Throwable> errorSupplier) {
-        return new PublisherError<>(errorSupplier);
+        return new PublisherError<>(errorSupplier, false);
+    }
+
+    public static <T> PublisherBase<T> error(Supplier<? extends Throwable> errorSupplier, boolean whenRequested) {
+        return new PublisherError<>(errorSupplier, whenRequested);
     }
 
     public static PublisherBase<Integer> range(int start, int count) {

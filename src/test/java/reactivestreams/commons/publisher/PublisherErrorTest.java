@@ -68,4 +68,22 @@ public class PublisherErrorTest {
           .assertNotComplete();
     }
 
+    @Test
+    public void whenRequested() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(0);
+
+        PublisherBase.error(new RuntimeException("Forced failure"), true).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError()
+        .assertNotComplete();
+        
+        ts.request(1);
+
+        ts.assertNoValues()
+        .assertError(RuntimeException.class)
+        .assertErrorMessage("Forced failure")
+        .assertNotComplete();
+    }
+    
 }
