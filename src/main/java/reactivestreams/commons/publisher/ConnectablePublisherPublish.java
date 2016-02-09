@@ -131,7 +131,10 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         int sourceMode;
         
         volatile boolean done;
-        Throwable error;
+        volatile Throwable error;
+        @SuppressWarnings("rawtypes")
+        static final AtomicReferenceFieldUpdater<State, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(State.class, Throwable.class, "error");
         
         volatile boolean cancelled;
         
@@ -205,9 +208,12 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
                 UnsignalledExceptions.onErrorDropped(t);
                 return;
             }
-            error = t;
-            done = true;
-            drain();
+            if (ExceptionHelper.addThrowable(ERROR, this, t)) {
+                done = true;
+                drain();
+            } else {
+                UnsignalledExceptions.onErrorDropped(t);
+            }
         }
         
         @Override
@@ -363,7 +369,15 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
                             boolean d = done;
                             T v;
                             
-                            v = q.poll();
+                            try {
+                                v = q.poll();
+                            } catch (Throwable ex) {
+                                ExceptionHelper.throwIfFatal(ex);
+                                
+                                ExceptionHelper.addThrowable(ERROR, this, ex);
+                                d = true;
+                                v = null;
+                            }
                             
                             boolean empty = v == null;
                             
@@ -385,9 +399,15 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
                         if (e == r) {
                             boolean d = done;
                             boolean empty;
-                            
-                            empty = q.isEmpty();
-                            
+                            try {
+                                empty = q.isEmpty();
+                            } catch (Throwable ex) {
+                                ExceptionHelper.throwIfFatal(ex);
+                                
+                                ExceptionHelper.addThrowable(ERROR, this, ex);
+                                d = true;
+                                empty = true;
+                            }
                             if (checkTerminated(d, empty)) {
                                 return;
                             }
@@ -422,7 +442,8 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
             }
             if (d) {
                 Throwable e = error;
-                if (e != null) {
+                if (e != null && e != ExceptionHelper.TERMINATED) {
+                    e = ExceptionHelper.terminate(ERROR, this);
                     queue.clear();
                     for (InnerSubscription<T> inner : terminate()) {
                         inner.actual.onError(e);

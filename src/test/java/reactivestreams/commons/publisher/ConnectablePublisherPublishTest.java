@@ -368,5 +368,19 @@ public class ConnectablePublisherPublishTest {
         .assertNotComplete();
     }
 
+    @Test
+    public void fusedMapInvalid() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).map(v -> (Integer)null).publish();
+        
+        p.subscribe(ts);
+        
+        p.connect();
+                
+        ts.assertNoValues()
+        .assertError(NullPointerException.class)
+        .assertNotComplete();
+    }
 
 }
