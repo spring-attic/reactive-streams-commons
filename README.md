@@ -42,6 +42,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   
 ## Supported transformations
 
+  - `ConnectablePublisherPublish` : allows dispatching events from a single source to multiple subscribers similar to a Processor but the connection can be manually established or stopped.
   - `PublisherAccumulate` : Accumulates the source values with an accumulator function and returns the intermediate results of this function application
   - `PublisherAggregate` : Aggregates the source values with an aggergator function and emits the last result.
   - `PublisherAll` : emits a single true if all values of the source sequence match the predicate

@@ -629,6 +629,14 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return subscriber.blockingGet(timeout, unit);
     }
     
+    public final ConnectablePublisher<T> publish() {
+        return publish(BUFFER_SIZE);
+    }
+    
+    public final ConnectablePublisher<T> publish(int prefetch) {
+        return new ConnectablePublisherPublish<>(this, prefetch, defaultQueueSupplier(prefetch));
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
