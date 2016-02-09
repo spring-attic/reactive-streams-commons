@@ -196,7 +196,11 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
             }
             
             if (!queue.offer(t)) {
-                error = new IllegalStateException("Queue full?!");
+                Throwable ex = new IllegalStateException("Queue full?!");
+                if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                    UnsignalledExceptions.onErrorDropped(ex);
+                    return;
+                }
                 done = true;
             }
             drain();
