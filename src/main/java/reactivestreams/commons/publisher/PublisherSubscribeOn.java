@@ -160,11 +160,13 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
 
         volatile long requested;
 
+        @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherSubscribeOnPipeline> REQUESTED =
             AtomicLongFieldUpdater.newUpdater(PublisherSubscribeOnPipeline.class, "requested");
 
         volatile int wip;
 
+        @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<PublisherSubscribeOnPipeline> WIP =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherSubscribeOnPipeline.class, "wip");
 
