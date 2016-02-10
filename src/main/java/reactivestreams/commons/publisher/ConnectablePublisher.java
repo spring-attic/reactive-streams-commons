@@ -47,7 +47,7 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
      * @return the Runnable that allows disconnecting the connection after.
      */
     public final Runnable connect() {
-        Runnable[] out = { null };
+        final Runnable[] out = { null };
         connect(new Consumer<Runnable>() {
             @Override
             public void accept(Runnable r) {
