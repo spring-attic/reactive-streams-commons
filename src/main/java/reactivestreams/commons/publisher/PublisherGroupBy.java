@@ -90,7 +90,7 @@ implements Fuseable, Backpressurable  {
     
     static final class PublisherGroupByMain<T, K, V> implements Subscriber<T>, 
     Fuseable.QueueSubscription<GroupedPublisher<K, V>>, MultiProducer, Backpressurable, Producer, Requestable,
-                                                                Failurable, Completable, Receiver {
+                                                                Failurable, Cancellable, Completable, Receiver {
 
         final Function<? super T, ? extends K> keySelector;
         
@@ -281,7 +281,12 @@ implements Fuseable, Backpressurable  {
 
         @Override
         public boolean isStarted() {
-            return s != null && cancelled == 1 && !done;
+            return s != null && cancelled != 1 && !done;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled == 1;
         }
 
         @Override
@@ -567,7 +572,7 @@ implements Fuseable, Backpressurable  {
     
     static final class UnicastGroupedPublisher<K, V> extends GroupedPublisher<K, V> 
     implements Fuseable, Fuseable.QueueSubscription<V>,
-    Producer, Receiver, Failurable, Completable, Cancellable, Requestable {
+    Producer, Receiver, Failurable, Completable, Cancellable, Requestable, Backpressurable {
         final K key;
 
         @Override
@@ -935,6 +940,8 @@ implements Fuseable, Backpressurable  {
             return cancelled;
         }
 
+
+
         @Override
         public boolean isStarted() {
             return once == 1 && !done && !cancelled;
@@ -958,6 +965,16 @@ implements Fuseable, Backpressurable  {
         @Override
         public Object upstream() {
             return parent;
+        }
+
+        @Override
+        public long getCapacity() {
+            return parent.prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue == null || done ? -1L : queue.size();
         }
 
         @Override
