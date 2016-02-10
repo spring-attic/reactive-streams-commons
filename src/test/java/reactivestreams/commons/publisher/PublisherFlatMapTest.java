@@ -75,12 +75,12 @@ public class PublisherFlatMapTest {
     public void mainError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        new PublisherError<Integer>(new RuntimeException("Forced failure"))
+        new PublisherError<Integer>(new RuntimeException("forced failure"))
         .flatMap(v -> new PublisherJust<>(v)).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
 
@@ -88,11 +88,11 @@ public class PublisherFlatMapTest {
     public void innerError() {
         TestSubscriber<Object> ts = new TestSubscriber<>(0);
 
-        new PublisherJust<>(1).flatMap(v -> new PublisherError<>(new RuntimeException("Forced failure"))).subscribe(ts);
+        new PublisherJust<>(1).flatMap(v -> new PublisherError<>(new RuntimeException("forced failure"))).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
 

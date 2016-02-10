@@ -3,7 +3,6 @@ package reactivestreams.commons.publisher;
 import java.util.function.BiFunction;
 
 import org.junit.Test;
-
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
@@ -73,11 +72,11 @@ public class PublisherAggregateTest {
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.<Integer>error(new RuntimeException("Forced failure")).aggregate((a, b) -> a + b).subscribe(ts);
+        PublisherBase.<Integer>error(new RuntimeException("forced failure")).aggregate((a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
 
@@ -85,11 +84,11 @@ public class PublisherAggregateTest {
     public void aggregatorThrows() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).aggregate((a, b) -> { throw new RuntimeException("Forced failure"); }).subscribe(ts);
+        PublisherBase.range(1, 10).aggregate((a, b) -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
 

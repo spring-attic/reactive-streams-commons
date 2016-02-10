@@ -8,11 +8,12 @@ import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-
-import reactivestreams.commons.processor.*;
+import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.publisher.PublisherConcatMap.ErrorMode;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.SpscArrayQueue;
 
 public class PublisherConcatMapTest {
 
@@ -235,11 +236,11 @@ public class PublisherConcatMapTest {
         
         source1.onNext(1);
 
-        source.onError(new RuntimeException("Forced failure"));
+        source.onError(new RuntimeException("forced failure"));
         
         ts.assertValue(1)
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
         
         Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
@@ -268,7 +269,7 @@ public class PublisherConcatMapTest {
         
         source1.onNext(1);
 
-        source.onError(new RuntimeException("Forced failure"));
+        source.onError(new RuntimeException("forced failure"));
         
         ts.assertValues(1)
         .assertNoError()
@@ -279,7 +280,7 @@ public class PublisherConcatMapTest {
 
         ts.assertValues(1, 2)
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
         
         Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
@@ -308,11 +309,11 @@ public class PublisherConcatMapTest {
         
         source1.onNext(1);
 
-        source1.onError(new RuntimeException("Forced failure"));
+        source1.onError(new RuntimeException("forced failure"));
         
         ts.assertValues(1)
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
         
         Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
@@ -341,11 +342,11 @@ public class PublisherConcatMapTest {
         
         source1.onNext(1);
 
-        source1.onError(new RuntimeException("Forced failure"));
+        source1.onError(new RuntimeException("forced failure"));
         
         ts.assertValues(1)
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
         
         Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
@@ -374,7 +375,7 @@ public class PublisherConcatMapTest {
         
         source1.onNext(1);
 
-        source1.onError(new RuntimeException("Forced failure"));
+        source1.onError(new RuntimeException("forced failure"));
         
         source.onNext(2);
 
@@ -387,7 +388,7 @@ public class PublisherConcatMapTest {
         
         ts.assertValues(1, 2)
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
         
         Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());

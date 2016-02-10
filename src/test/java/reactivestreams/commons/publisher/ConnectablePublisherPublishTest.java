@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
@@ -360,11 +359,11 @@ public class ConnectablePublisherPublishTest {
                 
         sp.onNext(1);
         sp.onNext(2);
-        sp.onError(new RuntimeException("Forced failure"));
+        sp.onError(new RuntimeException("forced failure"));
         
         ts.assertValues(1, 2)
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
 

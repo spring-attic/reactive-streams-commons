@@ -29,7 +29,7 @@ def includingCoreScope = ['amb',
 
 //A complete RS commons coverage minus the lite core
 def excludingStreamScope = includingCoreScope + ['generate',
-												 'completablefuture',
+												 'completablefuture', 'subscribeonother', 'ignoreelements',
 												 'timer', 'interval', 'blockingfuture',
 												 'blockingiterable', 'blockingstream', 'hide', 'bufferboundaryandsize',
 												 'windowbeginend', 'windowboundaryandsize',
@@ -47,6 +47,7 @@ def reactorCommon = ['fn-backport'          : 'reactor.fn',
 					 'SubscriptionHelper'   : 'BackpressureUtils',
 					 'BackpressureHelper'   : 'BackpressureUtils',
 					 'packageScope'         : true,
+					 'test-coverage'         : true,
 					 'FunctionHelper'       : 'FunctionUtils',
 					 'DrainHelper'          : 'reactor.rx.util.DrainUtils',
 					 'ExceptionHelper'      : 'Exceptions',
@@ -92,6 +93,7 @@ def defaultSingleAPI = ['empty',
 						'ignoreelements',
 						'callable',
 						'first',
+						'aggregate',
 						'next',
 						'collect',
 						'reduce',
@@ -99,7 +101,7 @@ def defaultSingleAPI = ['empty',
 						'any',
 						'count',
 						'elementat',
-						'isempty',
+						'haselements',
 						'reduce',
 
 ]
@@ -127,7 +129,7 @@ task generateTargetAPI(type: Sync) {
 	include { details ->
 	  !details.file.name
 			  .startsWith('Publisher') || details.file.name
-			  .replaceFirst('Publisher', '')
+			  .replaceAll('Publisher', '')
 			  .replaceAll(".java", '')
 			  .toLowerCase() in target.include
 	}
@@ -136,12 +138,12 @@ task generateTargetAPI(type: Sync) {
 
   exclude { details ->
 	def name = details.file.name
-			.replaceFirst('Publisher', '')
+			.replaceAll('Publisher', '')
 			.replaceAll(".java", '')
 			.toLowerCase()
 
 	details.file.name
-			.startsWith('Publisher') && (name in target.exclude || name in defaultSingleAPI)
+			.contains('Publisher') && (name in target.exclude || name in defaultSingleAPI)
   }
 
   exclude 'PublisherBase.java'
@@ -159,7 +161,73 @@ task generateTargetAPI(type: Sync) {
 	  fileName = fileName.replace('SubscribeOn', target['SubscribeOn'])
 	}
 
-	fileName.replace('Publisher', apiClassName)
+	fileName.replace('ConnectablePublisher.java', 'Connectable' +apiClassName+ '.java')
+			.replace('ConnectablePublisher', apiClassName)
+			.replace('Publisher', apiClassName)
+  }
+
+  filter { String line -> replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass)
+  }
+}
+
+task generateTestCoverage(type: Sync) {
+  description = 'Deploy Reactive Streams Commons source code to the target API, effectively generating source code in' +
+		  ' target directory.'
+
+  outputs.upToDateWhen { false }
+  includeEmptyDirs = false
+
+  def target = targets[project.hasProperty('library') ? library : defaultTarget] ?: defaultTarget
+
+
+  def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
+  def apiBarrierClass = target['api-operator']
+  def apiClass = target['api']
+  def splitted = apiClass.split('\\.')
+  def apiClassName = splitted[splitted.length - 1]
+
+  from 'src/test/java/reactivestreams/commons/publisher'
+  into "build/generated_api/test/${target['api-package'].replaceAll('\\.', '/')}"
+
+  if (target.include) {
+	include { details ->
+	  !details.file.name
+			  .startsWith('Publisher') || details.file.name
+			  .replaceAll('Publisher', '')
+			  .replaceAll(".java", '')
+			  .toLowerCase() in target.include
+	}
+  }
+
+
+  exclude { details ->
+	def name = details.file.name
+			.replaceAll('Publisher', '')
+			.replaceAll(".java", '')
+			.toLowerCase()
+
+	details.file.name
+			.contains('Publisher') && (name in target.exclude || name in defaultSingleAPI)
+  }
+
+  exclude 'PublisherBase.java'
+
+  if(target['api-operator']){
+	exclude 'PublisherSource.java'
+  }
+
+  rename { String fileName ->
+
+	if(target['ObserveOn'] && fileName.contains('ObserveOn')){
+	  fileName =fileName.replace('ObserveOn', target['ObserveOn'])
+	}
+	else if(target['SubscribeOn'] && fileName.contains('SubscribeOn')){
+	  fileName = fileName.replace('SubscribeOn', target['SubscribeOn'])
+	}
+
+	fileName.replace('ConnectablePublisher.java', 'Connectable' +apiClassName+ '.java')
+			.replace('ConnectablePublisher', apiClassName)
+			.replace('Publisher', apiClassName)
   }
 
   filter { String line -> replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass)
@@ -185,25 +253,75 @@ task generateTargetSingleAPI(type: Copy) {
 
   include { details ->
 	def name = details.file.name
-			.replaceFirst('Publisher', '')
+			.replaceAll('Publisher', '')
 			.replaceAll(".java", '')
 			.toLowerCase()
 	!details.file.name
-			.startsWith('Publisher') || (( !target.include || name in target.include) && name in defaultSingleAPI)
+			.contains('Publisher') || (( !target.include || name in target.include) && name in defaultSingleAPI)
   }
 
 
   exclude { details ->
 	def name = details.file.name
-			.replaceFirst('Publisher', '')
+			.replaceAll('Publisher', '')
 			.replaceAll(".java", '')
 			.toLowerCase()
 
 	details.file.name
-			.startsWith('Publisher') && (name in target.exclude)
+			.contains('Publisher') && (name in target.exclude)
   }
 
-  rename { String fileName -> fileName.replace('Publisher', apiSingleClassName)
+  rename { String fileName ->
+	fileName.replace('ConnectablePublisher.java', 'Connectable' + apiSingleClassName + '.java')
+			.replace('ConnectablePublisher', apiSingleClassName)
+			.replace('Publisher', apiSingleClassName)
+  }
+
+  filter { line -> replaceLine(line, target, license, apiSingleClassName, apiSingleBarrierClass, apiSingleClass)
+  }
+}
+
+task generateSingleTestCoverage(type: Copy) {
+  description = 'Generate Single type artifacts for target integration'
+
+  includeEmptyDirs = false
+
+  def target = targets[project.hasProperty('library') ? library: defaultTarget] ?: defaultTarget
+
+  def apiSingleClass = target['api-single']
+  def apiSingleBarrierClass = target['api-single-operator']
+  def splitted = apiSingleClass.split('\\.')
+  def apiSingleClassName = splitted[splitted.length - 1]
+
+  def license = "\n/**\n * {@see https://github.com/reactor/reactive-streams-commons}\n * $target.header\n */"
+
+  from 'src/test/java/reactivestreams/commons/publisher'
+  into "build/generated_api/test/${target['api-package'].replaceAll('\\.', '/')}"
+
+  include { details ->
+	def name = details.file.name
+			.replaceAll('Publisher', '')
+			.replaceAll("Test.java", '')
+			.toLowerCase()
+	!details.file.name
+			.contains('Publisher') || (( !target.include || name in target.include) && name in defaultSingleAPI)
+  }
+
+
+  exclude { details ->
+	def name = details.file.name
+			.replaceAll('Publisher', '')
+			.replaceAll("Test.java", '')
+			.toLowerCase()
+
+	details.file.name
+			.contains('Publisher') && (name in target.exclude)
+  }
+
+  rename { String fileName ->
+	fileName.replace('ConnectablePublisher.java', 'Connectable' + apiSingleClassName + '.java')
+			.replace('ConnectablePublisher', apiSingleClassName)
+			.replace('Publisher', apiSingleClassName)
   }
 
   filter { line -> replaceLine(line, target, license, apiSingleClassName, apiSingleBarrierClass, apiSingleClass)
@@ -271,24 +389,6 @@ task generateExtra(type: Copy) {
   }
 }
 
-task inlineCommons {
-  description = 'Generate all necessary artifacts for target integration'
-
-  delete "build/generated_api"
-
-  dependsOn generateTargetAPI
-
-
-  def target = targets[project.hasProperty('library') ? library: defaultTarget] ?: defaultTarget
-  if (target['extra-packages']) {
-	dependsOn generateExtra
-  }
-
-  if (target['api-single']) {
-	dependsOn generateTargetSingleAPI
-  }
-}
-
 private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass) {
   if (line.trim().startsWith('package')) {
 	if (target['extra-packages'] && !line.contains("publisher")) {
@@ -311,6 +411,9 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   if (l.trim().startsWith('import')) {
+	if(l.contains("org.reactivestreams")){
+	  return l
+	}
 	if (target.SimpleProcessor) {
 	  l = l.replace("reactivestreams.commons.processor.SimpleProcessor", target.SimpleProcessor)
 	}
@@ -350,8 +453,8 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	  return null
 	}
 
-	l = l.replaceAll('Publisher([^ ]*)Fuseable\\.', apiClassName+'$1Fuseable.')
-	l = l.replaceAll('Publisher([^ ]*)FuseableSubscriber', target['api-inner']+'$1FuseableSubscriber') //naive double reference
+	l = l.replaceFirst('Publisher', apiClassName)
+	l = l.replaceAll('Publisher([^ ]*)Subscriber', target['api-inner']+'$1Subscriber') //naive double reference
 	// workaround
 
 	return l;
@@ -383,9 +486,14 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   l = l
 		  .replace("PublisherSource", apiBarrierClass)
 		  .replace("PublisherBase", apiClass)
+		  .replace("extends ConnectablePublisher", 'extends Connectable'+apiClassName)
 		  .replaceAll("implements Publisher([^,]*),", "extends $apiClass\$1 implements")
 		  .replace("implements Publisher", "extends $apiClass")
-		  .replace('public final class Publisher', "$license\n${target.packageScope ? '' : 'public '}final class " +
+		  .replace('public final class Publisher', "$license\n${target.packageScope ? '' : 'public '}final class " + "$apiClassName")
+		  .replace('public abstract class ConnectablePublisher', "$license\npublic abstract class " +
+		  "Connectable$apiClassName")
+		  .replace('public final class ConnectablePublisher', "$license\n${target.packageScope ? '' : 'public '}final" +
+		  " class " +
 		  "$apiClassName")
 
   //Special case for just/empty
@@ -393,6 +501,7 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	return l.replace(', Publisher<T>', '').replace('Just<T>', "Just<T> extends $apiClass<T>")
   }
 
+  l = l.replaceAll('ConnectablePublisher', "$apiClassName")
   l = l.replaceAll('Publisher([A-Z][^A-Z]*)', "$apiClassName\$1")
 
   if (l.contains('SerializedSubscriber') && target['SerializedSubscriber']) {
@@ -424,5 +533,29 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	l = l.replace('UnicastProcessor', target.UnicastProcessor)
   }
 
-  return l
+  return l.replace("extends ConnectablePublisher", "extends Connectable$apiClassName")
+}
+
+
+
+task inlineCommons {
+  description = 'Generate all necessary artifacts for target integration'
+
+  delete "build/generated_api"
+
+  dependsOn generateTargetAPI
+
+
+  def target = targets[project.hasProperty('library') ? library: defaultTarget] ?: defaultTarget
+  if (target['extra-packages']) {
+	dependsOn generateExtra
+  }
+
+  if (target['api-single']) {
+	dependsOn generateTargetSingleAPI
+  }
+  if (target['test-coverage']) {
+	dependsOn generateTestCoverage
+	dependsOn generateSingleTestCoverage
+  }
 }

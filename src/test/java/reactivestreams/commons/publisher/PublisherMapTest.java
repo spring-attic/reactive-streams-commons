@@ -59,12 +59,12 @@ public class PublisherMapTest {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
         new PublisherMap<>(just, v -> {
-            throw new RuntimeException("Forced failure");
+            throw new RuntimeException("forced failure");
         }).subscribe(ts);
 
         ts
           .assertError(RuntimeException.class)
-          .assertErrorMessage("Forced failure")
+          .assertErrorMessage("forced failure")
           .assertNoValues()
           .assertNotComplete()
         ;

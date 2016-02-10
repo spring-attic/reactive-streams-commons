@@ -58,12 +58,12 @@ public class PublisherIgnoreElementsTest {
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        new PublisherIgnoreElements<>(new PublisherError<Integer>(new RuntimeException("Forced failure"))).subscribe(ts);
+        new PublisherIgnoreElements<>(new PublisherError<Integer>(new RuntimeException("forced failure"))).subscribe(ts);
         
         ts.assertNoValues()
         .assertNotComplete()
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         ;
     }
 }

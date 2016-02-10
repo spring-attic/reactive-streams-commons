@@ -3,7 +3,6 @@ package reactivestreams.commons.publisher;
 import java.util.function.Function;
 
 import org.junit.Test;
-
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
@@ -105,9 +104,9 @@ public class PublisherGroupByTest {
     public void error() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>();
         
-        PublisherBase.<Integer>error(new RuntimeException("Forced failure")).groupBy(k -> k).subscribe(ts);
+        PublisherBase.<Integer>error(new RuntimeException("forced failure")).groupBy(k -> k).subscribe(ts);
         
-        ts.assertFailureMessage(RuntimeException.class, "Forced failure");
+        ts.assertFailureMessage(RuntimeException.class, "forced failure");
     }
 
     @Test

@@ -17,7 +17,9 @@ import org.junit.Test;
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.ExecutorServiceScheduler;
+import reactivestreams.commons.util.SpscArrayQueue;
 
 public class PublisherObserveOnTest {
 
@@ -164,7 +166,7 @@ public class PublisherObserveOnTest {
         }
         up.onComplete();
         
-        ((PublisherBase<Integer>)up).observeOn(exec).subscribe(ts);
+        up.observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -184,7 +186,7 @@ public class PublisherObserveOnTest {
         }
         up.onComplete();
 
-        ((PublisherBase<Integer>)up).observeOn(exec).subscribe(ts);
+        up.observeOn(exec).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -211,13 +213,13 @@ public class PublisherObserveOnTest {
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        new PublisherError<Integer>(new RuntimeException("Forced failure")).observeOn(exec).subscribe(ts);
+        new PublisherError<Integer>(new RuntimeException("forced failure")).observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
 
@@ -238,14 +240,14 @@ public class PublisherObserveOnTest {
     public void errorDelayed() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherError<Integer> err = new PublisherError<>(new RuntimeException("Forced failure"));
+        PublisherError<Integer> err = new PublisherError<>(new RuntimeException("forced failure"));
         PublisherBase.range(1, 1000).concatWith(err).observeOn(exec, true).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
         ts.assertValueCount(1000)
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
 

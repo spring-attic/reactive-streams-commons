@@ -72,7 +72,7 @@ public class PublisherErrorTest {
     public void whenRequested() {
         TestSubscriber<Object> ts = new TestSubscriber<>(0);
 
-        PublisherBase.error(new RuntimeException("Forced failure"), true).subscribe(ts);
+        PublisherBase.error(new RuntimeException("forced failure"), true).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -82,7 +82,7 @@ public class PublisherErrorTest {
 
         ts.assertNoValues()
         .assertError(RuntimeException.class)
-        .assertErrorMessage("Forced failure")
+        .assertErrorMessage("forced failure")
         .assertNotComplete();
     }
     
