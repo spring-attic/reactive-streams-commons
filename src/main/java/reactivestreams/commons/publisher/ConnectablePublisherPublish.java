@@ -1,5 +1,7 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
@@ -12,8 +14,16 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.Loopback;
+import reactivestreams.commons.flow.MultiProducer;
+import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -24,7 +34,8 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * manner. 
  * @param <T> the value type
  */
-public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T> {
+public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T>
+        implements Receiver, Loopback, Backpressurable {
     /** The source observable. */
     final Publisher<? extends T> source;
     
@@ -49,7 +60,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
 
     @Override
     public void connect(Consumer<? super Runnable> cancelSupport) {
-        boolean doConnect = false;
+        boolean doConnect;
         State<T> s;
         for (;;) {
             s = connection;
@@ -97,8 +108,34 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
             }
         }
     }
+
+    @Override
+    public long getPending() {
+        return -1L;
+    }
+
+    @Override
+    public long getCapacity() {
+        return prefetch;
+    }
+
+    @Override
+    public Object connectedInput() {
+        return null;
+    }
+
+    @Override
+    public Object connectedOutput() {
+        return connection;
+    }
+
+    @Override
+    public Object upstream() {
+        return source;
+    }
     
-    static final class State<T> implements Subscriber<T>, Runnable {
+    static final class State<T> implements Subscriber<T>, Runnable, Receiver, MultiProducer, Backpressurable,
+                                           Completable, Cancellable, Failurable {
 
         final int prefetch;
         
@@ -321,7 +358,8 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
             }
         }
 
-        boolean isTerminated() {
+        @Override
+        public boolean isTerminated() {
             return subscribers == TERMINATED;
         }
         
@@ -463,9 +501,49 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
             }
             return false;
         }
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue.size();
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return !cancelled && !done && s != null;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Iterator<?> downstreams() {
+            return Arrays.asList(subscribers).iterator();
+        }
+
+        @Override
+        public long downstreamCount() {
+            return subscribers.length;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
     }
     
-    static final class InnerSubscription<T> implements Subscription {
+    static final class InnerSubscription<T> implements Subscription, Introspectable, Receiver, Requestable, Cancellable {
         
         final Subscriber<? super T> actual;
         
@@ -505,11 +583,32 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
                 }
             }
         }
-        
-        boolean isCancelled() {
+
+        @Override
+        public boolean isCancelled() {
             return cancelled != 0;
         }
-        
+
+        @Override
+        public int getMode() {
+            return INNER;
+        }
+
+        @Override
+        public String getName() {
+            return InnerSubscription.class.getSimpleName();
+        }
+
+        @Override
+        public Object upstream() {
+            return parent;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
         void produced(long n) {
             REQUESTED.addAndGet(this, -n);
         }

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.flow.Receiver;
 
 /**
  * Connects to the underlying ConnectablePublisher once the given amount of Subscribers
@@ -12,7 +13,8 @@ import org.reactivestreams.Subscriber;
  *
  * @param <T> the value type
  */
-public final class ConnectablePublisherAutoConnect<T> extends PublisherBase<T> {
+public final class ConnectablePublisherAutoConnect<T> extends PublisherBase<T>
+        implements Receiver {
 
     final ConnectablePublisher<? extends T> source;
 
@@ -40,5 +42,10 @@ public final class ConnectablePublisherAutoConnect<T> extends PublisherBase<T> {
         if (remaining > 0 && REMAINING.decrementAndGet(this) == 0) {
             source.connect(cancelSupport);
         }
+    }
+
+    @Override
+    public Object upstream() {
+        return source;
     }
 }

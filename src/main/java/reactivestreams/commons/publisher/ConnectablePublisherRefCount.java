@@ -1,11 +1,17 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Loopback;
+import reactivestreams.commons.flow.MultiProducer;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
@@ -14,7 +20,8 @@ import reactivestreams.commons.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class ConnectablePublisherRefCount<T> extends PublisherBase<T> {
+public final class ConnectablePublisherRefCount<T> extends PublisherBase<T>
+        implements Receiver, Loopback {
     
     final ConnectablePublisher<? extends T> source;
     
@@ -53,8 +60,23 @@ public final class ConnectablePublisherRefCount<T> extends PublisherBase<T> {
             break;
         }
     }
-    
-    static final class State<T> implements Consumer<Runnable> {
+
+    @Override
+    public Object connectedInput() {
+        return null;
+    }
+
+    @Override
+    public Object connectedOutput() {
+        return connection;
+    }
+
+    @Override
+    public Object upstream() {
+        return source;
+    }
+
+    static final class State<T> implements Consumer<Runnable>, MultiProducer, Receiver {
         
         final int n;
         
@@ -126,8 +148,23 @@ public final class ConnectablePublisherRefCount<T> extends PublisherBase<T> {
                 DISCONNECT.getAndSet(this, DISCONNECTED);
             }
         }
-        
-        static final class InnerSubscriber<T> implements Subscriber<T>, Subscription {
+
+        @Override
+        public Iterator<?> downstreams() {
+            return null;
+        }
+
+        @Override
+        public long downstreamCount() {
+            return subscribers;
+        }
+
+        @Override
+        public Object upstream() {
+            return parent;
+        }
+
+        static final class InnerSubscriber<T> implements Subscriber<T>, Subscription, Receiver, Producer, Loopback {
 
             final Subscriber<? super T> actual;
             
@@ -174,6 +211,26 @@ public final class ConnectablePublisherRefCount<T> extends PublisherBase<T> {
             public void cancel() {
                 s.cancel();
                 parent.innerCancelled();
+            }
+
+            @Override
+            public Object downstream() {
+                return actual;
+            }
+
+            @Override
+            public Object upstream() {
+                return s;
+            }
+
+            @Override
+            public Object connectedInput() {
+                return null;
+            }
+
+            @Override
+            public Object connectedOutput() {
+                return s;
             }
         }
     }
