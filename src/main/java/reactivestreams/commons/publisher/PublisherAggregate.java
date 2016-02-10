@@ -6,7 +6,6 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 import reactivestreams.commons.util.ExceptionHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -68,6 +67,7 @@ public final class PublisherAggregate<T> extends PublisherSource<T, T> {
                     r = aggregator.apply(r, t);
                 } catch (Throwable ex) {
                     ExceptionHelper.throwIfFatal(ex);
+                    s.cancel();
                     result = null;
                     done = true;
                     subscriber.onError(ex);
@@ -75,6 +75,7 @@ public final class PublisherAggregate<T> extends PublisherSource<T, T> {
                 }
                 
                 if (r == null) {
+                    s.cancel();
                     result = null;
                     done = true;
                     subscriber.onError(new NullPointerException("The aggregator returned a null value"));
