@@ -4,8 +4,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.concurrent.atomic.*;
 
 /**
  * A bounded, array backed, single-producer single-consumer queue.
@@ -16,40 +15,45 @@ public final class SpscArrayQueue<T> extends AtomicReferenceArray<T> implements 
     /** */
     private static final long serialVersionUID = 494623116936946976L;
 
-    final AtomicLong producerIndex;
+    volatile long producerIndex;
+    @SuppressWarnings("rawtypes")
+    static final AtomicLongFieldUpdater<SpscArrayQueue> PRODUCER_INDEX =
+            AtomicLongFieldUpdater.newUpdater(SpscArrayQueue.class, "producerIndex");
+
+    volatile long consumerIndex;
+    @SuppressWarnings("rawtypes")
+    static final AtomicLongFieldUpdater<SpscArrayQueue> CONSUMER_INDEX =
+            AtomicLongFieldUpdater.newUpdater(SpscArrayQueue.class, "consumerIndex");
     
-    final AtomicLong consumerIndex;
     
     final int mask;
     
     public SpscArrayQueue(int capacity) {
         super(PowerOf2.roundUp(capacity));
-        producerIndex = new AtomicLong();
-        consumerIndex = new AtomicLong();
         mask = length() - 1;
     }
     
     @Override
     public boolean offer(T e) {
         Objects.requireNonNull(e, "e");
-        long pi = producerIndex.get();
+        long pi = producerIndex;
         int offset = (int)pi & mask;
         if (get(offset) != null) {
             return false;
         }
-        producerIndex.lazySet(pi + 1);
+        PRODUCER_INDEX.lazySet(this, pi + 1);
         lazySet(offset, e);
         return true;
     }
     
     @Override
     public T poll() {
-        long ci = consumerIndex.get();
+        long ci = consumerIndex;
         int offset = (int)ci & mask;
         
         T v = get(offset);
         if (v != null) {
-            consumerIndex.lazySet(ci + 1);
+            CONSUMER_INDEX.lazySet(this, ci + 1);
             lazySet(offset, null);
         }
         return v;
@@ -57,13 +61,13 @@ public final class SpscArrayQueue<T> extends AtomicReferenceArray<T> implements 
     
     @Override
     public T peek() {
-        int offset = (int)consumerIndex.get() & mask;
+        int offset = (int)consumerIndex & mask;
         return get(offset);
     }
     
     @Override
     public boolean isEmpty() {
-        return producerIndex.get() == consumerIndex.get();
+        return producerIndex == consumerIndex;
     }
     
     @Override
@@ -73,10 +77,10 @@ public final class SpscArrayQueue<T> extends AtomicReferenceArray<T> implements 
 
     @Override
     public int size() {
-        long ci = consumerIndex.get();
+        long ci = consumerIndex;
         for (;;) {
-            long pi = producerIndex.get();
-            long ci2 = consumerIndex.get();
+            long pi = producerIndex;
+            long ci2 = consumerIndex;
             if (ci == ci2) {
                 return (int)(pi - ci);
             }

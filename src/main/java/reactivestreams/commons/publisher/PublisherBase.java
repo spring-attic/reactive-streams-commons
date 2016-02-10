@@ -1,37 +1,16 @@
 package reactivestreams.commons.publisher;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.LongConsumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 import java.util.stream.Stream;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.subscriber.*;
-import reactivestreams.commons.util.ExecutorServiceScheduler;
-import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.*;
 
 /**
  * Experimental base class with fluent API.
@@ -68,7 +47,20 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
             }
         };
     }
-    
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    static <T> Supplier<Queue<T>> defaultUnboundedQueueSupplier(final int capacity) {
+        if (capacity == Integer.MAX_VALUE) {
+            return (Supplier)QUEUE_SUPPLIER;
+        }
+        return new Supplier<Queue<T>>() {
+            @Override
+            public Queue<T> get() {
+                return new SpscLinkedArrayQueue<>(capacity);
+            }
+        };
+    }
+
     public final <R> PublisherBase<R> map(Function<? super T, ? extends R> mapper) {
         if (this instanceof Fuseable) {
             return new PublisherMapFuseable<>(this, mapper);
@@ -132,11 +124,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other) {
-        return new PublisherWindowBoundary<>(this, other, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE));
+        return new PublisherWindowBoundary<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE));
     }
 
     public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other, int maxSize) {
-        return new PublisherWindowBoundaryAndSize<>(this, other, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE), maxSize);
+        return new PublisherWindowBoundaryAndSize<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
     }
 
     public final PublisherBase<T> accumulate(BiFunction<T, ? super T, T> accumulator) {
@@ -357,11 +349,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U, V> PublisherBase<PublisherBase<T>> window(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
-        return new PublisherWindowStartEnd<>(this, start, end, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE));
+        return new PublisherWindowStartEnd<>(this, start, end, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE));
     }
 
     public final <U, V> PublisherBase<PublisherBase<T>> window2(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
-        return new PublisherWindowBeginEnd<>(this, start, end, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE);
+        return new PublisherWindowBeginEnd<>(this, start, end, defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
 
     public final PublisherBase<T> takeLast(int n) {
@@ -401,7 +393,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U> PublisherBase<T> throttleTimeout(Function<? super T, ? extends Publisher<U>> throttler) {
-        return new PublisherThrottleTimeout<>(this, throttler, defaultQueueSupplier(Integer.MAX_VALUE));
+        return new PublisherThrottleTimeout<>(this, throttler, defaultUnboundedQueueSupplier(BUFFER_SIZE));
     }
     
     public final Iterable<T> toIterable() {
@@ -409,7 +401,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final Iterable<T> toIterable(long batchSize) {
-        return new BlockingIterable<>(this, batchSize, defaultQueueSupplier(Integer.MAX_VALUE));
+        return new BlockingIterable<>(this, batchSize, defaultUnboundedQueueSupplier(BUFFER_SIZE));
     }
     
     public final Stream<T> stream() {
@@ -417,7 +409,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final Stream<T> stream(long batchSize) {
-        return new BlockingStream<>(this, batchSize, defaultQueueSupplier(Integer.MAX_VALUE)).stream();
+        return new BlockingStream<>(this, batchSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)).stream();
     }
 
     public final Stream<T> parallelStream() {
@@ -425,7 +417,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final Stream<T> parallelStream(long batchSize) {
-        return new BlockingStream<>(this, batchSize, defaultQueueSupplier(Integer.MAX_VALUE)).parallelStream();
+        return new BlockingStream<>(this, batchSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)).parallelStream();
     }
 
     public final Future<T> toFuture() {
@@ -445,11 +437,11 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U> PublisherBase<List<T>> buffer(Publisher<U> other, int maxSize) {
-        return new PublisherBufferBoundaryAndSize<>(this, other, () -> new ArrayList<>(), maxSize, defaultQueueSupplier(Integer.MAX_VALUE));
+        return new PublisherBufferBoundaryAndSize<>(this, other, () -> new ArrayList<>(), maxSize, defaultUnboundedQueueSupplier(BUFFER_SIZE));
     }
 
     public final <U, C extends Collection<? super T>> PublisherBase<C> buffer(Publisher<U> other, int maxSize, Supplier<C> bufferSupplier) {
-        return new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultQueueSupplier(Integer.MAX_VALUE));
+        return new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultUnboundedQueueSupplier(BUFFER_SIZE));
     }
 
     @Override
@@ -506,7 +498,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> PublisherBase<R> concatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, PublisherConcatMap.ErrorMode errorMode, int prefetch) {
-        return new PublisherConcatMap<>(this, mapper, defaultQueueSupplier(Integer.MAX_VALUE), prefetch, errorMode);
+        return new PublisherConcatMap<>(this, mapper, defaultUnboundedQueueSupplier(prefetch), prefetch, errorMode);
     }
 
     public final PublisherBase<T> observeOn(ExecutorService executor) {
@@ -640,7 +632,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final <K, V> PublisherBase<GroupedPublisher<K, V>> groupBy(Function<? super T, ? extends K> keySelector, Function<? super T, ? extends V> valueSelector) {
-        return new PublisherGroupBy<>(this, keySelector, valueSelector, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE);
+        return new PublisherGroupBy<>(this, keySelector, valueSelector, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
 
     // ---------------------------------------------------------------------------------------
@@ -808,7 +800,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
 
     @SuppressWarnings("unchecked")
     public static <T, U, R> PublisherBase<R> combineLatest(Publisher<? extends T> p1, Publisher<? extends U> p2, BiFunction<? super T, ? super U, ? extends R> combiner) {
-        return new PublisherCombineLatest<>(new Publisher[] { p1, p2 }, a -> combiner.apply((T)a[0], (U)a[1]), defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE);
+        return new PublisherCombineLatest<>(new Publisher[] { p1, p2 }, a -> combiner.apply((T)a[0], (U)a[1]), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
     
     @SuppressWarnings("rawtypes")
