@@ -58,14 +58,15 @@ implements PublisherPeekHelper<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void subscribe(Subscriber<? super T> s) {
         if (source instanceof Fuseable) {
             source.subscribe(new PublisherPeekFuseableSubscriber<>(s, this));
             return;
         }
         if (s instanceof ConditionalSubscriber) {
-            source.subscribe(new PublisherPeekConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, this));
+            @SuppressWarnings("unchecked") // javac, give reason to suppress because inference anomalies
+            ConditionalSubscriber<T> s2 = (ConditionalSubscriber<T>)s;
+            source.subscribe(new PublisherPeekConditionalSubscriber<>(s2, this));
             return;
         }
         source.subscribe(new PublisherPeekSubscriber<>(s, this));
