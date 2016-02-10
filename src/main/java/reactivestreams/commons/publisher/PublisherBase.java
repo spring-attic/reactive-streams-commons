@@ -29,10 +29,7 @@ import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.subscriber.BlockingFirstSubscriber;
-import reactivestreams.commons.subscriber.BlockingLastSubscriber;
-import reactivestreams.commons.subscriber.DropAllSubscriber;
-import reactivestreams.commons.subscriber.PeekLastSubscriber;
+import reactivestreams.commons.subscriber.*;
 import reactivestreams.commons.util.ExecutorServiceScheduler;
 import reactivestreams.commons.util.SpscArrayQueue;
 
@@ -584,8 +581,9 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     
     
     public final Runnable subscribe() {
-        subscribe(DropAllSubscriber.INSTANCE);
-        return () -> { }; // FIXME proper cancellation support?
+        EmptyAsyncSubscriber<T> s = new EmptyAsyncSubscriber<>();
+        subscribe(s);
+        return s;
     }
     
     public final PublisherBase<T> aggregate(BiFunction<T, T, T> aggregator) {

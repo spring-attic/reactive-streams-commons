@@ -39,12 +39,11 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
     }
     
     public final PublisherBase<T> refCount() {
-        return refCount(0);
+        return refCount(1);
     }
     
     public final PublisherBase<T> refCount(int minSubscribers) {
-        // TODO implement
-        throw new UnsupportedOperationException();
+        return new ConnectablePublisherRefCount<>(this, minSubscribers);
     }
     
     public final PublisherBase<T> autoConnect() {

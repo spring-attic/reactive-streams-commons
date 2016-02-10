@@ -42,6 +42,8 @@ I.e., converts non-reactive data sources into `Publisher`s.
   
 ## Supported transformations
 
+  - `ConnectablePublisherAutoConnect` given a ConnectablePublisher, it connects to it once the given  amount of subscribers subscribed
+  - `ConnectablePublisherRefCount` given a ConnectablePublisher, it connects to it once the given amount of subscribers subscribed to it and disconnects once all subscribers cancelled
   - `ConnectablePublisherPublish` : allows dispatching events from a single source to multiple subscribers similar to a Processor but the connection can be manually established or stopped.
   - `PublisherAccumulate` : Accumulates the source values with an accumulator function and returns the intermediate results of this function application
   - `PublisherAggregate` : Aggregates the source values with an aggergator function and emits the last result.

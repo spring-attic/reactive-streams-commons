@@ -202,6 +202,41 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
         return this;
     }
+    
+    public final TestSubscriber<T> assertNoEvents() {
+        return assertNoValues().assertNoError().assertNotComplete();
+    }
+    
+    @SafeVarargs
+    public final TestSubscriber<T> assertIncomplete(T... values) {
+        return assertValues(values).assertNotComplete().assertNoError();
+    }
+
+    /**
+     * Asserts that the TestSubscriber holds the specified values and has completed
+     * without any error.
+     * @param values the values to assert
+     * @return this
+     */
+    @SafeVarargs
+    public final TestSubscriber<T> assertResult(T... values) {
+        return assertValues(values).assertComplete().assertNoError();
+    }
+
+    @SafeVarargs
+    public final TestSubscriber<T> assertFailure(Throwable ex, T... values) {
+        return assertValues(values).assertNotComplete().assertError(ex);
+    }
+
+    @SafeVarargs
+    public final TestSubscriber<T> assertFailure(Class<? extends Throwable> ex, T... values) {
+        return assertValues(values).assertNotComplete().assertError(ex);
+    }
+
+    @SafeVarargs
+    public final TestSubscriber<T> assertFailureMessage(Class<? extends Throwable> ex, String message, T... values) {
+        return assertValues(values).assertNotComplete().assertError(ex).assertErrorMessage(message);
+    }
 
     public final TestSubscriber<T> assertValueSequence(Iterable<? extends T> expectedSequence) {
 

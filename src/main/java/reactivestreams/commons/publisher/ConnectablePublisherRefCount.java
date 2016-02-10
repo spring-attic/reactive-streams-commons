@@ -1,0 +1,180 @@
+package reactivestreams.commons.publisher;
+
+import java.util.Objects;
+import java.util.concurrent.atomic.*;
+import java.util.function.Consumer;
+
+import org.reactivestreams.*;
+
+import reactivestreams.commons.util.SubscriptionHelper;
+
+/**
+ * Connects to the underlying ConnectablePublisher once the given number of Subscribers subscribed
+ * to it and disconnects once all Subscribers cancelled their Subscriptions.
+ *
+ * @param <T> the value type
+ */
+public final class ConnectablePublisherRefCount<T> extends PublisherBase<T> {
+    
+    final ConnectablePublisher<? extends T> source;
+    
+    final int n;
+
+    volatile State<T> connection;
+    @SuppressWarnings("rawtypes")
+    static final AtomicReferenceFieldUpdater<ConnectablePublisherRefCount, State> CONNECTION =
+            AtomicReferenceFieldUpdater.newUpdater(ConnectablePublisherRefCount.class, State.class, "connection");
+    
+    public ConnectablePublisherRefCount(ConnectablePublisher<? extends T> source, int n) {
+        if (n <= 0) {
+            throw new IllegalArgumentException("n > 0 required but it was " + n);
+        }
+        this.source = Objects.requireNonNull(source, "source");
+        this.n = n;
+    }
+    
+    @Override
+    public void subscribe(Subscriber<? super T> s) {
+        State<T> state;
+        
+        for (;;) {
+            state = connection;
+            if (state == null || state.isDisconnected()) {
+                State<T> u = new State<>(n, this);
+                
+                if (!CONNECTION.compareAndSet(this, state, u)) {
+                    continue;
+                }
+                
+                state = u;
+            }
+            
+            state.subscribe(s);
+            break;
+        }
+    }
+    
+    static final class State<T> implements Consumer<Runnable> {
+        
+        final int n;
+        
+        final ConnectablePublisherRefCount<? extends T> parent;
+        
+        volatile int subscribers;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<State> SUBSCRIBERS =
+                AtomicIntegerFieldUpdater.newUpdater(State.class, "subscribers");
+        
+        volatile Runnable disconnect;
+        @SuppressWarnings("rawtypes")
+        static final AtomicReferenceFieldUpdater<State, Runnable> DISCONNECT =
+                AtomicReferenceFieldUpdater.newUpdater(State.class, Runnable.class, "disconnect");
+        
+        static final Runnable DISCONNECTED = new Runnable() {
+            @Override
+            public void run() { 
+                
+            }
+        };
+
+        public State(int n, ConnectablePublisherRefCount<? extends T> parent) {
+            this.n = n;
+            this.parent = parent;
+        }
+        
+        void subscribe(Subscriber<? super T> s) {
+            // FIXME think about what happens when subscribers come and go below the connection threshold concurrently
+            
+            InnerSubscriber<T> inner = new InnerSubscriber<>(s, this);
+            parent.source.subscribe(inner);
+            
+            if (SUBSCRIBERS.incrementAndGet(this) == n) {
+                parent.source.connect(this);
+            }
+        }
+        
+        @Override
+        public void accept(Runnable r) {
+            if (!DISCONNECT.compareAndSet(this, null, r)) {
+                r.run();
+            }
+        }
+        
+        void doDisconnect() {
+            Runnable a = disconnect;
+            if (a != DISCONNECTED) {
+                a = DISCONNECT.getAndSet(this, DISCONNECTED);
+                if (a != null && a != DISCONNECTED) {
+                    a.run();
+                }
+            }
+        }
+        
+        boolean isDisconnected() {
+            return disconnect == DISCONNECTED;
+        }
+        
+        void innerCancelled() {
+            if (SUBSCRIBERS.decrementAndGet(this) == 0) {
+                doDisconnect();
+            }
+        }
+        
+        void upstreamFinished() {
+            Runnable a = disconnect;
+            if (a != DISCONNECTED) {
+                DISCONNECT.getAndSet(this, DISCONNECTED);
+            }
+        }
+        
+        static final class InnerSubscriber<T> implements Subscriber<T>, Subscription {
+
+            final Subscriber<? super T> actual;
+            
+            final State<T> parent;
+            
+            Subscription s;
+            
+            public InnerSubscriber(Subscriber<? super T> actual, State<T> parent) {
+                this.actual = actual;
+                this.parent = parent;
+            }
+
+            @Override
+            public void onSubscribe(Subscription s) {
+                if (SubscriptionHelper.validate(this.s, s)) {
+                    this.s = s;
+                    actual.onSubscribe(this);
+                }
+            }
+
+            @Override
+            public void onNext(T t) {
+                actual.onNext(t);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                actual.onError(t);
+                parent.upstreamFinished();
+            }
+
+            @Override
+            public void onComplete() {
+                actual.onComplete();
+                parent.upstreamFinished();
+            }
+            
+            @Override
+            public void request(long n) {
+                s.request(n);
+            }
+            
+            @Override
+            public void cancel() {
+                s.cancel();
+                parent.innerCancelled();
+            }
+        }
+    }
+}
