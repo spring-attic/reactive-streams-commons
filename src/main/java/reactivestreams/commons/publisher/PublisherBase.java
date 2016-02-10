@@ -634,7 +634,15 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     public final ConnectablePublisher<T> publish(int prefetch) {
         return new ConnectablePublisherPublish<>(this, prefetch, defaultQueueSupplier(prefetch));
     }
-    
+
+    public final <K> PublisherBase<GroupedPublisher<K, T>> groupBy(Function<? super T, ? extends K> keySelector) {
+        return groupBy(keySelector, v -> v);
+    }
+
+    public final <K, V> PublisherBase<GroupedPublisher<K, V>> groupBy(Function<? super T, ? extends K> keySelector, Function<? super T, ? extends V> valueSelector) {
+        return new PublisherGroupBy<>(this, keySelector, valueSelector, defaultQueueSupplier(Integer.MAX_VALUE), defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE);
+    }
+
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
