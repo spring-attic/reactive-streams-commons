@@ -508,6 +508,7 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   l = l.replaceAll('ConnectablePublisher', "$apiClassName")
+  l = l.replaceAll('GroupedPublisher', "Grouped$apiClassName")
   l = l.replaceAll('Publisher([A-Z][^A-Z]*)', "$apiClassName\$1")
 
   if (l.contains('SerializedSubscriber') && target['SerializedSubscriber']) {

@@ -1,5 +1,6 @@
 package reactivestreams.commons.publisher;
 
+import reactivestreams.commons.state.Groupable;
 
 /**
  * Represents a sequence of events with an associated key.
@@ -7,7 +8,7 @@ package reactivestreams.commons.publisher;
  * @param <K> the key type
  * @param <V> the value type
  */
-public abstract class GroupedPublisher<K, V> extends PublisherBase<V> {
+public abstract class GroupedPublisher<K, V> extends PublisherBase<V> implements Groupable<K> {
 
     /**
      * Returns the key of this group.
