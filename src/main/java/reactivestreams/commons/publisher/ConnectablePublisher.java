@@ -60,7 +60,6 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
             connect(cancelSupport);
             return this;
         }
-        // TODO implement
-        throw new UnsupportedOperationException();
+        return new ConnectablePublisherAutoConnect<>(this, minSubscribers, cancelSupport);
     }
 }
