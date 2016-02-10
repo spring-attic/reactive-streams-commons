@@ -1,8 +1,11 @@
 package reactivestreams.commons.publisher;
 
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.junit.Test;
+
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
@@ -178,4 +181,92 @@ public class PublisherGroupByTest {
         
         ts.assertResult();
     }
+
+    @Test
+    public void oneGroupLongMerge() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1_000_000).groupBy(v -> 1).flatMap(g -> g).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void oneGroupLongMergeHidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1_000_000).groupBy(v -> 1).flatMap(g -> g.hide()).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    
+    @Test
+    public void twoGroupsLongMerge() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1)).flatMap(g -> g).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void twoGroupsLongMergeHidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1)).flatMap(g -> g.hide()).subscribe(ts);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void twoGroupsLongAsyncMergeLoop() {
+        for (int i = 0; i < 100; i++) {
+            twoGroupsLongAsyncMerge();
+        }
+    }
+
+    @Test
+    public void twoGroupsLongAsyncMerge() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1))
+        .flatMap(g -> g).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void twoGroupsLongAsyncMergeHiddenLoop() {
+        for (int i = 0; i < 100; i++) {
+            twoGroupsLongAsyncMergeHidden();
+        }
+    }
+
+    @Test
+    public void twoGroupsLongAsyncMergeHidden() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1))
+        .flatMap(g -> g.hide()).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        
+        ts.await(5, TimeUnit.SECONDS);
+        
+        ts.assertValueCount(1_000_000)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }

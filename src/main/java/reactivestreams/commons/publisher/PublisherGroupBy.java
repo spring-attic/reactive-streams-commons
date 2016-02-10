@@ -213,7 +213,7 @@ implements Fuseable {
                     }
                     
                     GROUP_COUNT.getAndIncrement(this);
-                    g = new UnicastGroupedPublisher<>(key, q, this);
+                    g = new UnicastGroupedPublisher<>(key, q, this, prefetch);
                     g.onNext(value);
                     groupMap.put(key, g);
                     
@@ -493,12 +493,18 @@ implements Fuseable {
         public void drop() {
             queue.poll();
         }
+        
+        void requestInner(long n) {
+            s.request(n);
+        }
     }
     
     static final class UnicastGroupedPublisher<K, V> extends GroupedPublisher<K, V> 
     implements Fuseable, Fuseable.QueueSubscription<V>,
     Producer, Receiver, Failurable, Completable, Cancellable, Requestable {
         final K key;
+        
+        final int limit;
 
         @Override
         public K key() {
@@ -539,10 +545,13 @@ implements Fuseable {
         
         volatile boolean enableOperatorFusion;
 
-        public UnicastGroupedPublisher(K key, Queue<V> queue, PublisherGroupByMain<?, K, V> parent) {
+        int produced;
+        
+        public UnicastGroupedPublisher(K key, Queue<V> queue, PublisherGroupByMain<?, K, V> parent, int prefetch) {
             this.key = key;
             this.queue = queue;
             this.parent = parent;
+            this.limit = prefetch - (prefetch >> 2);
         }
         
         void doTerminate() {
@@ -595,7 +604,10 @@ implements Fuseable {
                     }
                     
                     if (e != 0) {
-                        parent.request(e);
+                        PublisherGroupByMain<?, K, V> main = parent;
+                        if (main != null) {
+                            main.requestInner(e);
+                        }
                         if (r != Long.MAX_VALUE) {
                             REQUESTED.addAndGet(this, -e);
                         }
@@ -758,7 +770,20 @@ implements Fuseable {
         
         @Override
         public V poll() {
-            return queue.poll();
+            V v = queue.poll();
+            if (v != null) {
+                produced++;
+            } else {
+                int p = produced;
+                if (p != 0) {
+                    produced = 0;
+                    PublisherGroupByMain<?, K, V> main = parent;
+                    if (main != null) {
+                        main.requestInner(p);
+                    }
+                }
+            }
+            return v;
         }
 
         @Override
@@ -858,6 +883,16 @@ implements Fuseable {
         @Override
         public void drop() {
             queue.poll();
+            int p = produced + 1;
+            if (p == limit) {
+                produced = 0;
+                PublisherGroupByMain<?, K, V> main = parent;
+                if (main != null) {
+                    main.requestInner(p);
+                }
+            } else {
+                produced = p;
+            }
         }
 
         @Override
