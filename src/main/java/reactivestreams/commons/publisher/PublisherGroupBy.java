@@ -1,15 +1,34 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import java.util.function.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.flow.*;
-import reactivestreams.commons.state.*;
-import reactivestreams.commons.util.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.MultiProducer;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Requestable;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.util.SubscriptionHelper;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Groups upstream items into their own Publisher sequence based on a key selector.
@@ -19,7 +38,7 @@ import reactivestreams.commons.util.*;
  * @param <V> the group item value type
  */
 public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedPublisher<K, V>>
-implements Fuseable {
+implements Fuseable, Backpressurable  {
 
     final Function<? super T, ? extends K> keySelector;
     
@@ -70,7 +89,8 @@ implements Fuseable {
     }
     
     static final class PublisherGroupByMain<T, K, V> implements Subscriber<T>, 
-    Fuseable.QueueSubscription<GroupedPublisher<K, V>> {
+    Fuseable.QueueSubscription<GroupedPublisher<K, V>>, MultiProducer, Backpressurable, Producer, Requestable,
+                                                                Failurable, Cancellable, Completable, Receiver {
 
         final Function<? super T, ? extends K> keySelector;
         
@@ -247,6 +267,61 @@ implements Fuseable {
             } else {
                 drain();
             }
+        }
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue.size();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && cancelled != 1 && !done;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled == 1;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Iterator<?> downstreams() {
+            return groupMap.values().iterator();
+        }
+
+        @Override
+        public long downstreamCount() {
+            return GROUP_COUNT.get(this);
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
         }
 
         void signalAsyncComplete() {
@@ -501,7 +576,7 @@ implements Fuseable {
     
     static final class UnicastGroupedPublisher<K, V> extends GroupedPublisher<K, V> 
     implements Fuseable, Fuseable.QueueSubscription<V>,
-    Producer, Receiver, Failurable, Completable, Cancellable, Requestable {
+    Producer, Receiver, Failurable, Completable, Cancellable, Requestable, Backpressurable {
         final K key;
         
         final int limit;
@@ -900,6 +975,8 @@ implements Fuseable {
             return cancelled;
         }
 
+
+
         @Override
         public boolean isStarted() {
             return once == 1 && !done && !cancelled;
@@ -923,6 +1000,16 @@ implements Fuseable {
         @Override
         public Object upstream() {
             return parent;
+        }
+
+        @Override
+        public long getCapacity() {
+            return parent.prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return queue == null || done ? -1L : queue.size();
         }
 
         @Override
