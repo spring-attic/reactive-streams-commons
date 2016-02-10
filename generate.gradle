@@ -12,6 +12,7 @@ def includingCoreScope = ['amb',
 						  'error',
 						  'empty',
 						  'next',
+						  'connectable',
 						  'observeon',
 						  'subscribeon',
 						  'subscribeonvalue',
@@ -192,8 +193,9 @@ task generateTestCoverage(type: Sync) {
   if (target.include) {
 	include { details ->
 	  !details.file.name
-			  .startsWith('Publisher') || details.file.name
+			  .contains('Publisher') || details.file.name
 			  .replaceAll('Publisher', '')
+			  .replaceAll('Test', '')
 			  .replaceAll(".java", '')
 			  .toLowerCase() in target.include
 	}
@@ -204,6 +206,7 @@ task generateTestCoverage(type: Sync) {
 	def name = details.file.name
 			.replaceAll('Publisher', '')
 			.replaceAll(".java", '')
+			.replaceAll('Test', '')
 			.toLowerCase()
 
 	details.file.name
@@ -301,8 +304,10 @@ task generateSingleTestCoverage(type: Copy) {
   include { details ->
 	def name = details.file.name
 			.replaceAll('Publisher', '')
-			.replaceAll("Test.java", '')
+			.replaceAll(".java", '')
+			.replaceAll("Test", '')
 			.toLowerCase()
+
 	!details.file.name
 			.contains('Publisher') || (( !target.include || name in target.include) && name in defaultSingleAPI)
   }
@@ -311,7 +316,8 @@ task generateSingleTestCoverage(type: Copy) {
   exclude { details ->
 	def name = details.file.name
 			.replaceAll('Publisher', '')
-			.replaceAll("Test.java", '')
+			.replaceAll(".java", '')
+			.replaceAll("Test", '')
 			.toLowerCase()
 
 	details.file.name
