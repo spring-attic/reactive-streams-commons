@@ -32,7 +32,7 @@ def includingCoreScope = ['amb',
 def excludingStreamScope = includingCoreScope + ['generate',
 												 'completablefuture', 'subscribeonother', 'ignoreelements',
 												 'timer', 'interval', 'blockingfuture',
-												 'blockingiterable', 'blockingstream', 'hide', 'bufferboundaryandsize',
+												 'blockingiterable', 'blockingstream', 'bufferboundaryandsize',
 												 'windowbeginend', 'windowboundaryandsize',
 												 'lift', //Already managed by reactor-core
 												 'stream'] - ['map', 'peek']

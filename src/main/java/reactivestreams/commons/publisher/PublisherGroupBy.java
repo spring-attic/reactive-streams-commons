@@ -23,6 +23,7 @@ import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
@@ -576,7 +577,7 @@ implements Fuseable, Backpressurable  {
     
     static final class UnicastGroupedPublisher<K, V> extends GroupedPublisher<K, V> 
     implements Fuseable, Fuseable.QueueSubscription<V>,
-    Producer, Receiver, Failurable, Completable, Cancellable, Requestable, Backpressurable {
+               Producer, Receiver, Failurable, Completable, Prefetchable, Cancellable, Requestable, Backpressurable {
         final K key;
         
         final int limit;
@@ -1004,7 +1005,8 @@ implements Fuseable, Backpressurable  {
 
         @Override
         public long getCapacity() {
-            return parent.prefetch;
+            PublisherGroupByMain parent = this.parent;
+            return parent != null ? parent.prefetch : -1L;
         }
 
         @Override
@@ -1015,6 +1017,16 @@ implements Fuseable, Backpressurable  {
         @Override
         public long requestedFromDownstream() {
             return requested;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return produced;
+        }
+
+        @Override
+        public long limit() {
+            return limit;
         }
 
     }

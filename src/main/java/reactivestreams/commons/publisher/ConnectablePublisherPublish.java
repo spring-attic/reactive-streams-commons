@@ -224,7 +224,9 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         @Override
         public void onNext(T t) {
             if (done) {
-                UnsignalledExceptions.onNextDropped(t);
+                if(t != null) {
+                    UnsignalledExceptions.onNextDropped(t);
+                }
                 return;
             }
             if (sourceMode == Fuseable.ASYNC) {
