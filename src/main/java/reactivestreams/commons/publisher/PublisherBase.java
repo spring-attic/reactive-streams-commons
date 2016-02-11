@@ -632,7 +632,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
 
     public final <K, V> PublisherBase<GroupedPublisher<K, V>> groupBy(Function<? super T, ? extends K> keySelector, Function<? super T, ? extends V> valueSelector) {
-        return new PublisherGroupBy<>(this, keySelector, valueSelector, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        return new PublisherGroupBy<>(this, keySelector, valueSelector, defaultQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
 
     // ---------------------------------------------------------------------------------------
