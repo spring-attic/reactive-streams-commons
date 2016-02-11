@@ -542,6 +542,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             return scheduler;
         }
 
+        @Override
         public long expectedFromUpstream() {
             return queue == null ? prefetch : (prefetch - queue.size());
         }

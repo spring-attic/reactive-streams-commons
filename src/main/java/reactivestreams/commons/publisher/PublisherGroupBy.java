@@ -949,7 +949,7 @@ implements Fuseable, Backpressurable  {
 
         @Override
         public int requestFusion(int requestedMode) {
-            if (requestedMode == Fuseable.ANY || requestedMode == Fuseable.ASYNC) {
+            if ((requestedMode & Fuseable.ASYNC) != 0) {
                 enableOperatorFusion = true;
                 return Fuseable.ASYNC;
             }
@@ -1005,7 +1005,7 @@ implements Fuseable, Backpressurable  {
 
         @Override
         public long getCapacity() {
-            PublisherGroupByMain parent = this.parent;
+            PublisherGroupByMain<?, ?, ?> parent = this.parent;
             return parent != null ? parent.prefetch : -1L;
         }
 

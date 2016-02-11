@@ -780,7 +780,7 @@ public class PublisherObserveOnTest {
     }
 
     @Test
-    public void threadBoundaryPreventsInvalidFusionFilter() {
+    public void threadBoundaryPreventsInvalidFusionMap() {
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
         
         TestSubscriber<String> ts = new TestSubscriber<>();
@@ -798,7 +798,7 @@ public class PublisherObserveOnTest {
     }
 
     @Test
-    public void threadBoundaryPreventsInvalidFusion() {
+    public void threadBoundaryPreventsInvalidFusionFilter() {
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(2));
         
         String s = Thread.currentThread().getName();
@@ -853,7 +853,7 @@ public class PublisherObserveOnTest {
 
         int count = 1000;
 
-        for (int j = 1; j < 1024; j *= 2) {
+        for (int j = 1; j < 256; j *= 2) {
 //            System.out.println("crossRangePerfDefaultLoop2 >>>> " + j);
             
             PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, j).observeOn(scheduler);

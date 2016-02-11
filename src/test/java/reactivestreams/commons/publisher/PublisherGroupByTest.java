@@ -5,9 +5,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.junit.Test;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.EmptySubscription;
 
 public class PublisherGroupByTest {
 
@@ -267,6 +270,219 @@ public class PublisherGroupByTest {
         ts.assertValueCount(1_000_000)
         .assertNoError()
         .assertComplete();
+    }
+
+    @Test
+    public void twoGroupsConsumeWithSubscribe() {
+        
+        TestSubscriber<Integer> ts1 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts2 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts3 = new TestSubscriber<>();
+        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        
+        
+        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+            
+            @Override
+            public void onNext(GroupedPublisher<Integer, Integer> t) {
+                if (t.key() == 0) {
+                    t.observeOn(ForkJoinPool.commonPool()).subscribe(ts1);
+                } else {
+                    t.observeOn(ForkJoinPool.commonPool()).subscribe(ts2);
+                }
+            }
+            
+            @Override
+            public void onError(Throwable t) {
+                ts3.onError(t);
+            }
+            
+            @Override
+            public void onComplete() {
+                ts3.onComplete();
+            }
+        });
+        
+        ts1.await(5, TimeUnit.SECONDS);
+        ts2.await(5, TimeUnit.SECONDS);
+        ts3.await(5, TimeUnit.SECONDS);
+        
+        ts1.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts2.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts3.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+
+    }
+
+    @Test
+    public void twoGroupsConsumeWithSubscribePrefetchSmaller() {
+        
+        TestSubscriber<Integer> ts1 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts2 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts3 = new TestSubscriber<>();
+        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        
+        
+        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+            
+            @Override
+            public void onNext(GroupedPublisher<Integer, Integer> t) {
+                if (t.key() == 0) {
+                    t.observeOn(ForkJoinPool.commonPool(), false, 32).subscribe(ts1);
+                } else {
+                    t.observeOn(ForkJoinPool.commonPool(), false, 32).subscribe(ts2);
+                }
+            }
+            
+            @Override
+            public void onError(Throwable t) {
+                ts3.onError(t);
+            }
+            
+            @Override
+            public void onComplete() {
+                ts3.onComplete();
+            }
+        });
+        
+        ts1.await(5, TimeUnit.SECONDS);
+        ts2.await(5, TimeUnit.SECONDS);
+        ts3.await(5, TimeUnit.SECONDS);
+        
+        ts1.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts2.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts3.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+
+    }
+
+    @Test
+    public void twoGroupsConsumeWithSubscribePrefetchBigger() {
+        
+        TestSubscriber<Integer> ts1 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts2 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts3 = new TestSubscriber<>();
+        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        
+        
+        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+            
+            @Override
+            public void onNext(GroupedPublisher<Integer, Integer> t) {
+                if (t.key() == 0) {
+                    t.observeOn(ForkJoinPool.commonPool(), false, 1024).subscribe(ts1);
+                } else {
+                    t.observeOn(ForkJoinPool.commonPool(), false, 1024).subscribe(ts2);
+                }
+            }
+            
+            @Override
+            public void onError(Throwable t) {
+                ts3.onError(t);
+            }
+            
+            @Override
+            public void onComplete() {
+                ts3.onComplete();
+            }
+        });
+        
+        ts1.await(5, TimeUnit.SECONDS);
+        ts2.await(5, TimeUnit.SECONDS);
+        ts3.await(5, TimeUnit.SECONDS);
+        
+        ts1.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts2.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts3.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+
+    }
+
+    
+    @Test
+    public void twoGroupsConsumeWithSubscribeHide() {
+        
+        TestSubscriber<Integer> ts1 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts2 = new TestSubscriber<>();
+        TestSubscriber<Integer> ts3 = new TestSubscriber<>();
+        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        
+        
+        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+            
+            @Override
+            public void onNext(GroupedPublisher<Integer, Integer> t) {
+                if (t.key() == 0) {
+                    t.hide().observeOn(ForkJoinPool.commonPool()).subscribe(ts1);
+                } else {
+                    t.hide().observeOn(ForkJoinPool.commonPool()).subscribe(ts2);
+                }
+            }
+            
+            @Override
+            public void onError(Throwable t) {
+                ts3.onError(t);
+            }
+            
+            @Override
+            public void onComplete() {
+                ts3.onComplete();
+            }
+        });
+        
+        ts1.await(5, TimeUnit.SECONDS);
+        ts2.await(5, TimeUnit.SECONDS);
+        ts3.await(5, TimeUnit.SECONDS);
+        
+        ts1.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts2.assertValueCount(500_000)
+        .assertNoError()
+        .assertComplete();
+
+        ts3.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+
     }
 
 }
