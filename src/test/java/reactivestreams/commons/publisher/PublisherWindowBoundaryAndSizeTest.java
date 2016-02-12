@@ -1,12 +1,12 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Publisher;
+
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
@@ -264,4 +264,44 @@ public class PublisherWindowBoundaryAndSizeTest {
         Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
     }
 
+    @Test(timeout = 60000)
+    public void asyncConsumers() {
+        for (int maxSize = 1; maxSize < 12; maxSize++) {
+            System.out.println("asyncConsumers >> " + maxSize);
+            ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
+            
+            try {
+                List<TestSubscriber<Long>> tss = new ArrayList<>();
+                
+                TestSubscriber<PublisherBase<Long>> ts = new TestSubscriber<PublisherBase<Long>>() {
+                    @Override
+                    public void onNext(PublisherBase<Long> t) {
+                        TestSubscriber<Long> its = new  TestSubscriber<>();
+                        tss.add(its);
+                        t.observeOn(ForkJoinPool.commonPool()).subscribe(its);
+                    }
+                };
+                
+                PublisherBase.interval(1, TimeUnit.MILLISECONDS, exec).take(2500)
+                .window(PublisherBase.interval(10, TimeUnit.MILLISECONDS, exec), maxSize)
+                .subscribe(ts);
+                
+                ts.await(5, TimeUnit.SECONDS);
+                List<Long> data = new ArrayList<>(2500);
+                for (TestSubscriber<Long> its : tss) {
+                    its.await(5, TimeUnit.SECONDS);
+                    data.addAll(its.values());
+                }
+                
+                for (int i = 0; i < data.size() - 1; i++) {
+                    Long a1 = data.get(i);
+                    Long a2 = data.get(i + 1);
+                    
+                    Assert.assertEquals((long)a2, a1 + 1);
+                }
+            } finally {
+                exec.shutdownNow();
+            }
+        }
+    }
 }
