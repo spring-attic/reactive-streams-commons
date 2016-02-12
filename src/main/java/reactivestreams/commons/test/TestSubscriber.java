@@ -5,8 +5,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.LockSupport;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -491,6 +494,30 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
             assertionError("Wait interrupted", ex);
             return false;
         }
+    }
+
+    /**
+     * Blocking method that waits until {@code n} next values have been received.
+     * @param n the value count to assert
+     */
+    public final TestSubscriber<T> awaitAndAssertValueCount(final int n) {
+        long defaultTimeout = 5000;
+        long delta = System.currentTimeMillis() + defaultTimeout;
+       for(;;){
+           if(isCancelled()){
+               assertionError("Cancelled while waiting for "+n+" values", new CancellationException());
+               return this;
+           }
+           int size = this.values != null ? this.values.size() : 0;
+           if(size >= n){
+               return this;
+           }
+           if(System.currentTimeMillis() > delta){
+               assertionError("Timeout while waiting for "+n+" values, current: "+size, new TimeoutException());
+               return this;
+           }
+           LockSupport.parkNanos(1_000L);
+       }
     }
 
     public final List<T> values() {

@@ -33,7 +33,7 @@ def excludingStreamScope = includingCoreScope + ['generate',
 												 'completablefuture', 'subscribeonother', 'ignoreelements',
 												 'timer', 'interval', 'blockingfuture',
 												 'blockingiterable', 'blockingstream', 'bufferboundaryandsize',
-												 'windowbeginend', 'windowboundaryandsize',
+												 'windowbeginend', /*'windowboundaryandsize',*/
 												 'lift', //Already managed by reactor-core
 												 'stream'] - ['map', 'peek']
 
