@@ -1,12 +1,18 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 import org.reactivestreams.Publisher;
-
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
@@ -36,6 +42,14 @@ public class PublisherWindowBoundaryAndSizeTest {
         toList(ts.values().get(index))
         .assertValues(values)
         .assertComplete()
+        .assertNoError();
+    }
+
+    @SafeVarargs
+    static <T> void awaitAndExpectValues(TestSubscriber<PublisherBase<T>> ts, int index, T... values) {
+        toList(ts.values().get(index))
+        .awaitAndAssertValueCount(values.length)
+        .assertValues(values)
         .assertNoError();
     }
 
@@ -119,6 +133,60 @@ public class PublisherWindowBoundaryAndSizeTest {
         ts.assertNoError()
         .assertComplete();
         
+        Assert.assertFalse("sp1 has subscribers", sp1.hasSubscribers());
+        Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
+    }
+
+
+    @Test(timeout = 60000)
+    public void concurrentWindows() {
+        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+
+        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+
+        sp1
+           .window(sp2.observeOn(ForkJoinPool.commonPool()), 3)
+           .subscribe(ts);
+
+        sp1.onNext(1);
+        sp1.onNext(2);
+        sp1.onNext(3);
+
+        ts.awaitAndAssertValueCount(1);
+        awaitAndExpectValues(ts, 0, 1, 2, 3);
+
+        sp1.onNext(4);
+        sp1.onNext(5);
+
+        sp2.onNext(100);
+
+        ts.awaitAndAssertValueCount(2);
+        awaitAndExpectValues(ts, 1, 4, 5);
+
+        sp1.onNext(6);
+        sp1.onNext(7);
+        sp1.onNext(8);
+
+        sp2.onNext(200);
+
+        ts.awaitAndAssertValueCount(3);
+        awaitAndExpectValues(ts, 2, 6, 7, 8);
+
+        sp1.onNext(9);
+
+        sp2.onNext(200);
+
+        ts.awaitAndAssertValueCount(4);
+        awaitAndExpectValues(ts, 3, 9);
+
+        sp1.onComplete();
+
+        ts.await();
+        ts.assertValueCount(5)
+          .assertNoError()
+          .assertComplete();
+
         Assert.assertFalse("sp1 has subscribers", sp1.hasSubscribers());
         Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
     }
@@ -268,11 +336,11 @@ public class PublisherWindowBoundaryAndSizeTest {
     public void asyncConsumers() {
         for (int maxSize = 1; maxSize < 12; maxSize++) {
             System.out.println("asyncConsumers >> " + maxSize);
-            ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
-            
+            ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
+
             try {
                 List<TestSubscriber<Long>> tss = new ArrayList<>();
-                
+
                 TestSubscriber<PublisherBase<Long>> ts = new TestSubscriber<PublisherBase<Long>>() {
                     @Override
                     public void onNext(PublisherBase<Long> t) {
@@ -281,27 +349,37 @@ public class PublisherWindowBoundaryAndSizeTest {
                         t.observeOn(ForkJoinPool.commonPool()).subscribe(its);
                     }
                 };
-                
-                PublisherBase.interval(1, TimeUnit.MILLISECONDS, exec).take(2500)
-                .window(PublisherBase.interval(10, TimeUnit.MILLISECONDS, exec), maxSize)
+
+                PublisherBase.interval(1, TimeUnit.MILLISECONDS, exec).observeOn(exec).take(2500)
+                .window(PublisherBase.interval(5, TimeUnit.MILLISECONDS, exec), maxSize)
                 .subscribe(ts);
-                
+
                 ts.await(5, TimeUnit.SECONDS);
                 List<Long> data = new ArrayList<>(2500);
                 for (TestSubscriber<Long> its : tss) {
                     its.await(5, TimeUnit.SECONDS);
                     data.addAll(its.values());
                 }
-                
+
+                Assert.assertTrue(data.size() == 2500);
                 for (int i = 0; i < data.size() - 1; i++) {
                     Long a1 = data.get(i);
                     Long a2 = data.get(i + 1);
-                    
+
                     Assert.assertEquals((long)a2, a1 + 1);
                 }
             } finally {
                 exec.shutdownNow();
             }
+        }
+    }
+
+    void block(Long n){
+        try{
+            Thread.sleep(10);
+        }
+        catch (InterruptedException ie){
+            //IGNORE
         }
     }
 }
