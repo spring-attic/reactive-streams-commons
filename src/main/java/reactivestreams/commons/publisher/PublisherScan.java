@@ -93,6 +93,8 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
         static final AtomicLongFieldUpdater<PublisherScanSubscriber> REQUESTED =
           AtomicLongFieldUpdater.newUpdater(PublisherScanSubscriber.class, "requested");
 
+        long produced;
+        
         public PublisherScanSubscriber(Subscriber<? super R> actual, BiFunction<R, ? super T, R> accumulator,
                                        R initialValue) {
             this.actual = actual;
@@ -118,11 +120,9 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
 
             R r = value;
 
+            produced++;
+            
             actual.onNext(r);
-
-            if (requested != Long.MAX_VALUE) {
-                REQUESTED.decrementAndGet(this);
-            }
 
             try {
                 r = accumulator.apply(r, t);
@@ -162,10 +162,14 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
             done = true;
 
             R v = value;
+            
+            long p = produced;
+            long r = requested;
+            if (r != Long.MAX_VALUE && p != 0L) {
+                r = REQUESTED.addAndGet(this, -p);
+            }
 
             for (; ; ) {
-                long r = requested;
-
                 // if any request amount is still available, emit the value and complete
                 if ((r & REQUESTED_MASK) != 0L) {
                     actual.onNext(v);
@@ -176,13 +180,15 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
                 if (REQUESTED.compareAndSet(this, 0, COMPLETED_MASK)) {
                     return;
                 }
+                
+                r = requested;
             }
         }
 
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                for (; ; ) {
+                for (;;) {
 
                     long r = requested;
 
@@ -224,7 +230,7 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
 
         @Override
         public long requestedFromDownstream() {
-            return requested;
+            return requested - produced;
         }
 
         @Override
