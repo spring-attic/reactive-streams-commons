@@ -100,6 +100,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherThrottleTimeout` : emits the last value from upstream only if there were no newer values emitted during the time window provided by a publisher for that particular last value
   - `PublisherTimeout` uses per-item `Publisher`s that when they fire mean the timeout for that particular item unless a new item arrives in the meantime
   - `PublisherWindow` : splits the source sequence into possibly overlapping windows of given size
+  - `PublisherWindowBatch` : batches the source sequence into continuous, non-overlapping windows where the length of the windows is determined by a fresh boundary Publisher or a maximum elemenets in that window
   - `PublisherWindowBoundary` : splits the source sequence into continuous, non-overlapping windows where the window boundary is signalled by another Publisher
   - `PublisherWindowBoundaryAndSize` : splits the source sequence into continuous, non-overlapping windows where the window boundary is signalled by another Publisher or if a window received a specified amount of values
   - `PublisherWindowStartEnd` : splits the source sequence into potentially overlapping windows controlled by a

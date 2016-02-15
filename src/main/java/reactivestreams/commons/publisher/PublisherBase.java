@@ -642,6 +642,10 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherGroupBy<>(this, keySelector, valueSelector, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
 
+    public final <U> PublisherBase<PublisherBase<T>> windowBatch(int maxSize, Supplier<? extends Publisher<U>> boundarySupplier) {
+        return new PublisherWindowBatch<>(this, boundarySupplier, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
