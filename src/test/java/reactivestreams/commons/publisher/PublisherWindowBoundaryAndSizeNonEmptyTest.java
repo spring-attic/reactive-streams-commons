@@ -17,11 +17,11 @@ import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
-public class PublisherWindowBoundaryAndSizeTest {
+public class PublisherWindowBoundaryAndSizeNonEmptyTest {
 
     @Test
     public void constructors() {
-        ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherWindowBoundaryAndSize.class);
+        ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherWindowBoundaryAndSizeNonEmpty.class);
         
         ctb.addRef("source", PublisherNever.instance());
         ctb.addRef("other", PublisherNever.instance());
@@ -63,9 +63,9 @@ public class PublisherWindowBoundaryAndSizeTest {
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
-        sp1.window(sp2, 10).subscribe(ts);
+        sp1.window(sp2, 10, false).subscribe(ts);
         
-        ts.assertValueCount(1);
+        ts.assertValueCount(0);
         
         sp1.onNext(1);
         sp1.onNext(2);
@@ -97,41 +97,40 @@ public class PublisherWindowBoundaryAndSizeTest {
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
-        sp1.window(sp2, 3).subscribe(ts);
+        sp1.window(sp2, 3, false).subscribe(ts);
 
-        ts.assertValueCount(1);
+        ts.assertValueCount(0);
 
         sp1.onNext(1);
         sp1.onNext(2);
         sp1.onNext(3);
 
-        ts.assertValueCount(2);
+        ts.assertValueCount(1);
         
         sp1.onNext(4);
         sp1.onNext(5);
         
         sp2.onNext(100);
 
-        ts.assertValueCount(3);
+        ts.assertValueCount(2);
         
         sp1.onNext(6);
         sp1.onNext(7);
         sp1.onNext(8);
 
-        ts.assertValueCount(4);
+        ts.assertValueCount(3);
         
         sp2.onNext(200);
 
-        ts.assertValueCount(5);
+        ts.assertValueCount(3);
         
         sp1.onComplete();
         
-        ts.assertValueCount(5);
+        ts.assertValueCount(3);
         
         expect(ts, 0, 1, 2, 3);
         expect(ts, 1, 4, 5);
         expect(ts, 2, 6, 7, 8);
-        expect(ts, 3);
 
         ts.assertNoError()
         .assertComplete();
@@ -155,7 +154,7 @@ public class PublisherWindowBoundaryAndSizeTest {
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
 
         sp1
-           .window(sp2.observeOn(ForkJoinPool.commonPool()), 3)
+           .window(sp2.observeOn(ForkJoinPool.commonPool()), 3, false)
            .subscribe(ts);
 
         sp1.onNext(1);
@@ -179,24 +178,21 @@ public class PublisherWindowBoundaryAndSizeTest {
 
         sp2.onNext(200);
 
-        ts.awaitAndAssertValueCount(4);
+        ts.awaitAndAssertValueCount(3);
         awaitAndExpectValues(ts, 2, 6, 7, 8);
-        awaitAndExpectValues(ts, 3);
 
         sp1.onNext(9);
 
         sp2.onNext(200);
 
-        ts.awaitAndAssertValueCount(5);
-        awaitAndExpectValues(ts, 4, 9);
+        ts.awaitAndAssertValueCount(4);
+        awaitAndExpectValues(ts, 3, 9);
 
         sp1.onComplete();
 
         ts.await();
         
-        awaitAndExpectValues(ts, 5);
-
-        ts.assertValueCount(6)
+        ts.assertValueCount(4)
           .assertNoError()
           .assertComplete();
 
@@ -210,7 +206,7 @@ public class PublisherWindowBoundaryAndSizeTest {
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         
-        sp1.window(PublisherNever.instance(), 3).subscribe(ts);
+        sp1.window(PublisherNever.instance(), 3, false).subscribe(ts);
 
         for (int i = 0; i < 99; i++) {
             sp1.onNext(i);
@@ -220,9 +216,9 @@ public class PublisherWindowBoundaryAndSizeTest {
         for (int i = 0; i < 33; i++) {
             expect(ts, i, (i * 3), (i * 3 + 1), (i * 3 + 2));
         }
-        expect(ts, 33);
-        
-        ts.assertNoError()
+        ts
+        .assertValueCount(33)
+        .assertNoError()
         .assertComplete();
         
         Assert.assertFalse("sp1 has subscribers", sp1.hasSubscribers());
@@ -236,9 +232,9 @@ public class PublisherWindowBoundaryAndSizeTest {
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
-        sp1.window(sp2, 10).subscribe(ts);
+        sp1.window(sp2, 10, false).subscribe(ts);
         
-        ts.assertValueCount(1);
+        ts.assertValueCount(0);
         
         sp1.onNext(1);
         sp1.onNext(2);
@@ -270,9 +266,9 @@ public class PublisherWindowBoundaryAndSizeTest {
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
-        sp1.window(sp2, 10).subscribe(ts);
+        sp1.window(sp2, 10, false).subscribe(ts);
         
-        ts.assertValueCount(1);
+        ts.assertValueCount(0);
         
         sp1.onNext(1);
         sp1.onNext(2);
@@ -311,9 +307,9 @@ public class PublisherWindowBoundaryAndSizeTest {
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
         
-        sp1.window(sp2, 10).subscribe(ts);
+        sp1.window(sp2, 10, false).subscribe(ts);
         
-        ts.assertValueCount(1);
+        ts.assertValueCount(0);
         
         sp1.onNext(1);
         sp1.onNext(2);
@@ -364,7 +360,7 @@ public class PublisherWindowBoundaryAndSizeTest {
                 };
 
                 PublisherBase.interval(1, TimeUnit.MILLISECONDS, exec).observeOn(exec).take(2500)
-                .window(PublisherBase.interval(5, TimeUnit.MILLISECONDS, exec), maxSize)
+                .window(PublisherBase.interval(5, TimeUnit.MILLISECONDS, exec), maxSize, false)
                 .subscribe(ts);
 
                 ts.await(5, TimeUnit.SECONDS);

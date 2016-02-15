@@ -131,6 +131,13 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherWindowBoundaryAndSize<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
     }
 
+    public final <U> PublisherBase<PublisherBase<T>> window(Publisher<U> other, int maxSize, boolean allowEmptyWindows) {
+        if (!allowEmptyWindows) {
+            return new PublisherWindowBoundaryAndSizeNonEmpty<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
+        }
+        return new PublisherWindowBoundaryAndSize<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
+    }
+
     public final PublisherBase<T> accumulate(BiFunction<T, ? super T, T> accumulator) {
         return new PublisherAccumulate<>(this, accumulator);
     }

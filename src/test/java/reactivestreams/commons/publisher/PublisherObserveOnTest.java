@@ -1,25 +1,15 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.processor.UnicastProcessor;
+import org.junit.*;
+
+import reactivestreams.commons.processor.*;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
-import reactivestreams.commons.util.ExecutorServiceScheduler;
-import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.*;
 
 public class PublisherObserveOnTest {
 
@@ -179,7 +169,7 @@ public class PublisherObserveOnTest {
     public void normalAsyncFusedBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscLinkedArrayQueue<>(1024));
         
         for (int i = 0; i < 1_000_000; i++) {
             up.onNext(i);

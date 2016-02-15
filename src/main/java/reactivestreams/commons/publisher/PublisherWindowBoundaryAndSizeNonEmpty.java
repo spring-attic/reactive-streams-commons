@@ -25,7 +25,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T> the input value type
  * @param <U> the boundary publisher's type (irrelevant)
  */
-public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<T, PublisherBase<T>> {
+public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends PublisherSource<T, PublisherBase<T>> {
 
     final Publisher<U> other;
 
@@ -35,7 +35,7 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
 
     final int maxSize;
     
-    public PublisherWindowBoundaryAndSize(Publisher<? extends T> source, Publisher<U> other,
+    public PublisherWindowBoundaryAndSizeNonEmpty(Publisher<? extends T> source, Publisher<U> other,
             Supplier<? extends Queue<T>> processorQueueSupplier,
             Supplier<? extends Queue<Object>> drainQueueSupplier,
             int maxSize) {
@@ -84,11 +84,9 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
 
         s.onSubscribe(main);
 
-        if (main.emit(main.window)) {
-            other.subscribe(main.boundary);
+        other.subscribe(main.boundary);
 
-            source.subscribe(main);
-        }
+        source.subscribe(main);
     }
 
     static final class PublisherWindowBoundaryMain<T, U>
@@ -289,45 +287,8 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                         w.onNext(v);
                         
                         int count = size + 1;
-                        if (count == maxSize) {
-                            o = BOUNDARY_MARKER;
-                        } else {
-                            size = count;
-                        }
-                    }
-                    if (o == BOUNDARY_MARKER) {
-                        w.onComplete();
-                        size = 0;
-                        
-                        if (once == 0) {
+                        if (count == 1) {
                             if (requested != 0L) {
-                                Queue<T> pq;
-    
-                                try {
-                                    pq = processorQueueSupplier.get();
-                                } catch (Throwable e) {
-                                    q.clear();
-                                    cancelMain();
-                                    boundary.cancel();
-                                    
-                                    a.onError(e);
-                                    return;
-                                }
-    
-                                if (pq == null) {
-                                    q.clear();
-                                    cancelMain();
-                                    boundary.cancel();
-                                    
-                                    a.onError(new NullPointerException("The processorQueueSupplier returned a null queue"));
-                                    return;
-                                }
-                                
-                                OPEN.getAndIncrement(this);
-                                
-                                w = new UnicastProcessor<>(pq, this);
-                                window = w;
-                                
                                 a.onNext(w);
                                 
                                 if (requested != Long.MAX_VALUE) {
@@ -342,6 +303,44 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                                 return;
                             }
                         }
+                        if (count == maxSize) {
+                            o = BOUNDARY_MARKER;
+                        } else {
+                            size = count;
+                        }
+                    }
+                    if (o == BOUNDARY_MARKER) {
+                        w.onComplete();
+                        size = 0;
+                        
+                        if (once == 0) {
+                            Queue<T> pq;
+                            
+                            try {
+                                pq = processorQueueSupplier.get();
+                            } catch (Throwable e) {
+                                q.clear();
+                                cancelMain();
+                                boundary.cancel();
+                                
+                                a.onError(e);
+                                return;
+                            }
+
+                            if (pq == null) {
+                                q.clear();
+                                cancelMain();
+                                boundary.cancel();
+                                
+                                a.onError(new NullPointerException("The processorQueueSupplier returned a null queue"));
+                                return;
+                            }
+                            
+                            OPEN.getAndIncrement(this);
+                            
+                            w = new UnicastProcessor<>(pq, this);
+                            window = w;
+                        }
                     }
                 }
 
@@ -349,23 +348,6 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
                 if (missed == 0) {
                     break;
                 }
-            }
-        }
-
-        boolean emit(UnicastProcessor<T> w) {
-            long r = requested;
-            if (r != 0L) {
-                actual.onNext(w);
-                if (r != Long.MAX_VALUE) {
-                    REQUESTED.decrementAndGet(this);
-                }
-                return true;
-            } else {
-                cancel();
-
-                actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));
-
-                return false;
             }
         }
     }
