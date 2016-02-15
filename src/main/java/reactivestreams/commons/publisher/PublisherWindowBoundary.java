@@ -1,22 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 import java.util.function.Supplier;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import reactivestreams.commons.processor.UnicastProcessor;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.DeferredSubscription;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.util.*;
 
 /**
  * Splits the source sequence into continuous, non-overlapping windowEnds 
@@ -28,14 +19,14 @@ import reactivestreams.commons.util.UnsignalledExceptions;
 public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, PublisherBase<T>> {
 
     final Publisher<U> other;
-    
+
     final Supplier<? extends Queue<T>> processorQueueSupplier;
 
     final Supplier<? extends Queue<Object>> drainQueueSupplier;
 
-    public PublisherWindowBoundary(Publisher<? extends T> source, Publisher<U> other, 
+    public PublisherWindowBoundary(Publisher<? extends T> source, Publisher<U> other,
             Supplier<? extends Queue<T>> processorQueueSupplier,
-                    Supplier<? extends Queue<Object>> drainQueueSupplier) {
+            Supplier<? extends Queue<Object>> drainQueueSupplier) {
         super(source);
         this.other = Objects.requireNonNull(other, "other");
         this.processorQueueSupplier = Objects.requireNonNull(processorQueueSupplier, "processorQueueSupplier");
@@ -46,7 +37,7 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
     public void subscribe(Subscriber<? super PublisherBase<T>> s) {
 
         Queue<T> q;
-        
+
         try {
             q = processorQueueSupplier.get();
         } catch (Throwable e) {
@@ -58,9 +49,9 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
             EmptySubscription.error(s, new NullPointerException("The processorQueueSupplier returned a null queue"));
             return;
         }
-        
+
         Queue<Object> dq;
-        
+
         try {
             dq = drainQueueSupplier.get();
         } catch (Throwable e) {
@@ -74,34 +65,34 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
         }
 
         PublisherWindowBoundaryMain<T, U> main = new PublisherWindowBoundaryMain<>(s, processorQueueSupplier, q, dq);
-        
+
         s.onSubscribe(main);
-        
+
         if (main.emit(main.window)) {
             other.subscribe(main.boundary);
-            
+
             source.subscribe(main);
         }
     }
-    
+
     static final class PublisherWindowBoundaryMain<T, U>
-    implements Subscriber<T>, Subscription, Runnable {
-        
+            implements Subscriber<T>, Subscription, Runnable {
+
         final Subscriber<? super PublisherBase<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
-        
+
         final PublisherWindowBoundaryOther<U> boundary;
-        
+
         final Queue<Object> queue;
-        
+
         UnicastProcessor<T> window;
 
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherWindowBoundaryMain, Subscription> S =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherWindowBoundaryMain.class, Subscription.class, "s");
-        
+
         volatile long requested;
         @SuppressWarnings("rawtypes")
         static final AtomicLongFieldUpdater<PublisherWindowBoundaryMain> REQUESTED =
@@ -116,8 +107,6 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherWindowBoundaryMain, Throwable> ERROR =
                 AtomicReferenceFieldUpdater.newUpdater(PublisherWindowBoundaryMain.class, Throwable.class, "error");
-        
-        volatile boolean cancelled;
 
         volatile int open;
         @SuppressWarnings("rawtypes")
@@ -131,9 +120,11 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
 
         static final Object BOUNDARY_MARKER = new Object();
         
-        public PublisherWindowBoundaryMain(Subscriber<? super PublisherBase<T>> actual, 
-                Supplier<? extends Queue<T>> processorQueueSupplier, 
-                        Queue<T> processorQueue, Queue<Object> queue) {
+        static final Object DONE = new Object();
+
+        public PublisherWindowBoundaryMain(Subscriber<? super PublisherBase<T>> actual,
+                Supplier<? extends Queue<T>> processorQueueSupplier,
+                Queue<T> processorQueue, Queue<Object> queue) {
             this.actual = actual;
             this.processorQueueSupplier = processorQueueSupplier;
             this.window = new UnicastProcessor<>(processorQueue, this);
@@ -141,14 +132,14 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
             this.boundary = new PublisherWindowBoundaryOther<>(this);
             this.queue = queue;
         }
-        
+
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.setOnce(S, this, s)) {
                 s.request(Long.MAX_VALUE);
             }
         }
-        
+
         @Override
         public void onNext(T t) {
             synchronized (this) {
@@ -156,26 +147,26 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
             }
             drain();
         }
-        
+
         @Override
         public void onError(Throwable t) {
+            boundary.cancel();
             if (ExceptionHelper.addThrowable(ERROR, this, t)) {
-                mainDone();
                 drain();
             } else {
                 UnsignalledExceptions.onErrorDropped(t);
             }
         }
-        
+
         @Override
         public void onComplete() {
+            boundary.cancel();
             synchronized (this) {
-                queue.offer(BOUNDARY_MARKER);
+                queue.offer(DONE);
             }
-            mainDone();
             drain();
         }
-        
+
         @Override
         public void run() {
             if (OPEN.decrementAndGet(this) == 0) {
@@ -183,177 +174,155 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
                 boundary.cancel();
             }
         }
-        
+
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 BackpressureHelper.addAndGet(REQUESTED, this, n);
             }
         }
-        
+
         void cancelMain() {
             SubscriptionHelper.terminate(S, this);
         }
 
-        void mainDone() {
+        @Override
+        public void cancel() {
             if (ONCE.compareAndSet(this, 0, 1)) {
                 run();
             }
         }
-        
-        @Override
-        public void cancel() {
-            cancelled = true;
-            mainDone();
-        }
-        
+
         void boundaryNext() {
             synchronized (this) {
                 queue.offer(BOUNDARY_MARKER);
             }
-            
-            if (cancelled) {
+
+            if (once != 0) {
                 boundary.cancel();
             }
-            
+
             drain();
         }
-        
+
         void boundaryError(Throwable e) {
+            cancelMain();
             if (ExceptionHelper.addThrowable(ERROR, this, e)) {
-                mainDone();
                 drain();
             } else {
                 UnsignalledExceptions.onErrorDropped(e);
             }
         }
-        
+
         void boundaryComplete() {
+            cancelMain();
             synchronized (this) {
-                queue.offer(BOUNDARY_MARKER);
+                queue.offer(DONE);
             }
-            mainDone();
             drain();
         }
-        
+
         void drain() {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
-            
+
             final Subscriber<? super PublisherBase<T>> a = actual;
             final Queue<Object> q = queue;
             UnicastProcessor<T> w = window;
-            
+
             int missed = 1;
-            
+
             for (;;) {
-                
+
                 for (;;) {
-                    boolean d = open == 0 || error != null;
-                    
-                    Object o = q.poll();
-                    
-                    boolean empty = o == null;
-                    
-                    if (checkTerminated(d, empty, a, q, w)) {
+                    if (error != null) {
+                        q.clear();
+                        Throwable e = ExceptionHelper.terminate(ERROR, this);
+                        if (e != ExceptionHelper.TERMINATED) {
+                            w.onError(e);
+                            
+                            a.onError(e);
+                        }
                         return;
                     }
                     
-                    if (empty) {
+                    Object o = q.poll();
+                    
+                    if (o == null) {
                         break;
                     }
                     
-                    if (o == BOUNDARY_MARKER) {
-                        window = null;
-
+                    if (o == DONE) {
+                        q.clear();
+                        
                         w.onComplete();
                         
-                        if (!cancelled && open != 0 && error == null) {
-                            
-                            Queue<T> pq;
-
-                            try {
-                                pq = processorQueueSupplier.get();
-                            } catch (Throwable e) {
-                                emitError(a, e);
-                                return;
-                            }
-                            
-                            if (pq == null) {
-                                emitError(a, new NullPointerException("The processorQueueSupplier returned a null queue"));
-                                return;
-                            }
-                            
-                            OPEN.getAndIncrement(this);
-                            
-                            w = new UnicastProcessor<>(pq, this);
-                            
-                            long r = requested;
-                            if (r != 0L) {
+                        a.onComplete();
+                        return;
+                    }
+                    if (o != BOUNDARY_MARKER) {
+                        
+                        @SuppressWarnings("unchecked")
+                        T v = (T)o;
+                        w.onNext(v);
+                    }
+                    if (o == BOUNDARY_MARKER) {
+                        w.onComplete();
+                        
+                        if (once == 0) {
+                            if (requested != 0L) {
+                                Queue<T> pq;
+    
+                                try {
+                                    pq = processorQueueSupplier.get();
+                                } catch (Throwable e) {
+                                    q.clear();
+                                    cancelMain();
+                                    boundary.cancel();
+                                    
+                                    a.onError(e);
+                                    return;
+                                }
+    
+                                if (pq == null) {
+                                    q.clear();
+                                    cancelMain();
+                                    boundary.cancel();
+                                    
+                                    a.onError(new NullPointerException("The processorQueueSupplier returned a null queue"));
+                                    return;
+                                }
+                                
+                                OPEN.getAndIncrement(this);
+                                
+                                w = new UnicastProcessor<>(pq, this);
                                 window = w;
-
+                                
                                 a.onNext(w);
-                                if (r != Long.MAX_VALUE) {
+                                
+                                if (requested != Long.MAX_VALUE) {
                                     REQUESTED.decrementAndGet(this);
                                 }
                             } else {
-                                Throwable e = new IllegalStateException("Could not emit window due to lack of requests");
-
-                                emitError(a, e);
+                                q.clear();
+                                cancelMain();
+                                boundary.cancel();
+                                
+                                a.onError(new IllegalStateException("Could not create new window due to lack of requests"));
                                 return;
                             }
                         }
-                    } else {
-                        @SuppressWarnings("unchecked")
-                        T t = (T)o;
-                        w.onNext(t);
                     }
                 }
-                
+
                 missed = WIP.addAndGet(this, -missed);
                 if (missed == 0) {
                     break;
                 }
             }
         }
-        
-        void emitError(Subscriber<?> a, Throwable e) {
-            cancelMain();
-            boundary.cancel();
-            
-            ExceptionHelper.addThrowable(ERROR, this, e);
-            e = ExceptionHelper.terminate(ERROR, this);
-            
-            a.onError(e);
-        }
-        
-        boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a, Queue<?> q, UnicastProcessor<?> w) {
-            if (d) {
-                Throwable e = ExceptionHelper.terminate(ERROR, this);
-                if (e != null && e != ExceptionHelper.TERMINATED) {
-                    cancelMain();
-                    boundary.cancel();
-                    
-                    w.onError(e);
-                    
-                    a.onError(e);
-                    return true;
-                } else
-                if (empty) {
-                    cancelMain();
-                    boundary.cancel();
 
-                    w.onComplete();
-                    
-                    a.onComplete();
-                    return true;
-                }
-            }
-            
-            return false;
-        }
-        
         boolean emit(UnicastProcessor<T> w) {
             long r = requested;
             if (r != 0L) {
@@ -364,18 +333,18 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Publ
                 return true;
             } else {
                 cancel();
-                
+
                 actual.onError(new IllegalStateException("Could not emit buffer due to lack of requests"));
 
                 return false;
             }
         }
     }
-    
+
     static final class PublisherWindowBoundaryOther<U>
             extends DeferredSubscription
-    implements Subscriber<U> {
-        
+            implements Subscriber<U> {
+
         final PublisherWindowBoundaryMain<?, U> main;
 
         public PublisherWindowBoundaryOther(PublisherWindowBoundaryMain<?, U> main) {

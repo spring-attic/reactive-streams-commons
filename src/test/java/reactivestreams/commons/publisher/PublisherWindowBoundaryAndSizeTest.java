@@ -47,7 +47,9 @@ public class PublisherWindowBoundaryAndSizeTest {
 
     @SafeVarargs
     static <T> void awaitAndExpectValues(TestSubscriber<PublisherBase<T>> ts, int index, T... values) {
-        toList(ts.values().get(index))
+        TestSubscriber<T> tsi = toList(ts.values().get(index));
+        tsi.await();
+        tsi
         .awaitAndAssertValueCount(values.length)
         .assertValues(values)
         .assertNoError();
@@ -119,11 +121,11 @@ public class PublisherWindowBoundaryAndSizeTest {
         
         sp2.onNext(200);
 
-        ts.assertValueCount(4);
+        ts.assertValueCount(5);
         
         sp1.onComplete();
         
-        ts.assertValueCount(4);
+        ts.assertValueCount(5);
         
         expect(ts, 0, 1, 2, 3);
         expect(ts, 1, 4, 5);
@@ -137,7 +139,13 @@ public class PublisherWindowBoundaryAndSizeTest {
         Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
     }
 
-
+    @Test(timeout = 60000)
+    public void concurrentWindowsLoop() {
+        for (int i = 0; i < 100_000; i++) {
+            concurrentWindows();
+        }
+    }
+    
     @Test(timeout = 60000)
     public void concurrentWindows() {
         TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
@@ -170,20 +178,24 @@ public class PublisherWindowBoundaryAndSizeTest {
 
         sp2.onNext(200);
 
-        ts.awaitAndAssertValueCount(3);
+        ts.awaitAndAssertValueCount(4);
         awaitAndExpectValues(ts, 2, 6, 7, 8);
+        awaitAndExpectValues(ts, 3);
 
         sp1.onNext(9);
 
         sp2.onNext(200);
 
-        ts.awaitAndAssertValueCount(4);
-        awaitAndExpectValues(ts, 3, 9);
+        ts.awaitAndAssertValueCount(5);
+        awaitAndExpectValues(ts, 4, 9);
 
         sp1.onComplete();
 
         ts.await();
-        ts.assertValueCount(5)
+        
+        awaitAndExpectValues(ts, 5);
+
+        ts.assertValueCount(6)
           .assertNoError()
           .assertComplete();
 
@@ -335,7 +347,7 @@ public class PublisherWindowBoundaryAndSizeTest {
     @Test(timeout = 60000)
     public void asyncConsumers() {
         for (int maxSize = 1; maxSize < 12; maxSize++) {
-            System.out.println("asyncConsumers >> " + maxSize);
+//            System.out.println("asyncConsumers >> " + maxSize);
             ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
 
             try {
