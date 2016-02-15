@@ -42,6 +42,9 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     int subscriptions;
     
     boolean subscriberVerified;
+    
+    /** Incremented once a value has been added to values. */
+    volatile int volatileSize;
 
     public TestSubscriber() {
         this(EmptySubscriber.instance(), Long.MAX_VALUE);
@@ -76,6 +79,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public void onNext(T t) {
         verifySubscription();
         values.add(t);
+        volatileSize++;
         subscriber.onNext(t);
     }
 
@@ -499,25 +503,26 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     /**
      * Blocking method that waits until {@code n} next values have been received.
      * @param n the value count to assert
+     * @return this
      */
     public final TestSubscriber<T> awaitAndAssertValueCount(final int n) {
         long defaultTimeout = 5000;
         long delta = System.currentTimeMillis() + defaultTimeout;
-       for(;;){
-           if(isCancelled()){
-               assertionError("Cancelled while waiting for "+n+" values", new CancellationException());
-               return this;
-           }
-           int size = this.values != null ? this.values.size() : 0;
-           if(size >= n){
-               return this;
-           }
-           if(System.currentTimeMillis() > delta){
-               assertionError("Timeout while waiting for "+n+" values, current: "+size, new TimeoutException());
-               return this;
-           }
-           LockSupport.parkNanos(1_000L);
-       }
+        for(;;){
+            if (isCancelled()) {
+                assertionError("Cancelled while waiting for " + n + " values", new CancellationException());
+                return this;
+            }
+            int size = volatileSize;
+            if (size >= n) {
+                return this;
+            }
+            if (System.currentTimeMillis() > delta) {
+                assertionError("Timeout while waiting for "+n+" values, current: " + size, new TimeoutException());
+                return this;
+            }
+            LockSupport.parkNanos(1_000L);
+        }
     }
 
     public final List<T> values() {
