@@ -865,8 +865,9 @@ public class PublisherObserveOnTest {
         
                 source.subscribe(ts);
         
-                if (!ts.await(10, TimeUnit.SECONDS)) {
+                if (!ts.await(15, TimeUnit.SECONDS)) {
                     ts.cancel();
+                    Assert.fail("Timed out @ maxConcurrency = " + j);
                 }
                 
                 ts.assertValueCount(count * 2)
