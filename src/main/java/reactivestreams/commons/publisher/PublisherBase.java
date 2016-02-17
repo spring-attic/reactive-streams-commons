@@ -1,16 +1,41 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Processor;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.subscriber.*;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.subscriber.BlockingFirstSubscriber;
+import reactivestreams.commons.subscriber.BlockingLastSubscriber;
+import reactivestreams.commons.subscriber.EmptyAsyncSubscriber;
+import reactivestreams.commons.subscriber.PeekLastSubscriber;
+import reactivestreams.commons.util.ExecutorServiceScheduler;
+import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.SpscLinkedArrayQueue;
 
 /**
  * Experimental base class with fluent API.
@@ -645,6 +670,29 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     public final <U> PublisherBase<PublisherBase<T>> windowBatch(int maxSize, Supplier<? extends Publisher<U>> boundarySupplier) {
         return new PublisherWindowBatch<>(this, boundarySupplier, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
     }
+
+    public final ConnectablePublisher<T> multicast() {
+        return publish();
+    }
+
+    public final ConnectablePublisher<T> multicast(Processor<? super T, ? extends T> processor) {
+        return multicast(() -> processor);
+    }
+
+    public final ConnectablePublisher<T> multicast(
+            Supplier<? extends Processor<? super T, ? extends T>> processorSupplier) {
+        return multicast(processorSupplier, Function.identity());
+    }
+
+    public final <U> ConnectablePublisher<U> multicast(Processor<? super T, ? extends T>
+            processor, Function<PublisherBase<T>, ? extends Publisher<? extends U>> selector) {
+        return multicast(() -> processor, selector);
+    }
+
+    public final <U> ConnectablePublisher<U> multicast(Supplier<? extends Processor<? super T, ? extends T>>
+            processorSupplier, Function<PublisherBase<T>, ? extends Publisher<? extends U>> selector) {
+        return new ConnectablePublisherMulticast<>(this, processorSupplier, selector);
+    }
     
     // ---------------------------------------------------------------------------------------
     
@@ -669,6 +717,10 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         public void subscribe(Subscriber<? super T> s) {
             source.subscribe(s);
         }
+    }
+
+    public static <T> PublisherBase<T> from(Publisher<? extends T> source) {
+        return wrap(source);
     }
 
     @SuppressWarnings("unchecked")
@@ -811,7 +863,8 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
 
     @SuppressWarnings("unchecked")
     public static <T, U, R> PublisherBase<R> combineLatest(Publisher<? extends T> p1, Publisher<? extends U> p2, BiFunction<? super T, ? super U, ? extends R> combiner) {
-        return new PublisherCombineLatest<>(new Publisher[] { p1, p2 }, a -> combiner.apply((T)a[0], (U)a[1]), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        return new PublisherCombineLatest<T, R>(new Publisher[] { p1, p2 }, a -> combiner.apply((T)a[0], (U)a[1]),
+                defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
     
     @SuppressWarnings("rawtypes")
