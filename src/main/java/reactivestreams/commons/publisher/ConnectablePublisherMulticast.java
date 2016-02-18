@@ -26,7 +26,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T>
  * @param <U>
  */
-public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublisher<U> implements Receiver {
+public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublisher<U> implements Receiver, Producer {
 
     final Publisher<T>                                                 source;
     final Supplier<? extends Processor<? super T, ? extends T>>        processorSupplier;
@@ -43,6 +43,11 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
         this.source = Objects.requireNonNull(source, "source");
         this.processorSupplier = Objects.requireNonNull(processorSupplier, "processorSupplier");
         this.selector = Objects.requireNonNull(selector, "selector");
+    }
+
+    @Override
+    public Object downstream() {
+        return connection;
     }
 
     @Override
