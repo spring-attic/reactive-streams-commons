@@ -160,7 +160,7 @@ extends PublisherSource<T, C> {
                 buffer = null;
             }
             
-            if (b != null) {
+            if (b != null && !b.isEmpty()) {
                 if (emit(b)) {
                     actual.onComplete();
                 }
@@ -205,7 +205,9 @@ extends PublisherSource<T, C> {
         }
         
         void otherComplete() {
-            // FIXME let the last buffer fill until the main completes?
+            cancelMain();
+
+            onComplete();
         }
         
         boolean emit(C b) {

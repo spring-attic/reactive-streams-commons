@@ -56,20 +56,24 @@ public class PublisherBufferBoundaryTest {
         ts.assertValues(Arrays.asList(1, 2), Collections.emptyList())
         .assertNoError()
         .assertNotComplete();
-        
-        sp2.onComplete();
-        
-        ts.assertValues(Arrays.asList(1, 2), Collections.emptyList())
-        .assertNoError()
-        .assertNotComplete();
+
 
         sp1.onNext(3);
         sp1.onNext(4);
+
+        sp2.onComplete();
+
+        ts.assertValues(Arrays.asList(1, 2), Collections.emptyList(), Arrays.asList(3, 4))
+        .assertNoError()
+        .assertComplete();
+
+        sp1.onNext(5);
+        sp1.onNext(6);
         sp1.onComplete();
         
         ts.assertValues(Arrays.asList(1, 2), Collections.emptyList(), Arrays.asList(3, 4))
         .assertNoError()
-        .assertComplete();
+          .assertComplete();
     }
     
     @Test
