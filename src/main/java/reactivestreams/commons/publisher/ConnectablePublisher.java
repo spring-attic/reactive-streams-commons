@@ -11,17 +11,23 @@ import java.util.function.Consumer;
 public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
 
 	/**
-	 *
-     * @return
+	 * Connects this ConnectablePublisher to the upstream source when the first Subscriber
+	 * subscribes.
+     * @return a Publisher that connects to the upstream source when the first Subscriber subscribes
      */
     public final PublisherBase<T> autoConnect() {
         return autoConnect(1);
     }
 
 	/**
-	 *
-     * @param minSubscribers
-     * @return
+	 * Connects this ConnectablePublisher to the upstream source when the specified amount of
+	 * Subscriber subscribes.
+	 * <p>
+	 * Subscribing and immediately unsubscribing Subscribers also contribute the the subscription count
+	 * that triggers the connection.
+	 * 
+     * @param minSubscribers the minimum number of subscribers
+     * @return the Publisher that connect to the upstream source when the given amount of Subscribers subscribe
      */
     public final PublisherBase<T> autoConnect(int minSubscribers) {
         return autoConnect(minSubscribers, NOOP_DISCONNECT);

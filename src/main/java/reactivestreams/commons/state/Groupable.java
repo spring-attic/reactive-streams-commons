@@ -17,12 +17,15 @@
 package reactivestreams.commons.state;
 
 /**
- * A criteria grouped component
+ * A criteria grouped component.
+ * 
+ * @param <K> the key type
  */
 public interface Groupable<K> {
 
 	/**
 	 * Return defined identifier
+	 * @return defined identifier
 	 */
 	K key();
 }

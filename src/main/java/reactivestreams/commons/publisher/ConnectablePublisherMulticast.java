@@ -254,7 +254,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
         @Override
         public void run() {
             if (CONNECTED.compareAndSet(this, 1, 2)) {
-                Fuseable.QueueSubscription a = this.s;
+                Fuseable.QueueSubscription<?> a = this.s;
                 if (a != null) {
                     a = S.getAndSet(this, null);
                     if (a != null) {
@@ -272,7 +272,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
 
         @Override
         public void onSubscribe(Subscription s) {
-            Fuseable.QueueSubscription a = this.s;
+            Fuseable.QueueSubscription<?> a = this.s;
             if (isTerminated()) {
                 s.cancel();
                 return;
@@ -282,7 +282,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
                 return;
             }
 
-            if (S.compareAndSet(this, null, (Fuseable.QueueSubscription)s)) {
+            if (S.compareAndSet(this, null, (Fuseable.QueueSubscription<?>)s)) {
                 processor.onSubscribe(s);
             }
             else {
