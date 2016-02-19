@@ -27,17 +27,18 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
 	 * that triggers the connection.
 	 * 
      * @param minSubscribers the minimum number of subscribers
-     * @return the Publisher that connect to the upstream source when the given amount of Subscribers subscribe
+     * @return the Publisher that connects to the upstream source when the given amount of Subscribers subscribe
      */
     public final PublisherBase<T> autoConnect(int minSubscribers) {
         return autoConnect(minSubscribers, NOOP_DISCONNECT);
     }
 
 	/**
-     *
-     * @param minSubscribers
-     * @param cancelSupport
-     * @return
+     * Connects this ConnectablePublisher to the upstream source when the specified amount of
+     * Subscriber subscribes and calls the supplied consumer with a runnable that allows disconnecting.
+     * @param minSubscribers the minimum number of subscribers
+     * @param cancelSupport the consumer that will receive the runnable that allows disconnecting
+     * @return the Publisher that connects to the upstream source when the given amount of subscribers subscribed
      */
     public final PublisherBase<T> autoConnect(int minSubscribers, Consumer<? super Runnable> cancelSupport) {
         if (minSubscribers == 0) {
@@ -76,17 +77,19 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
     public abstract void connect(Consumer<? super Runnable> cancelSupport);
 
 	/**
-	 *
-     * @param minSubscribers
-     * @return
+     * Connects to the upstream source when the given number of Subscriber subscribes and disconnects
+     * when all Subscribers cancelled or the upstream source completed.
+     * @param minSubscribers the number of subscribers expected to subscribe before connection
+     * @return the publisher
      */
     public final PublisherBase<T> refCount(int minSubscribers) {
         return new ConnectablePublisherRefCount<>(this, minSubscribers);
     }
 
 	/**
-	 *
-     * @return
+	 * Connects to the upstream source when the first Subscriber subscribes and disconnects
+	 * when all Subscribers cancelled or the upstream source completed.
+     * @return the publisher
      */
     public final PublisherBase<T> refCount() {
         return refCount(1);
