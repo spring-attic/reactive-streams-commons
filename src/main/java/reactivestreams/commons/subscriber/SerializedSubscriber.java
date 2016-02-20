@@ -110,7 +110,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         s.cancel();
     }
 
-    public void serAdd(T value) {
+    void serAdd(T value) {
         LinkedArrayNode<T> t = serGetTail();
 
         if (t == null) {
@@ -130,7 +130,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         }
     }
 
-    public void serDrainLoop(Subscriber<? super T> actual) {
+    void serDrainLoop(Subscriber<? super T> actual) {
         for (; ; ) {
 
             if (isCancelled()) {
@@ -197,15 +197,15 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         return actual;
     }
 
-    public Object serGuard() {
+    Object serGuard() {
         return this;
     }
 
-    public boolean serIsEmitting() {
+    boolean serIsEmitting() {
         return emitting;
     }
 
-    public void serOnComplete() {
+    void serOnComplete() {
         if (isCancelled() || isTerminated()) {
             return;
         }
@@ -226,7 +226,7 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         downstream().onComplete();
     }
 
-    public void serOnError(Throwable e) {
+    void serOnError(Throwable e) {
         if (isCancelled() || isTerminated()) {
             return;
         }
@@ -274,15 +274,15 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         serDrainLoop(actual);
     }
 
-    public void serSetEmitting(boolean emitting) {
+    void serSetEmitting(boolean emitting) {
         this.emitting = emitting;
     }
 
-    public boolean serIsMissed() {
+    boolean serIsMissed() {
         return missed;
     }
 
-    public void serSetMissed(boolean missed) {
+    void serSetMissed(boolean missed) {
         this.missed = missed;
     }
 
@@ -305,23 +305,23 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
         return error;
     }
 
-    public void serSetError(Throwable error) {
+    void serSetError(Throwable error) {
         this.error = error;
     }
 
-    public LinkedArrayNode<T> serGetHead() {
+    LinkedArrayNode<T> serGetHead() {
         return head;
     }
 
-    public void serSetHead(LinkedArrayNode<T> node) {
+    void serSetHead(LinkedArrayNode<T> node) {
         head = node;
     }
 
-    public LinkedArrayNode<T> serGetTail() {
+    LinkedArrayNode<T> serGetTail() {
         return tail;
     }
 
-    public void serSetTail(LinkedArrayNode<T> node) {
+    void serSetTail(LinkedArrayNode<T> node) {
         tail = node;
     }
 
