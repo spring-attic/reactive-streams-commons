@@ -13,7 +13,7 @@ import reactivestreams.commons.util.EmptySubscription;
  *
  * @param <T> the value type
  */
-public final class PublisherStream<T> 
+public final class PublisherStream<T>
 extends PublisherBase<T>
         implements Receiver {
 
