@@ -441,7 +441,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final Stream<T> stream(long batchSize) {
-        return new BlockingStream<>(this, batchSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)).stream();
+        return new BlockingIterable<>(this, batchSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)).stream();
     }
 
     public final Stream<T> parallelStream() {
@@ -449,7 +449,7 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     }
     
     public final Stream<T> parallelStream(long batchSize) {
-        return new BlockingStream<>(this, batchSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)).parallelStream();
+        return new BlockingIterable<>(this, batchSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)).parallelStream();
     }
 
     public final Future<T> toFuture() {
