@@ -6,9 +6,9 @@ def includingCoreScope = ['amb',
 						  'array',
 						  'callable',
 						  'switchifempty',
-						  /*'concatarray' ,*/ //managed by reactor-core but used by reactor-fluxion
-						  /*'concatmap' ,*/ //managed by reactor-core but used by reactor-fluxion
-						  /*'concatiterable' ,*/ //managed by reactor-core but used by  reactor-fluxion
+						  /*'concatarray' ,*/ //managed by reactor-core but used by reactor-stream
+						  /*'concatmap' ,*/ //managed by reactor-core but used by reactor-stream
+						  /*'concatiterable' ,*/ //managed by reactor-core but used by  reactor-stream
 						  'error',
 						  'empty',
 						  'next',
@@ -18,7 +18,7 @@ def includingCoreScope = ['amb',
 						  'subscribeonvalue',
 						  'flatmap',
 						  ///'ignoreelements',
-						  /*'iterable',*/ //managed by reactor-core but used by  reactor-fluxion
+						  /*'iterable',*/ //managed by reactor-core but used by  reactor-stream
 						  'just',
 						  /*'lift',*/ //managed by reactor-core
 						  //'map',//managed by reactor-core
@@ -76,7 +76,7 @@ def reactorFluxion = ['api'                 : 'reactor.rx.Fluxion',
 
 def targets = [
         'reactor-core' : reactorCore,
-        'reactor-fluxion' : reactorFluxion
+        'reactor-stream' : reactorFluxion
 ]
 
 def defaultTarget = reactorCore
