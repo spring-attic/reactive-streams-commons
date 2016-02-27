@@ -68,7 +68,10 @@ public final class BlockingStream<T> implements Iterable<T> {
     public Spliterator<T> spliterator() {
         return stream().spliterator(); // cancellation should be composed through this way
     }
-    
+
+	/**
+     * @return
+     */
     public Stream<T> stream() {
         BlockingIterable.SubscriberIterator<T> it = createIterator();
         source.subscribe(it);
@@ -78,6 +81,9 @@ public final class BlockingStream<T> implements Iterable<T> {
         return StreamSupport.stream(sp, false).onClose(it);
     }
 
+	/**
+     * @return
+     */
     public Stream<T> parallelStream() {
         BlockingIterable.SubscriberIterator<T> it = createIterator();
         source.subscribe(it);
