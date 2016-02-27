@@ -32,14 +32,13 @@ def includingCoreScope = ['amb',
 def excludingStreamScope = includingCoreScope + ['generate',
 												 'completablefuture', 'subscribeonother', 'ignoreelements',
 												 'timer', 'interval', 'blockingfuture',
-												 'blockingiterable', 'blockingstream', 'bufferboundaryandsize',
+												 'blockingiterable', 'bufferboundaryandsize',
 												 'windowbeginend', /*'windowboundaryandsize',*/
 												 'lift', //Already managed by reactor-core
-												 'stream'] - ['map', 'peek']
+												 ] - ['map', 'peek']
 
 //Common reactor helper references
-def reactorCommon = ['fn-backport'          : 'reactor.fn',
-					 'api-single'           : 'reactor.core.publisher.Mono',
+def reactorCommon = ['api-single'           : 'reactor.core.publisher.Mono',
 					 'api-single-operator'  : 'reactor.core.publisher.MonoSource',
 					 'api-inner'            : '',
 					 'test-type'            : false,
