@@ -22,7 +22,6 @@ public interface Introspectable {
     int FACTORY = 0b00000100;
 
     /**
-     *
      * @return the introspection mode, see constants
      */
     default int getMode(){
@@ -35,6 +34,14 @@ public interface Introspectable {
      */
     default String getName() {
         return getClass().getSimpleName();
+    }
+
+
+    /**
+     * @return defined identifier or null if not available
+     */
+    default Object key() {
+        return null;
     }
 
 }
