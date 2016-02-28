@@ -21,7 +21,6 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Fuseable.ConditionalSubscriber;
 import reactivestreams.commons.flow.Loopback;
@@ -182,11 +181,6 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object connectedOutput() {
-            return null;
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }
@@ -311,11 +305,6 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
         @Override
         public Object connectedInput() {
             return predicate;
-        }
-
-        @Override
-        public Object connectedOutput() {
-            return null;
         }
 
         @Override

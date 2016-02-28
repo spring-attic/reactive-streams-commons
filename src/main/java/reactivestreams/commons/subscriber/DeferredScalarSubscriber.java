@@ -162,10 +162,6 @@ public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, Completabl
         return state != SDS_NO_REQUEST_NO_VALUE;
     }
 
-    @Override
-    public Object connectedInput() {
-        return null;
-    }
 
     @Override
     public Object connectedOutput() {

@@ -61,10 +61,6 @@ public final class ConnectablePublisherRefCount<T> extends PublisherBase<T>
         }
     }
 
-    @Override
-    public Object connectedInput() {
-        return null;
-    }
 
     @Override
     public Object connectedOutput() {

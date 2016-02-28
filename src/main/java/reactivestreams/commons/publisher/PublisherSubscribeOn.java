@@ -357,11 +357,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         }
 
         @Override
-        public Object connectedOutput() {
-            return null;
-        }
-
-        @Override
         public Object downstream() {
             return actual;
         }

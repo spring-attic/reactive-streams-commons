@@ -119,10 +119,6 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         return prefetch;
     }
 
-    @Override
-    public Object connectedInput() {
-        return null;
-    }
 
     @Override
     public Object connectedOutput() {

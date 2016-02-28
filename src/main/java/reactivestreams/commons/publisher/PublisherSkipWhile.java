@@ -157,11 +157,6 @@ public final class PublisherSkipWhile<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public Object connectedOutput() {
-            return null;
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }

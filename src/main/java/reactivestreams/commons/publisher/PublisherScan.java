@@ -249,11 +249,6 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
         }
 
         @Override
-        public Object connectedOutput() {
-            return null;
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }

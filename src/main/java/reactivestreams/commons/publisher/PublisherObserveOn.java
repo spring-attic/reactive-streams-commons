@@ -101,10 +101,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         source.subscribe(new PublisherObserveOnSubscriber<>(s, scheduler, delayError, prefetch, queueSupplier));
     }
 
-    @Override
-    public Object connectedInput() {
-        return null;
-    }
 
     @Override
     public Object connectedOutput() {

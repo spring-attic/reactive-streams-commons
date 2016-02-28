@@ -6,7 +6,17 @@ package reactivestreams.commons.flow;
  */
 public interface Loopback {
 
-	Object connectedInput();
+	/**
+	 * @return component delegated to for incoming data or {@code null} if unavailable
+	 */
+	default Object connectedInput() {
+		return null;
+	}
 
-	Object connectedOutput();
+	/**
+	 * @return component delegated to for outgoing data or {@code null} if unavailable
+	 */
+	default Object connectedOutput() {
+		return null;
+	}
 }

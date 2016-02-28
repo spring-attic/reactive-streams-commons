@@ -179,11 +179,6 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
         }
 
         @Override
-        public Object connectedOutput() {
-            return null;
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }

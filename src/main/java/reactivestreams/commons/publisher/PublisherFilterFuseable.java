@@ -200,11 +200,6 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         }
 
         @Override
-        public Object connectedOutput() {
-            return null;
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }
@@ -438,11 +433,6 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         @Override
         public Object connectedInput() {
             return predicate;
-        }
-
-        @Override
-        public Object connectedOutput() {
-            return null;
         }
 
         @Override

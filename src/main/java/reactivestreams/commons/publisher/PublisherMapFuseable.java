@@ -176,11 +176,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         }
 
         @Override
-        public Object connectedOutput() {
-            return null;
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }
@@ -398,11 +393,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         @Override
         public Object connectedInput() {
             return mapper;
-        }
-
-        @Override
-        public Object connectedOutput() {
-            return null;
         }
 
         @Override
