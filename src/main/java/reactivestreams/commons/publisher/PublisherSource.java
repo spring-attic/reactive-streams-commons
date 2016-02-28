@@ -39,6 +39,6 @@ public abstract class PublisherSource<T, R>
 
     @Override
     public long getCapacity() {
-        return Long.MAX_VALUE;
+        return -1L;
     }
 }

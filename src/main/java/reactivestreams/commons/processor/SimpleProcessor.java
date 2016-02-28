@@ -324,11 +324,6 @@ public final class SimpleProcessor<T>
         public int getMode() {
             return INNER;
         }
-
-        @Override
-        public String getName() {
-            return getClass().getSimpleName();
-        }
     }
 
     @Override

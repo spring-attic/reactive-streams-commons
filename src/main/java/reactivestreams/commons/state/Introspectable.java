@@ -25,12 +25,16 @@ public interface Introspectable {
      *
      * @return the introspection mode, see constants
      */
-    int getMode();
+    default int getMode(){
+        return 0;
+    }
 
     /**
      *
      * @return the name of the operator
      */
-    String getName();
+    default String getName() {
+        return getClass().getSimpleName();
+    }
 
 }

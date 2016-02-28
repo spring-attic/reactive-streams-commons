@@ -296,10 +296,5 @@ extends PublisherBase<T>
         public int getMode() {
             return INNER;
         }
-
-        @Override
-        public String getName() {
-            return getClass().getSimpleName();
-        }
     }
 }
