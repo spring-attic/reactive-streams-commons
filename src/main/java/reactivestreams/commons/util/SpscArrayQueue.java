@@ -9,6 +9,13 @@ import java.util.concurrent.atomic.*;
 /**
  * A bounded, array backed, single-producer single-consumer queue.
  * 
+ * This implementation is implemented based on by JCTools' SPSC algorithms:
+ * <a href='https://github.com/JCTools/JCTools/blob/master/jctools-core/src/main/java/org/jctools/queues/SpscArrayQueue.java'>SpscArrayQueue</a>
+ * and <a href='https://github.com/JCTools/JCTools/blob/master/jctools-core/src/main/java/org/jctools/queues/atomic/SpscAtomicArrayQueue.java'>SpscAtomicArrayQueue</a>
+ * of which the {@code SpscAtomicArrayQueue} was contributed by one of the authors of this library. The notable difference
+ * is that this class is not padded, inlines the AtomicReferenceArray directly and there is no lookahead cache involved;
+ * padding has a toll on short lived or bursty uses and lookahead doesn't really matter with small queues.
+ * 
  * @param <T> the value type
  */
 public final class SpscArrayQueue<T> extends AtomicReferenceArray<T> implements Queue<T> {

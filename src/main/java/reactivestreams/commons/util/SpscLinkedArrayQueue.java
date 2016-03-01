@@ -6,6 +6,13 @@ import java.util.concurrent.atomic.*;
 /**
  * An unbounded, array-backed single-producer, single-consumer queue with a fixed link size.
  *
+ * This implementation is implemented based on by JCTools' SPSC algorithms:
+ * <a href='https://github.com/JCTools/JCTools/blob/master/jctools-core/src/main/java/org/jctools/queues/SpscUnboundedArrayQueue.java'>SpscUnboundedArrayQueue</a>
+ * and <a href='https://github.com/JCTools/JCTools/blob/master/jctools-core/src/main/java/org/jctools/queues/atomic/SpscUnboundedAtomicArrayQueue.java'>SpscUnboundedAtomicArrayQueue</a>
+ * of which the {@code SpscUnboundedAtomicArrayQueue} was contributed by one of the authors of this library. The notable difference
+ * is that this class is not padded and there is no lookahead cache involved;
+ * padding has a toll on short lived or bursty uses and lookahead doesn't really matter with small queues.
+ * 
  * @param <T> the value type
  */
 public final class SpscLinkedArrayQueue<T> extends AbstractQueue<T> {
