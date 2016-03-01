@@ -134,11 +134,6 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         }
 
         @Override
-        public long getPending() {
-            return -1L;
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }

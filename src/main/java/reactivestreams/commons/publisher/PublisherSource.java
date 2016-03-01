@@ -31,14 +31,4 @@ public abstract class PublisherSource<T, R>
     public final Publisher<? extends T> upstream() {
         return source;
     }
-
-    @Override
-    public long getPending() {
-        return -1L;
-    }
-
-    @Override
-    public long getCapacity() {
-        return -1L;
-    }
 }

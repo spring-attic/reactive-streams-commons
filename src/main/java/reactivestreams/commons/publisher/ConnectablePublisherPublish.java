@@ -110,11 +110,6 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
     }
 
     @Override
-    public long getPending() {
-        return -1L;
-    }
-
-    @Override
     public long getCapacity() {
         return prefetch;
     }

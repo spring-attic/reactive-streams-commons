@@ -136,9 +136,5 @@ public final class PublisherNext<T> extends PublisherSource<T, T> {
             return actual;
         }
 
-        @Override
-        public long getPending() {
-            return -1L;
-        }
     }
 }
