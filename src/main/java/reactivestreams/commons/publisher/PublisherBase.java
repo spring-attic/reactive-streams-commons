@@ -671,10 +671,6 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherWindowBatch<>(this, boundarySupplier, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
     }
 
-    public final ConnectablePublisher<T> multicast() {
-        return publish();
-    }
-
     public final ConnectablePublisher<T> multicast(Processor<? super T, ? extends T> processor) {
         return multicast(() -> processor);
     }
