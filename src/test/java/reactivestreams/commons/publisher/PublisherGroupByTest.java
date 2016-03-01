@@ -1,16 +1,13 @@
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
-import org.junit.Test;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.junit.*;
+import org.reactivestreams.*;
 
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
-import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.*;
 
 public class PublisherGroupByTest {
 
@@ -360,9 +357,15 @@ public class PublisherGroupByTest {
             }
         });
         
-        ts1.await(5, TimeUnit.SECONDS);
-        ts2.await(5, TimeUnit.SECONDS);
-        ts3.await(5, TimeUnit.SECONDS);
+        if (!ts1.await(5, TimeUnit.SECONDS)) {
+            Assert.fail("main subscriber timed out");
+        }
+        if (!ts2.await(5, TimeUnit.SECONDS)) {
+            Assert.fail("group 0 subscriber timed out");
+        }
+        if (!ts3.await(5, TimeUnit.SECONDS)) {
+            Assert.fail("group 1 subscriber timed out");
+        }
         
         ts1.assertValueCount(500_000)
         .assertNoError()
@@ -413,9 +416,15 @@ public class PublisherGroupByTest {
             }
         });
         
-        ts1.await(5, TimeUnit.SECONDS);
-        ts2.await(5, TimeUnit.SECONDS);
-        ts3.await(5, TimeUnit.SECONDS);
+        if (!ts1.await(5, TimeUnit.SECONDS)) {
+            Assert.fail("main subscriber timed out");
+        }
+        if (!ts2.await(5, TimeUnit.SECONDS)) {
+            Assert.fail("group 0 subscriber timed out");
+        }
+        if (!ts3.await(5, TimeUnit.SECONDS)) {
+            Assert.fail("group 1 subscriber timed out");
+        }
         
         ts1.assertValueCount(500_000)
         .assertNoError()
