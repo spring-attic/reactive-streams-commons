@@ -1,5 +1,6 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -7,17 +8,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
 public class PublisherIntervalTest {
 
+    ScheduledExecutorService exec;
+    
+    @Before
+    public void before() {
+        exec = Executors.newScheduledThreadPool(1);
+    }
+    
+    @After
+    public void after() {
+        exec.shutdown();
+    }
+
     @Test
     public void constructors() {
-        
-        ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         
         ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherInterval.class);
         
@@ -27,13 +41,12 @@ public class PublisherIntervalTest {
         ctb.addRef("executor", exec);
         ctb.addRef("asyncExecutor", (BiFunction<Runnable, Long, Runnable>)(r, a) -> r);
         ctb.addRef("now", (LongSupplier)() -> 1L);
-        
-        exec.shutdown();
+
+        ctb.test();
     }
     
     @Test
     public void normal() {
-        ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         try {
             TestSubscriber<Long> ts = new TestSubscriber<>();
             
@@ -61,5 +74,21 @@ public class PublisherIntervalTest {
         } finally {
             exec.shutdown();
         }
+    }
+    
+    @Test
+    public void flatMap() throws Exception {
+        TestSubscriber<Object> ts = new TestSubscriber<>();
+        
+        PublisherBase.interval(30, TimeUnit.MILLISECONDS, exec).flatMap(v -> 
+                PublisherBase.<String>fromIterable(Arrays.asList("A"))
+                .flatMap(w -> PublisherBase.<List<Integer>>fromCallable(() -> Arrays.asList(1, 2)).subscribeOn(exec).flatMap(PublisherBase::fromIterable)))
+        .subscribe(ts);
+        
+        Thread.sleep(5000);
+        
+        ts.cancel();
+        
+        ts.assertNoError();
     }
 }
