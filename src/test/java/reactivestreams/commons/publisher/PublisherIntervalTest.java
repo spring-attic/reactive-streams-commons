@@ -90,5 +90,6 @@ public class PublisherIntervalTest {
         ts.cancel();
         
         ts.assertNoError();
+        ts.assertNotComplete();
     }
 }
