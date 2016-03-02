@@ -14,7 +14,6 @@ import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.subscriber.MultiSubscriptionSubscriber;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.ScalarSubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
 import reactivestreams.commons.util.UnsignalledExceptions;
 
@@ -64,7 +63,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
     @Override
     public void subscribe(Subscriber<? super R> s) {
         
-        if (ScalarSubscription.trySubscribeScalarMap(source, s, mapper)) {
+        if (PublisherFlatMap.trySubscribeScalarMap(source, s, mapper)) {
             return;
         }
         
