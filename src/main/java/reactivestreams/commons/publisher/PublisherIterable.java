@@ -15,14 +15,21 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
-import org.reactivestreams.*;
-
-import reactivestreams.commons.flow.*;
-import reactivestreams.commons.state.*;
-import reactivestreams.commons.util.*;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Requestable;
+import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.util.EmptySubscription;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits the contents of an Iterable source.
@@ -87,8 +94,7 @@ extends PublisherBase<T>
     }
 
     static final class IterableSubscription<T>
-    extends SynchronousSubscription<T>
-            implements Producer, Completable, Requestable, Cancellable, Subscription {
+            implements Producer, Completable, Requestable, Cancellable, SynchronousSubscription<T> {
 
         final Subscriber<? super T> actual;
 
@@ -358,8 +364,7 @@ extends PublisherBase<T>
     }
 
     static final class IterableSubscriptionConditional<T>
-    extends SynchronousSubscription<T>
-            implements Producer, Completable, Requestable, Cancellable, Subscription {
+            implements Producer, Completable, Requestable, Cancellable, Subscription, SynchronousSubscription<T> {
 
         final ConditionalSubscriber<? super T> actual;
 

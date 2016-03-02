@@ -1,41 +1,14 @@
 
 //Sample tasks used by reactor.
 
-//A lite core
-def includingCoreScope = ['amb',
-						  'array',
-						  'callable',
-						  'switchifempty',
-						  /*'concatarray' ,*/ //managed by reactor-core but used by reactor-stream
-						  /*'concatmap' ,*/ //managed by reactor-core but used by reactor-stream
-						  /*'concatiterable' ,*/ //managed by reactor-core but used by  reactor-stream
-						  'error',
-						  'empty',
-						  'next',
-						  'connectable',
-						  'observeon',
-						  'subscribeon',
-						  'subscribeonvalue',
-						  'flatmap',
-						  ///'ignoreelements',
-						  /*'iterable',*/ //managed by reactor-core but used by  reactor-stream
-						  'just',
-						  /*'lift',*/ //managed by reactor-core
-						  //'map',//managed by reactor-core
-						  //'mapfuseable',
-						  'never',
-						  'peek',
-						  'resume',
-						  'zip']
-
 //A complete RS commons coverage minus the lite core
-def excludingStreamScope = includingCoreScope + ['generate',
+def excludingCoreScope =  ['generate',
 												 'completablefuture', 'subscribeonother', 'ignoreelements',
 												 'timer', 'interval', 'blockingfuture',
 												 'blockingiterable', 'bufferboundaryandsize',
 												 'windowbeginend', /*'windowboundaryandsize',*/
 												 'lift', //Already managed by reactor-core
-												 ] - ['map', 'peek']
+												 ]
 
 //Common reactor helper references
 def reactorCommon = ['api-single'           : 'reactor.core.publisher.Mono',
@@ -56,6 +29,7 @@ def reactorCommon = ['api-single'           : 'reactor.core.publisher.Mono',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
 					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
+					 'SerializedSubscriber': 'reactor.core.subscriber.SerializedSubscriber',
 					 'UnicastProcessor'     : 'reactor.rx.UnicastProcessor']
 
 //Reactor Core configuration
@@ -63,19 +37,11 @@ def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
 				   'api-package'         : 'reactor.core.publisher',
 				   'api-operator'        : 'FluxSource',
 				   'SerializedSubscriber': false,
-				   'include'             : includingCoreScope] + reactorCommon
+				   'exclude'             : excludingCoreScope ] + reactorCommon
 
-//Reactor Fluxion configuration
-def reactorFluxion = ['api'                 : 'reactor.rx.Fluxion',
-					 'api-package'         : 'reactor.rx',
-					 'api-operator'        : 'StreamSource',
-					 'SerializedSubscriber': 'reactor.rx.subscriber.SerializedSubscriber',
-					 'exclude'             : excludingStreamScope,
-					 'internal'            : false] + reactorCommon
 
 def targets = [
-        'reactor-core' : reactorCore,
-        'reactor-stream' : reactorFluxion
+        'reactor-core' : reactorCore
 ]
 
 def defaultTarget = reactorCore

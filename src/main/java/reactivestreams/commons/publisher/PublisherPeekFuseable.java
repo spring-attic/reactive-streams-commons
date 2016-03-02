@@ -67,8 +67,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
     }
 
     static final class PublisherPeekFuseableSubscriber<T> 
-    extends SynchronousSubscription<T>
-    implements Subscriber<T>, Receiver, Producer {
+    implements Subscriber<T>, Receiver, Producer, SynchronousSubscription<T> {
 
         final Subscriber<? super T> actual;
 
@@ -294,8 +293,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
     }
 
     static final class PublisherPeekFuseableConditionalSubscriber<T> 
-    extends SynchronousSubscription<T>
-    implements ConditionalSubscriber<T>, Receiver, Producer {
+    implements ConditionalSubscriber<T>, Receiver, Producer, SynchronousSubscription<T> {
 
         final ConditionalSubscriber<? super T> actual;
 

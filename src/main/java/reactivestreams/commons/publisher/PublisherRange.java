@@ -58,8 +58,7 @@ extends PublisherBase<Integer>
     }
 
     static final class RangeSubscription
-            extends SynchronousSubscription<Integer>
-      implements Cancellable, Requestable, Completable, Producer {
+      implements Cancellable, Requestable, Completable, Producer, SynchronousSubscription<Integer> {
 
         final Subscriber<? super Integer> actual;
 
@@ -228,8 +227,7 @@ extends PublisherBase<Integer>
     }
     
     static final class RangeSubscriptionConditional
-    extends SynchronousSubscription<Integer>
-    implements Cancellable, Requestable, Completable, Producer {
+    implements Cancellable, Requestable, Completable, Producer, SynchronousSubscription<Integer> {
 
         final ConditionalSubscriber<? super Integer> actual;
 

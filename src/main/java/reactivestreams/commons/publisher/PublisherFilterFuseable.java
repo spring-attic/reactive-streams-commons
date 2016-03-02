@@ -62,8 +62,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
     }
 
     static final class PublisherFilterFuseableSubscriber<T> 
-    extends SynchronousSubscription<T>
-    implements Receiver, Producer, Loopback, Completable, Subscription, ConditionalSubscriber<T> {
+    implements Receiver, Producer, Loopback, Completable, SynchronousSubscription<T>, ConditionalSubscriber<T> {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -306,8 +305,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
     }
 
     static final class PublisherFilterFuseableConditionalSubscriber<T> 
-    extends SynchronousSubscription<T>
-    implements Receiver, Producer, Loopback, Completable, Subscription, ConditionalSubscriber<T> {
+    implements Receiver, Producer, Loopback, Completable, ConditionalSubscriber<T>, SynchronousSubscription<T> {
         final ConditionalSubscriber<? super T> actual;
 
         final Predicate<? super T> predicate;

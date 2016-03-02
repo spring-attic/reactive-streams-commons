@@ -73,8 +73,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
     }
 
     static final class PublisherMapFuseableSubscriber<T, R> 
-    extends SynchronousSubscription<R>
-    implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+    implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription, SynchronousSubscription<R> {
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
@@ -256,8 +255,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
     }
 
     static final class PublisherMapFuseableConditionalSubscriber<T, R> 
-    extends SynchronousSubscription<R>
-    implements ConditionalSubscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+    implements ConditionalSubscriber<T>, Completable, Receiver, Producer, Loopback, SynchronousSubscription<R> {
         final Fuseable.ConditionalSubscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
