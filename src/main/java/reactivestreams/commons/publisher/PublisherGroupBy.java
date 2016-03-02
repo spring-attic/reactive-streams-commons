@@ -1,6 +1,5 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Queue;
@@ -477,73 +476,8 @@ implements Fuseable, Backpressurable  {
         }
 
         @Override
-        public boolean add(GroupedPublisher<K, V> t) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean offer(GroupedPublisher<K, V> t) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public GroupedPublisher<K, V> remove() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public GroupedPublisher<K, V> element() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
         public int size() {
             return queue.size();
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public Iterator<GroupedPublisher<K, V>> iterator() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public Object[] toArray() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public <T1> T1[] toArray(T1[] a) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends GroupedPublisher<K, V>> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
         }
 
         @Override
@@ -879,73 +813,8 @@ implements Fuseable, Backpressurable  {
         }
 
         @Override
-        public boolean add(V t) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean offer(V t) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public V remove() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public V element() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
         public int size() {
             return queue.size();
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public Iterator<V> iterator() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public Object[] toArray() {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public <T1> T1[] toArray(T1[] a) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends V> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Operators should not use this method!");
         }
 
         @Override
