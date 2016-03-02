@@ -227,10 +227,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         int produced;
         
-        long unique;
-        
-        long lastId;
-        
         public PublisherFlatMapMain(Subscriber<? super R> actual,
                 Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency,
                 Supplier<? extends Queue<R>> mainQueueSupplier, int prefetch, Supplier<? extends Queue<R>> innerQueueSupplier) {
@@ -388,7 +384,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 }
                 emitScalar(v);
             } else {
-                PublisherFlatMapInner<R> inner = new PublisherFlatMapInner<>(this, prefetch, unique++);
+                PublisherFlatMapInner<R> inner = new PublisherFlatMapInner<>(this, prefetch);
                 if (add(inner)) {
                     
                     p.subscribe(inner);
@@ -969,8 +965,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         
         final int limit;
         
-        final long id;
-        
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<PublisherFlatMapInner, Subscription> S =
@@ -997,10 +991,9 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         static final AtomicIntegerFieldUpdater<PublisherFlatMapInner> ONCE =
                 AtomicIntegerFieldUpdater.newUpdater(PublisherFlatMapInner.class, "once");
         
-        public PublisherFlatMapInner(PublisherFlatMapMain<?, R> parent, int prefetch, long index) {
+        public PublisherFlatMapInner(PublisherFlatMapMain<?, R> parent, int prefetch) {
             this.parent = parent;
             this.prefetch = prefetch;
-            this.id = index;
             this.limit = prefetch - (prefetch >> 2);
         }
 
