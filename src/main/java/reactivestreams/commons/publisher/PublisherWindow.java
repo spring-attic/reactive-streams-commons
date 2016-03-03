@@ -1,6 +1,8 @@
 package reactivestreams.commons.publisher;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -11,7 +13,15 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactivestreams.commons.flow.MultiProducer;
+import reactivestreams.commons.flow.Producer;
+import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.processor.UnicastProcessor;
+import reactivestreams.commons.state.Backpressurable;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.state.Completable;
+import reactivestreams.commons.state.Introspectable;
+import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -92,7 +102,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         return size;
     }
 
-    static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
+    static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Producer, Receiver,
+                                                           MultiProducer, Completable, Prefetchable {
         
         final Subscriber<? super PublisherBase<T>> actual;
 
@@ -238,9 +249,50 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                 s.cancel();
             }
         }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Iterator<?> downstreams() {
+            return Arrays.asList(window).iterator();
+        }
+
+        @Override
+        public long downstreamCount() {
+            return window != null ? 1L : 0L;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return size - index;
+        }
+
+        @Override
+        public long limit() {
+            return size;
+        }
     }
     
-    static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
+    static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Receiver,
+                                                          MultiProducer, Producer, Backpressurable, Completable {
         
         final Subscriber<? super PublisherBase<T>> actual;
 
@@ -406,9 +458,51 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                 s.cancel();
             }
         }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Iterator<?> downstreams() {
+            return Arrays.asList(window).iterator();
+        }
+
+        @Override
+        public long downstreamCount() {
+            return window != null ? 1L : 0L;
+        }
+
+        @Override
+        public long getCapacity() {
+            return size;
+        }
+
+        @Override
+        public long getPending() {
+            return skip + size - index;
+        }
     }
 
-    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
+    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Backpressurable,
+                                                             Producer, MultiProducer, Receiver, Prefetchable,
+                                                             Introspectable, Completable, Cancellable {
         
         final Subscriber<? super PublisherBase<T>> actual;
 
@@ -681,6 +775,66 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
             if (WIP.decrementAndGet(this) == 0) {
                 s.cancel();
             }
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done && !cancelled;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return (size + skip) - produced;
+        }
+
+        @Override
+        public long limit() {
+            return skip;
+        }
+
+        @Override
+        public Iterator<?> downstreams() {
+            return Arrays.asList(windows.toArray()).iterator();
+        }
+
+        @Override
+        public long downstreamCount() {
+            return windows.size();
+        }
+
+        @Override
+        public long getCapacity() {
+            return size;
+        }
+
+        @Override
+        public long getPending() {
+            return size - produced ;
         }
     }
 
