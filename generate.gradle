@@ -29,7 +29,7 @@ def reactorCommon = ['api-single'           : 'reactor.core.publisher.Mono',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
 					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
-					 'SerializedSubscriber': 'reactor.core.subscriber.SerializedSubscriber',
+					 'SerializedSubscriber': 'reactor.core.publisher.SerializedSubscriber',
 					 'UnicastProcessor'     : 'reactor.rx.UnicastProcessor']
 
 //Reactor Core configuration
