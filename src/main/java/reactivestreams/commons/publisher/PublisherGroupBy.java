@@ -21,7 +21,7 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
@@ -88,9 +88,9 @@ implements Fuseable, Backpressurable  {
         source.subscribe(new PublisherGroupByMain<>(s, q, groupQueueSupplier, prefetch, keySelector, valueSelector));
     }
     
-    static final class PublisherGroupByMain<T, K, V> implements Subscriber<T>, 
-    Fuseable.QueueSubscription<GroupedPublisher<K, V>>, MultiProducer, Backpressurable, Producer, Requestable,
-                                                                Failurable, Cancellable, Completable, Receiver {
+    static final class PublisherGroupByMain<T, K, V> implements Subscriber<T>,
+                                                                Fuseable.QueueSubscription<GroupedPublisher<K, V>>, MultiProducer, Backpressurable, Producer, Requestable,
+                                                                Introspectable, Cancellable, Completable, Receiver {
 
         final Function<? super T, ? extends K> keySelector;
         
@@ -511,7 +511,7 @@ implements Fuseable, Backpressurable  {
     
     static final class UnicastGroupedPublisher<K, V> extends GroupedPublisher<K, V> 
     implements Fuseable, Fuseable.QueueSubscription<V>,
-               Producer, Receiver, Failurable, Completable, Prefetchable, Cancellable, Requestable, Backpressurable {
+               Producer, Receiver, Completable, Prefetchable, Cancellable, Requestable, Backpressurable {
         final K key;
         
         final int limit;

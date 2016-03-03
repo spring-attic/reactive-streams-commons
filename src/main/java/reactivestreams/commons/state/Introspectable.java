@@ -22,6 +22,9 @@ public interface Introspectable {
     int FACTORY = 0b00000100;
 
     /**
+     * Flags determining the nature of this {@link Introspectable}, can be a combination of those, e.g. :
+     * <pre>
+     *     int mode = Introspectable.LOGGING | Introspectable.FACTORY
      * @return the introspection mode, see constants
      */
     default int getMode(){
@@ -29,8 +32,8 @@ public interface Introspectable {
     }
 
     /**
-     *
-     * @return the name of the operator
+     * The name of the component
+     * @return the name of the component
      */
     default String getName() {
         return getClass().getSimpleName();
@@ -38,9 +41,18 @@ public interface Introspectable {
 
 
     /**
+     * Defined identifier or null if not available
      * @return defined identifier or null if not available
      */
     default Object key() {
+        return null;
+    }
+
+    /**
+     * Current error if any, default to null
+     * @return Current error if any, default to null
+     */
+    default Throwable getError(){
         return null;
     }
 

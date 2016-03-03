@@ -21,7 +21,6 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
@@ -126,7 +125,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
     }
     
     static final class State<T> implements Subscriber<T>, Runnable, Receiver, MultiProducer, Backpressurable,
-                                           Completable, Cancellable, Failurable {
+                                           Completable, Cancellable, Introspectable {
 
         final int prefetch;
         

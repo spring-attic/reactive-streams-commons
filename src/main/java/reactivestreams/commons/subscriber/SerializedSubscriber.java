@@ -22,7 +22,6 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.util.SubscriptionHelper;
 
@@ -39,8 +38,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription, Receiver, Producer,
-                                                      Cancellable, Completable, Introspectable, Backpressurable,
-                                                      Failurable {
+                                                      Cancellable, Completable, Introspectable, Backpressurable {
 
     final Subscriber<? super T> actual;
 

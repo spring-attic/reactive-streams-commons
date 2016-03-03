@@ -30,7 +30,6 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.publisher.PublisherBase;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
@@ -53,7 +52,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class SimpleProcessor<T> 
     extends PublisherBase<T>
-    implements Processor<T, T>, Receiver, Completable, Failurable, MultiProducer {
+    implements Processor<T, T>, Receiver, Completable, MultiProducer {
 
     @SuppressWarnings("rawtypes")
     private static final SimpleProcessorSubscription[] EMPTY = new SimpleProcessorSubscription[0];

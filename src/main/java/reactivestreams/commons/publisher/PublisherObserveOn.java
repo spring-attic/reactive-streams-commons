@@ -20,7 +20,7 @@ import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledSubscript
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
@@ -111,7 +111,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
     static final class PublisherObserveOnSubscriber<T>
     implements Subscriber<T>, Subscription, Runnable,
-               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Failurable,
+               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Introspectable,
                Requestable, Completable {
         
         final Subscriber<? super T> actual;
@@ -561,7 +561,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
     static final class PublisherObserveOnConditionalSubscriber<T>
     implements Subscriber<T>, Subscription, Runnable,
-               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Failurable, Completable, Requestable {
+               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Introspectable, Completable, Requestable {
         
         final Fuseable.ConditionalSubscriber<? super T> actual;
         

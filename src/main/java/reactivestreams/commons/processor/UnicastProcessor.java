@@ -15,7 +15,6 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.publisher.PublisherBase;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -32,7 +31,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
 public final class UnicastProcessor<T> 
 extends PublisherBase<T>
 implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable,
-           Producer, Receiver, Failurable, Completable, Cancellable, Requestable {
+           Producer, Receiver, Completable, Cancellable, Requestable {
 
     final Queue<T> queue;
     

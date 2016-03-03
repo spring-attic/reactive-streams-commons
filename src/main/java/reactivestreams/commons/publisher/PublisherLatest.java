@@ -26,7 +26,7 @@ import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
+import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Requestable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.SubscriptionHelper;
@@ -49,7 +49,7 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherLatestSubscriber<T>
-            implements Subscriber<T>, Subscription, Cancellable, Failurable, Completable, Producer,
+            implements Subscriber<T>, Subscription, Cancellable, Introspectable, Completable, Producer,
                        Requestable, Receiver {
 
         final Subscriber<? super T> actual;

@@ -35,7 +35,6 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
@@ -492,7 +491,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
     }
     
     static final class PublisherZipCoordinator<T, R> implements Subscription, MultiReceiver, Cancellable, Backpressurable, Completable, Requestable,
-                                                                Failurable {
+                                                                Introspectable {
 
         final Subscriber<? super R> actual;
         

@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.SubscriptionHelper;
 
@@ -17,8 +16,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class PublisherError<T> 
-extends PublisherBase<T>
-        implements Failurable {
+extends PublisherBase<T> {
 
     final Supplier<? extends Throwable> supplier;
     

@@ -36,7 +36,6 @@ import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Failurable;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.state.Prefetchable;
 import reactivestreams.commons.state.Requestable;
@@ -171,7 +170,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
     static final class PublisherFlatMapMain<T, R> 
     implements Subscriber<T>, Subscription, Receiver, MultiReceiver, Requestable, Completable, Producer,
-               Cancellable, Backpressurable, Failurable {
+               Cancellable, Backpressurable, Introspectable {
         
         final Subscriber<? super R> actual;
 
