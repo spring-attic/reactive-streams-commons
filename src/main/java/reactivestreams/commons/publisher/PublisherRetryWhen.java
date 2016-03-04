@@ -42,7 +42,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         
         signaller.onSubscribe(EmptySubscription.INSTANCE);
 
-        SerializedSubscriber<T> serial = new SerializedSubscriber<>(s);
+        Subscriber<T> serial = new SerializedSubscriber<>(s);
 
         PublisherRetryWhenMainSubscriber<T> main = new PublisherRetryWhenMainSubscriber<>(serial, signaller, source);
         other.main = main;

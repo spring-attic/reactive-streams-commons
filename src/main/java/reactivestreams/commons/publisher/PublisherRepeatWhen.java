@@ -42,7 +42,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         
         signaller.onSubscribe(EmptySubscription.INSTANCE);
 
-        SerializedSubscriber<T> serial = new SerializedSubscriber<>(s);
+        Subscriber<T> serial = new SerializedSubscriber<>(s);
 
         PublisherRepeatWhenMainSubscriber<T> main = new PublisherRepeatWhenMainSubscriber<>(serial, signaller, source);
         other.main = main;
