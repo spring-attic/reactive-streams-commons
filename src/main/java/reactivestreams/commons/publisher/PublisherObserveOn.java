@@ -108,6 +108,10 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     }
 
 
+    @Override
+    public long getCapacity() {
+        return prefetch;
+    }
 
     static final class PublisherObserveOnSubscriber<T>
     implements Subscriber<T>, Subscription, Runnable,

@@ -83,11 +83,6 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
         }
     }
 
-    @Override
-    public long getCapacity() {
-        return size;
-    }
-
     static final class PublisherBufferExactSubscriber<T, C extends Collection<? super T>>
       implements Subscriber<T>, Subscription, Receiver, Producer, Loopback, Completable, Backpressurable {
 

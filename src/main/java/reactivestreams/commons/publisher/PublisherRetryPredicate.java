@@ -36,6 +36,11 @@ public final class PublisherRetryPredicate<T> extends PublisherSource<T, T> {
         }
     }
 
+    @Override
+    public long getCapacity() {
+        return -1L;
+    }
+
     static final class PublisherRetryPredicateSubscriber<T>
             extends MultiSubscriptionSubscriber<T, T> {
 

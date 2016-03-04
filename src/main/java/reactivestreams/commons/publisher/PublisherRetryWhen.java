@@ -35,6 +35,11 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
     }
 
     @Override
+    public long getCapacity() {
+        return -1L;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super T> s) {
 
         PublisherRetryWhenOtherSubscriber other = new PublisherRetryWhenOtherSubscriber();

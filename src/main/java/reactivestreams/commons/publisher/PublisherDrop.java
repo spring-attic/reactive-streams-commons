@@ -38,11 +38,8 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  */
 public final class PublisherDrop<T> extends PublisherSource<T, T> {
 
-    static final Consumer<Object> NOOP = new Consumer<Object>() {
-        @Override
-        public void accept(Object t) {
+    static final Consumer<Object> NOOP = t -> {
 
-        }
     };
 
     final Consumer<? super T> onDrop;
@@ -56,6 +53,11 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
     public PublisherDrop(Publisher<? extends T> source, Consumer<? super T> onDrop) {
         super(source);
         this.onDrop = Objects.requireNonNull(onDrop, "onDrop");
+    }
+
+    @Override
+    public long getCapacity() {
+        return -1L;
     }
 
     @Override

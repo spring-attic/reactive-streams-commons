@@ -53,7 +53,8 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T> the common input type
  * @param <R> the output value type
  */
-public final class PublisherZip<T, R> extends PublisherBase<R> implements Introspectable, MultiReceiver {
+public final class PublisherZip<T, R> extends PublisherBase<R> implements Introspectable, Backpressurable,
+                                                                          MultiReceiver {
 
     final Publisher<? extends T>[] sources;
     
@@ -88,8 +89,8 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
         this.prefetch = prefetch;
     }
-    
-    
+
+
     @Override
     public void subscribe(Subscriber<? super R> s) {
         Publisher<? extends T>[] srcs = sources;
@@ -261,6 +262,11 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
     @Override
     public Iterator<?> upstreams() {
         return sources == null ? sourcesIterable.iterator() : Arrays.asList(sources).iterator();
+    }
+
+    @Override
+    public long getCapacity() {
+        return prefetch;
     }
 
     @Override

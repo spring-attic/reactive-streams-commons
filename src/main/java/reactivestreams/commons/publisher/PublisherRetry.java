@@ -31,6 +31,11 @@ public final class PublisherRetry<T> extends PublisherSource<T, T> {
     }
 
     @Override
+    public long getCapacity() {
+        return -1L;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super T> s) {
         PublisherRetrySubscriber<T> parent = new PublisherRetrySubscriber<>(source, s, times);
 

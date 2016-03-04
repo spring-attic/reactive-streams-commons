@@ -31,14 +31,14 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
 //
     static <T> Function<Throwable, Publisher<? extends T>> create(final Publisher<? extends T> next) {
         Objects.requireNonNull(next, "next");
-        return new Function<Throwable, Publisher<? extends T>>() {
-            @Override
-            public Publisher<? extends T> apply(Throwable e) {
-                return next;
-            }
-        };
+        return e -> next;
     }
-    
+
+    @Override
+    public long getCapacity() {
+        return -1L;
+    }
+
     public static <T> PublisherResume<T> create(Publisher<? extends T> source, Publisher<? extends T> other) {
         return new PublisherResume<>(source, create(other));
     }

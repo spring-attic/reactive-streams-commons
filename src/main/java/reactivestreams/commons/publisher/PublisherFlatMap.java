@@ -168,7 +168,12 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 //        source.subscribe(new PublisherFlatMapMain2<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
     }
 
-    static final class PublisherFlatMapMain<T, R> 
+    @Override
+    public long getCapacity() {
+        return -1L;
+    }
+
+    static final class PublisherFlatMapMain<T, R>
     implements Subscriber<T>, Subscription, Receiver, MultiReceiver, Requestable, Completable, Producer,
                Cancellable, Backpressurable, Introspectable {
         

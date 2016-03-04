@@ -80,6 +80,11 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         }
         source.subscribe(parent);
     }
+
+    @Override
+    public long getCapacity() {
+        return prefetch;
+    }
     
     static final class PublisherConcatMapImmediate<T, R> implements Subscriber<T>, PublisherConcatMapSupport<R>, Subscription {
 

@@ -87,6 +87,11 @@ implements Fuseable, Backpressurable  {
         
         source.subscribe(new PublisherGroupByMain<>(s, q, groupQueueSupplier, prefetch, keySelector, valueSelector));
     }
+
+    @Override
+    public long getCapacity() {
+        return prefetch;
+    }
     
     static final class PublisherGroupByMain<T, K, V> implements Subscriber<T>,
                                                                 Fuseable.QueueSubscription<GroupedPublisher<K, V>>, MultiProducer, Backpressurable, Producer, Requestable,

@@ -6,11 +6,12 @@ import org.reactivestreams.Subscriber;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.util.ScalarSubscription;
 
 public final class PublisherJust<T> 
 extends PublisherBase<T>
-implements Fuseable.ScalarSupplier<T>, Receiver {
+implements Fuseable.ScalarSupplier<T>, Receiver, Backpressurable {
 
     final T value;
 
@@ -31,5 +32,10 @@ implements Fuseable.ScalarSupplier<T>, Receiver {
     @Override
     public Object upstream() {
         return value;
+    }
+
+    @Override
+    public long getCapacity() {
+        return 1L;
     }
 }

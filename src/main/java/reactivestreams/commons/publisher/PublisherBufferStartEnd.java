@@ -245,17 +245,6 @@ extends PublisherSource<T, C> {
             return false;
         }
         
-        void removeEndSubscription(Subscription s) {
-            synchronized (starter) {
-                Set<Subscription> set = endSubscriptions;
-                
-                if (set != null) {
-                    set.remove(s);
-                    return;
-                }
-            }
-        }
-        
         @Override
         public void cancel() {
             if (!cancelled) {

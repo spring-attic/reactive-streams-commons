@@ -48,6 +48,11 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherLatestSubscriber<>(s));
     }
 
+    @Override
+    public long getCapacity() {
+        return -1L;
+    }
+
     static final class PublisherLatestSubscriber<T>
             implements Subscriber<T>, Subscription, Cancellable, Introspectable, Completable, Producer,
                        Requestable, Receiver {
