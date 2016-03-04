@@ -13,6 +13,7 @@ import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
 import reactivestreams.commons.publisher.PublisherBase;
+import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.state.Requestable;
@@ -31,7 +32,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
 public final class UnicastProcessor<T> 
 extends PublisherBase<T>
 implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable,
-           Producer, Receiver, Completable, Cancellable, Requestable {
+           Producer, Receiver, Completable, Cancellable, Requestable, Backpressurable {
 
     final Queue<T> queue;
     
@@ -373,6 +374,11 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable,
     @Override
     public Object upstream() {
         return onTerminate;
+    }
+
+    @Override
+    public long getCapacity() {
+        return Long.MAX_VALUE;
     }
 
     @Override
