@@ -22,7 +22,7 @@ public interface TimedScheduler extends Scheduler {
      * @param unit the unit of measure of the delay amount
      * @return the Cancellable that let's one cancel this particular delayed task.
      */
-    Cancellable schedule(Runnable task, long delay, TimeUnit unit);
+    Runnable schedule(Runnable task, long delay, TimeUnit unit);
     
     /**
      * Schedules a periodic execution of the given task with the given initial delay and period.
@@ -41,16 +41,16 @@ public interface TimedScheduler extends Scheduler {
      * @param unit the unit of measure of the delay amount
      * @return the Cancellable that let's one cancel this particular delayed task.
      */
-    Cancellable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
+    Runnable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
     
-    default Cancellable schedule(Runnable task, Duration delay) {
+    default Runnable schedule(Runnable task, Duration delay) {
         long s = BackpressureHelper.multiplyCap(delay.getSeconds(), 1_000_000_000);
         long d = BackpressureHelper.addCap(s, delay.getNano());
         
         return schedule(task, d, TimeUnit.NANOSECONDS);
     }
 
-    default Cancellable schedulePeriodically(Runnable task, Duration initialDelay, Duration period) {
+    default Runnable schedulePeriodically(Runnable task, Duration initialDelay, Duration period) {
         long s0 = BackpressureHelper.multiplyCap(initialDelay.getSeconds(), 1_000_000_000);
         long d0 = BackpressureHelper.addCap(s0, initialDelay.getNano());
         
@@ -88,7 +88,7 @@ public interface TimedScheduler extends Scheduler {
          * @param unit the unit of measure of the delay amount
          * @return the Cancellable that let's one cancel this particular delayed task.
          */
-        Cancellable schedule(Runnable task, long delay, TimeUnit unit);
+        Runnable schedule(Runnable task, long delay, TimeUnit unit);
         
         /**
          * Schedules a periodic execution of the given task with the given initial delay and period.
@@ -106,16 +106,16 @@ public interface TimedScheduler extends Scheduler {
          * @param unit the unit of measure of the delay amount
          * @return the Cancellable that let's one cancel this particular delayed task.
          */
-        Cancellable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
+        Runnable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
         
-        default Cancellable schedule(Runnable task, Duration delay) {
+        default Runnable schedule(Runnable task, Duration delay) {
             long s = BackpressureHelper.multiplyCap(delay.getSeconds(), 1_000_000_000);
             long d = BackpressureHelper.addCap(s, delay.getNano());
             
             return schedule(task, d, TimeUnit.NANOSECONDS);
         }
 
-        default Cancellable schedulePeriodically(Runnable task, Duration initialDelay, Duration period) {
+        default Runnable schedulePeriodically(Runnable task, Duration initialDelay, Duration period) {
             long s0 = BackpressureHelper.multiplyCap(initialDelay.getSeconds(), 1_000_000_000);
             long d0 = BackpressureHelper.addCap(s0, initialDelay.getNano());
             

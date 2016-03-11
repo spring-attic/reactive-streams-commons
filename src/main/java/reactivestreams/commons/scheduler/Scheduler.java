@@ -13,10 +13,10 @@ public interface Scheduler {
      * 
      * @param task the task to execute
      * 
-     * @return the Cancellable instance that let's one cancel this particular task.
+     * @return the Runnable instance that let's one cancel this particular task.
      * If the Scheduler has been shut down, the {@link #REJECTED} Cancellable instance is returned.
      */
-    Cancellable schedule(Runnable task);
+    Runnable schedule(Runnable task);
     
     /**
      * Creates a worker of this Scheduler that executed task in a strict
@@ -69,7 +69,7 @@ public interface Scheduler {
          * @return the Cancellable instance that let's one cancel this particular task.
          * If the Scheduler has been shut down, the {@link #REJECTED} Cancellable instance is returned.
          */
-        Cancellable schedule(Runnable task);
+        Runnable schedule(Runnable task);
         
         /**
          * Instructs this worker to cancel all pending tasks, all running tasks in 
@@ -82,5 +82,5 @@ public interface Scheduler {
     /**
      * Returned by the schedule() methods if the Scheduler or the Worker has ben shut down.
      */
-    static Cancellable REJECTED = () -> { };
+    static Runnable REJECTED = () -> { };
 }
