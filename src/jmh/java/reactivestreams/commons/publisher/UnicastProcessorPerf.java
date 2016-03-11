@@ -13,7 +13,7 @@ import reactivestreams.commons.publisher.internal.PerfSubscriber;
 /**
  * Example benchmark. Run from command line as
  * <br>
- * gradle jmh -Pjmh='PublisherRetryPerf'
+ * gradle jmh -Pjmh='UnicastProcessorPerf'
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)

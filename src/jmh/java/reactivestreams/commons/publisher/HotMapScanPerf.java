@@ -21,7 +21,7 @@ import reactivestreams.commons.publisher.internal.PerfSubscriber;
 /**
  * Example benchmark. Run from command line as
  * <br>
- * gradle jmh -Pjmh='HotMapScanPerfPerf'
+ * gradle jmh -Pjmh='HotMapScanPerf'
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)
