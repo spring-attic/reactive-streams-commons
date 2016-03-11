@@ -9,6 +9,12 @@ import org.reactivestreams.Publisher;
 import reactivestreams.commons.publisher.*;
 import reactivestreams.commons.publisher.internal.PerfAsyncSubscriber;
 
+
+/**
+ * Example benchmark. Run from command line as
+ * <br>
+ * gradle jmh -Pjmh='QueuePerf'
+ */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
