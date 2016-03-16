@@ -26,18 +26,18 @@ public class BlockingIterableTest {
         ctb.test();
     }
     
-    @Test(timeout = 1000)
+    @Test(timeout = 5000)
     public void normal() {
         List<Integer> values = new ArrayList<>();
         
-        for (Integer i : new PublisherRange(1, 10).toIterable()) {
+        for (Integer i : PublisherBase.range(1, 10).toIterable()) {
             values.add(i);
         }
         
         Assert.assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), values);
     }
 
-    @Test(timeout = 1000)
+    @Test(timeout = 5000)
     public void empty() {
         List<Integer> values = new ArrayList<>();
         
@@ -48,7 +48,7 @@ public class BlockingIterableTest {
         Assert.assertEquals(Collections.emptyList(), values);
     }
     
-    @Test(timeout = 1000, expected = RuntimeException.class)
+    @Test(timeout = 5000, expected = RuntimeException.class)
     public void error() {
         List<Integer> values = new ArrayList<>();
         
@@ -59,16 +59,16 @@ public class BlockingIterableTest {
         Assert.assertEquals(Collections.emptyList(), values);
     }
 
-    @Test(timeout = 1000)
+    @Test(timeout = 5000)
     public void stream() {
         List<Integer> values = new ArrayList<>();
 
-        new PublisherRange(1, 10).stream().forEach(values::add);
+        PublisherBase.range(1, 10).stream().forEach(values::add);
 
         Assert.assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), values);
     }
 
-    @Test(timeout = 1000)
+    @Test(timeout = 5000)
     public void streamEmpty() {
         List<Integer> values = new ArrayList<>();
 
@@ -77,19 +77,19 @@ public class BlockingIterableTest {
         Assert.assertEquals(Collections.emptyList(), values);
     }
 
-    @Test(timeout = 1000)
+    @Test(timeout = 5000)
     public void streamLimit() {
         List<Integer> values = new ArrayList<>();
 
-        new PublisherRange(1, Integer.MAX_VALUE).stream().limit(10).forEach(values::add);
+        PublisherBase.range(1, Integer.MAX_VALUE).stream().limit(10).forEach(values::add);
 
         Assert.assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), values);
     }
-    @Test(timeout = 1000)
+    @Test(timeout = 5000)
     public void streamParallel() {
         int n = 1_000_000;
 
-        Optional<Integer> opt = new PublisherRange(1, n).parallelStream().max(Integer::compare);
+        Optional<Integer> opt = PublisherBase.range(1, n).parallelStream().max(Integer::compare);
 
         Assert.assertTrue("No maximum?", opt.isPresent());
         Assert.assertEquals((Integer)n, opt.get());
