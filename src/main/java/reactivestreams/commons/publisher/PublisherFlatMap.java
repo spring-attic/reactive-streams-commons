@@ -63,6 +63,18 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         this.innerQueueSupplier = Objects.requireNonNull(innerQueueSupplier, "innerQueueSupplier");
     }
 
+    @Override
+    public void subscribe(Subscriber<? super R> s) {
+        
+        if (trySubscribeScalarMap(source, s, mapper)) {
+            return;
+        }
+        
+//        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
+        source.subscribe(new PublisherFlatMapMain2<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
+//        source.subscribe(new PublisherFlatMapMain3<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
+    }
+
     /**
      * Checks if the source is a Supplier and if the mapper's publisher output is also
      * a supplier, thus avoiding subscribing to any of them.
@@ -132,17 +144,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         }
 
         return false;
-    }
-
-    @Override
-    public void subscribe(Subscriber<? super R> s) {
-        
-        if (trySubscribeScalarMap(source, s, mapper)) {
-            return;
-        }
-        
-        source.subscribe(new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
-//        source.subscribe(new PublisherFlatMapMain2<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier));
     }
 
     @Override
@@ -709,7 +710,13 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                         
                         d = inner.done;
                         Queue<R> q = inner.queue;
-                        if (d && (q == null || q.isEmpty())) {
+                        boolean empty = q == null || q.isEmpty();
+                        
+                        if (!empty) {
+                            break;
+                        }
+                        
+                        if (d && empty) {
                             remove(inner);
                             again = true;
                             replenishMain++;
@@ -1598,7 +1605,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     lastIndex = j;
                 }
                 
-                if (r == 0L && n != 0) {
+                if (r == 0L && !noSources) {
                     as = get();
                     n = as.length;
                     
@@ -1617,7 +1624,14 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                         
                         d = inner.done;
                         Queue<R> q = inner.queue;
-                        if (d && (q == null || q.isEmpty())) {
+                        boolean empty = (q == null || q.isEmpty());
+                        
+                        // if we have a non-empty source then quit the cleanup
+                        if (!empty) {
+                            break;
+                        }
+
+                        if (d && empty) {
                             remove(inner.index);
                             again = true;
                             replenishMain++;
@@ -1883,6 +1897,903 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         int index;
         
         public PublisherFlatMapInner2(PublisherFlatMapMain2<?, R> parent, int prefetch) {
+            this.parent = parent;
+            this.prefetch = prefetch;
+            this.limit = prefetch - (prefetch >> 2);
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (SubscriptionHelper.setOnce(S, this, s)) {
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<R> f = (Fuseable.QueueSubscription<R>)s;
+                    int m = f.requestFusion(Fuseable.ANY);
+                    if (m == Fuseable.SYNC){
+                        sourceMode = SYNC;
+                        queue = f;
+                        done = true;
+                        parent.drain();
+                        return;
+                    } else 
+                    if (m == Fuseable.ASYNC) {
+                        sourceMode = ASYNC;
+                        queue = f;
+                    }
+                    // NONE is just fall-through as the queue will be created on demand
+                }
+                s.request(prefetch);
+            }
+        }
+
+        @Override
+        public void onNext(R t) {
+            if (sourceMode == ASYNC) {
+                parent.drain();
+            } else {
+                parent.innerNext(this, t);
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            // we don't want to emit the same error twice in case of subscription-race in async mode
+            if (sourceMode != ASYNC || ONCE.compareAndSet(this, 0, 1)) {
+                parent.innerError(this, t);
+            }
+        }
+
+        @Override
+        public void onComplete() {
+            // onComplete is practically idempotent so there is no risk due to subscription-race in async mode
+            done = true;
+            parent.drain();
+        }
+
+        @Override
+        public void request(long n) {
+            if (sourceMode != SYNC) {
+                long p = produced + n;
+                if (p >= limit) {
+                    produced = 0L;
+                    s.request(p);
+                } else {
+                    produced = p;
+                }
+            }
+        }
+
+        @Override
+        public void cancel() {
+            SubscriptionHelper.terminate(S, this);
+        }
+
+        @Override
+        public long getCapacity() {
+            return prefetch;
+        }
+
+        @Override
+        public long getPending() {
+            return done || queue == null ? -1L : queue.size();
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return s == CancelledSubscription.INSTANCE;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done && !isCancelled();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done && (queue == null || queue.isEmpty());
+        }
+
+        @Override
+        public int getMode() {
+            return INNER;
+        }
+
+        @Override
+        public String getName() {
+            return PublisherFlatMapInner.class.getSimpleName();
+        }
+
+        @Override
+        public long expectedFromUpstream() {
+            return produced;
+        }
+
+        @Override
+        public long limit() {
+            return limit;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Object downstream() {
+            return parent;
+        }
+    }
+
+    static final class PublisherFlatMapMain3<T, R>
+    extends SpscSetTracker<PublisherFlatMapInner3<R>>
+    implements Subscriber<T>, Subscription, Receiver, MultiReceiver, Requestable, Completable, Producer,
+               Cancellable, Backpressurable, Introspectable {
+        
+        final Subscriber<? super R> actual;
+
+        final Function<? super T, ? extends Publisher<? extends R>> mapper;
+        
+        final boolean delayError;
+        
+        final int maxConcurrency;
+        
+        final Supplier<? extends Queue<R>> mainQueueSupplier;
+
+        final int prefetch;
+
+        final Supplier<? extends Queue<R>> innerQueueSupplier;
+        
+        final int limit;
+        
+        volatile Queue<R> scalarQueue;
+        
+        volatile Throwable error;
+        @SuppressWarnings("rawtypes")
+        static final AtomicReferenceFieldUpdater<PublisherFlatMapMain3, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherFlatMapMain3.class, Throwable.class, "error");
+        
+        volatile boolean done;
+        
+        volatile boolean cancelled;
+        
+        Subscription s;
+        
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<PublisherFlatMapMain3> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(PublisherFlatMapMain3.class, "requested");
+        
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherFlatMapMain3> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherFlatMapMain3.class, "wip");
+        
+        @SuppressWarnings("rawtypes")
+        static final PublisherFlatMapInner3[] EMPTY = new PublisherFlatMapInner3[0];
+        
+        @SuppressWarnings("rawtypes")
+        static final PublisherFlatMapInner3[] TERMINATED = new PublisherFlatMapInner3[0];
+        
+        int lastIndex;
+        
+        int produced;
+        
+        public PublisherFlatMapMain3(Subscriber<? super R> actual,
+                Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency,
+                Supplier<? extends Queue<R>> mainQueueSupplier, int prefetch, Supplier<? extends Queue<R>> innerQueueSupplier) {
+            this.actual = actual;
+            this.mapper = mapper;
+            this.delayError = delayError;
+            this.maxConcurrency = maxConcurrency;
+            this.mainQueueSupplier = mainQueueSupplier;
+            this.prefetch = prefetch;
+            this.innerQueueSupplier = innerQueueSupplier;
+            this.limit = maxConcurrency - (maxConcurrency >> 2);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected PublisherFlatMapInner3<R>[] terminated() {
+            return TERMINATED;
+        }
+        
+        @SuppressWarnings("unchecked")
+        @Override
+        protected PublisherFlatMapInner3<R>[] newArray(int size) {
+            return new PublisherFlatMapInner3[size];
+        }
+        
+        @Override
+        protected void unsubscribeEntry(PublisherFlatMapInner3<R> entry) {
+            entry.cancel();
+        }
+        
+        @Override
+        public void request(long n) {
+            if (SubscriptionHelper.validate(n)) {
+                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                drain();
+            }
+        }
+
+        @Override
+        public void cancel() {
+            if (!cancelled) {
+                cancelled = true;
+                
+                if (WIP.getAndIncrement(this) == 0) {
+                    scalarQueue = null;
+                    s.cancel();
+                    unsubscribe();
+                }
+            }
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+                
+                actual.onSubscribe(this);
+                
+                if (maxConcurrency == Integer.MAX_VALUE) {
+                    s.request(Long.MAX_VALUE);
+                } else {
+                    s.request(maxConcurrency);
+                }
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void onNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return;
+            }
+            
+            Publisher<? extends R> p;
+            
+            try {
+                p = mapper.apply(t);
+            } catch (Throwable e) {
+                s.cancel();
+                ExceptionHelper.throwIfFatal(e);
+                onError(e);
+                return;
+            }
+            
+            if (p == null) {
+                s.cancel();
+
+                onError(new NullPointerException("The mapper returned a null Publisher"));
+                return;
+            }
+            
+            if (p instanceof Supplier) {
+                R v;
+                try {
+                    v = ((Supplier<R>)p).get();
+                } catch (Throwable e) {
+                    s.cancel();
+                    onError(ExceptionHelper.unwrap(e));
+                    return;
+                }
+                emitScalar(v);
+            } else {
+                PublisherFlatMapInner3<R> inner = new PublisherFlatMapInner3<>(this, prefetch);
+                if (add(inner)) {
+                    
+                    p.subscribe(inner);
+                }
+            }
+            
+        }
+        
+        void emitScalar(R v) {
+            if (v == null) {
+                if (maxConcurrency != Integer.MAX_VALUE) {
+                    int p = produced + 1;
+                    if (p == limit) {
+                        produced = 0;
+                        s.request(p);
+                    } else {
+                        produced = p;
+                    }
+                }
+                return;
+            }
+            if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
+                long r = requested;
+                
+                if (r != 0L) {
+                    actual.onNext(v);
+                    
+                    if (r != Long.MAX_VALUE) {
+                        REQUESTED.decrementAndGet(this);
+                    }
+                    
+                    if (maxConcurrency != Integer.MAX_VALUE) {
+                        int p = produced + 1;
+                        if (p == limit) {
+                            produced = 0;
+                            s.request(p);
+                        } else {
+                            produced = p;
+                        }
+                    }
+                } else {
+                    Queue<R> q;
+                    
+                    try {
+                        q = getOrCreateScalarQueue();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        
+                        s.cancel();
+                        
+                        if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                            done = true;
+                        } else {
+                            UnsignalledExceptions.onErrorDropped(ex);
+                        }
+                        
+                        drainLoop();
+                        return;
+                    }
+                    
+                    if (!q.offer(v)) {
+                        s.cancel();
+                        
+                        Throwable e = new IllegalStateException("Scalar queue full?!");
+                        
+                        if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                            done = true;
+                        } else {
+                            UnsignalledExceptions.onErrorDropped(e);
+                        }
+                        drainLoop();
+                        return;
+                    }
+                }
+                if (WIP.decrementAndGet(this) == 0) {
+                    return;
+                }
+
+                drainLoop();
+            } else {
+                Queue<R> q;
+                
+                try {
+                    q = getOrCreateScalarQueue();
+                } catch (Throwable ex) {
+                    ExceptionHelper.throwIfFatal(ex);
+                    
+                    s.cancel();
+                    
+                    if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                        done = true;
+                    } else {
+                        UnsignalledExceptions.onErrorDropped(ex);
+                    }
+                    
+                    drain();
+                    return;
+                }
+                
+                if (!q.offer(v)) {
+                    s.cancel();
+                    
+                    Throwable e = new IllegalStateException("Scalar queue full?!");
+                    
+                    if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                        done = true;
+                    } else {
+                        UnsignalledExceptions.onErrorDropped(e);
+                    }
+                }
+                drain();
+            }
+        }
+        
+        Queue<R> getOrCreateScalarQueue() {
+            Queue<R> q = scalarQueue;
+            if (q == null) {
+                q = mainQueueSupplier.get();
+                scalarQueue = q;
+            }
+            return q;
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+            if (ExceptionHelper.addThrowable(ERROR, this, t)) {
+                done = true;
+                drain();
+            } else {
+                UnsignalledExceptions.onErrorDropped(t);
+            }
+        }
+
+        @Override
+        public void onComplete() {
+            if (done) {
+                return;
+            }
+            
+            done = true;
+            drain();
+        }
+        
+        void drain() {
+            if (WIP.getAndIncrement(this) != 0) {
+                return;
+            }
+            drainLoop();
+        }
+        
+        void drainLoop() {
+            int missed = 1;
+            
+            final Subscriber<? super R> a = actual;
+            
+            for (;;) {
+                
+                boolean d = done;
+
+                PublisherFlatMapInner3<R>[] as = get();
+                
+                int n = as.length;
+
+                Queue<R> sq = scalarQueue;
+                
+                boolean noSources = isEmpty();
+                
+                if (checkTerminated(d, noSources && (sq == null || sq.isEmpty()), a)) {
+                    return;
+                }
+                
+                boolean again = false;
+
+                long r = requested;
+                long e = 0L;
+                long replenishMain = 0L;
+                
+                if (r != 0L) {
+                    sq = scalarQueue;
+                    if (sq != null) {
+                        
+                        while (e != r) {
+                            d = done;
+                            
+                            R v = sq.poll();
+                            
+                            boolean empty = v == null;
+
+                            if (checkTerminated(d, false, a)) {
+                                return;
+                            }
+                            
+                            if (empty) {
+                                break;
+                            }
+                            
+                            a.onNext(v);
+                            
+                            e++;
+                        }
+                        
+                        if (e != 0L) {
+                            replenishMain += e;
+                            if (r != Long.MAX_VALUE) {
+                                r = REQUESTED.addAndGet(this, -e);
+                            }
+                            e = 0L;
+                            again = true;
+                        }
+                        
+                    }
+                }
+                if (r != 0L && !noSources) {
+                    
+                    int j = lastIndex;
+                    if (j >= n) {
+                        j = 0;
+                    }
+                    
+                    for (int i = 0; i < n; i++) {
+                        if (cancelled) {
+                            scalarQueue = null;
+                            s.cancel();
+                            unsubscribe();
+                            return;
+                        }
+                        
+                        PublisherFlatMapInner3<R> inner = as[j];
+                        if (inner != null) {
+                            d = inner.done;
+                            Queue<R> q = inner.queue;
+                            if (d && q == null) {
+                                remove(inner);
+                                again = true;
+                                replenishMain++;
+                            } else 
+                            if (q != null) {
+                                while (e != r) {
+                                    d = inner.done;
+                                    
+                                    R v;
+                                    
+                                    try {
+                                        v = q.poll();
+                                    } catch (Throwable ex) {
+                                        ExceptionHelper.throwIfFatal(ex);
+                                        inner.cancel();
+                                        if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                                            UnsignalledExceptions.onErrorDropped(ex);
+                                        }
+                                        v = null;
+                                        d = true;
+                                    }
+                                    
+                                    boolean empty = v == null;
+                                    
+                                    if (checkTerminated(d, false, a)) {
+                                        return;
+                                    }
+    
+                                    if (d && empty) {
+                                        remove(inner);
+                                        again = true;
+                                        replenishMain++;
+                                        break;
+                                    }
+                                    
+                                    if (empty) {
+                                        break;
+                                    }
+                                    
+                                    a.onNext(v);
+                                    
+                                    e++;
+                                }
+                                
+                                if (e == r) {
+                                    d = inner.done;
+                                    boolean empty;
+                                    
+                                    try {
+                                        empty = q.isEmpty();
+                                    } catch (Throwable ex) {
+                                        ExceptionHelper.throwIfFatal(ex);
+                                        inner.cancel();
+                                        if (!ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                                            UnsignalledExceptions.onErrorDropped(ex);
+                                        }
+                                        empty = true;
+                                        d = true;
+                                    }
+                                    
+                                    if (d && empty) {
+                                        remove(inner);
+                                        again = true;
+                                        replenishMain++;
+                                    }
+                                }
+                                
+                                if (e != 0L) {
+                                    if (!inner.done) {
+                                        inner.request(e);
+                                    }
+                                    if (r != Long.MAX_VALUE) {
+                                        r = REQUESTED.addAndGet(this, -e);
+                                        if (r == 0L) {
+                                            break; // 0 .. n - 1
+                                        }
+                                    }
+                                    e = 0L;
+                                }
+                            }
+                        }
+                        
+                        if (r == 0L) {
+                            break;
+                        }
+                        
+                        if (++j == n) {
+                            j = 0;
+                        }
+                    }
+                    
+                    lastIndex = j;
+                }
+                
+                if (r == 0L && n != 0) {
+                    as = get();
+                    n = as.length;
+                    
+                    for (int i = 0; i < n; i++) {
+                        if (cancelled) {
+                            scalarQueue = null;
+                            s.cancel();
+                            unsubscribe();
+                            return;
+                        }
+                        
+                        PublisherFlatMapInner3<R> inner = as[i];
+                        if (inner == null) {
+                            continue;
+                        }
+                        
+                        d = inner.done;
+                        Queue<R> q = inner.queue;
+                        if (d && (q == null || q.isEmpty())) {
+                            remove(inner);
+                            again = true;
+                            replenishMain++;
+                        }
+                    }
+                }
+                
+                if (replenishMain != 0L && !done && !cancelled) {
+                    s.request(replenishMain);
+                }
+                
+                if (again) {
+                    continue;
+                }
+                
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+        
+        boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
+            if (cancelled) {
+                scalarQueue = null;
+                s.cancel();
+                unsubscribe();
+                
+                return true;
+            }
+            
+            if (delayError) {
+                if (d && empty) {
+                    Throwable e = error;
+                    if (e != null && e != ExceptionHelper.TERMINATED) {
+                        e = ExceptionHelper.terminate(ERROR, this);
+                        a.onError(e);
+                    } else {
+                        a.onComplete();
+                    }
+                    
+                    return true;
+                }
+            } else {
+                if (d) {
+                    Throwable e = error;
+                    if (e != null && e != ExceptionHelper.TERMINATED) {
+                        e = ExceptionHelper.terminate(ERROR, this);
+                        scalarQueue = null;
+                        s.cancel();
+                        unsubscribe();
+                        
+                        a.onError(e);
+                        return true;
+                    } else 
+                    if (empty) {
+                        a.onComplete();
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        void innerError(PublisherFlatMapInner3<R> inner, Throwable e) {
+            if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                inner.done = true;
+                if (!delayError) {
+                    done = true;
+                }
+                drain();
+            } else {
+                UnsignalledExceptions.onErrorDropped(e);
+            }
+        }
+        
+        void innerNext(PublisherFlatMapInner3<R> inner, R v) {
+            if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
+                long r = requested;
+                
+                if (r != 0L) {
+                    actual.onNext(v);
+                    
+                    if (r != Long.MAX_VALUE) {
+                        REQUESTED.decrementAndGet(this);
+                    }
+                    
+                    inner.request(1);
+                } else {
+                    Queue<R> q;
+                    
+                    try {
+                        q = getOrCreateScalarQueue(inner);
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        inner.cancel();
+                        if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                            inner.done = true;
+                        } else {
+                            UnsignalledExceptions.onErrorDropped(ex);
+                        }
+                        drainLoop();
+                        return;
+                    }
+                    
+                    if (!q.offer(v)) {
+                        inner.cancel();
+                        
+                        Throwable e = new IllegalStateException("Scalar queue full?!");
+                        
+                        if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                            inner.done = true;
+                        } else {
+                            UnsignalledExceptions.onErrorDropped(e);
+                        }
+                        drainLoop();
+                        return;
+                    }
+                }
+                if (WIP.decrementAndGet(this) == 0) {
+                    return;
+                }
+                
+                drainLoop();
+            } else {
+                Queue<R> q;
+                
+                try {
+                    q = getOrCreateScalarQueue(inner);
+                } catch (Throwable ex) {
+                    ExceptionHelper.throwIfFatal(ex);
+                    inner.cancel();
+                    if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                        inner.done = true;
+                    } else {
+                        UnsignalledExceptions.onErrorDropped(ex);
+                    }
+                    drain();
+                    return;
+                }
+                
+                if (!q.offer(v)) {
+                    inner.cancel();
+                    
+                    Throwable e = new IllegalStateException("Scalar queue full?!");
+                    
+                    if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                        inner.done = true;
+                    } else {
+                        UnsignalledExceptions.onErrorDropped(e);
+                    }
+                }
+                drain();
+            }
+        }
+        
+        Queue<R> getOrCreateScalarQueue(PublisherFlatMapInner3<R> inner) {
+            Queue<R> q = inner.queue;
+            if (q == null) {
+                q = innerQueueSupplier.get();
+                inner.queue = q;
+            }
+            return q;
+        }
+
+        @Override
+        public long getCapacity() {
+            return maxConcurrency;
+        }
+
+        @Override
+        public long getPending() {
+            return done || scalarQueue == null ? -1L : scalarQueue.size();
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !isTerminated() && !isCancelled();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done && get().length == 0;
+        }
+
+        @Override
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return Arrays.asList(get()).iterator();
+        }
+
+        @Override
+        public long upstreamCount() {
+            return get().length;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+    }
+    
+    static final class PublisherFlatMapInner3<R> 
+    implements Subscriber<R>, Subscription, Producer, Receiver,
+               Backpressurable,
+               Cancellable,
+               Completable,
+               Prefetchable,
+               Introspectable {
+
+        final PublisherFlatMapMain3<?, R> parent;
+        
+        final int prefetch;
+        
+        final int limit;
+        
+        volatile Subscription s;
+        @SuppressWarnings("rawtypes")
+        static final AtomicReferenceFieldUpdater<PublisherFlatMapInner3, Subscription> S =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherFlatMapInner3.class, Subscription.class, "s");
+        
+        long produced;
+        
+        volatile Queue<R> queue;
+        
+        volatile boolean done;
+        
+        /** Represents the optimization mode of this inner subscriber. */
+        int sourceMode;
+        
+        /** Running with regular, arbitrary source. */
+        static final int NORMAL = 0;
+        /** Running with a source that implements SynchronousSource. */
+        static final int SYNC = 1;
+        /** Running with a source that implements AsynchronousSource. */
+        static final int ASYNC = 2;
+
+        volatile int once;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherFlatMapInner3> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(PublisherFlatMapInner3.class, "once");
+
+        public PublisherFlatMapInner3(PublisherFlatMapMain3<?, R> parent, int prefetch) {
             this.parent = parent;
             this.prefetch = prefetch;
             this.limit = prefetch - (prefetch >> 2);
