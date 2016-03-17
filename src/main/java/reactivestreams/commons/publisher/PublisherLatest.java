@@ -153,8 +153,9 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
                 }
 
                 long r = requested;
+                long e = 0L;
 
-                while (r != 0L) {
+                while (r != e) {
                     boolean d = done;
 
                     @SuppressWarnings("unchecked")
@@ -171,14 +172,16 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
                     }
 
                     a.onNext(v);
-
-                    if (r != Long.MAX_VALUE) {
-                        REQUESTED.decrementAndGet(this);
-                    }
+                    
+                    e++;
                 }
 
-                if (checkTerminated(done, value == null, a)) {
+                if (r == e && checkTerminated(done, value == null, a)) {
                     return;
+                }
+
+                if (e != 0L && r != Long.MAX_VALUE) {
+                    REQUESTED.addAndGet(this, -e);
                 }
 
                 missed = WIP.addAndGet(this, -missed);

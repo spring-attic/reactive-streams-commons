@@ -67,4 +67,31 @@ public class PublisherLatestTest {
           .assertError(RuntimeException.class)
           .assertErrorMessage("forced failure");
     }
+    
+    @Test
+    public void backpressureWithDrop() {
+        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+
+        TestSubscriber<Integer> ts = new TestSubscriber<Integer>(0) {
+            @Override
+            public void onNext(Integer t) {
+                super.onNext(t);
+                if (t == 2) {
+                    tp.onNext(3);
+                }
+            }
+        };
+
+        tp.onBackpressureLatest().subscribe(ts);
+        
+        tp.onNext(1);
+        tp.onNext(2);
+        
+        ts.request(1);
+        
+        ts.assertValue(2)
+        .assertNoError()
+        .assertNotComplete();
+        
+    }
 }
