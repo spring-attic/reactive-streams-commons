@@ -642,6 +642,7 @@ public class PublisherFlatMapTest {
         .assertNotComplete();
     }
     
+    @Ignore("For debugging purposes")
     @Test
     public void slowDrainLoop() {
         for (int i = 0; i < 50; i++) {

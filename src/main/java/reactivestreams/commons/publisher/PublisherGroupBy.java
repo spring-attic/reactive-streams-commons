@@ -266,9 +266,14 @@ implements Fuseable, Backpressurable  {
         
         @Override
         public void onComplete() {
+            for (UnicastGroupedPublisher<K, V> g : groupMap.values()) {
+                g.onComplete();
+            }
+            groupMap.clear();
+            GROUP_COUNT.decrementAndGet(this);
             done = true;
             if (enableAsyncFusion) {
-                signalAsyncComplete();
+                actual.onComplete();
             } else {
                 drain();
             }
@@ -327,15 +332,6 @@ implements Fuseable, Backpressurable  {
         @Override
         public long requestedFromDownstream() {
             return requested;
-        }
-
-        void signalAsyncComplete() {
-            groupCount = 0;
-            for (UnicastGroupedPublisher<K, V> g : groupMap.values()) {
-                g.onComplete();
-            }
-            actual.onComplete();
-            groupMap.clear();
         }
 
         void signalAsyncError() {
@@ -401,6 +397,7 @@ implements Fuseable, Backpressurable  {
             }
             drainLoop();
         }
+        
         void drainLoop() {
             
             int missed = 1;
@@ -462,7 +459,7 @@ implements Fuseable, Backpressurable  {
                     return true;
                 } else
                 if (empty) {
-                    signalAsyncComplete();
+                    a.onComplete();
                     return true;
                 }
             }

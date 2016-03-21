@@ -1,13 +1,18 @@
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import org.junit.*;
-import org.reactivestreams.*;
+import org.junit.Assert;
+import org.junit.Test;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
+import reactivestreams.commons.publisher.PublisherConcatMap.ErrorMode;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.EmptySubscription;
 
 public class PublisherGroupByTest {
 
@@ -605,6 +610,33 @@ public class PublisherGroupByTest {
         .assertNoError()
         .assertComplete();
 
+    }
+
+    @Test
+    public void groupsCompleteAsSoonAsMainCompletes() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(0, 20)
+        .groupBy(i -> i % 5)
+        .concatMap(v -> v, ErrorMode.IMMEDIATE, 2).subscribe(ts);
+        
+        ts.assertValues(0, 5, 10, 15, 1, 6, 11, 16, 2, 7, 12, 17, 3, 8, 13, 18, 4, 9, 14, 19)
+        .assertComplete()
+        .assertNoError();
+    }
+
+    @Test
+    public void groupsCompleteAsSoonAsMainCompletesNoFusion() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        PublisherBase.range(0, 20)
+        .groupBy(i -> i % 5)
+        .hide()
+        .concatMap(v -> v, ErrorMode.IMMEDIATE, 2).subscribe(ts);
+        
+        ts.assertValues(0, 5, 10, 15, 1, 6, 11, 16, 2, 7, 12, 17, 3, 8, 13, 18, 4, 9, 14, 19)
+        .assertComplete()
+        .assertNoError();
     }
 
 }
