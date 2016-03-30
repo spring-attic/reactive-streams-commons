@@ -306,19 +306,15 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         v = q.poll();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
-                        scheduler.accept(null);
-
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
 
                     if (cancelled) {
-                        scheduler.accept(null);
                         return;
                     }
                     if (v == null) {
-                        scheduler.accept(null);
-                        a.onComplete();
+                        doComplete(a);
                         return;
                     }
 
@@ -329,7 +325,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
                 if (e == r) {
                     if (cancelled) {
-                        scheduler.accept(null);
                         return;
                     }
 
@@ -339,15 +334,12 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         empty = q.isEmpty();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
-                        scheduler.accept(null);
-
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
 
                     if (empty) {
-                        scheduler.accept(null);
-                        a.onComplete();
+                        doComplete(a);
                         return;
                     }
                 }
@@ -387,10 +379,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         ExceptionHelper.throwIfFatal(ex);
 
                         s.cancel();
-                        scheduler.accept(null);
                         q.clear();
 
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
 
@@ -425,10 +416,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         ExceptionHelper.throwIfFatal(ex);
 
                         s.cancel();
-                        scheduler.accept(null);
                         q.clear();
 
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
 
@@ -450,6 +440,27 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             }
         }
 
+        void doComplete(Subscriber<?> a) {
+            scheduler.accept(null);
+            a.onComplete();
+            
+//            try {
+//                a.onComplete();
+//            } finally {
+//                scheduler.accept(null);
+//            }
+        }
+        
+        void doError(Subscriber<?> a, Throwable e) {
+            scheduler.accept(null);
+            a.onError(e);
+//          try {
+//              a.onError(e);
+//          } finally {
+//              scheduler.accept(null);
+//          }
+        }
+        
         @Override
         public void run() {
             if (sourceMode == Fuseable.SYNC) {
@@ -462,33 +473,29 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
                 s.cancel();
-                scheduler.accept(null);
                 queue.clear();
                 return true;
             }
             if (d) {
                 if (delayError) {
                     if (empty) {
-                        scheduler.accept(null);
                         Throwable e = error;
                         if (e != null) {
-                            a.onError(e);
+                            doError(a, e);
                         } else {
-                            a.onComplete();
+                            doComplete(a);
                         }
                         return true;
                     }
                 } else {
                     Throwable e = error;
                     if (e != null) {
-                        scheduler.accept(null);
                         queue.clear();
-                        a.onError(e);
+                        doError(a, e);
                         return true;
                     } else
                     if (empty) {
-                        scheduler.accept(null);
-                        a.onComplete();
+                        doComplete(a);
                         return true;
                     }
                 }
@@ -757,19 +764,15 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         v = q.poll();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
-                        scheduler.accept(null);
-                        
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
 
                     if (cancelled) {
-                        scheduler.accept(null);
                         return;
                     }
                     if (v == null) {
-                        scheduler.accept(null);
-                        a.onComplete();
+                        doComplete(a);
                         return;
                     }
                     
@@ -780,7 +783,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                 
                 if (e == r) {
                     if (cancelled) {
-                        scheduler.accept(null);
                         return;
                     }
                     
@@ -790,15 +792,12 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         empty = q.isEmpty();
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
-                        scheduler.accept(null);
-                        
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
                     
                     if (empty) {
-                        scheduler.accept(null);
-                        a.onComplete();
+                        doComplete(a);
                         return;
                     }
                 }
@@ -838,10 +837,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         ExceptionHelper.throwIfFatal(ex);
 
                         s.cancel();
-                        scheduler.accept(null);
                         q.clear();
                         
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
                     boolean empty = v == null;
@@ -875,10 +873,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                         ExceptionHelper.throwIfFatal(ex);
 
                         s.cancel();
-                        scheduler.accept(null);
                         q.clear();
                         
-                        a.onError(ex);
+                        doError(a, ex);
                         return;
                     }
 
@@ -976,36 +973,53 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             return queue == null ? requested : (requested - queue.size());
         }
 
+        void doComplete(Subscriber<?> a) {
+            scheduler.accept(null);
+            a.onComplete();
+            
+//            try {
+//                a.onComplete();
+//            } finally {
+//                scheduler.accept(null);
+//            }
+        }
+        
+        void doError(Subscriber<?> a, Throwable e) {
+            scheduler.accept(null);
+            a.onError(e);
+//          try {
+//              a.onError(e);
+//          } finally {
+//              scheduler.accept(null);
+//          }
+        }
+        
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
                 s.cancel();
                 queue.clear();
-                scheduler.accept(null);
                 return true;
             }
             if (d) {
                 if (delayError) {
                     if (empty) {
-                        scheduler.accept(null);
                         Throwable e = error;
                         if (e != null) {
-                            a.onError(e);
+                            doError(a, e);
                         } else {
-                            a.onComplete();
+                            doComplete(a);
                         }
                         return true;
                     }
                 } else {
                     Throwable e = error;
                     if (e != null) {
-                        scheduler.accept(null);
                         queue.clear();
-                        a.onError(e);
+                        doError(a, e);
                         return true;
                     } else 
                     if (empty) {
-                        scheduler.accept(null);
-                        a.onComplete();
+                        doComplete(a);
                         return true;
                     }
                 }
