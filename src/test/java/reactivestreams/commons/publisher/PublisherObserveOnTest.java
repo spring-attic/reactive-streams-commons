@@ -1,15 +1,25 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Arrays;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import reactivestreams.commons.processor.*;
+import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.ExecutorServiceScheduler;
+import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.SpscLinkedArrayQueue;
 
 public class PublisherObserveOnTest {
 
@@ -31,7 +41,7 @@ public class PublisherObserveOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", exec);
-        ctb.addRef("schedulerFactory", (Callable<? extends Consumer<Runnable>>)() -> r -> { });
+        ctb.addRef("scheduler", new ExecutorServiceScheduler(ForkJoinPool.commonPool()));
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
         ctb.addRef("queueSupplier", PublisherBase.defaultQueueSupplier(Integer.MAX_VALUE));
         

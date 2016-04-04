@@ -27,15 +27,19 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.subscriber.BlockingFirstSubscriber;
 import reactivestreams.commons.subscriber.BlockingLastSubscriber;
 import reactivestreams.commons.subscriber.EmptyAsyncSubscriber;
+import reactivestreams.commons.subscriber.LambdaSubscriber;
 import reactivestreams.commons.subscriber.PeekLastSubscriber;
 import reactivestreams.commons.util.ExecutorServiceScheduler;
 import reactivestreams.commons.util.SpscArrayQueue;
 import reactivestreams.commons.util.SpscLinkedArrayQueue;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Experimental base class with fluent API.
@@ -550,21 +554,21 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier(prefetch));
     }
 
-    public final PublisherBase<T> observeOn(Callable<? extends Consumer<Runnable>> schedulerFactory) {
-        return observeOn(schedulerFactory, true, BUFFER_SIZE);
+    public final PublisherBase<T> observeOn(Scheduler scheduler) {
+        return observeOn(scheduler, true, BUFFER_SIZE);
     }
 
-    public final PublisherBase<T> observeOn(Callable<? extends Consumer<Runnable>> schedulerFactory, boolean delayError) {
-        return observeOn(schedulerFactory, delayError, BUFFER_SIZE);
+    public final PublisherBase<T> observeOn(Scheduler scheduler, boolean delayError) {
+        return observeOn(scheduler, delayError, BUFFER_SIZE);
     }
     
-    public final PublisherBase<T> observeOn(Callable<? extends Consumer<Runnable>> schedulerFactory, boolean delayError, int prefetch) {
+    public final PublisherBase<T> observeOn(Scheduler scheduler, boolean delayError, int prefetch) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, schedulerFactory, true);
+            return new PublisherSubscribeOnValue<>(value, scheduler, true);
         }
-        return new PublisherObserveOn<>(this, schedulerFactory, delayError, prefetch, defaultQueueSupplier(prefetch));
+        return new PublisherObserveOn<>(this, scheduler, delayError, prefetch, defaultQueueSupplier(prefetch));
     }
 
     public final PublisherBase<T> subscribeOn(ExecutorService executor) {
@@ -576,40 +580,35 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherSubscribeOn<>(this, fromExecutor(executor));
     }
 
-    public final PublisherBase<T> subscribeOn(ExecutorService executor, boolean eagerCancel, boolean requestOn) {
+    public final PublisherBase<T> subscribeOn(Scheduler scheduler) {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), eagerCancel);
+            return new PublisherSubscribeOnValue<>(value, scheduler, true);
         }
-        return new PublisherSubscribeOnOther<>(this, fromExecutor(executor), eagerCancel, requestOn);
+        return new PublisherSubscribeOn<>(this, scheduler);
     }
 
-    public final PublisherBase<T> subscribeOn(Callable<? extends Consumer<Runnable>> schedulerFactory) {
-        if (this instanceof Fuseable.ScalarSupplier) {
-            @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, schedulerFactory, true);
-        }
-        return new PublisherSubscribeOn<>(this, schedulerFactory);
-    }
-
-    public final PublisherBase<T> subscribeOn(Callable<? extends Consumer<Runnable>> schedulerFactory, boolean eagerCancel, boolean requestOn) {
-        if (this instanceof Fuseable.ScalarSupplier) {
-            @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, schedulerFactory, eagerCancel);
-        }
-        return new PublisherSubscribeOnOther<>(this, schedulerFactory, eagerCancel, requestOn);
-    }
-    
-    
     public final Runnable subscribe() {
         EmptyAsyncSubscriber<T> s = new EmptyAsyncSubscriber<>();
         subscribe(s);
         return s;
     }
     
+    public final Runnable subscribe(Consumer<? super T> onNext) {
+        return subscribe(onNext, DROP_ERROR, EMPTY_RUNNABLE);
+    }
+
+    public final Runnable subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError) {
+        return subscribe(onNext, onError, EMPTY_RUNNABLE);
+    }
+
+    public final Runnable subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError, Runnable onComplete) {
+        LambdaSubscriber<T> s = new LambdaSubscriber<>(onNext, onError, onComplete);
+        subscribe(s);
+        return s;
+    }
+
     public final PublisherBase<T> aggregate(BiFunction<T, T, T> aggregator) {
         if (this instanceof Supplier) {
             return this;
@@ -871,7 +870,31 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         }
     };
     
-    static Callable<Consumer<Runnable>> fromExecutor(ExecutorService executor) {
+    static final Runnable EMPTY_RUNNABLE = new Runnable() {
+        @Override
+        public void run() { 
+            
+        }
+        
+        @Override
+        public String toString() {
+            return "EMPTY_RUNNABLE";
+        }
+    };
+    
+    static final Consumer<Throwable> DROP_ERROR = new Consumer<Throwable>() {
+        @Override
+        public void accept(Throwable t) {
+            UnsignalledExceptions.onErrorDropped(t);
+        }
+        
+        @Override
+        public String toString() {
+            return "UnsignalledExceptions::onErrorDropped";
+        }
+    };
+    
+    static Scheduler fromExecutor(ExecutorService executor) {
         Objects.requireNonNull(executor, "executor");
         return new ExecutorServiceScheduler(executor);
     }

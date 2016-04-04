@@ -2,6 +2,8 @@ package reactivestreams.commons.processor;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.reactivestreams.Subscriber;
+
 import reactivestreams.commons.test.TestSubscriber;
 
 public class SimpleProcessorTest {
@@ -23,7 +25,7 @@ public class SimpleProcessorTest {
 
     @Test(expected = NullPointerException.class)
     public void subscribeNull() {
-        new SimpleProcessor<Integer>().subscribe(null);
+        new SimpleProcessor<Integer>().subscribe((Subscriber<Object>)null);
     }
 
     @Test

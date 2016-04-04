@@ -1,10 +1,13 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
+
+import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledEmpty;
+import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledScalar;
+import reactivestreams.commons.scheduler.Scheduler;
+import reactivestreams.commons.scheduler.Scheduler.Worker;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
 
@@ -17,43 +20,43 @@ final class PublisherSubscribeOnValue<T> extends PublisherBase<T> {
 
     final T value;
     
-    final Callable<? extends Consumer<Runnable>> schedulerFactory;
+    final Scheduler scheduler;
 
     final boolean eagerCancel;
 
     public PublisherSubscribeOnValue(T value, 
-            Callable<? extends Consumer<Runnable>> schedulerFactory, 
+            Scheduler scheduler, 
             boolean eagerCancel) {
         this.value = value;
-        this.schedulerFactory = Objects.requireNonNull(schedulerFactory, "schedulerFactory");
+        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.eagerCancel = eagerCancel;
     }
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        Consumer<Runnable> scheduler;
+        Worker worker;
         
         try {
-            scheduler = schedulerFactory.call();
+            worker = scheduler.createWorker();
         } catch (Throwable e) {
             ExceptionHelper.throwIfFatal(e);
             EmptySubscription.error(s, e);
             return;
         }
         
-        if (scheduler == null) {
-            EmptySubscription.error(s, new NullPointerException("The schedulerFactory returned a null Function"));
+        if (worker == null) {
+            EmptySubscription.error(s, new NullPointerException("The scheduler returned a null Function"));
             return;
         }
 
-        if (value == null) {
-            PublisherSubscribeOn.ScheduledEmptySubscriptionEager parent =
-                    new PublisherSubscribeOn.ScheduledEmptySubscriptionEager(s, scheduler);
+        T v = value;
+        if (v == null) {
+            ScheduledEmpty parent = new ScheduledEmpty(s);
             s.onSubscribe(parent);
-            scheduler.accept(parent);
-        }
-        else {
-            s.onSubscribe(new PublisherSubscribeOn.ScheduledSubscriptionEagerCancel<>(s, value, scheduler));
+            Runnable f = scheduler.schedule(parent);
+            parent.setFuture(f);
+        } else {
+            s.onSubscribe(new ScheduledScalar<>(s, v, scheduler));
         }
     }
 }

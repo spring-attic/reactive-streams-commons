@@ -1,16 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.ExecutorServiceScheduler;
 
 public class PublisherSubscribeOnTest {
     
@@ -20,18 +19,7 @@ public class PublisherSubscribeOnTest {
         
         ctb.addRef("source", PublisherBase.never());
         ctb.addRef("executor", ForkJoinPool.commonPool());
-        ctb.addRef("schedulerFactory", (Callable<? extends Consumer<Runnable>>)() -> r -> { });
-        
-        ctb.test();
-    }
-    
-    @Test
-    public void constructors2() {
-        ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherSubscribeOnOther.class);
-        
-        ctb.addRef("source", PublisherBase.never());
-        ctb.addRef("executor", ForkJoinPool.commonPool());
-        ctb.addRef("schedulerFactory", (Callable<? extends Consumer<Runnable>>)() -> r -> { });
+        ctb.addRef("scheduler", new ExecutorServiceScheduler(ForkJoinPool.commonPool()));
         
         ctb.test();
     }
@@ -54,132 +42,6 @@ public class PublisherSubscribeOnTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
         PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
-        
-        Thread.sleep(100);
-        
-        ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
-        ts.request(500);
-
-        Thread.sleep(250);
-
-        ts.assertValueCount(500)
-        .assertNoError()
-        .assertNotComplete();
-
-        ts.request(500);
-
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValueCount(1000)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void eagerCancelNoRequest() {
-        TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool(), true, false).subscribe(ts);
-        
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValueCount(1000)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void eagerCancelNoRequestBackpressured() throws Exception {
-        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool(), true, false).subscribe(ts);
-        
-        Thread.sleep(100);
-        
-        ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
-        ts.request(500);
-
-        Thread.sleep(250);
-
-        ts.assertValueCount(500)
-        .assertNoError()
-        .assertNotComplete();
-
-        ts.request(500);
-
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValueCount(1000)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerCancelNoRequest() {
-        TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool(), false, false).subscribe(ts);
-        
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValueCount(1000)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerCancelNoRequestBackpressured() throws Exception {
-        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool(), false, false).subscribe(ts);
-        
-        Thread.sleep(100);
-        
-        ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
-        ts.request(500);
-
-        Thread.sleep(250);
-
-        ts.assertValueCount(500)
-        .assertNoError()
-        .assertNotComplete();
-
-        ts.request(500);
-
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValueCount(1000)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerCancelRequestOn() {
-        TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool(), false, true).subscribe(ts);
-        
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValueCount(1000)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerCancelRequestOnBackpressured() throws Exception {
-        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool(), false, true).subscribe(ts);
         
         Thread.sleep(100);
         
@@ -256,66 +118,6 @@ public class PublisherSubscribeOnTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
         PublisherBase.<Integer>empty().subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
-        
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertNoValues()
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerCancelJust() {
-        TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        PublisherBase.just(1).subscribeOn(ForkJoinPool.commonPool(), false, true).subscribe(ts);
-        
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValue(1)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerCancelJustBackpressured() throws Exception {
-        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
-        PublisherBase.just(1).subscribeOn(ForkJoinPool.commonPool(), false, true).subscribe(ts);
-        
-        Thread.sleep(100);
-        
-        ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
-        ts.request(500);
-
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValue(1)
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerEmpty() {
-        TestSubscriber<Integer> ts = new TestSubscriber<>();
-        
-        PublisherBase.<Integer>empty().subscribeOn(ForkJoinPool.commonPool(), false, true).subscribe(ts);
-        
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertNoValues()
-        .assertNoError()
-        .assertComplete();
-    }
-
-    @Test
-    public void nonEagerEmptyBackpressured() throws Exception {
-        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
-        
-        PublisherBase.<Integer>empty().subscribeOn(ForkJoinPool.commonPool(), false, true).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         

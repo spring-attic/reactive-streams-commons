@@ -2,17 +2,17 @@ package reactivestreams.commons.util;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
+
+import reactivestreams.commons.scheduler.Scheduler;
 
 /**
  * An Rsc scheduler which uses a backing ExecutorService to schedule Runnables for async operators. 
  */
-public final class ExecutorServiceScheduler implements Callable<Consumer<Runnable>> {
+public final class ExecutorServiceScheduler implements Scheduler {
 
     static final Runnable EMPTY = new Runnable() {
         @Override
@@ -32,11 +32,17 @@ public final class ExecutorServiceScheduler implements Callable<Consumer<Runnabl
     }
     
     @Override
-    public Consumer<Runnable> call() throws Exception {
+    public Worker createWorker() {
         return new ExecutorServiceWorker(executor);
     }
+    
+    @Override
+    public Runnable schedule(Runnable task) {
+        Future<?> f = executor.submit(task);
+        return () -> f.cancel(true);
+    }
 
-    static final class ExecutorServiceWorker implements Consumer<Runnable> {
+    static final class ExecutorServiceWorker implements Worker {
         
         final ExecutorService executor;
         
@@ -50,17 +56,13 @@ public final class ExecutorServiceScheduler implements Callable<Consumer<Runnabl
         }
         
         @Override
-        public void accept(Runnable t) {
-            if (t == null) {
-                terminate();
-                return;
-            }
-            
+        public Runnable schedule(Runnable t) {
             ScheduledRunnable sr = new ScheduledRunnable(t, this);
             if (add(sr)) {
                 Future<?> f = executor.submit(sr);
                 sr.setFuture(f);
             }
+            return sr::cancel;
         }
         
         boolean add(ScheduledRunnable sr) {
@@ -85,7 +87,8 @@ public final class ExecutorServiceScheduler implements Callable<Consumer<Runnabl
             }
         }
         
-        void terminate() {
+        @Override
+        public void shutdown() {
             if (!terminated) {
                 Collection<ScheduledRunnable> coll;
                 synchronized (this) {
@@ -150,6 +153,22 @@ public final class ExecutorServiceScheduler implements Callable<Consumer<Runnabl
                     if (a != null) {
                         a.cancel(true);
                     }
+                    return;
+                }
+            }
+        }
+        
+        void cancel() {
+            for (;;) {
+                Future<?> a = get();
+                if (a == FINISHED) {
+                    return;
+                }
+                if (compareAndSet(a, CANCELLED)) {
+                    if (a != null) {
+                        a.cancel(true);
+                    }
+                    parent.delete(this);
                     return;
                 }
             }
