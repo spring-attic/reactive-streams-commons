@@ -61,7 +61,7 @@ public interface Scheduler {
      * A worker representing an asynchronous boundary that executes tasks in
      * a FIFO order, guaranteed non-concurrently with respect to each other. 
      */
-    public interface Worker {
+    interface Worker {
         
         /**
          * Schedules the task on this worker.
@@ -82,5 +82,5 @@ public interface Scheduler {
     /**
      * Returned by the schedule() methods if the Scheduler or the Worker has ben shut down.
      */
-    static Runnable REJECTED = () -> { };
+    Runnable REJECTED = () -> { };
 }
