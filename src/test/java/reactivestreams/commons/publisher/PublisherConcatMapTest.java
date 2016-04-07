@@ -470,4 +470,17 @@ public class PublisherConcatMapTest {
         .assertComplete()
         .assertNoError();
     }
+
+    @Test
+    public void allEmptyBackpressured() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase.range(0, 10).hide()
+        .concatMap(v -> PublisherBase.<Integer>empty(), PublisherConcatMap.ErrorMode.IMMEDIATE, 2).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertComplete()
+        .assertNoError();
+    }
+
 }
