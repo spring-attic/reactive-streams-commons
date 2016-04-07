@@ -75,4 +75,20 @@ public class PublisherConcatArrayTest {
           .assertError(NullPointerException.class);
     }
 
+    @Test
+    public void scalarAndRangeBackpressured() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase.just(1).concatWith(PublisherBase.range(2, 3)).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError();
+        
+        ts.request(5);
+        
+        ts.assertValues(1, 2, 3, 4)
+        .assertComplete()
+        .assertNoError();
+    }
+
 }
