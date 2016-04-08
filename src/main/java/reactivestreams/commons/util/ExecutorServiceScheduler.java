@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.*;
 
 import reactivestreams.commons.scheduler.Scheduler;
 
@@ -115,14 +115,19 @@ public final class ExecutorServiceScheduler implements Scheduler {
         final Runnable task;
         
         final ExecutorServiceWorker parent;
+        
+        volatile Thread current;
+        static final AtomicReferenceFieldUpdater<ScheduledRunnable, Thread> CURRENT =
+                AtomicReferenceFieldUpdater.newUpdater(ScheduledRunnable.class, Thread.class, "current");
 
         public ScheduledRunnable(Runnable task, ExecutorServiceWorker parent) {
-            this.task = task;;
+            this.task = task;
             this.parent = parent;
         }
         
         @Override
         public void run() {
+            CURRENT.lazySet(this, Thread.currentThread());
             try {
                 try {
                     task.run();
@@ -140,7 +145,12 @@ public final class ExecutorServiceScheduler implements Scheduler {
                         break;
                     }
                 }
+                CURRENT.lazySet(this, null);
             }
+        }
+        
+        void doCancel(Future<?> a) {
+            a.cancel(Thread.currentThread() != current);
         }
         
         void cancelFuture() {
@@ -151,7 +161,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
                 }
                 if (compareAndSet(a, CANCELLED)) {
                     if (a != null) {
-                        a.cancel(true);
+                        doCancel(a);
                     }
                     return;
                 }
@@ -166,7 +176,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
                 }
                 if (compareAndSet(a, CANCELLED)) {
                     if (a != null) {
-                        a.cancel(true);
+                        doCancel(a);
                     }
                     parent.delete(this);
                     return;
@@ -182,7 +192,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
                     return;
                 }
                 if (a == CANCELLED) {
-                    f.cancel(true);
+                    doCancel(a);
                     return;
                 }
                 if (compareAndSet(null, f)) {
