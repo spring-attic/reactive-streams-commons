@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.processor.UnicastProcessor;
 import reactivestreams.commons.publisher.PublisherConcatMap.ErrorMode;
@@ -451,4 +452,35 @@ public class PublisherConcatMapTest {
         .assertNotComplete();
     }
     
+    @Test
+    public void scalarAndRangeBackpressured() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        @SuppressWarnings("unchecked")
+        PublisherBase<Integer>[] sources = new PublisherBase[] { PublisherBase.just(1), PublisherBase.range(2, 3) };
+        
+        PublisherBase.range(0, 2).concatMap(v -> sources[v]).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertNoError();
+        
+        ts.request(5);
+        
+        ts.assertValues(1, 2, 3, 4)
+        .assertComplete()
+        .assertNoError();
+    }
+
+    @Test
+    public void allEmptyBackpressured() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        PublisherBase.range(0, 10).hide()
+        .concatMap(v -> PublisherBase.<Integer>empty(), PublisherConcatMap.ErrorMode.IMMEDIATE, 2).subscribe(ts);
+        
+        ts.assertNoValues()
+        .assertComplete()
+        .assertNoError();
+    }
+
 }
