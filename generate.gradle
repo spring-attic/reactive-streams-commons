@@ -24,8 +24,7 @@ def reactorCommon = ['api-single'           : 'reactor.core.publisher.Mono',
 					 'FunctionHelper'       : 'FunctionUtils',
 					 'DrainHelper'          : 'reactor.rx.util.DrainUtils',
 					 'ExceptionHelper'      : 'Exceptions',
-					 'SubscribeOn'          : 'PublishOn',
-					 'ObserveOn'            : 'DispatchOn',
+					 'ObserveOn'            : 'PublishOn',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
 					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
@@ -113,7 +112,7 @@ task generateTargetAPI(type: Sync) {
 			.contains('Publisher') && (name in target.exclude || name in defaultSingleAPI)
   }
 
-  exclude 'PublisherBase.java'
+  exclude 'Px.java'
 
   if(target['api-operator']){
 	exclude 'PublisherSource.java'
@@ -123,9 +122,6 @@ task generateTargetAPI(type: Sync) {
 
 	if(target['ObserveOn'] && fileName.contains('ObserveOn')){
 	  fileName =fileName.replace('ObserveOn', target['ObserveOn'])
-	}
-	else if(target['SubscribeOn'] && fileName.contains('SubscribeOn')){
-	  fileName = fileName.replace('SubscribeOn', target['SubscribeOn'])
 	}
 
 	fileName.replace('ConnectablePublisher.java', 'Connectable' +apiClassName+ '.java')
@@ -179,7 +175,7 @@ task generateTestCoverage(type: Sync) {
 			.contains('Publisher') && (name in target.exclude || name in defaultSingleAPI)
   }
 
-  exclude 'PublisherBase.java'
+  exclude 'Px.java'
 
   if(target['api-operator']){
 	exclude 'PublisherSource.java'
@@ -189,9 +185,6 @@ task generateTestCoverage(type: Sync) {
 
 	if(target['ObserveOn'] && fileName.contains('ObserveOn')){
 	  fileName =fileName.replace('ObserveOn', target['ObserveOn'])
-	}
-	else if(target['SubscribeOn'] && fileName.contains('SubscribeOn')){
-	  fileName = fileName.replace('SubscribeOn', target['SubscribeOn'])
 	}
 
 	fileName.replace('ConnectablePublisher.java', 'Connectable' +apiClassName+ '.java')
@@ -229,6 +222,8 @@ task generateTargetSingleAPI(type: Copy) {
 			.contains('Publisher') || (( !target.include || name in target.include) && name in defaultSingleAPI)
   }
 
+
+  exclude 'Px.java'
 
   exclude { details ->
 	def name = details.file.name
@@ -378,9 +373,6 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   if(target['ObserveOn']) {
 	l = l.replaceAll('ObserveOn', target['ObserveOn'])
   }
-  if(target['SubscribeOn']) {
-	l = l.replaceAll('SubscribeOn', target['SubscribeOn'])
-  }
 
   if (l.trim().startsWith('import')) {
 	if(l.contains("org.reactivestreams")){
@@ -457,7 +449,7 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 
   l = l
 		  .replace("PublisherSource", apiBarrierClass)
-		  .replace("PublisherBase", apiClass)
+		  .replace("Px", apiClass)
 		  .replace("extends ConnectablePublisher", 'extends Connectable'+apiClassName)
 		  .replaceAll("implements Publisher([^,]*),", "extends $apiClass\$1 implements")
 		  .replace("implements Publisher", "extends $apiClass")
