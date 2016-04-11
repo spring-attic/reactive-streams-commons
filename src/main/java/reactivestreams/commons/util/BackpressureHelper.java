@@ -1,6 +1,5 @@
 package reactivestreams.commons.util;
 
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 public enum BackpressureHelper {

@@ -99,18 +99,8 @@ public class BackpressureHelperPerf {
     }
 
     @Benchmark
-    public void request() {
-        BackpressureHelper.getAndAddCap(req, 1);
-    }
-
-    @Benchmark
     public void requestField() {
         BackpressureHelper.getAndAddCap(REQUESTED, this, 1);
-    }
-
-    @Benchmark
-    public void requestMax() {
-        BackpressureHelper.getAndAddCap(reqMax, 1);
     }
 
     @Benchmark
