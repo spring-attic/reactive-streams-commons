@@ -1,17 +1,45 @@
 package reactivestreams.commons.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Processor;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.subscriber.*;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.subscriber.BlockingFirstSubscriber;
+import reactivestreams.commons.subscriber.BlockingLastSubscriber;
+import reactivestreams.commons.subscriber.EmptyAsyncSubscriber;
+import reactivestreams.commons.subscriber.LambdaSubscriber;
+import reactivestreams.commons.subscriber.PeekLastSubscriber;
+import reactivestreams.commons.util.ExecutorServiceScheduler;
+import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.SpscLinkedArrayQueue;
+import reactivestreams.commons.util.UnsignalledExceptions;
 
 /**
  * Experimental base class with fluent API: (P)ublisher E(x)tensions.
@@ -668,6 +696,14 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     public final Px<T> awaitOnSubscribe() {
         return new PublisherAwaitOnSubscribe<>(this);
     }
+    
+    public final Px<T> mergeWith(Publisher<? extends T> other) {
+        if (this instanceof PublisherMerge) {
+            return ((PublisherMerge<T>)this).mergeAdditionalSource(other);
+        }
+        return mergeArray(this, other);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PxWrapper<T> extends PublisherSource<T, T> {
@@ -812,10 +848,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return new PublisherConcatIterable<>(sources);
     }
 
-    @SuppressWarnings("unchecked")
     @SafeVarargs
     public static <T> Px<T> mergeArray(Publisher<? extends T>... sources) {
-        return fromArray(sources).flatMap(IDENTITY_FUNCTION);
+        return new PublisherMerge<>(sources, false, Integer.MAX_VALUE, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE, defaultQueueSupplier(BUFFER_SIZE));
     }
 
     @SuppressWarnings("unchecked")
