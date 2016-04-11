@@ -1,45 +1,18 @@
 package reactivestreams.commons.publisher;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.LongConsumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 import java.util.stream.Stream;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.Fuseable;
+import reactivestreams.commons.processor.PublisherDetach;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.subscriber.BlockingFirstSubscriber;
-import reactivestreams.commons.subscriber.BlockingLastSubscriber;
-import reactivestreams.commons.subscriber.EmptyAsyncSubscriber;
-import reactivestreams.commons.subscriber.LambdaSubscriber;
-import reactivestreams.commons.subscriber.PeekLastSubscriber;
-import reactivestreams.commons.util.ExecutorServiceScheduler;
-import reactivestreams.commons.util.SpscArrayQueue;
-import reactivestreams.commons.util.SpscLinkedArrayQueue;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.subscriber.*;
+import reactivestreams.commons.util.*;
 
 /**
  * Experimental base class with fluent API.
@@ -687,6 +660,10 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
     public final <U> ConnectablePublisher<U> multicast(Supplier<? extends Processor<? super T, ? extends T>>
             processorSupplier, Function<PublisherBase<T>, ? extends Publisher<? extends U>> selector) {
         return new ConnectablePublisherMulticast<>(this, processorSupplier, selector);
+    }
+    
+    public final PublisherBase<T> onTerminateDetach() {
+        return new PublisherDetach<>(this);
     }
     
     // ---------------------------------------------------------------------------------------
