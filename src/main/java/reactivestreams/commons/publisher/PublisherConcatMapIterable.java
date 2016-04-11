@@ -13,6 +13,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.util.BackpressureHelper;
 import reactivestreams.commons.util.EmptySubscription;
 import reactivestreams.commons.util.ExceptionHelper;
@@ -90,6 +91,8 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
         
         int consumed;
         
+        int fusionMode;
+        
         public PublisherConcatMapIterableSubscriber(Subscriber<? super R> actual,
                 Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch,
                 Supplier<Queue<T>> queueSupplier) {
@@ -103,6 +106,33 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
         @Override
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+                
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked")
+                    Fuseable.QueueSubscription<T> qs = (Fuseable.QueueSubscription<T>) s;
+                    
+                    int m = qs.requestFusion(Fuseable.ANY);
+                    
+                    if (m == Fuseable.SYNC) {
+                        fusionMode = m;
+                        this.queue = qs;
+                        done = true;
+                        
+                        actual.onSubscribe(this);
+                        
+                        return;
+                    } else
+                    if (m == Fuseable.ASYNC) {
+                        fusionMode = m;
+                        this.queue = qs;
+                        
+                        actual.onSubscribe(this);
+                        
+                        s.request(prefetch);
+                        return;
+                    }
+                }
                 
                 try {
                     queue = queueSupplier.get();
@@ -113,8 +143,6 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
                     return;
                 }
 
-                this.s = s;
-                
                 actual.onSubscribe(this);
                 
                 s.request(prefetch);
@@ -123,9 +151,11 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
         
         @Override
         public void onNext(T t) {
-            if (!queue.offer(t)) {
-                onError(new IllegalStateException("Queue is full?!"));
-                return;
+            if (fusionMode != Fuseable.ASYNC) {
+                if (!queue.offer(t)) {
+                    onError(new IllegalStateException("Queue is full?!"));
+                    return;
+                }
             }
             drain();
         }
@@ -172,6 +202,7 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
             
             final Subscriber<? super R> a = actual;
             final Queue<T> q = queue;
+            final boolean replenish = fusionMode != Fuseable.SYNC;
             
             int missed = 1;
             
@@ -213,7 +244,7 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
                         
                         if (!b) {
                             it = null;
-                            consumedOne();
+                            consumedOne(replenish);
                             continue;
                         }
                         
@@ -259,7 +290,7 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
                         }
                         
                         if (!b) {
-                            consumedOne();
+                            consumedOne(replenish);
                             it = null;
                             current = null;
                             break;
@@ -301,13 +332,15 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
             }
         }
         
-        void consumedOne() {
-            int c = consumed + 1;
-            if (c == limit) {
-                consumed = 0;
-                s.request(c);
-            } else {
-                consumed = c;
+        void consumedOne(boolean enabled) {
+            if (enabled) {
+                int c = consumed + 1;
+                if (c == limit) {
+                    consumed = 0;
+                    s.request(c);
+                } else {
+                    consumed = c;
+                }
             }
         }
         
