@@ -49,6 +49,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherAggregate` : Aggregates the source values with an aggergator function and emits the last result.
   - `PublisherAll` : emits a single true if all values of the source sequence match the predicate
   - `PublisherAny` : emits a single true if any value of the source sequence matches the predicate
+  - `PublisherAwaitOnSubscribe` : makes sure onSubscribe can't trigger the onNext events until it returns
   - `PublisherBuffer` : buffers certain number of subsequent elements and emits the buffers
   - `PublisherBufferBoundary` : buffers elements into continuous, non-overlapping lists where another Publisher
   signals the start/end of the buffer regions
@@ -63,6 +64,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherDistinctUntilChanged` : filters out subsequent and repeated elements
   - `PublisherDefaultIfEmpty` : emits a single value if the source is empty
   - `PublisherDelaySubscription` : delays the subscription to the main source until the other source signals a value or completes
+  - `PublisherDetach` : detaches the both the child Subscriber and the Subscription on termination or cancellation.
   - `PublisherDrop` : runs the source in unbounded mode and drops values if the downstream doesn't request fast enough
   - `PublisherElementAt` : emits the element at the specified index location
   - `PublisherFilter` : filters out values which doesn't pass a predicate
@@ -106,6 +108,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherWindowStartEnd` : splits the source sequence into potentially overlapping windows controlled by a
   start Publisher and a derived end Publisher for each start value
   - `PublisherWithLatestFrom` : combines values from a master source with the latest values of another Publisher via a function
+  - `PublisherZip` : Repeatedly takes one item from all source Publishers and runs it through a function to produce the output item
   - `PublisherZipIterable` : pairwise combines a sequence of values with elements from an iterable
 
 ## Supported extractions
