@@ -5,9 +5,11 @@ import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import reactivestreams.commons.scheduler.Scheduler;
+import reactivestreams.commons.util.ExecutorScheduler.ExecutorSchedulerTrampolineWorker;
 
 /**
  * An Rsc scheduler which uses a backing ExecutorService to schedule Runnables for async operators. 
@@ -27,12 +29,22 @@ public final class ExecutorServiceScheduler implements Scheduler {
 
     final ExecutorService executor;
 
+    final boolean trampoline;
+
     public ExecutorServiceScheduler(ExecutorService executor) {
+        this(executor, true);
+    }
+
+    public ExecutorServiceScheduler(ExecutorService executor, boolean trampoline) {
         this.executor = executor;
+        this.trampoline = trampoline;
     }
     
     @Override
     public Worker createWorker() {
+        if  (trampoline) {
+            return new ExecutorSchedulerTrampolineWorker(executor);
+        }
         return new ExecutorServiceWorker(executor);
     }
     
@@ -201,5 +213,4 @@ public final class ExecutorServiceScheduler implements Scheduler {
             }
         }
     }
-
 }

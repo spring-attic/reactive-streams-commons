@@ -217,7 +217,6 @@ public final class ExecutorScheduler implements Scheduler {
 
         volatile boolean terminated;
         
-        
         volatile int wip;
         static final AtomicIntegerFieldUpdater<ExecutorSchedulerTrampolineWorker> WIP =
                 AtomicIntegerFieldUpdater.newUpdater(ExecutorSchedulerTrampolineWorker.class, "wip");
