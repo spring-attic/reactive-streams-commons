@@ -19,7 +19,7 @@ public class ConnectablePublisherPublishTest {
     public void constructors() {
         ConstructorTestBuilder ctb = new ConstructorTestBuilder(ConnectablePublisherPublish.class);
         
-        ctb.addRef("source", PublisherBase.never());
+        ctb.addRef("source", Px.never());
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
         ctb.addRef("queueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
         
@@ -31,7 +31,7 @@ public class ConnectablePublisherPublishTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).publish();
+        ConnectablePublisher<Integer> p = Px.range(1, 5).publish();
         
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -62,7 +62,7 @@ public class ConnectablePublisherPublishTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>(0);
         TestSubscriber<Integer> ts2 = new TestSubscriber<>(0);
         
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).publish();
+        ConnectablePublisher<Integer> p = Px.range(1, 5).publish();
         
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -219,7 +219,7 @@ public class ConnectablePublisherPublishTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).hide().publish();
+        ConnectablePublisher<Integer> p = Px.range(1, 5).hide().publish();
         
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -250,7 +250,7 @@ public class ConnectablePublisherPublishTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>(0);
         TestSubscriber<Integer> ts2 = new TestSubscriber<>(0);
         
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).hide().publish();
+        ConnectablePublisher<Integer> p = Px.range(1, 5).hide().publish();
         
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -371,7 +371,7 @@ public class ConnectablePublisherPublishTest {
     public void fusedMapInvalid() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).map(v -> (Integer)null).publish();
+        ConnectablePublisher<Integer> p = Px.range(1, 5).map(v -> (Integer)null).publish();
         
         p.subscribe(ts);
         

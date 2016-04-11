@@ -6,7 +6,7 @@ package reactivestreams.commons.publisher;
  * @param <K> the key type
  * @param <V> the value type
  */
-public abstract class GroupedPublisher<K, V> extends PublisherBase<V>{
+public abstract class GroupedPublisher<K, V> extends Px<V>{
 
 
 	/**

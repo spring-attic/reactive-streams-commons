@@ -35,7 +35,7 @@ public class PublisherConcatMapTest {
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 2).concatMap(v -> PublisherBase.range(v, 2)).subscribe(ts);
+        Px.range(1, 2).concatMap(v -> Px.range(v, 2)).subscribe(ts);
         
         ts.assertValues(1, 2, 2, 3)
         .assertNoError()
@@ -46,7 +46,7 @@ public class PublisherConcatMapTest {
     public void normal2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 2).hide().concatMap(v -> PublisherBase.range(v, 2)).subscribe(ts);
+        Px.range(1, 2).hide().concatMap(v -> Px.range(v, 2)).subscribe(ts);
         
         ts.assertValues(1, 2, 2, 3)
         .assertNoError()
@@ -57,7 +57,7 @@ public class PublisherConcatMapTest {
     public void normalBoundary() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 2).concatMap(v -> PublisherBase.range(v, 2), PublisherConcatMap.ErrorMode.BOUNDARY).subscribe(ts);
+        Px.range(1, 2).concatMap(v -> Px.range(v, 2), PublisherConcatMap.ErrorMode.BOUNDARY).subscribe(ts);
         
         ts.assertValues(1, 2, 2, 3)
         .assertNoError()
@@ -68,7 +68,7 @@ public class PublisherConcatMapTest {
     public void normalBoundary2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 2).hide().concatMap(v -> PublisherBase.range(v, 2), PublisherConcatMap.ErrorMode.BOUNDARY).subscribe(ts);
+        Px.range(1, 2).hide().concatMap(v -> Px.range(v, 2), PublisherConcatMap.ErrorMode.BOUNDARY).subscribe(ts);
         
         ts.assertValues(1, 2, 2, 3)
         .assertNoError()
@@ -79,7 +79,7 @@ public class PublisherConcatMapTest {
     public void normalLongRun() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000).concatMap(v -> PublisherBase.range(v, 1000)).subscribe(ts);
+        Px.range(1, 1000).concatMap(v -> Px.range(v, 1000)).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -90,7 +90,7 @@ public class PublisherConcatMapTest {
     public void normalLongRunJust() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000_000).concatMap(v -> PublisherBase.just(v)).subscribe(ts);
+        Px.range(1, 1000_000).concatMap(v -> Px.just(v)).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -101,7 +101,7 @@ public class PublisherConcatMapTest {
     public void normalLongRun2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000).hide().concatMap(v -> PublisherBase.range(v, 1000)).subscribe(ts);
+        Px.range(1, 1000).hide().concatMap(v -> Px.range(v, 1000)).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -112,7 +112,7 @@ public class PublisherConcatMapTest {
     public void normalLongRunBoundary() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000).concatMap(v -> PublisherBase.range(v, 1000), ErrorMode.BOUNDARY).subscribe(ts);
+        Px.range(1, 1000).concatMap(v -> Px.range(v, 1000), ErrorMode.BOUNDARY).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -123,7 +123,7 @@ public class PublisherConcatMapTest {
     public void normalLongRunJustBoundary() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000_000).concatMap(v -> PublisherBase.just(v), ErrorMode.BOUNDARY).subscribe(ts);
+        Px.range(1, 1000_000).concatMap(v -> Px.just(v), ErrorMode.BOUNDARY).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -135,7 +135,7 @@ public class PublisherConcatMapTest {
     public void normalLongRunBoundary2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000).hide().concatMap(v -> PublisherBase.range(v, 1000), ErrorMode.BOUNDARY).subscribe(ts);
+        Px.range(1, 1000).hide().concatMap(v -> Px.range(v, 1000), ErrorMode.BOUNDARY).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -401,7 +401,7 @@ public class PublisherConcatMapTest {
     public void syncFusionMapToNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 2).map(v -> v == 2 ? null : v).concatMap(PublisherBase::just).subscribe(ts);
+        Px.range(1, 2).map(v -> v == 2 ? null : v).concatMap(Px::just).subscribe(ts);
         
         ts.assertValue(1)
         .assertError(NullPointerException.class)
@@ -412,7 +412,7 @@ public class PublisherConcatMapTest {
     public void syncFusionMapToNullFilter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 2).map(v -> v == 2 ? null : v).filter(v -> true).concatMap(PublisherBase::just).subscribe(ts);
+        Px.range(1, 2).map(v -> v == 2 ? null : v).filter(v -> true).concatMap(Px::just).subscribe(ts);
         
         ts.assertValue(1)
         .assertError(NullPointerException.class)
@@ -428,7 +428,7 @@ public class PublisherConcatMapTest {
         up.onNext(2);
         up.onComplete();
         
-        up.map(v -> v == 2 ? null : v).concatMap(PublisherBase::just).subscribe(ts);
+        up.map(v -> v == 2 ? null : v).concatMap(Px::just).subscribe(ts);
         
         ts.assertValue(1)
         .assertError(NullPointerException.class)
@@ -445,7 +445,7 @@ public class PublisherConcatMapTest {
         up.onComplete();
 
 
-        up.map(v -> v == 2 ? null : v).filter(v -> true).concatMap(PublisherBase::just).subscribe(ts);
+        up.map(v -> v == 2 ? null : v).filter(v -> true).concatMap(Px::just).subscribe(ts);
         
         ts.assertValue(1)
         .assertError(NullPointerException.class)
@@ -457,9 +457,9 @@ public class PublisherConcatMapTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
         @SuppressWarnings("unchecked")
-        PublisherBase<Integer>[] sources = new PublisherBase[] { PublisherBase.just(1), PublisherBase.range(2, 3) };
+        Px<Integer>[] sources = new Px[] { Px.just(1), Px.range(2, 3) };
         
-        PublisherBase.range(0, 2).concatMap(v -> sources[v]).subscribe(ts);
+        Px.range(0, 2).concatMap(v -> sources[v]).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError();
@@ -475,8 +475,8 @@ public class PublisherConcatMapTest {
     public void allEmptyBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.range(0, 10).hide()
-        .concatMap(v -> PublisherBase.<Integer>empty(), PublisherConcatMap.ErrorMode.IMMEDIATE, 2).subscribe(ts);
+        Px.range(0, 10).hide()
+        .concatMap(v -> Px.<Integer>empty(), PublisherConcatMap.ErrorMode.IMMEDIATE, 2).subscribe(ts);
         
         ts.assertNoValues()
         .assertComplete()

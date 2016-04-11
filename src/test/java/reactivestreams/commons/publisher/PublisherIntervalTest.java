@@ -80,9 +80,9 @@ public class PublisherIntervalTest {
     public void flatMap() throws Exception {
         TestSubscriber<Object> ts = new TestSubscriber<>();
         
-        PublisherBase.interval(30, TimeUnit.MILLISECONDS, exec).flatMap(v -> 
-                PublisherBase.<String>fromIterable(Arrays.asList("A"))
-                .flatMap(w -> PublisherBase.<List<Integer>>fromCallable(() -> Arrays.asList(1, 2)).subscribeOn(exec).flatMap(PublisherBase::fromIterable)))
+        Px.interval(30, TimeUnit.MILLISECONDS, exec).flatMap(v -> 
+                Px.<String>fromIterable(Arrays.asList("A"))
+                .flatMap(w -> Px.<List<Integer>>fromCallable(() -> Arrays.asList(1, 2)).subscribeOn(exec).flatMap(Px::fromIterable)))
         .subscribe(ts);
         
         Thread.sleep(5000);

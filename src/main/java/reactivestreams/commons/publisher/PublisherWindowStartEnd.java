@@ -29,7 +29,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <U> the window starter value type
  * @param <V> the window end value type (irrelevant)
  */
-public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, PublisherBase<T>>{
+public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, Px<T>>{
 
     final Publisher<U> start;
     
@@ -50,7 +50,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
     }
     
     @Override
-    public void subscribe(Subscriber<? super PublisherBase<T>> s) {
+    public void subscribe(Subscriber<? super Px<T>> s) {
 
         Queue<Object> q;
         
@@ -79,7 +79,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
     static final class WindowStartEndMainSubscriber<T, U, V>
     implements Subscriber<T>, Subscription, Runnable {
         
-        final Subscriber<? super PublisherBase<T>> actual;
+        final Subscriber<? super Px<T>> actual;
         
         final Queue<Object> queue;
         
@@ -127,7 +127,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         static final AtomicReferenceFieldUpdater<WindowStartEndMainSubscriber, Throwable> ERROR =
                 AtomicReferenceFieldUpdater.newUpdater(WindowStartEndMainSubscriber.class, Throwable.class,  "error");
 
-        public WindowStartEndMainSubscriber(Subscriber<? super PublisherBase<T>> actual, Queue<Object> queue,
+        public WindowStartEndMainSubscriber(Subscriber<? super Px<T>> actual, Queue<Object> queue,
                 Function<? super U, ? extends Publisher<V>> end,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;

@@ -28,17 +28,17 @@ public class PublisherConcatArray2Perf {
     @SuppressWarnings("unchecked")
     @Setup
     public void setup() {
-        PublisherBase<Integer> item = PublisherBase.range(1, 1000);
+        Px<Integer> item = Px.range(1, 1000);
 
-        PublisherBase<Integer>[] sources = new PublisherBase[1000];
+        Px<Integer>[] sources = new Px[1000];
 
         Arrays.fill(sources, item);
 
         rangeConcatRange = new PublisherConcatArray<>(sources);
 
-        sources = new PublisherBase[1_000_000];
+        sources = new Px[1_000_000];
 
-        Arrays.fill(sources, PublisherBase.just(777));
+        Arrays.fill(sources, Px.just(777));
 
         rangeConcatJust = new PublisherConcatArray<>(sources);
     }

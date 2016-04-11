@@ -33,7 +33,7 @@ public class PublisherWindowStartEndTest {
     }
 
     @SafeVarargs
-    static <T> void expect(TestSubscriber<PublisherBase<T>> ts, int index, T... values) {
+    static <T> void expect(TestSubscriber<Px<T>> ts, int index, T... values) {
         toList(ts.values().get(index))
         .assertValues(values)
         .assertComplete()
@@ -42,7 +42,7 @@ public class PublisherWindowStartEndTest {
 
     @Test
     public void normal() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -84,7 +84,7 @@ public class PublisherWindowStartEndTest {
     
     @Test
     public void normalStarterEnds() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -126,7 +126,7 @@ public class PublisherWindowStartEndTest {
 
     @Test
     public void oneWindowOnly() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();

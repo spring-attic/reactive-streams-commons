@@ -265,8 +265,8 @@ public class PublisherCombineLatestTest {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
 
         new PublisherCombineLatest<>(new Publisher[] {
-                PublisherBase.interval(100, TimeUnit.MILLISECONDS, exec).take(20),
-                PublisherBase.interval(100, 50, TimeUnit.MILLISECONDS, exec).take(20)
+                Px.interval(100, TimeUnit.MILLISECONDS, exec).take(20),
+                Px.interval(100, 50, TimeUnit.MILLISECONDS, exec).take(20)
         },
         a -> Arrays.asList(a[0] , a[1]), qs, 128)
            // .doOnNext(System.out::println)
@@ -314,10 +314,10 @@ public class PublisherCombineLatestTest {
         try {
             TestSubscriber<String> ts = new TestSubscriber<>();
 
-            PublisherBase<Long> interval1 = PublisherBase.interval(100, TimeUnit.MILLISECONDS, exec1).take(10);
-            PublisherBase<Long> interval2 = PublisherBase.interval(50, 100, TimeUnit.MILLISECONDS, exec2).take(10);
+            Px<Long> interval1 = Px.interval(100, TimeUnit.MILLISECONDS, exec1).take(10);
+            Px<Long> interval2 = Px.interval(50, 100, TimeUnit.MILLISECONDS, exec2).take(10);
 
-            PublisherBase.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
+            Px.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
 
             ts.await(5, TimeUnit.SECONDS);
 
@@ -350,10 +350,10 @@ public class PublisherCombineLatestTest {
         try {
             TestSubscriber<String> ts = new TestSubscriber<>();
 
-            PublisherBase<Long> interval1 = PublisherBase.interval(50, TimeUnit.MILLISECONDS, exec1).take(10);
-            PublisherBase<Long> interval2 = PublisherBase.interval(50, TimeUnit.MILLISECONDS, exec2).take(10);
+            Px<Long> interval1 = Px.interval(50, TimeUnit.MILLISECONDS, exec1).take(10);
+            Px<Long> interval2 = Px.interval(50, TimeUnit.MILLISECONDS, exec2).take(10);
 
-            PublisherBase.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
+            Px.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
 
             ts.await(5, TimeUnit.SECONDS);
 
@@ -383,10 +383,10 @@ public class PublisherCombineLatestTest {
         try {
             TestSubscriber<String> ts = new TestSubscriber<>();
 
-            PublisherBase<Long> interval1 = PublisherBase.interval(25, TimeUnit.MILLISECONDS, exec1).take(10);
-            PublisherBase<Long> interval2 = PublisherBase.interval(25, TimeUnit.MILLISECONDS, exec1).take(10);
+            Px<Long> interval1 = Px.interval(25, TimeUnit.MILLISECONDS, exec1).take(10);
+            Px<Long> interval2 = Px.interval(25, TimeUnit.MILLISECONDS, exec1).take(10);
 
-            PublisherBase.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
+            Px.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
 
             ts.await(5, TimeUnit.SECONDS);
 

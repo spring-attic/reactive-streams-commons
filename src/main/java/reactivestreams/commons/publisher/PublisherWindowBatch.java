@@ -24,7 +24,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T> the source value type
  * @param <U> the window boundary type
  */
-public final class PublisherWindowBatch<T, U> extends PublisherSource<T, PublisherBase<T>> {
+public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Px<T>> {
 
     final Supplier<? extends Publisher<U>> boundarySupplier;
     
@@ -48,7 +48,7 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Publish
     }
     
     @Override
-    public void subscribe(Subscriber<? super PublisherBase<T>> s) {
+    public void subscribe(Subscriber<? super Px<T>> s) {
         Queue<Object> q;
 
         try {
@@ -70,7 +70,7 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Publish
     
     static final class PublisherWindowBatchMain<T, U> implements Subscriber<T>, Subscription, Runnable {
 
-        final Subscriber<? super PublisherBase<T>> actual;
+        final Subscriber<? super Px<T>> actual;
 
         final Supplier<? extends Queue<T>> windowQueueSupplier;
 
@@ -122,7 +122,7 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Publish
         
         static final PublisherWindowBatchOther<Object, Object> OTHER_TERMINATED = new PublisherWindowBatchOther<>(null, Long.MAX_VALUE);
         
-        public PublisherWindowBatchMain(Subscriber<? super PublisherBase<T>> actual,
+        public PublisherWindowBatchMain(Subscriber<? super Px<T>> actual,
                 Supplier<? extends Queue<T>> windowQueueSupplier, Supplier<? extends Publisher<U>> boundarySupplier,
                 int maxSize, Queue<Object> queue) {
             this.actual = actual;
@@ -292,7 +292,7 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Publish
                 return;
             }
             
-            Subscriber<? super PublisherBase<T>> a = actual;
+            Subscriber<? super Px<T>> a = actual;
             Queue<Object> q = queue;
             
             UnicastProcessor<T> w = window;

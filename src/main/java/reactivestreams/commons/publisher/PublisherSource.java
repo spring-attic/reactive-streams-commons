@@ -13,7 +13,7 @@ import reactivestreams.commons.state.Backpressurable;
  * @param <R> the downstream value type
  */
 public abstract class PublisherSource<T, R> 
-    extends PublisherBase<R>
+    extends Px<R>
         implements Receiver, Backpressurable {
 
     final protected Publisher<? extends T> source;

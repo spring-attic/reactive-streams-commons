@@ -8,7 +8,7 @@ import java.util.concurrent.TimeoutException;
 import org.reactivestreams.Subscriber;
 import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
 
-public final class PublisherFuture<T> extends PublisherBase<T> {
+public final class PublisherFuture<T> extends Px<T> {
     
     final Future<? extends T> future;
     

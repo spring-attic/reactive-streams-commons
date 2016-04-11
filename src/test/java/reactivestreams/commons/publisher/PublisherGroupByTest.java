@@ -20,11 +20,11 @@ public class PublisherGroupByTest {
     public void constructors() {
         ConstructorTestBuilder ctb = new  ConstructorTestBuilder(PublisherGroupBy.class);
         
-        ctb.addRef("source", PublisherBase.never());
+        ctb.addRef("source", Px.never());
         ctb.addRef("keySelector", (Function<Object, Object>)v -> v);
         ctb.addRef("valueSelector", (Function<Object, Object>)v -> v);
-        ctb.addRef("mainQueueSupplier", PublisherBase.defaultQueueSupplier(1));
-        ctb.addRef("groupQueueSupplier", PublisherBase.defaultQueueSupplier(1));
+        ctb.addRef("mainQueueSupplier", Px.defaultQueueSupplier(1));
+        ctb.addRef("groupQueueSupplier", Px.defaultQueueSupplier(1));
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
         
         ctb.test();
@@ -34,7 +34,7 @@ public class PublisherGroupByTest {
     public void normal() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> k % 2).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> k % 2).subscribe(ts);
         
         ts.assertValueCount(2)
         .assertNoError()
@@ -54,7 +54,7 @@ public class PublisherGroupByTest {
     public void normalValueSelector() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> k % 2, v -> -v).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> k % 2, v -> -v).subscribe(ts);
         
         ts.assertValueCount(2)
         .assertNoError()
@@ -74,7 +74,7 @@ public class PublisherGroupByTest {
     public void takeTwoGroupsOnly() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> k % 3).take(2).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> k % 3).take(2).subscribe(ts);
         
         ts.assertValueCount(2)
         .assertNoError()
@@ -94,7 +94,7 @@ public class PublisherGroupByTest {
     public void keySelectorNull() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> (Integer)null).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> (Integer)null).subscribe(ts);
         
         ts.assertFailure(NullPointerException.class);
     }
@@ -103,7 +103,7 @@ public class PublisherGroupByTest {
     public void valueSelectorNull() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> 1, v -> (Integer)null).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> 1, v -> (Integer)null).subscribe(ts);
         
         ts.assertFailure(NullPointerException.class);
     }
@@ -112,7 +112,7 @@ public class PublisherGroupByTest {
     public void error() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>();
         
-        PublisherBase.<Integer>error(new RuntimeException("forced failure")).groupBy(k -> k).subscribe(ts);
+        Px.<Integer>error(new RuntimeException("forced failure")).groupBy(k -> k).subscribe(ts);
         
         ts.assertFailureMessage(RuntimeException.class, "forced failure");
     }
@@ -121,7 +121,7 @@ public class PublisherGroupByTest {
     public void backpressure() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>(0L);
         
-        PublisherBase.range(1, 10).groupBy(k -> 1).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> 1).subscribe(ts);
         
         ts.assertNoEvents();
         
@@ -146,7 +146,7 @@ public class PublisherGroupByTest {
     public void flatMapBack() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> k % 2).flatMap(g -> g).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> k % 2).flatMap(g -> g).subscribe(ts);
         
         ts.assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     }
@@ -155,7 +155,7 @@ public class PublisherGroupByTest {
     public void flatMapBackHidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> k % 2).flatMap(g -> g.hide()).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> k % 2).flatMap(g -> g.hide()).subscribe(ts);
         
         ts.assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     }
@@ -164,7 +164,7 @@ public class PublisherGroupByTest {
     public void concatMapBack() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> k % 2).concatMap(g -> g).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> k % 2).concatMap(g -> g).subscribe(ts);
         
         ts.assertResult(1, 3, 5, 7, 9, 2, 4, 6, 8, 10);
     }
@@ -173,7 +173,7 @@ public class PublisherGroupByTest {
     public void concatMapBackHidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).groupBy(k -> k % 2).hide().concatMap(g -> g).subscribe(ts);
+        Px.range(1, 10).groupBy(k -> k % 2).hide().concatMap(g -> g).subscribe(ts);
         
         ts.assertResult(1, 3, 5, 7, 9, 2, 4, 6, 8, 10);
     }
@@ -182,7 +182,7 @@ public class PublisherGroupByTest {
     public void empty() {
         TestSubscriber<GroupedPublisher<Integer, Integer>> ts = new TestSubscriber<>(0L);
 
-        PublisherBase.<Integer>empty().groupBy(v -> v).subscribe(ts);
+        Px.<Integer>empty().groupBy(v -> v).subscribe(ts);
         
         ts.assertResult();
     }
@@ -191,7 +191,7 @@ public class PublisherGroupByTest {
     public void oneGroupLongMerge() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).groupBy(v -> 1).flatMap(g -> g).subscribe(ts);
+        Px.range(1, 1_000_000).groupBy(v -> 1).flatMap(g -> g).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -202,7 +202,7 @@ public class PublisherGroupByTest {
     public void oneGroupLongMergeHidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).groupBy(v -> 1).flatMap(g -> g.hide()).subscribe(ts);
+        Px.range(1, 1_000_000).groupBy(v -> 1).flatMap(g -> g.hide()).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -214,7 +214,7 @@ public class PublisherGroupByTest {
     public void twoGroupsLongMerge() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1)).flatMap(g -> g).subscribe(ts);
+        Px.range(1, 1_000_000).groupBy(v -> (v & 1)).flatMap(g -> g).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -225,7 +225,7 @@ public class PublisherGroupByTest {
     public void twoGroupsLongMergeHidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1)).flatMap(g -> g.hide()).subscribe(ts);
+        Px.range(1, 1_000_000).groupBy(v -> (v & 1)).flatMap(g -> g.hide()).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -243,7 +243,7 @@ public class PublisherGroupByTest {
     public void twoGroupsLongAsyncMerge() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1))
+        Px.range(1, 1_000_000).groupBy(v -> (v & 1))
         .flatMap(g -> g).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
@@ -264,7 +264,7 @@ public class PublisherGroupByTest {
     public void twoGroupsLongAsyncMergeHidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).groupBy(v -> (v & 1))
+        Px.range(1, 1_000_000).groupBy(v -> (v & 1))
         .flatMap(g -> g.hide()).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
@@ -283,7 +283,7 @@ public class PublisherGroupByTest {
         ts3.onSubscribe(EmptySubscription.INSTANCE);
         
         
-        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+        Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
             @Override
             public void onSubscribe(Subscription s) {
                 s.request(Long.MAX_VALUE);
@@ -336,7 +336,7 @@ public class PublisherGroupByTest {
         ts3.onSubscribe(EmptySubscription.INSTANCE);
         
         
-        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+        Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
             @Override
             public void onSubscribe(Subscription s) {
                 s.request(Long.MAX_VALUE);
@@ -395,7 +395,7 @@ public class PublisherGroupByTest {
         ts3.onSubscribe(EmptySubscription.INSTANCE);
         
         
-        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+        Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
             @Override
             public void onSubscribe(Subscription s) {
                 s.request(Long.MAX_VALUE);
@@ -455,7 +455,7 @@ public class PublisherGroupByTest {
         ts3.onSubscribe(EmptySubscription.INSTANCE);
         
         
-        PublisherBase.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
+        Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
             @Override
             public void onSubscribe(Subscription s) {
                 s.request(Long.MAX_VALUE);
@@ -508,7 +508,7 @@ public class PublisherGroupByTest {
         ts3.onSubscribe(EmptySubscription.INSTANCE);
         
         
-        PublisherBase.range(0, 1_000_000)
+        Px.range(0, 1_000_000)
         .hide()
         .observeOn(ForkJoinPool.commonPool())
         .groupBy(v -> v & 1)
@@ -565,7 +565,7 @@ public class PublisherGroupByTest {
         ts3.onSubscribe(EmptySubscription.INSTANCE);
         
         
-        PublisherBase.range(0, 1_000_000)
+        Px.range(0, 1_000_000)
         .observeOn(ForkJoinPool.commonPool(), false, 512)
         .groupBy(v -> v & 1)
         .subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
@@ -616,7 +616,7 @@ public class PublisherGroupByTest {
     public void groupsCompleteAsSoonAsMainCompletes() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(0, 20)
+        Px.range(0, 20)
         .groupBy(i -> i % 5)
         .concatMap(v -> v, ErrorMode.IMMEDIATE, 2).subscribe(ts);
         
@@ -629,7 +629,7 @@ public class PublisherGroupByTest {
     public void groupsCompleteAsSoonAsMainCompletesNoFusion() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(0, 20)
+        Px.range(0, 20)
         .groupBy(i -> i % 5)
         .hide()
         .concatMap(v -> v, ErrorMode.IMMEDIATE, 2).subscribe(ts);

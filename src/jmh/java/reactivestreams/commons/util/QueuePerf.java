@@ -31,8 +31,8 @@ public class QueuePerf {
     ExecutorService exec1;
     ExecutorService exec2;
 
-    PublisherBase<Integer> rsc;
-    PublisherBase<Integer> rscLinked;
+    Px<Integer> rsc;
+    Px<Integer> rscLinked;
     
     @Setup
     public void setup() {
@@ -44,7 +44,7 @@ public class QueuePerf {
             arr[i] = 777;
         }
         
-        PublisherBase<Integer> source = PublisherBase.fromArray(arr).subscribeOn(exec1);
+        Px<Integer> source = Px.fromArray(arr).subscribeOn(exec1);
         
         ExecutorServiceScheduler s2 = new ExecutorServiceScheduler(exec2);
         

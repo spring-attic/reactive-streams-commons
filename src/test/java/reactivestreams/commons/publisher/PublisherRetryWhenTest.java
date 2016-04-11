@@ -5,10 +5,10 @@ import reactivestreams.commons.test.TestSubscriber;
 
 public class PublisherRetryWhenTest {
 
-    PublisherBase<Integer> justError = new PublisherConcatArray<>(new PublisherJust<>(1), new PublisherError<>(new
+    Px<Integer> justError = new PublisherConcatArray<>(new PublisherJust<>(1), new PublisherError<>(new
       RuntimeException("forced failure 0")));
 
-    PublisherBase<Integer> rangeError = new PublisherConcatArray<>(new PublisherRange(1, 2), new PublisherError<>(new
+    Px<Integer> rangeError = new PublisherConcatArray<>(new PublisherRange(1, 2), new PublisherError<>(new
       RuntimeException("forced failure 0")));
 
     @Test(expected = NullPointerException.class)

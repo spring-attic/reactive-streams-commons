@@ -79,7 +79,7 @@ public class PublisherConcatArrayTest {
     public void scalarAndRangeBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.just(1).concatWith(PublisherBase.range(2, 3)).subscribe(ts);
+        Px.just(1).concatWith(Px.range(2, 3)).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError();

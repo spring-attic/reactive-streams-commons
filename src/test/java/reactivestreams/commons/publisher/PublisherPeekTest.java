@@ -218,7 +218,7 @@ public class PublisherPeekTest {
     public void syncFusionAvailable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 2).doOnNext(v -> { }).subscribe(ts);
+        Px.range(1, 2).doOnNext(v -> { }).subscribe(ts);
         
         Subscription s = ts.upstream();
         Assert.assertTrue("Non-fuseable upstream: " + s, s instanceof Fuseable.QueueSubscription);
@@ -238,7 +238,7 @@ public class PublisherPeekTest {
     public void conditionalFusionAvailable() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
         
-        PublisherBase.wrap(u -> {
+        Px.wrap(u -> {
             if (!(u instanceof Fuseable.ConditionalSubscriber)) {
                 EmptySubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
             } else {
@@ -255,7 +255,7 @@ public class PublisherPeekTest {
     public void conditionalFusionAvailableWithFuseable() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
         
-        PublisherBase.wrapFuseable(u -> {
+        Px.wrapFuseable(u -> {
             if (!(u instanceof Fuseable.ConditionalSubscriber)) {
                 EmptySubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
             } else {
@@ -274,7 +274,7 @@ public class PublisherPeekTest {
 
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 2).doOnComplete(() -> onComplete.set(true)).subscribe(ts);
+        Px.range(1, 2).doOnComplete(() -> onComplete.set(true)).subscribe(ts);
         
         ts.assertNoError()
         .assertValues(1, 2)
@@ -289,7 +289,7 @@ public class PublisherPeekTest {
 
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 2).doAfterTerminate(() -> onTerminate.set(true)).subscribe(ts);
+        Px.range(1, 2).doAfterTerminate(() -> onTerminate.set(true)).subscribe(ts);
         
         ts.assertNoError()
         .assertValues(1, 2)

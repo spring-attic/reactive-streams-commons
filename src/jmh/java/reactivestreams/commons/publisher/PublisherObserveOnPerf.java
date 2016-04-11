@@ -41,7 +41,7 @@ public class PublisherObserveOnPerf {
     public void setup(Blackhole bh) {
         exec = Executors.newSingleThreadExecutor();
         
-        PublisherBase<Integer> source = PublisherBase.range(1, count);
+        Px<Integer> source = Px.range(1, count);
         
         range = source.observeOn(exec);
         rangeHidden = source.hide().observeOn(exec);
@@ -49,12 +49,12 @@ public class PublisherObserveOnPerf {
         Integer[] a = new Integer[count];
         Arrays.fill(a, 777);
 
-        PublisherBase<Integer> arr = PublisherBase.fromArray(a);
+        Px<Integer> arr = Px.fromArray(a);
         
         array = arr.observeOn(exec);
         arrayHidden = arr.hide().observeOn(exec);
         
-        PublisherBase<Integer> it = PublisherBase.fromIterable(Arrays.asList(a));
+        Px<Integer> it = Px.fromIterable(Arrays.asList(a));
         
         iterable = it.observeOn(exec);
         iterableHidden = it.hide().observeOn(exec);

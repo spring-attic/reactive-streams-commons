@@ -52,7 +52,7 @@ public class RangeFlatMapObserveOnPerf {
         
         ExecutorServiceScheduler scheduler = new ExecutorServiceScheduler(exec);
         
-        PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(PublisherBase::just);
+        Px<Integer> source = Px.range(1, count).flatMap(Px::just);
         
         source1 = source.observeOn(scheduler);
         

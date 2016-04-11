@@ -16,7 +16,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class PublisherError<T> 
-extends PublisherBase<T> {
+extends Px<T> {
 
     final Supplier<? extends Throwable> supplier;
     

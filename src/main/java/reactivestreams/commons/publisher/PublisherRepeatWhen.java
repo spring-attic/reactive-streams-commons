@@ -26,10 +26,10 @@ import reactivestreams.commons.util.ExceptionHelper;
  */
 public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
 
-    final Function<? super PublisherBase<Long>, ? extends Publisher<? extends Object>> whenSourceFactory;
+    final Function<? super Px<Long>, ? extends Publisher<? extends Object>> whenSourceFactory;
 
     public PublisherRepeatWhen(Publisher<? extends T> source,
-                               Function<? super PublisherBase<Long>, ? extends Publisher<? extends Object>> whenSourceFactory) {
+                               Function<? super Px<Long>, ? extends Publisher<? extends Object>> whenSourceFactory) {
         super(source);
         this.whenSourceFactory = Objects.requireNonNull(whenSourceFactory, "whenSourceFactory");
     }
@@ -181,7 +181,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherRepeatWhenOtherSubscriber 
-    extends PublisherBase<Long>
+    extends Px<Long>
     implements Subscriber<Object>, Loopback {
         PublisherRepeatWhenMainSubscriber<?> main;
 

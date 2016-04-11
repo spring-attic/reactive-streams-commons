@@ -29,7 +29,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <U> the window-start indicator values
  * @param <V> the window-end indicator values
  */
-public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, PublisherBase<T>> {
+public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, Px<T>> {
 
     final Publisher<U> windowBegin;
     
@@ -56,7 +56,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
     }
 
     @Override
-    public void subscribe(Subscriber<? super PublisherBase<T>> s) {
+    public void subscribe(Subscriber<? super Px<T>> s) {
         
         Queue<T> q;
         
@@ -84,7 +84,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
     static final class WindowBeginEndMainSubscriber<T, U, V>
     implements Subscriber<T>, Subscription {
         
-        final Subscriber<? super PublisherBase<T>> actual;
+        final Subscriber<? super Px<T>> actual;
         
         final Function<? super U, ? extends Publisher<V>> windowEnd;
         
@@ -134,7 +134,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         
         @SuppressWarnings("unchecked")
         public WindowBeginEndMainSubscriber(
-                Subscriber<? super PublisherBase<T>> subscriber,
+                Subscriber<? super Px<T>> subscriber,
                 Function<? super U, ? extends Publisher<V>> windowEnd, 
                         int bufferSize, 
                         Queue<T> queue) {
@@ -519,7 +519,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
     }
     
     static final class PublisherWindowInner<T, V>
-    extends PublisherBase<T>
+    extends Px<T>
     implements Subscriber<V>, Subscription {
         
         final WindowBeginEndMainSubscriber<T, ?, V> parent;

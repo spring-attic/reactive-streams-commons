@@ -57,7 +57,7 @@ public class CrossRangeFlatMapObserveOnPerf {
 
         int m = maxConcurrency < 0 ? Integer.MAX_VALUE : maxConcurrency;
         
-        source1 = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, m).observeOn(scheduler);
+        source1 = Px.range(1, count).flatMap(v -> Px.range(v, 2), false, m).observeOn(scheduler);
     }
     
     @TearDown

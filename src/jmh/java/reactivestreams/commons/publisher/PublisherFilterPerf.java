@@ -30,11 +30,11 @@ public class PublisherFilterPerf {
     
     @Setup
     public void setup() {
-        simple = PublisherBase.range(1, 1_000_000).filter(v -> (v & 1) == 0);
+        simple = Px.range(1, 1_000_000).filter(v -> (v & 1) == 0);
         
-        rangeFlatMapRange = PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0));
+        rangeFlatMapRange = Px.range(1, 1000).flatMap(v -> Px.range(1, 1000).filter(w -> (w & 1) == 0));
 
-        rangeConcatMapRange = PublisherBase.range(1, 1000).concatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0));
+        rangeConcatMapRange = Px.range(1, 1000).concatMap(v -> Px.range(1, 1000).filter(w -> (w & 1) == 0));
     }
     
     @Benchmark

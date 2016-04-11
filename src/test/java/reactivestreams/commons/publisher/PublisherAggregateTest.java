@@ -21,7 +21,7 @@ public class PublisherAggregateTest {
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).aggregate((a, b) -> a + b).subscribe(ts);
+        Px.range(1, 10).aggregate((a, b) -> a + b).subscribe(ts);
         
         ts.assertValue(55)
         .assertNoError()
@@ -32,7 +32,7 @@ public class PublisherAggregateTest {
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0L);
         
-        PublisherBase.range(1, 10).aggregate((a, b) -> a + b).subscribe(ts);
+        Px.range(1, 10).aggregate((a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -49,7 +49,7 @@ public class PublisherAggregateTest {
     public void single() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.just(1).aggregate((a, b) -> a + b).subscribe(ts);
+        Px.just(1).aggregate((a, b) -> a + b).subscribe(ts);
         
         ts.assertValue(1)
         .assertNoError()
@@ -61,7 +61,7 @@ public class PublisherAggregateTest {
     public void empty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.<Integer>empty().aggregate((a, b) -> a + b).subscribe(ts);
+        Px.<Integer>empty().aggregate((a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -72,7 +72,7 @@ public class PublisherAggregateTest {
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.<Integer>error(new RuntimeException("forced failure")).aggregate((a, b) -> a + b).subscribe(ts);
+        Px.<Integer>error(new RuntimeException("forced failure")).aggregate((a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
@@ -84,7 +84,7 @@ public class PublisherAggregateTest {
     public void aggregatorThrows() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).aggregate((a, b) -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
+        Px.range(1, 10).aggregate((a, b) -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
@@ -96,7 +96,7 @@ public class PublisherAggregateTest {
     public void aggregatorReturnsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 10).aggregate((a, b) -> null).subscribe(ts);
+        Px.range(1, 10).aggregate((a, b) -> null).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(NullPointerException.class)

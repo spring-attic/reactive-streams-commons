@@ -30,7 +30,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
 
     final Publisher<T>                                                 source;
     final Supplier<? extends Processor<? super T, ? extends T>>        processorSupplier;
-    final Function<PublisherBase<T>, ? extends Publisher<? extends U>> selector;
+    final Function<Px<T>, ? extends Publisher<? extends U>> selector;
 
     volatile State<T, U> connection;
     @SuppressWarnings("rawtypes")
@@ -39,7 +39,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
 
     ConnectablePublisherMulticast(Publisher<T> source,
             Supplier<? extends Processor<? super T, ? extends T>> processorSupplier,
-            Function<PublisherBase<T>, ? extends Publisher<? extends U>> selector) {
+            Function<Px<T>, ? extends Publisher<? extends U>> selector) {
         this.source = Objects.requireNonNull(source, "source");
         this.processorSupplier = Objects.requireNonNull(processorSupplier, "processorSupplier");
         this.selector = Objects.requireNonNull(selector, "selector");

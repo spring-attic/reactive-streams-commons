@@ -19,7 +19,7 @@ public class ConnectablePublisherMulticastTest {
     public void constructors() {
         ConstructorTestBuilder ctb = new ConstructorTestBuilder(ConnectablePublisherMulticast.class);
         
-        ctb.addRef("source", PublisherBase.never());
+        ctb.addRef("source", Px.never());
         ctb.addRef("processorSupplier", (Supplier<Processor<Object,Object>>)() -> new SimpleProcessor<>());
         ctb.addRef("selector", Function.identity());
         
@@ -31,7 +31,7 @@ public class ConnectablePublisherMulticastTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).multicast(new SimpleProcessor<>());
+        ConnectablePublisher<Integer> p = Px.range(1, 5).multicast(new SimpleProcessor<>());
         
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -61,7 +61,7 @@ public class ConnectablePublisherMulticastTest {
     public void normalProcessorBackpressured() {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>(0);
 
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).multicast(new UnicastProcessor<Integer>(new SpscArrayQueue<>(8)));
+        ConnectablePublisher<Integer> p = Px.range(1, 5).multicast(new UnicastProcessor<Integer>(new SpscArrayQueue<>(8)));
 
         p.subscribe(ts1);
 
@@ -96,7 +96,7 @@ public class ConnectablePublisherMulticastTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>(0);
         TestSubscriber<Integer> ts2 = new TestSubscriber<>(0);
 
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).multicast(new SimpleProcessor<>());
+        ConnectablePublisher<Integer> p = Px.range(1, 5).multicast(new SimpleProcessor<>());
 
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -303,7 +303,7 @@ public class ConnectablePublisherMulticastTest {
     public void fusedMapInvalid() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        ConnectablePublisher<Integer> p = PublisherBase.range(1, 5).map(v -> (Integer)null).multicast(new SimpleProcessor<Integer>());
+        ConnectablePublisher<Integer> p = Px.range(1, 5).map(v -> (Integer)null).multicast(new SimpleProcessor<Integer>());
         
         p.subscribe(ts);
         

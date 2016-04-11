@@ -32,7 +32,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * 
  * @param <T> the value type
  */
-public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T>> {
+public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
 
     final int size;
     
@@ -72,7 +72,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
     }
     
     @Override
-    public void subscribe(Subscriber<? super PublisherBase<T>> s) {
+    public void subscribe(Subscriber<? super Px<T>> s) {
         if (skip == size) {
             source.subscribe(new WindowExactSubscriber<>(s, size, processorQueueSupplier));
         } else
@@ -105,7 +105,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
     static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Producer, Receiver,
                                                            MultiProducer, Completable, Prefetchable {
         
-        final Subscriber<? super PublisherBase<T>> actual;
+        final Subscriber<? super Px<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
         
@@ -129,7 +129,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         
         boolean done;
         
-        public WindowExactSubscriber(Subscriber<? super PublisherBase<T>> actual, int size,
+        public WindowExactSubscriber(Subscriber<? super Px<T>> actual, int size,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
@@ -294,7 +294,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
     static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Receiver,
                                                           MultiProducer, Producer, Backpressurable, Completable {
         
-        final Subscriber<? super PublisherBase<T>> actual;
+        final Subscriber<? super Px<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
         
@@ -325,7 +325,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         
         boolean done;
         
-        public WindowSkipSubscriber(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
+        public WindowSkipSubscriber(Subscriber<? super Px<T>> actual, int size, int skip,
                 Supplier<? extends Queue<T>> processorQueueSupplier) {
             this.actual = actual;
             this.size = size;
@@ -504,7 +504,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                                                              Producer, MultiProducer, Receiver, Prefetchable,
                                                              Introspectable, Completable, Cancellable {
         
-        final Subscriber<? super PublisherBase<T>> actual;
+        final Subscriber<? super Px<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
 
@@ -552,7 +552,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
         
         volatile boolean cancelled;
         
-        public WindowOverlapSubscriber(Subscriber<? super PublisherBase<T>> actual, int size, int skip,
+        public WindowOverlapSubscriber(Subscriber<? super Px<T>> actual, int size, int skip,
                 Supplier<? extends Queue<T>> processorQueueSupplier,
                 Queue<UnicastProcessor<T>> overflowQueue) {
             this.actual = actual;
@@ -677,7 +677,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                 return;
             }
             
-            final Subscriber<? super PublisherBase<T>> a = actual;
+            final Subscriber<? super Px<T>> a = actual;
             final Queue<UnicastProcessor<T>> q = queue;
             int missed = 1;
             

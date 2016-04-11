@@ -16,7 +16,7 @@ import reactivestreams.commons.util.ExceptionHelper;
  * 
  * @param <T>
  */
-final class PublisherSubscribeOnValue<T> extends PublisherBase<T> {
+final class PublisherSubscribeOnValue<T> extends Px<T> {
 
     final T value;
     

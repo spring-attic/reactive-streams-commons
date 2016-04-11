@@ -16,7 +16,7 @@ import reactivestreams.commons.util.EmptySubscription;
  * @param <T> the value type
  */
 public final class PublisherConcatIterable<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements MultiReceiver {
 
     final Iterable<? extends Publisher<? extends T>> iterable;

@@ -17,7 +17,7 @@ import reactivestreams.commons.util.ExceptionHelper;
  * @param <T> the returned value type
  */
 public final class PublisherCallable<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements Receiver, Supplier<T> {
 
     final Callable<? extends T> callable;

@@ -24,16 +24,16 @@ public class BlockingTest {
     
     @Test
     public void peekLastSync() {
-        Assert.assertEquals((Integer)10, PublisherBase.range(1, 10).peekLast());
+        Assert.assertEquals((Integer)10, Px.range(1, 10).peekLast());
     }
     
     @Test
     public void blockingFirst() {
-        Assert.assertEquals((Integer)1, PublisherBase.range(1, 10).observeOn(exec).blockingFirst());
+        Assert.assertEquals((Integer)1, Px.range(1, 10).observeOn(exec).blockingFirst());
     }
 
     @Test
     public void blockingLast() {
-        Assert.assertEquals((Integer)10, PublisherBase.range(1, 10).observeOn(exec).blockingLast());
+        Assert.assertEquals((Integer)10, Px.range(1, 10).observeOn(exec).blockingLast());
     }
 }

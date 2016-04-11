@@ -13,7 +13,7 @@ import reactivestreams.commons.flow.Receiver;
  *
  * @param <T> the value type
  */
-public final class ConnectablePublisherAutoConnect<T> extends PublisherBase<T>
+public final class ConnectablePublisherAutoConnect<T> extends Px<T>
         implements Receiver {
 
     final ConnectablePublisher<? extends T> source;

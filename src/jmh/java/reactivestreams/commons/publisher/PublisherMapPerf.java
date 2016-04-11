@@ -30,11 +30,11 @@ public class PublisherMapPerf {
     
     @Setup
     public void setup() {
-        simple = PublisherBase.range(1, 1_000_000).map(v -> v + 1);
+        simple = Px.range(1, 1_000_000).map(v -> v + 1);
         
-        rangeFlatMapRange = PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1));
+        rangeFlatMapRange = Px.range(1, 1000).flatMap(v -> Px.range(1, 1000).map(w -> w + 1));
 
-        rangeConcatMapRange = PublisherBase.range(1, 1000).concatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1));
+        rangeConcatMapRange = Px.range(1, 1000).concatMap(v -> Px.range(1, 1000).map(w -> w + 1));
     }
     
     @Benchmark

@@ -8,14 +8,14 @@ import java.util.function.Consumer;
  * 
  * @param <T> the input and output value type
  */
-public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
+public abstract class ConnectablePublisher<T> extends Px<T> {
 
 	/**
 	 * Connects this ConnectablePublisher to the upstream source when the first Subscriber
 	 * subscribes.
      * @return a Publisher that connects to the upstream source when the first Subscriber subscribes
      */
-    public final PublisherBase<T> autoConnect() {
+    public final Px<T> autoConnect() {
         return autoConnect(1);
     }
 
@@ -29,7 +29,7 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
      * @param minSubscribers the minimum number of subscribers
      * @return the Publisher that connects to the upstream source when the given amount of Subscribers subscribe
      */
-    public final PublisherBase<T> autoConnect(int minSubscribers) {
+    public final Px<T> autoConnect(int minSubscribers) {
         return autoConnect(minSubscribers, NOOP_DISCONNECT);
     }
 
@@ -40,7 +40,7 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
      * @param cancelSupport the consumer that will receive the runnable that allows disconnecting
      * @return the Publisher that connects to the upstream source when the given amount of subscribers subscribed
      */
-    public final PublisherBase<T> autoConnect(int minSubscribers, Consumer<? super Runnable> cancelSupport) {
+    public final Px<T> autoConnect(int minSubscribers, Consumer<? super Runnable> cancelSupport) {
         if (minSubscribers == 0) {
             connect(cancelSupport);
             return this;
@@ -82,7 +82,7 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
      * @param minSubscribers the number of subscribers expected to subscribe before connection
      * @return the publisher
      */
-    public final PublisherBase<T> refCount(int minSubscribers) {
+    public final Px<T> refCount(int minSubscribers) {
         return new ConnectablePublisherRefCount<>(this, minSubscribers);
     }
 
@@ -91,7 +91,7 @@ public abstract class ConnectablePublisher<T> extends PublisherBase<T> {
 	 * when all Subscribers cancelled or the upstream source completed.
      * @return the publisher
      */
-    public final PublisherBase<T> refCount() {
+    public final Px<T> refCount() {
         return refCount(1);
     }
 

@@ -136,7 +136,7 @@ public class PublisherFlatMapTest {
     public void mainEmpty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        PublisherBase.<Integer>empty().flatMap(v -> new PublisherJust<>(v)).subscribe(ts);
+        Px.<Integer>empty().flatMap(v -> new PublisherJust<>(v)).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -147,7 +147,7 @@ public class PublisherFlatMapTest {
     public void innerEmpty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.<Integer>empty()).subscribe(ts);
+        Px.range(1, 1000).flatMap(v -> Px.<Integer>empty()).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -158,7 +158,7 @@ public class PublisherFlatMapTest {
     public void flatMapOfJust() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        new PublisherRange(1, 1000).flatMap(PublisherBase::just).subscribe(ts);
+        new PublisherRange(1, 1000).flatMap(Px::just).subscribe(ts);
         
         ts.assertValueCount(1000)
         .assertNoError()
@@ -170,7 +170,7 @@ public class PublisherFlatMapTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
         new PublisherRange(1, 1000).flatMap(
-                v -> v % 2 == 0 ? PublisherBase.just(v) : PublisherBase.fromIterable(Arrays.asList(v)))
+                v -> v % 2 == 0 ? Px.just(v) : Px.fromIterable(Arrays.asList(v)))
         .subscribe(ts);
         
         ts.assertValueCount(1000)
@@ -182,7 +182,7 @@ public class PublisherFlatMapTest {
     public void flatMapOfMixedBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        new PublisherRange(1, 1000).flatMap(v -> v % 2 == 0 ? PublisherBase.just(v) : PublisherBase.fromIterable(Arrays.asList(v))).subscribe(ts);
+        new PublisherRange(1, 1000).flatMap(v -> v % 2 == 0 ? Px.just(v) : Px.fromIterable(Arrays.asList(v))).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -205,7 +205,7 @@ public class PublisherFlatMapTest {
     public void flatMapOfMixedBackpressured1() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        new PublisherRange(1, 1000).flatMap(v -> v % 2 == 0 ? PublisherBase.just(v) : PublisherBase.fromIterable(Arrays.asList(v))).subscribe(ts);
+        new PublisherRange(1, 1000).flatMap(v -> v % 2 == 0 ? Px.just(v) : Px.fromIterable(Arrays.asList(v))).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -228,7 +228,7 @@ public class PublisherFlatMapTest {
     public void flatMapOfJustBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        new PublisherRange(1, 1000).flatMap(PublisherBase::just).subscribe(ts);
+        new PublisherRange(1, 1000).flatMap(Px::just).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -251,7 +251,7 @@ public class PublisherFlatMapTest {
     public void flatMapOfJustBackpressured1() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        new PublisherRange(1, 1000).flatMap(PublisherBase::just).subscribe(ts);
+        new PublisherRange(1, 1000).flatMap(Px::just).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -281,7 +281,7 @@ public class PublisherFlatMapTest {
         }
         up.onComplete();
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
         
         ts.assertValueCount(1000)
         .assertNoError()
@@ -294,7 +294,7 @@ public class PublisherFlatMapTest {
 
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
 
         ts.assertNoValues()
         .assertNotComplete()
@@ -316,7 +316,7 @@ public class PublisherFlatMapTest {
 
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
 
         ts.assertNoValues()
         .assertNotComplete()
@@ -358,7 +358,7 @@ public class PublisherFlatMapTest {
 
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
 
         ts.assertNoValues()
         .assertNotComplete()
@@ -416,7 +416,7 @@ public class PublisherFlatMapTest {
         
         up.onError(new RuntimeException("forced failure"));
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
@@ -430,7 +430,7 @@ public class PublisherFlatMapTest {
 
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
 
         ts.assertNoValues()
         .assertNotComplete()
@@ -452,7 +452,7 @@ public class PublisherFlatMapTest {
         
         up.onComplete();
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -465,7 +465,7 @@ public class PublisherFlatMapTest {
 
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
-        PublisherBase.just(1).hide().flatMap(v -> up).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> up).subscribe(ts);
 
         ts.assertNoValues()
         .assertNotComplete()
@@ -482,7 +482,7 @@ public class PublisherFlatMapTest {
     public void testMaxConcurrency1() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).flatMap(PublisherBase::just, false, 1).subscribe(ts);
+        Px.range(1, 1_000_000).flatMap(Px::just, false, 1).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -495,7 +495,7 @@ public class PublisherFlatMapTest {
         
         AtomicInteger emission = new AtomicInteger();
         
-        PublisherBase<Integer> source = PublisherBase.range(1, 2).doOnNext(v -> emission.getAndIncrement());
+        Px<Integer> source = Px.range(1, 2).doOnNext(v -> emission.getAndIncrement());
         
         SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
@@ -530,7 +530,7 @@ public class PublisherFlatMapTest {
         
         AtomicInteger emission = new AtomicInteger();
         
-        PublisherBase<Integer> source = PublisherBase.range(1, 1000).doOnNext(v -> emission.getAndIncrement());
+        Px<Integer> source = Px.range(1, 1000).doOnNext(v -> emission.getAndIncrement());
         
         SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
@@ -566,7 +566,7 @@ public class PublisherFlatMapTest {
             list.add(i);
         }
         
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.fromIterable(list)).subscribe(ts);
+        Px.range(1, 1000).flatMap(v -> Px.fromIterable(list)).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -577,7 +577,7 @@ public class PublisherFlatMapTest {
     public void syncFusionRange() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(v, 1000)).subscribe(ts);
+        Px.range(1, 1000).flatMap(v -> Px.range(v, 1000)).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -591,7 +591,7 @@ public class PublisherFlatMapTest {
         Integer[] array = new Integer[1000];
         Arrays.fill(array, 777);
         
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.fromArray(array)).subscribe(ts);
+        Px.range(1, 1000).flatMap(v -> Px.fromArray(array)).subscribe(ts);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -602,7 +602,7 @@ public class PublisherFlatMapTest {
     public void innerMapSyncFusion() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).map(w -> w + 1)).subscribe(ts);
+        Px.range(1, 1000).flatMap(v -> Px.range(1, 1000).map(w -> w + 1)).subscribe(ts);
 
         ts.assertValueCount(1_000_000)
         .assertNoError()
@@ -613,7 +613,7 @@ public class PublisherFlatMapTest {
     public void innerFilterSyncFusion() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 1000).flatMap(v -> PublisherBase.range(1, 1000).filter(w -> (w & 1) == 0)).subscribe(ts);
+        Px.range(1, 1000).flatMap(v -> Px.range(1, 1000).filter(w -> (w & 1) == 0)).subscribe(ts);
 
         ts.assertValueCount(500_000)
         .assertNoError()
@@ -624,7 +624,7 @@ public class PublisherFlatMapTest {
     public void innerSyncMapToNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.just(1).hide().flatMap(v -> PublisherBase.range(1, 2).map(w -> w == 2 ? null : w)).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> Px.range(1, 2).map(w -> w == 2 ? null : w)).subscribe(ts);
         
         ts.assertValue(1)
         .assertError(NullPointerException.class)
@@ -635,7 +635,7 @@ public class PublisherFlatMapTest {
     public void innerSyncMapFilterToNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.just(1).hide().flatMap(v -> PublisherBase.range(1, 2).map(w -> w == 2 ? null : w).filter(w -> true)).subscribe(ts);
+        Px.just(1).hide().flatMap(v -> Px.range(1, 2).map(w -> w == 2 ? null : w).filter(w -> true)).subscribe(ts);
         
         ts.assertValue(1)
         .assertError(NullPointerException.class)
@@ -657,7 +657,7 @@ public class PublisherFlatMapTest {
         
         long t = System.nanoTime();
         
-        PublisherBase.range(1, 100_000).flatMap(v -> PublisherBase.range(1, 10)).subscribe(ts);
+        Px.range(1, 100_000).flatMap(v -> Px.range(1, 10)).subscribe(ts);
         
         long t1 = System.nanoTime();
         System.out.printf("%,d%n", t1 - t);

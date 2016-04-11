@@ -43,7 +43,7 @@ public class ConnectablePublisherAutoConnectTest {
         
         AtomicReference<Runnable> cancel = new AtomicReference<>();
         
-        PublisherBase<Integer> p = sp.publish().autoConnect(2, cancel::set);
+        Px<Integer> p = sp.publish().autoConnect(2, cancel::set);
         
         Assert.assertNull(cancel.get());
         Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());

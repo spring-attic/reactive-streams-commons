@@ -17,7 +17,7 @@ import reactivestreams.commons.util.EmptySubscription;
  * @param <T> the value type
  */
 public final class PublisherConcatArray<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements MultiReceiver {
 
     final Publisher<? extends T>[] array;

@@ -22,7 +22,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class PublisherAmb<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements MultiReceiver {
 
     final Publisher<? extends T>[] array;

@@ -17,7 +17,7 @@ public class PublisherSubscribeOnTest {
     public void constructors() {
         ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherSubscribeOn.class);
         
-        ctb.addRef("source", PublisherBase.never());
+        ctb.addRef("source", Px.never());
         ctb.addRef("executor", ForkJoinPool.commonPool());
         ctb.addRef("scheduler", new ExecutorServiceScheduler(ForkJoinPool.commonPool()));
         
@@ -28,7 +28,7 @@ public class PublisherSubscribeOnTest {
     public void classic() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        Px.range(1, 1000).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -41,7 +41,7 @@ public class PublisherSubscribeOnTest {
     public void classicBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.range(1, 1000).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        Px.range(1, 1000).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         Thread.sleep(100);
         
@@ -70,7 +70,7 @@ public class PublisherSubscribeOnTest {
     public void classicJust() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.just(1).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        Px.just(1).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -83,7 +83,7 @@ public class PublisherSubscribeOnTest {
     public void classicJustBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.just(1).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        Px.just(1).subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         Thread.sleep(100);
         
@@ -104,7 +104,7 @@ public class PublisherSubscribeOnTest {
     public void classicEmpty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.<Integer>empty().subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        Px.<Integer>empty().subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -117,7 +117,7 @@ public class PublisherSubscribeOnTest {
     public void classicEmptyBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.<Integer>empty().subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        Px.<Integer>empty().subscribeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -131,7 +131,7 @@ public class PublisherSubscribeOnTest {
         
         AtomicInteger count = new AtomicInteger();
         
-        PublisherBase<Integer> p = new PublisherCallable<>(() -> count.incrementAndGet()).subscribeOn(ForkJoinPool.commonPool());
+        Px<Integer> p = new PublisherCallable<>(() -> count.incrementAndGet()).subscribeOn(ForkJoinPool.commonPool());
         
         Assert.assertEquals(0, count.get());
         

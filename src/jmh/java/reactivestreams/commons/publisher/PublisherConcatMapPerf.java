@@ -42,16 +42,16 @@ public class PublisherConcatMapPerf {
 
         @Setup
         public void setup() {
-            baseline = PublisherBase.range(1, count);
+            baseline = Px.range(1, count);
 
-            justConcatMapRange = PublisherBase.just(1).concatMap(v -> PublisherBase.range(v, count), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
+            justConcatMapRange = Px.just(1).concatMap(v -> Px.range(v, count), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
 
             Integer[] arr = new Integer[count];
             Arrays.fill(arr, 777);
             
-            justConcatMapArray = PublisherBase.just(1).concatMap(v -> new PublisherArray<>(arr), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
+            justConcatMapArray = Px.just(1).concatMap(v -> new PublisherArray<>(arr), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
 
-            rangeConcatMapJust = PublisherBase.range(1, count).concatMap(PublisherBase::just, end ? ErrorMode.END : ErrorMode.IMMEDIATE);
+            rangeConcatMapJust = Px.range(1, count).concatMap(Px::just, end ? ErrorMode.END : ErrorMode.IMMEDIATE);
         }
     }
 
@@ -68,14 +68,14 @@ public class PublisherConcatMapPerf {
 
         @Setup
         public void setup() {
-            justConcatMapJust = PublisherBase.just(1).concatMap(v -> PublisherBase.just(v), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
+            justConcatMapJust = Px.just(1).concatMap(v -> Px.just(v), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
             
             Integer[] arr = new Integer[1000];
             Arrays.fill(arr, 777);
 
-            rangeConcatMapRange = PublisherBase.range(0, 1000).concatMap(v -> PublisherBase.range(v, 1000), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
+            rangeConcatMapRange = Px.range(0, 1000).concatMap(v -> Px.range(v, 1000), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
 
-            rangeConcatMapArray = PublisherBase.range(0, 1000).concatMap(v -> new PublisherArray<>(arr), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
+            rangeConcatMapArray = Px.range(0, 1000).concatMap(v -> new PublisherArray<>(arr), end ? ErrorMode.END : ErrorMode.IMMEDIATE);
         }
     }
 
@@ -127,14 +127,14 @@ public class PublisherConcatMapPerf {
 
         @Setup
         public void setup() {
-            justFlatMapRange = PublisherBase.just(1).flatMap(v -> PublisherBase.range(v, count), false, 1);
+            justFlatMapRange = Px.just(1).flatMap(v -> Px.range(v, count), false, 1);
 
             Integer[] arr = new Integer[count];
             Arrays.fill(arr, 777);
             
-            justFlatMapArray = PublisherBase.just(1).flatMap(v -> new PublisherArray<>(arr), false, 1);
+            justFlatMapArray = Px.just(1).flatMap(v -> new PublisherArray<>(arr), false, 1);
 
-            rangeFlatMapJust = PublisherBase.range(1, count).flatMap(PublisherBase::just, false, 1);
+            rangeFlatMapJust = Px.range(1, count).flatMap(Px::just, false, 1);
         }
     }
 
@@ -148,14 +148,14 @@ public class PublisherConcatMapPerf {
 
         @Setup
         public void setup() {
-            justFlatMapJust = PublisherBase.just(1).flatMap(v -> PublisherBase.just(v), false, 1);
+            justFlatMapJust = Px.just(1).flatMap(v -> Px.just(v), false, 1);
             
             Integer[] arr = new Integer[1000];
             Arrays.fill(arr, 777);
 
-            rangeFlatMapRange = PublisherBase.range(0, 1000).flatMap(v -> PublisherBase.range(v, 1000), false, 1);
+            rangeFlatMapRange = Px.range(0, 1000).flatMap(v -> Px.range(v, 1000), false, 1);
 
-            rangeFlatMapArray = PublisherBase.range(0, 1000).flatMap(v -> new PublisherArray<>(arr), false, 1);
+            rangeFlatMapArray = Px.range(0, 1000).flatMap(v -> new PublisherArray<>(arr), false, 1);
         }
     }
 

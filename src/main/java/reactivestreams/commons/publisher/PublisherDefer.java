@@ -14,7 +14,7 @@ import reactivestreams.commons.util.EmptySubscription;
  * @param <T> the value type
  */
 public final class PublisherDefer<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements Receiver {
 
     final Supplier<? extends Publisher<? extends T>> supplier;

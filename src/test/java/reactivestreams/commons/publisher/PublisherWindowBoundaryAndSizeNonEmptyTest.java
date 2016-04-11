@@ -39,7 +39,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     }
 
     @SafeVarargs
-    static <T> void expect(TestSubscriber<PublisherBase<T>> ts, int index, T... values) {
+    static <T> void expect(TestSubscriber<Px<T>> ts, int index, T... values) {
         toList(ts.values().get(index))
         .assertValues(values)
         .assertComplete()
@@ -47,7 +47,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     }
 
     @SafeVarargs
-    static <T> void awaitAndExpectValues(TestSubscriber<PublisherBase<T>> ts, int index, T... values) {
+    static <T> void awaitAndExpectValues(TestSubscriber<Px<T>> ts, int index, T... values) {
         TestSubscriber<T> tsi = toList(ts.values().get(index));
         tsi.await();
         tsi
@@ -58,7 +58,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
 
     @Test
     public void normal() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -92,7 +92,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     
     @Test
     public void normalOverflow() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -148,7 +148,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     
     @Test(timeout = 60000)
     public void concurrentWindows() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
 
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -202,7 +202,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
 
     @Test
     public void normalMaxSize() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         
@@ -227,7 +227,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
 
     @Test
     public void normalOtherCompletes() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -261,7 +261,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
 
     @Test
     public void mainError() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -302,7 +302,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
 
     @Test
     public void otherError() {
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
@@ -350,17 +350,17 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
             try {
                 List<TestSubscriber<Long>> tss = new ArrayList<>();
 
-                TestSubscriber<PublisherBase<Long>> ts = new TestSubscriber<PublisherBase<Long>>() {
+                TestSubscriber<Px<Long>> ts = new TestSubscriber<Px<Long>>() {
                     @Override
-                    public void onNext(PublisherBase<Long> t) {
+                    public void onNext(Px<Long> t) {
                         TestSubscriber<Long> its = new  TestSubscriber<>();
                         tss.add(its);
                         t.observeOn(ForkJoinPool.commonPool()).subscribe(its);
                     }
                 };
 
-                PublisherBase.interval(1, TimeUnit.MILLISECONDS, exec).observeOn(exec).take(2500)
-                .window(PublisherBase.interval(5, TimeUnit.MILLISECONDS, exec), maxSize, false)
+                Px.interval(1, TimeUnit.MILLISECONDS, exec).observeOn(exec).take(2500)
+                .window(Px.interval(5, TimeUnit.MILLISECONDS, exec), maxSize, false)
                 .subscribe(ts);
 
                 ts.await(5, TimeUnit.SECONDS);

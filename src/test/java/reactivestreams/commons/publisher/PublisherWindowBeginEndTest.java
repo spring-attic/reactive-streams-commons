@@ -33,10 +33,10 @@ public class PublisherWindowBeginEndTest {
         TestSubscriber<Integer> ts2 = new TestSubscriber<>(0);
         TestSubscriber<Integer> ts3 = new TestSubscriber<>(0);
 
-        TestSubscriber<PublisherBase<Integer>> ts1 = new TestSubscriber<PublisherBase<Integer>>(0) {
+        TestSubscriber<Px<Integer>> ts1 = new TestSubscriber<Px<Integer>>(0) {
             int index;
             @Override
-            public void onNext(PublisherBase<Integer> t) {
+            public void onNext(Px<Integer> t) {
                 if (index++ == 0) {
                     t.subscribe(ts2);
                 } else {
@@ -137,7 +137,7 @@ public class PublisherWindowBeginEndTest {
     
     @Test
     public void empty() {
-        TestSubscriber<PublisherBase<Integer>> ts1 = new TestSubscriber<>(0);
+        TestSubscriber<Px<Integer>> ts1 = new TestSubscriber<>(0);
                 
         SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
         SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();

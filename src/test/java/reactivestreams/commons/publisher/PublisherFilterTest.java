@@ -100,7 +100,7 @@ public class PublisherFilterTest {
     public void syncFusion() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 10).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(1, 10).filter(v -> (v & 1) == 0).subscribe(ts);
         
         ts.assertValues(2, 4, 6, 8, 10)
         .assertNoError()
@@ -131,7 +131,7 @@ public class PublisherFilterTest {
 
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
-        PublisherBase.just(1).hide().flatMap(w -> up.filter(v -> (v & 1) == 0)).subscribe(ts);
+        Px.just(1).hide().flatMap(w -> up.filter(v -> (v & 1) == 0)).subscribe(ts);
         
         up.onNext(1);
         up.onNext(2);
@@ -154,13 +154,13 @@ public class PublisherFilterTest {
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
         new PublisherFlatMap<>(
-                PublisherBase.just(1).hide(), 
+                Px.just(1).hide(), 
                 w -> up.filter(v -> (v & 1) == 0),
                 false,
                 1,
-                PublisherBase.defaultQueueSupplier(Integer.MAX_VALUE),
+                Px.defaultQueueSupplier(Integer.MAX_VALUE),
                 1,
-                PublisherBase.defaultQueueSupplier(Integer.MAX_VALUE)
+                Px.defaultQueueSupplier(Integer.MAX_VALUE)
         )
         .subscribe(ts);
         

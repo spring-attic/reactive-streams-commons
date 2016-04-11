@@ -31,7 +31,7 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source = PublisherBase.fromIterable(Arrays.asList(1, 2));
+        Px<Integer> source = Px.fromIterable(Arrays.asList(1, 2));
         source.zipWith(source, (a, b) -> a + b).subscribe(ts);
         
         ts.assertValues(2, 4)
@@ -44,7 +44,7 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source = PublisherBase.range(1, 2);
+        Px<Integer> source = Px.range(1, 2);
         source.zipWith(source, (a, b) -> a + b).subscribe(ts);
         
         ts.assertValues(2, 4)
@@ -57,7 +57,7 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase<Integer> source = PublisherBase.fromIterable(Arrays.asList(1, 2));
+        Px<Integer> source = Px.fromIterable(Arrays.asList(1, 2));
         source.zipWith(source, (a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
@@ -82,7 +82,7 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase<Integer> source = PublisherBase.range(1, 2);
+        Px<Integer> source = Px.range(1, 2);
         source.zipWith(source, (a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
@@ -107,8 +107,8 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Arrays.asList(1, 2));
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        Px<Integer> source1 = Px.fromIterable(Arrays.asList(1, 2));
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertValues(2, 4)
@@ -121,8 +121,8 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.range(1, 2);
-        PublisherBase<Integer> source2 = PublisherBase.range(1, 3);
+        Px<Integer> source1 = Px.range(1, 2);
+        Px<Integer> source2 = Px.range(1, 3);
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertValues(2, 4)
@@ -134,8 +134,8 @@ public class PublisherZipTest {
     public void emptyNonEmpty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Collections.emptyList());
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        Px<Integer> source1 = Px.fromIterable(Collections.emptyList());
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
@@ -147,8 +147,8 @@ public class PublisherZipTest {
     public void nonEmptyAndEmpty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Collections.emptyList());
+        Px<Integer> source1 = Px.fromIterable(Arrays.asList(1, 2, 3));
+        Px<Integer> source2 = Px.fromIterable(Collections.emptyList());
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
@@ -160,8 +160,8 @@ public class PublisherZipTest {
     public void scalarNonScalar() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertValues(2)
@@ -173,8 +173,8 @@ public class PublisherZipTest {
     public void scalarNonScalarBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
@@ -192,8 +192,8 @@ public class PublisherZipTest {
     public void scalarNonScalarOpt() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.range(1, 3);
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.range(1, 3);
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertValues(2)
@@ -205,8 +205,8 @@ public class PublisherZipTest {
     public void scalarScalar() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.just(1);
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.just(1);
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertValues(2)
@@ -218,8 +218,8 @@ public class PublisherZipTest {
     public void emptyScalar() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.empty();
-        PublisherBase<Integer> source2 = PublisherBase.just(1);
+        Px<Integer> source1 = Px.empty();
+        Px<Integer> source2 = Px.just(1);
         source1.zipWith(source2, (a, b) -> a + b).subscribe(ts);
         
         ts.assertNoValues()
@@ -232,9 +232,9 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source = PublisherBase.fromIterable(Arrays.asList(1, 2));
+        Px<Integer> source = Px.fromIterable(Arrays.asList(1, 2));
         
-        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertValues(2, 4)
         .assertNoError()
@@ -246,8 +246,8 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source = PublisherBase.range(1, 2);
-        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source = Px.range(1, 2);
+        Px.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertValues(2, 4)
         .assertNoError()
@@ -259,8 +259,8 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase<Integer> source = PublisherBase.fromIterable(Arrays.asList(1, 2));
-        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source = Px.fromIterable(Arrays.asList(1, 2));
+        Px.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -284,8 +284,8 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase<Integer> source = PublisherBase.range(1, 2);
-        PublisherBase.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source = Px.range(1, 2);
+        Px.zipIterable(Arrays.asList(source, source), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -309,9 +309,9 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Arrays.asList(1, 2));
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.fromIterable(Arrays.asList(1, 2));
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertValues(2, 4)
         .assertNoError()
@@ -323,9 +323,9 @@ public class PublisherZipTest {
         
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.range(1, 2);
-        PublisherBase<Integer> source2 = PublisherBase.range(1, 3);
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.range(1, 2);
+        Px<Integer> source2 = Px.range(1, 3);
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertValues(2, 4)
         .assertNoError()
@@ -336,9 +336,9 @@ public class PublisherZipTest {
     public void emptyNonEmptyIterable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Collections.emptyList());
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.fromIterable(Collections.emptyList());
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -349,9 +349,9 @@ public class PublisherZipTest {
     public void nonEmptyAndEmptyIterable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Collections.emptyList());
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.fromIterable(Arrays.asList(1, 2, 3));
+        Px<Integer> source2 = Px.fromIterable(Collections.emptyList());
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -362,9 +362,9 @@ public class PublisherZipTest {
     public void scalarNonScalarIterable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertValues(2)
         .assertNoError()
@@ -375,9 +375,9 @@ public class PublisherZipTest {
     public void scalarNonScalarBackpressuredIterable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.fromIterable(Arrays.asList(1, 2, 3));
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.fromIterable(Arrays.asList(1, 2, 3));
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -394,9 +394,9 @@ public class PublisherZipTest {
     public void scalarNonScalarOptIterable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.range(1, 3);
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.range(1, 3);
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertValues(2)
         .assertNoError()
@@ -407,9 +407,9 @@ public class PublisherZipTest {
     public void scalarScalarIterable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.just(1);
-        PublisherBase<Integer> source2 = PublisherBase.just(1);
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.just(1);
+        Px<Integer> source2 = Px.just(1);
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertValues(2)
         .assertNoError()
@@ -420,9 +420,9 @@ public class PublisherZipTest {
     public void emptyScalarITerable() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase<Integer> source1 = PublisherBase.empty();
-        PublisherBase<Integer> source2 = PublisherBase.just(1);
-        PublisherBase.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
+        Px<Integer> source1 = Px.empty();
+        Px<Integer> source2 = Px.just(1);
+        Px.zipIterable(Arrays.asList(source1, source2), a -> (Integer)a[0] + (Integer)a[1]).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -433,8 +433,8 @@ public class PublisherZipTest {
     public void syncFusionMapToNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 10)
-        .<Integer, Integer>zipWith(PublisherBase.range(1, 2).map(v -> v == 2 ? null : v), (a, b) -> a + b).subscribe(ts);
+        Px.range(1, 10)
+        .<Integer, Integer>zipWith(Px.range(1, 2).map(v -> v == 2 ? null : v), (a, b) -> a + b).subscribe(ts);
         
         ts.assertValue(2)
         .assertError(NullPointerException.class)
@@ -445,8 +445,8 @@ public class PublisherZipTest {
     public void syncFusionMapToNullFilter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 10)
-        .<Integer, Integer>zipWith(PublisherBase.range(1, 2).map(v -> v == 2 ? null : v).filter(v -> true), (a, b) -> a + b).subscribe(ts);
+        Px.range(1, 10)
+        .<Integer, Integer>zipWith(Px.range(1, 2).map(v -> v == 2 ? null : v).filter(v -> true), (a, b) -> a + b).subscribe(ts);
         
         ts.assertValue(2)
         .assertError(NullPointerException.class)
@@ -462,7 +462,7 @@ public class PublisherZipTest {
         up.onNext(2);
         up.onComplete();
         
-        PublisherBase.range(1, 10)
+        Px.range(1, 10)
         .<Integer, Integer>zipWith(up.map(v -> v == 2 ? null : v), (a, b) -> a + b).subscribe(ts);
         
         ts.assertValue(2)
@@ -479,7 +479,7 @@ public class PublisherZipTest {
         up.onNext(2);
         up.onComplete();
 
-        PublisherBase.range(1, 10)
+        Px.range(1, 10)
         .<Integer, Integer>zipWith(up.map(v -> v == 2 ? null : v).filter(v -> true), (a, b) -> a + b).subscribe(ts);
         
         ts.assertValue(2)

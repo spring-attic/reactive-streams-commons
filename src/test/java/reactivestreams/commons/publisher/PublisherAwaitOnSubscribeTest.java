@@ -14,7 +14,7 @@ public class PublisherAwaitOnSubscribeTest {
         AtomicBoolean state = new AtomicBoolean();
         AtomicReference<Throwable> e = new AtomicReference<>();
         
-        PublisherBase.just(1).awaitOnSubscribe()
+        Px.just(1).awaitOnSubscribe()
         .subscribe(new Subscriber<Integer>() {
             boolean open;
             @Override
@@ -87,7 +87,7 @@ public class PublisherAwaitOnSubscribeTest {
         AtomicBoolean state = new AtomicBoolean();
         AtomicReference<Throwable> e = new AtomicReference<>();
         
-        PublisherBase.just(1)
+        Px.just(1)
         .subscribe(new Subscriber<Integer>() {
             boolean open;
             @Override
@@ -123,7 +123,7 @@ public class PublisherAwaitOnSubscribeTest {
         AtomicBoolean state2 = new AtomicBoolean();
         AtomicReference<Throwable> e = new AtomicReference<>();
         
-        PublisherBase.just(1)
+        Px.just(1)
         .doOnCancel(() -> state2.set(state1.get()))
         .subscribe(new Subscriber<Integer>() {
             @Override

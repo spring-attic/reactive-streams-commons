@@ -12,7 +12,7 @@ public class PublisherBaseTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         ts.onSubscribe(EmptySubscription.INSTANCE);
         
-        PublisherBase.just(1).subscribe(ts::onNext, ts::onError, ts::onComplete);
+        Px.just(1).subscribe(ts::onNext, ts::onError, ts::onComplete);
         
         ts.assertValue(1)
         .assertNoError()
@@ -24,7 +24,7 @@ public class PublisherBaseTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         ts.onSubscribe(EmptySubscription.INSTANCE);
         
-        PublisherBase.<Integer>empty().subscribe(ts::onNext, ts::onError, ts::onComplete);
+        Px.<Integer>empty().subscribe(ts::onNext, ts::onError, ts::onComplete);
         
         ts.assertNoValues()
         .assertNoError()
@@ -36,7 +36,7 @@ public class PublisherBaseTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         ts.onSubscribe(EmptySubscription.INSTANCE);
         
-        PublisherBase.<Integer>error(new RuntimeException("forced failure"))
+        Px.<Integer>error(new RuntimeException("forced failure"))
         .subscribe(ts::onNext, ts::onError, ts::onComplete);
         
         ts.assertNoValues()

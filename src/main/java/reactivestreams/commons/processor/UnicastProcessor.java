@@ -12,7 +12,7 @@ import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.Fuseable;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.publisher.PublisherBase;
+import reactivestreams.commons.publisher.Px;
 import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
@@ -30,7 +30,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the input and output type
  */
 public final class UnicastProcessor<T> 
-extends PublisherBase<T>
+extends Px<T>
 implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable,
            Producer, Receiver, Completable, Cancellable, Requestable, Backpressurable {
 

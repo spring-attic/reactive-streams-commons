@@ -87,7 +87,7 @@ public class PublisherMapTest {
     public void syncFusion() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        PublisherBase.range(1, 10).map(v -> v + 1).subscribe(ts);
+        Px.range(1, 10).map(v -> v + 1).subscribe(ts);
         
         ts.assertValues(2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
         .assertNoError()
@@ -118,7 +118,7 @@ public class PublisherMapTest {
 
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new ConcurrentLinkedQueue<>());
         
-        PublisherBase.just(1).hide().flatMap(w -> up.map(v -> v + 1)).subscribe(ts);
+        Px.just(1).hide().flatMap(w -> up.map(v -> v + 1)).subscribe(ts);
         
         up.onNext(1);
         
@@ -137,7 +137,7 @@ public class PublisherMapTest {
     public void mapFilter() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        PublisherBase.range(0, 1_000_000).map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(0, 1_000_000).map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
         
         ts.assertValueCount(500_000)
         .assertNoError()
@@ -148,7 +148,7 @@ public class PublisherMapTest {
     public void mapFilterBackpressured() {
         TestSubscriber<Object> ts = new TestSubscriber<>(0);
 
-        PublisherBase.range(0, 1_000_000).map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(0, 1_000_000).map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
 
         ts.assertNoError()
         .assertNoValues()
@@ -172,7 +172,7 @@ public class PublisherMapTest {
     public void hiddenMapFilter() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        PublisherBase.range(0, 1_000_000).hide().map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(0, 1_000_000).hide().map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
         
         ts.assertValueCount(500_000)
         .assertNoError()
@@ -183,7 +183,7 @@ public class PublisherMapTest {
     public void hiddenMapFilterBackpressured() {
         TestSubscriber<Object> ts = new TestSubscriber<>(0);
 
-        PublisherBase.range(0, 1_000_000).hide().map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(0, 1_000_000).hide().map(v -> v + 1).filter(v -> (v & 1) == 0).subscribe(ts);
 
         ts.assertNoError()
         .assertNoValues()
@@ -207,7 +207,7 @@ public class PublisherMapTest {
     public void hiddenMapHiddenFilterBackpressured() {
         TestSubscriber<Object> ts = new TestSubscriber<>(0);
 
-        PublisherBase.range(0, 1_000_000).hide().map(v -> v + 1).hide().filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(0, 1_000_000).hide().map(v -> v + 1).hide().filter(v -> (v & 1) == 0).subscribe(ts);
 
         ts.assertNoError()
         .assertNoValues()

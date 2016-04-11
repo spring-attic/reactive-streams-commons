@@ -90,7 +90,7 @@ public class PublisherIterableTest {
     public void emptyMapped() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        PublisherBase.fromIterable(Collections.<Integer>emptyList()).map(v -> v + 1).subscribe(ts);
+        Px.fromIterable(Collections.<Integer>emptyList()).map(v -> v + 1).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()

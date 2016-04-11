@@ -27,7 +27,7 @@ import org.reactivestreams.Subscription;
 import reactivestreams.commons.flow.MultiProducer;
 import reactivestreams.commons.flow.Producer;
 import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.publisher.PublisherBase;
+import reactivestreams.commons.publisher.Px;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.state.Completable;
 import reactivestreams.commons.state.Introspectable;
@@ -51,7 +51,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the input and output value type
  */
 public final class SimpleProcessor<T> 
-    extends PublisherBase<T>
+    extends Px<T>
     implements Processor<T, T>, Receiver, Completable, MultiProducer {
 
     @SuppressWarnings("rawtypes")

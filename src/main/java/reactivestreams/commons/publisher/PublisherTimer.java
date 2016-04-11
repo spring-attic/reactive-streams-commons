@@ -16,7 +16,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * a ScheduledExecutorService instance or a generic function callback that
  * wraps other form of async-delayed execution of tasks.
  */
-public final class PublisherTimer extends PublisherBase<Long> {
+public final class PublisherTimer extends Px<Long> {
 
     final Function<Runnable, ? extends Runnable> asyncExecutor;
     

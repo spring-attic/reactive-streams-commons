@@ -23,7 +23,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <S> the custom state per subscriber
  */
 public final class PublisherGenerate<T, S> 
-extends PublisherBase<T> {
+extends Px<T> {
 
     /**
      * Interface to receive generated signals from the callback function.

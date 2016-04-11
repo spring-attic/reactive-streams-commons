@@ -30,7 +30,7 @@ public class BlockingIterableTest {
     public void normal() {
         List<Integer> values = new ArrayList<>();
         
-        for (Integer i : PublisherBase.range(1, 10).toIterable()) {
+        for (Integer i : Px.range(1, 10).toIterable()) {
             values.add(i);
         }
         
@@ -63,7 +63,7 @@ public class BlockingIterableTest {
     public void stream() {
         List<Integer> values = new ArrayList<>();
 
-        PublisherBase.range(1, 10).stream().forEach(values::add);
+        Px.range(1, 10).stream().forEach(values::add);
 
         Assert.assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), values);
     }
@@ -81,7 +81,7 @@ public class BlockingIterableTest {
     public void streamLimit() {
         List<Integer> values = new ArrayList<>();
 
-        PublisherBase.range(1, Integer.MAX_VALUE).stream().limit(10).forEach(values::add);
+        Px.range(1, Integer.MAX_VALUE).stream().limit(10).forEach(values::add);
 
         Assert.assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), values);
     }
@@ -89,7 +89,7 @@ public class BlockingIterableTest {
     public void streamParallel() {
         int n = 1_000_000;
 
-        Optional<Integer> opt = PublisherBase.range(1, n).parallelStream().max(Integer::compare);
+        Optional<Integer> opt = Px.range(1, n).parallelStream().max(Integer::compare);
 
         Assert.assertTrue("No maximum?", opt.isPresent());
         Assert.assertEquals((Integer)n, opt.get());

@@ -22,7 +22,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class PublisherArray<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements Fuseable {
     final T[] array;
 

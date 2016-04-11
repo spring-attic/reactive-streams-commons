@@ -29,7 +29,7 @@ import reactivestreams.commons.util.EmptySubscription;
  * Use the {@link #instance()} method to obtain a properly type-parametrized view of it.
  */
 public final class PublisherEmpty 
-extends PublisherBase<Object>
+extends Px<Object>
 implements Fuseable.ScalarSupplier<Object>, Completable {
 
     private static final Publisher<Object> INSTANCE = new PublisherEmpty();
@@ -51,8 +51,8 @@ implements Fuseable.ScalarSupplier<Object>, Completable {
      * @return a properly parametrized instance of this empty Publisher
      */
     @SuppressWarnings("unchecked")
-    public static <T> PublisherBase<T> instance() {
-        return (PublisherBase<T>) INSTANCE;
+    public static <T> Px<T> instance() {
+        return (Px<T>) INSTANCE;
     }
 
     @Override

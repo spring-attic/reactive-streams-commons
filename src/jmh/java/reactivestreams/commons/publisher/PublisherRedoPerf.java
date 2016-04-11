@@ -58,9 +58,9 @@ public class PublisherRedoPerf {
         Integer[] values = new Integer[len];
         Arrays.fill(values, 777);
         
-        PublisherBase<Integer> source = new PublisherArray<>(values);
+        Px<Integer> source = new PublisherArray<>(values);
         
-        PublisherBase<Integer> error = source.concatWith(new PublisherError<Integer>(new RuntimeException()));
+        Px<Integer> error = source.concatWith(new PublisherError<Integer>(new RuntimeException()));
         
         Integer[] values2 = new Integer[len * repeat];
         Arrays.fill(values2, 777);

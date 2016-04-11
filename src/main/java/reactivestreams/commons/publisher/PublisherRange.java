@@ -17,7 +17,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * Emits a range of integer values.
  */
 public final class PublisherRange 
-extends PublisherBase<Integer>
+extends Px<Integer>
         implements Fuseable {
 
     final long start;

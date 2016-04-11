@@ -18,7 +18,7 @@ public class PublisherWindowBatchTest {
         ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherWindowBatch.class);
         
         ctb.addRef("source", PublisherNever.instance());
-        ctb.addRef("boundarySupplier", (Supplier<Publisher<Object>>)() -> PublisherBase.never());
+        ctb.addRef("boundarySupplier", (Supplier<Publisher<Object>>)() -> Px.never());
         ctb.addRef("mainQueueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
         ctb.addRef("windowQueueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
         ctb.addInt("maxSize", 1, Integer.MAX_VALUE);
@@ -36,7 +36,7 @@ public class PublisherWindowBatchTest {
         
         int[] calls = { 0 };
 
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         main.windowBatch(3, () -> {
             int c = calls[0]++;
@@ -49,7 +49,7 @@ public class PublisherWindowBatchTest {
             if (c == 2) {
                 return b3;
             }
-            return PublisherBase.never();
+            return Px.never();
         }).subscribe(ts);
         
         ts.assertNoValues()
@@ -105,7 +105,7 @@ public class PublisherWindowBatchTest {
         
         int[] calls = { 0 };
 
-        TestSubscriber<PublisherBase<Integer>> ts = new TestSubscriber<>();
+        TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
         main.windowBatch(3, () -> {
             int c = calls[0]++;
@@ -166,10 +166,10 @@ public class PublisherWindowBatchTest {
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
         
         try {
-            TestSubscriber<PublisherBase<Long>> ts = new TestSubscriber<>();
+            TestSubscriber<Px<Long>> ts = new TestSubscriber<>();
             
             PublisherRange.interval(1, TimeUnit.MILLISECONDS, exec).take(2000)
-            .windowBatch(100, () -> PublisherBase.timer(99, TimeUnit.MILLISECONDS, exec))
+            .windowBatch(100, () -> Px.timer(99, TimeUnit.MILLISECONDS, exec))
             .subscribe(ts);
             
             if (!ts.await(5, TimeUnit.SECONDS)) {
@@ -178,7 +178,7 @@ public class PublisherWindowBatchTest {
             }
             
             List<Long> values = new ArrayList<>(2000);
-            for (PublisherBase<Long> w : ts.values()) {
+            for (Px<Long> w : ts.values()) {
                 values.addAll(w.toList().blockingFirst());
             }
             
@@ -203,7 +203,7 @@ public class PublisherWindowBatchTest {
     }
 
     @SafeVarargs
-    static <T> void expect(TestSubscriber<PublisherBase<T>> ts, int index, T... values) {
+    static <T> void expect(TestSubscriber<Px<T>> ts, int index, T... values) {
         toList(ts.values().get(index))
         .assertValues(values)
         .assertComplete()

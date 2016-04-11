@@ -37,7 +37,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class PublisherIterable<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements Receiver, Fuseable {
 
     final Iterable<? extends T> iterable;

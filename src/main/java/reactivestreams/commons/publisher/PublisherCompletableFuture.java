@@ -16,7 +16,7 @@ import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
  * @param <T> the value type
  */
 public final class PublisherCompletableFuture<T> 
-extends PublisherBase<T>
+extends Px<T>
         implements Receiver {
 
     final CompletableFuture<? extends T> future;

@@ -34,7 +34,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <R> the result type
  */
 public final class PublisherCombineLatest<T, R> 
-extends PublisherBase<R>
+extends Px<R>
         implements MultiReceiver {
 
     final Publisher<? extends T>[] array;

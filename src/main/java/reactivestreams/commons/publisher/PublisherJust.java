@@ -10,7 +10,7 @@ import reactivestreams.commons.state.Backpressurable;
 import reactivestreams.commons.util.ScalarSubscription;
 
 public final class PublisherJust<T> 
-extends PublisherBase<T>
+extends Px<T>
 implements Fuseable.ScalarSupplier<T>, Receiver, Backpressurable {
 
     final T value;

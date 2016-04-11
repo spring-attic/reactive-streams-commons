@@ -20,7 +20,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class ConnectablePublisherRefCount<T> extends PublisherBase<T>
+public final class ConnectablePublisherRefCount<T> extends Px<T>
         implements Receiver, Loopback {
     
     final ConnectablePublisher<? extends T> source;

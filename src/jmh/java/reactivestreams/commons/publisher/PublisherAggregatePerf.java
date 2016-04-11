@@ -40,13 +40,13 @@ public class PublisherAggregatePerf {
     
     @Setup
     public void setup() {
-        range = PublisherBase.range(0, count).reduce(Integer::max);
+        range = Px.range(0, count).reduce(Integer::max);
         Integer[] arr = new Integer[count];
         for (int i = 0; i < count; i++) {
             arr[i] = i;
         }
         
-        array = PublisherBase.fromArray(arr).reduce(Integer::max);
+        array = Px.fromArray(arr).reduce(Integer::max);
     }
     
     @Benchmark

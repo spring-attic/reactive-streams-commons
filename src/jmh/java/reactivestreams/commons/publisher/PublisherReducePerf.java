@@ -35,28 +35,28 @@ public class PublisherReducePerf {
     @Param({"1", "10", "100", "1000", "10000", "100000", "1000000" })
     public int count;
     
-    PublisherBase<Integer> aggregatedBaseline;
+    Px<Integer> aggregatedBaseline;
 
-    PublisherBase<Integer> aggregatedFused;
+    Px<Integer> aggregatedFused;
     
-    PublisherBase<Integer> reducedBaseline;
+    Px<Integer> reducedBaseline;
 
-    PublisherBase<Integer> reducedFused;
+    Px<Integer> reducedFused;
 
     @Setup
     public void setup() {
         Integer[] values = new Integer[count];
         Arrays.fill(values, 777);
         
-        PublisherBase<Integer> source = PublisherBase.fromArray(values);
+        Px<Integer> source = Px.fromArray(values);
         
         aggregatedBaseline = source.aggregate((u, v) -> u + v);
         
         reducedBaseline = source.reduce(() -> 0, (u, v) -> u + v);
         
-        aggregatedFused = PublisherBase.just(1).hide().flatMap(v -> aggregatedBaseline);
+        aggregatedFused = Px.just(1).hide().flatMap(v -> aggregatedBaseline);
 
-        reducedFused = PublisherBase.just(1).hide().flatMap(v -> reducedBaseline);
+        reducedFused = Px.just(1).hide().flatMap(v -> reducedBaseline);
     }
     
     @Benchmark

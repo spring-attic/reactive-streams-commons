@@ -42,13 +42,13 @@ public class FlatMapCrossRangePerf {
     
     public static final int TOTAL = 1_000_000;
     
-    public PublisherBase<Integer> source;
+    public Px<Integer> source;
 
-    public PublisherBase<Integer> sourceFused;
+    public Px<Integer> sourceFused;
 
-    public PublisherBase<Integer> asyncSource;
+    public Px<Integer> asyncSource;
 
-    public PublisherBase<Integer> asyncSourceFused;
+    public Px<Integer> asyncSourceFused;
 
     public ExecutorService exec;
     
@@ -65,12 +65,12 @@ public class FlatMapCrossRangePerf {
         
         Arrays.fill(second, 888);
         
-        PublisherBase<Integer> secondSourceFused = PublisherBase.fromArray(second);
-        PublisherBase<Integer> secondSource = secondSourceFused.hide();
+        Px<Integer> secondSourceFused = Px.fromArray(second);
+        Px<Integer> secondSource = secondSourceFused.hide();
         
-        source = PublisherBase.fromArray(first).flatMap(v -> secondSource);
+        source = Px.fromArray(first).flatMap(v -> secondSource);
 
-        sourceFused = PublisherBase.fromArray(first).flatMap(v -> secondSourceFused);
+        sourceFused = Px.fromArray(first).flatMap(v -> secondSourceFused);
         
         asyncSource = source.observeOn(exec);
         

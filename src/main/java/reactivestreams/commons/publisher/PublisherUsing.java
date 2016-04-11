@@ -30,7 +30,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <S> the resource type
  */
 public final class PublisherUsing<T, S> 
-extends PublisherBase<T>
+extends Px<T>
         implements Receiver {
 
     final Callable<S> resourceSupplier;

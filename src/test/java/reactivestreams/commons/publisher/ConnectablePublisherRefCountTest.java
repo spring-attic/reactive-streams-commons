@@ -21,7 +21,7 @@ public class ConnectablePublisherRefCountTest {
     public void normal() {
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
-        PublisherBase<Integer> p = sp.publish().refCount();
+        Px<Integer> p = sp.publish().refCount();
         
         Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
         
@@ -61,7 +61,7 @@ public class ConnectablePublisherRefCountTest {
     public void normalTwoSubscribers() {
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
-        PublisherBase<Integer> p = sp.publish().refCount(2);
+        Px<Integer> p = sp.publish().refCount(2);
         
         Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
         
@@ -100,7 +100,7 @@ public class ConnectablePublisherRefCountTest {
     @Test
     public void upstreamCompletes() {
         
-        PublisherBase<Integer> p = PublisherBase.range(1, 5).publish().refCount();
+        Px<Integer> p = Px.range(1, 5).publish().refCount();
 
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         p.subscribe(ts1);
@@ -121,7 +121,7 @@ public class ConnectablePublisherRefCountTest {
     @Test
     public void upstreamCompletesTwoSubscribers() {
         
-        PublisherBase<Integer> p = PublisherBase.range(1, 5).publish().refCount(2);
+        Px<Integer> p = Px.range(1, 5).publish().refCount(2);
 
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         p.subscribe(ts1);
@@ -137,7 +137,7 @@ public class ConnectablePublisherRefCountTest {
 
     @Test
     public void subscribersComeAndGoBelowThreshold() {
-        PublisherBase<Integer> p = PublisherBase.range(1, 5).publish().refCount(2);
+        Px<Integer> p = Px.range(1, 5).publish().refCount(2);
 
         Runnable r = p.subscribe();
         r.run();

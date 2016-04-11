@@ -18,7 +18,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  * Periodically emits an ever increasing long value either via a ScheduledExecutorService
  * or a custom async callback function
  */
-public final class PublisherInterval extends PublisherBase<Long> {
+public final class PublisherInterval extends Px<Long> {
 
     final BiFunction<Runnable, Long, ? extends Runnable> asyncExecutor;
     

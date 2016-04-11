@@ -39,11 +39,11 @@ public class PublisherObserveOnTest {
     public void constructors() {
         ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherObserveOn.class);
         
-        ctb.addRef("source", PublisherBase.never());
+        ctb.addRef("source", Px.never());
         ctb.addRef("executor", exec);
         ctb.addRef("scheduler", new ExecutorServiceScheduler(ForkJoinPool.commonPool()));
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
-        ctb.addRef("queueSupplier", PublisherBase.defaultQueueSupplier(Integer.MAX_VALUE));
+        ctb.addRef("queueSupplier", Px.defaultQueueSupplier(Integer.MAX_VALUE));
         
         ctb.test();
     }
@@ -52,7 +52,7 @@ public class PublisherObserveOnTest {
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).hide().observeOn(exec).subscribe(ts);
+        Px.range(1, 1_000_000).hide().observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -65,7 +65,7 @@ public class PublisherObserveOnTest {
     public void normalBackpressured1() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.range(1, 1_000).hide().observeOn(exec).subscribe(ts);
+        Px.range(1, 1_000).hide().observeOn(exec).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -92,7 +92,7 @@ public class PublisherObserveOnTest {
     public void normalBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.range(1, 1_000_000).hide().observeOn(exec).subscribe(ts);
+        Px.range(1, 1_000_000).hide().observeOn(exec).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -119,7 +119,7 @@ public class PublisherObserveOnTest {
     public void normalSyncFused() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 1_000_000).observeOn(exec).subscribe(ts);
+        Px.range(1, 1_000_000).observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -132,7 +132,7 @@ public class PublisherObserveOnTest {
     public void normalSyncFusedBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.range(1, 1_000_000).observeOn(exec).subscribe(ts);
+        Px.range(1, 1_000_000).observeOn(exec).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -227,7 +227,7 @@ public class PublisherObserveOnTest {
     public void empty() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.<Integer>empty().observeOn(exec).subscribe(ts);
+        Px.<Integer>empty().observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -241,7 +241,7 @@ public class PublisherObserveOnTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
         PublisherError<Integer> err = new PublisherError<>(new RuntimeException("forced failure"));
-        PublisherBase.range(1, 1000).concatWith(err).observeOn(exec, true).subscribe(ts);
+        Px.range(1, 1000).concatWith(err).observeOn(exec, true).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -255,7 +255,7 @@ public class PublisherObserveOnTest {
     public void classicJust() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.just(1).observeOn(exec).subscribe(ts);
+        Px.just(1).observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -268,7 +268,7 @@ public class PublisherObserveOnTest {
     public void classicJustBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.just(1).observeOn(exec).subscribe(ts);
+        Px.just(1).observeOn(exec).subscribe(ts);
         
         Thread.sleep(100);
         
@@ -289,7 +289,7 @@ public class PublisherObserveOnTest {
     public void filtered() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 2_000_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(1, 2_000_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -302,7 +302,7 @@ public class PublisherObserveOnTest {
     public void filtered1() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 2_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(1, 2_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -315,7 +315,7 @@ public class PublisherObserveOnTest {
     public void normalFilteredBackpressured() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.range(1, 2_000_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(1, 2_000_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -342,7 +342,7 @@ public class PublisherObserveOnTest {
     public void normalFilteredBackpressured1() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        PublisherBase.range(1, 2_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
+        Px.range(1, 2_000).hide().observeOn(exec).filter(v -> (v & 1) == 0).subscribe(ts);
         
         ts.assertNoValues()
         .assertNoError()
@@ -370,7 +370,7 @@ public class PublisherObserveOnTest {
         
         AtomicInteger count = new AtomicInteger();
         
-        PublisherBase<Integer> p = new PublisherCallable<>(count::incrementAndGet).observeOn(ForkJoinPool.commonPool());
+        Px<Integer> p = new PublisherCallable<>(count::incrementAndGet).observeOn(ForkJoinPool.commonPool());
         
         Assert.assertEquals(0, count.get());
         
@@ -399,11 +399,11 @@ public class PublisherObserveOnTest {
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        PublisherBase<Integer> fork1 = sp.map(d -> d).observeOn(exec);
-        PublisherBase<Integer> fork2 = sp.map(d -> d).observeOn(exec);
+        Px<Integer> fork1 = sp.map(d -> d).observeOn(exec);
+        Px<Integer> fork2 = sp.map(d -> d).observeOn(exec);
 
         ts.request(256);
-        PublisherBase.mergeArray(fork1, fork2).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
+        Px.mergeArray(fork1, fork2).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
 
 
         new PublisherRange(0, 128).hide().observeOn(ForkJoinPool.commonPool()).subscribe(sp);
@@ -420,7 +420,7 @@ public class PublisherObserveOnTest {
         
         ConcurrentLinkedQueue<Long> clq = new ConcurrentLinkedQueue<>();
         
-        PublisherBase.range(1, 2).hide()
+        Px.range(1, 2).hide()
         .doOnRequest(v -> {
             clq.offer(v);
         })
@@ -435,7 +435,7 @@ public class PublisherObserveOnTest {
 
         int s = clq.size();
         Assert.assertTrue("More requests?" + clq, s == 1 || s == 2 || s == 3);
-        Assert.assertEquals((Long)(long)PublisherBase.BUFFER_SIZE, clq.poll());
+        Assert.assertEquals((Long)(long)Px.BUFFER_SIZE, clq.poll());
     }
     
     @Test
@@ -452,8 +452,8 @@ public class PublisherObserveOnTest {
     public void boundedQueue() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        new PublisherObserveOn<>(PublisherBase.range(1, 100_000).hide(),
-                PublisherBase.fromExecutor(exec), true, 128, () -> new SpscArrayQueue<>(128)
+        new PublisherObserveOn<>(Px.range(1, 100_000).hide(),
+                Px.fromExecutor(exec), true, 128, () -> new SpscArrayQueue<>(128)
         )
         .subscribe(ts);
         
@@ -479,8 +479,8 @@ public class PublisherObserveOnTest {
     public void boundedQueueFilter() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        new PublisherObserveOn<>(PublisherBase.range(1, 100_000).hide(),
-                PublisherBase.fromExecutor(exec), true, 128, () -> new SpscArrayQueue<>(128)
+        new PublisherObserveOn<>(Px.range(1, 100_000).hide(),
+                Px.fromExecutor(exec), true, 128, () -> new SpscArrayQueue<>(128)
         ).filter(v -> (v & 1) == 0)
         .subscribe(ts);
         
@@ -507,7 +507,7 @@ public class PublisherObserveOnTest {
     public void withFlatMap() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        PublisherBase.range(1, 100_000).flatMap(PublisherBase::just).observeOn(exec).subscribe(ts);
+        Px.range(1, 100_000).flatMap(Px::just).observeOn(exec).subscribe(ts);
         
         ts.await(5, TimeUnit.SECONDS);
         
@@ -519,7 +519,7 @@ public class PublisherObserveOnTest {
     @Test
     public void syncSourceWithNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromArray(1, null, 1).observeOn(exec).subscribe(ts);
+        Px.fromArray(1, null, 1).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -531,7 +531,7 @@ public class PublisherObserveOnTest {
     @Test
     public void syncSourceWithNull2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromIterable(Arrays.asList(1, null, 1)).observeOn(exec).subscribe(ts);
+        Px.fromIterable(Arrays.asList(1, null, 1)).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -543,7 +543,7 @@ public class PublisherObserveOnTest {
     @Test
     public void mappedsyncSourceWithNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromArray(1, 2).map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+        Px.fromArray(1, 2).map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -555,7 +555,7 @@ public class PublisherObserveOnTest {
     @Test
     public void mappedsyncSourceWithNullHidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromArray(1, 2).hide().map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+        Px.fromArray(1, 2).hide().map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -567,7 +567,7 @@ public class PublisherObserveOnTest {
     @Test
     public void mappedsyncSourceWithNullPostFilterHidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromArray(1, 2).hide().map(v -> v == 2 ? null : v)
+        Px.fromArray(1, 2).hide().map(v -> v == 2 ? null : v)
         .observeOn(exec).filter(v -> true).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
@@ -580,7 +580,7 @@ public class PublisherObserveOnTest {
     @Test
     public void mappedsyncSourceWithNull2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+        Px.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -592,7 +592,7 @@ public class PublisherObserveOnTest {
     @Test
     public void mappedsyncSourceWithNull2Hidden() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromIterable(Arrays.asList(1, 2)).hide().map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
+        Px.fromIterable(Arrays.asList(1, 2)).hide().map(v -> v == 2 ? null : v).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -604,7 +604,7 @@ public class PublisherObserveOnTest {
     @Test
     public void mappedFilteredSyncSourceWithNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromArray(1, 2).map(v -> v == 2 ? null : v).filter(v -> true).observeOn(exec).subscribe(ts);
+        Px.fromArray(1, 2).map(v -> v == 2 ? null : v).filter(v -> true).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -616,7 +616,7 @@ public class PublisherObserveOnTest {
     @Test
     public void mappedFilteredSyncSourceWithNull2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
-        PublisherBase.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).filter(v -> true).observeOn(exec).subscribe(ts);
+        Px.fromIterable(Arrays.asList(1, 2)).map(v -> v == 2 ? null : v).filter(v -> true).observeOn(exec).subscribe(ts);
 
         ts.await(5, TimeUnit.SECONDS);
         
@@ -666,8 +666,8 @@ public class PublisherObserveOnTest {
 
         int count = 1000000;
         
-        PublisherBase.range(1, count)
-        .hide().flatMap(v -> PublisherBase.range(v, 2).hide(), false, 1)
+        Px.range(1, count)
+        .hide().flatMap(v -> Px.range(v, 2).hide(), false, 1)
         .hide().observeOn(exec).subscribe(ts);
         
         if (!ts.await(5, TimeUnit.SECONDS)) {
@@ -685,8 +685,8 @@ public class PublisherObserveOnTest {
 
         int count = 1000000;
         
-        PublisherBase.range(1, count)
-        .flatMap(v -> PublisherBase.range(v, 2), false, 1)
+        Px.range(1, count)
+        .flatMap(v -> Px.range(v, 2), false, 1)
         .observeOn(exec).subscribe(ts);
         
         if (!ts.await(10, TimeUnit.SECONDS)) {
@@ -712,8 +712,8 @@ public class PublisherObserveOnTest {
 
         int count = 1000000;
         
-        PublisherBase.range(1, count)
-        .hide().flatMap(v -> PublisherBase.range(v, 2).hide(), false, 32)
+        Px.range(1, count)
+        .hide().flatMap(v -> Px.range(v, 2).hide(), false, 32)
         .hide().observeOn(exec).subscribe(ts);
         
         if (!ts.await(10, TimeUnit.SECONDS)) {
@@ -739,8 +739,8 @@ public class PublisherObserveOnTest {
 
         int count = 1000000;
         
-        PublisherBase.range(1, count)
-        .flatMap(v -> PublisherBase.range(v, 2), false, 32)
+        Px.range(1, count)
+        .flatMap(v -> Px.range(v, 2), false, 32)
         .observeOn(exec).subscribe(ts);
         
         if (!ts.await(10, TimeUnit.SECONDS)) {
@@ -766,8 +766,8 @@ public class PublisherObserveOnTest {
 
         int count = 1000000;
         
-        PublisherBase.range(1, count)
-        .flatMap(v -> PublisherBase.range(v, 2))
+        Px.range(1, count)
+        .flatMap(v -> Px.range(v, 2))
         .observeOn(exec).subscribe(ts);
         
         if (!ts.await(10, TimeUnit.SECONDS)) {
@@ -834,7 +834,7 @@ public class PublisherObserveOnTest {
 
         int count = 1000;
         
-        PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, 32);
+        Px<Integer> source = Px.range(1, count).flatMap(v -> Px.range(v, 2), false, 32);
 
         source.observeOn(scheduler).subscribe(ts);
 
@@ -856,7 +856,7 @@ public class PublisherObserveOnTest {
         for (int j = 1; j < 256; j *= 2) {
 //            System.out.println("crossRangePerfDefaultLoop2 >>>> " + j);
             
-            PublisherBase<Integer> source = PublisherBase.range(1, count).flatMap(v -> PublisherBase.range(v, 2), false, j).observeOn(scheduler);
+            Px<Integer> source = Px.range(1, count).flatMap(v -> Px.range(v, 2), false, j).observeOn(scheduler);
     
             for (int i = 0; i < 10000; i++) {
 //                if (i % 2000 == 0)

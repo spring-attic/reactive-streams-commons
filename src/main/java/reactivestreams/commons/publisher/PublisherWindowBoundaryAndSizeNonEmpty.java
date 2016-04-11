@@ -25,7 +25,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T> the input value type
  * @param <U> the boundary publisher's type (irrelevant)
  */
-public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends PublisherSource<T, PublisherBase<T>> {
+public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends PublisherSource<T, Px<T>> {
 
     final Publisher<U> other;
 
@@ -50,7 +50,7 @@ public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends Publishe
     }
 
     @Override
-    public void subscribe(Subscriber<? super PublisherBase<T>> s) {
+    public void subscribe(Subscriber<? super Px<T>> s) {
 
         Queue<T> q;
 
@@ -92,7 +92,7 @@ public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends Publishe
     static final class PublisherWindowBoundaryMain<T, U>
             implements Subscriber<T>, Subscription, Runnable {
 
-        final Subscriber<? super PublisherBase<T>> actual;
+        final Subscriber<? super Px<T>> actual;
 
         final Supplier<? extends Queue<T>> processorQueueSupplier;
 
@@ -140,7 +140,7 @@ public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends Publishe
         
         static final Object DONE = new Object();
 
-        public PublisherWindowBoundaryMain(Subscriber<? super PublisherBase<T>> actual,
+        public PublisherWindowBoundaryMain(Subscriber<? super Px<T>> actual,
                 Supplier<? extends Queue<T>> processorQueueSupplier,
                 Queue<T> processorQueue, Queue<Object> queue, int maxSize) {
             this.actual = actual;
@@ -246,7 +246,7 @@ public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends Publishe
                 return;
             }
 
-            final Subscriber<? super PublisherBase<T>> a = actual;
+            final Subscriber<? super Px<T>> a = actual;
             final Queue<Object> q = queue;
             UnicastProcessor<T> w = window;
 

@@ -22,17 +22,17 @@ import reactivestreams.commons.publisher.internal.PerfSubscriber;
 @State(Scope.Thread)
 public class PublisherZipPerf {
 
-    PublisherBase<Integer> baselineIterable;
+    Px<Integer> baselineIterable;
 
-    PublisherBase<Integer> baselineArray;
+    Px<Integer> baselineArray;
 
-    PublisherBase<Integer> baselineRange;
+    Px<Integer> baselineRange;
 
-    PublisherBase<Integer> zipIterable;
+    Px<Integer> zipIterable;
 
-    PublisherBase<Integer> zipArray;
+    Px<Integer> zipArray;
     
-    PublisherBase<Integer> zipRange;
+    Px<Integer> zipRange;
     
     @Param({"1", "1000", "1000000"})
     int count;
@@ -41,11 +41,11 @@ public class PublisherZipPerf {
         Integer[] values = new Integer[count];
         Arrays.fill(values, 777);
         
-        baselineIterable = PublisherBase.fromIterable(Arrays.asList(values));
+        baselineIterable = Px.fromIterable(Arrays.asList(values));
         
-        baselineArray = PublisherBase.fromArray(values);
+        baselineArray = Px.fromArray(values);
         
-        baselineRange = PublisherBase.range(1, count);
+        baselineRange = Px.range(1, count);
         
         zipIterable = baselineIterable.zipWith(baselineIterable, (a, b) -> a + b);
 

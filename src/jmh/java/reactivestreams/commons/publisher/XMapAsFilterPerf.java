@@ -52,13 +52,13 @@ public class XMapAsFilterPerf {
     @Param({"0", "1", "3", "7", "65535"})
     public int mask;
     
-    public PublisherBase<Integer> justEmptyFlatMap;
+    public Px<Integer> justEmptyFlatMap;
     
-    public PublisherBase<Integer> rangeEmptyFlatMap;
+    public Px<Integer> rangeEmptyFlatMap;
 
-    public PublisherBase<Integer> justEmptyConcatMap;
+    public Px<Integer> justEmptyConcatMap;
     
-    public PublisherBase<Integer> rangeEmptyConcatMap;
+    public Px<Integer> rangeEmptyConcatMap;
 
     @Setup
     public void setup() {
@@ -69,21 +69,21 @@ public class XMapAsFilterPerf {
         for (int i = 0; i < count; i++) {
             values[i] = i;
         }
-        final PublisherBase<Integer> just = PublisherBase.just(1);
+        final Px<Integer> just = Px.just(1);
         
-        final PublisherBase<Integer> range = PublisherBase.range(1, 2);
+        final Px<Integer> range = Px.range(1, 2);
         
-        final PublisherBase<Integer> empty = PublisherBase.empty();
+        final Px<Integer> empty = Px.empty();
         
         final int m = mask;
         
-        justEmptyFlatMap = PublisherBase.fromArray(values).flatMap(v -> (v & m) == 0 ? empty : just);
+        justEmptyFlatMap = Px.fromArray(values).flatMap(v -> (v & m) == 0 ? empty : just);
         
-        rangeEmptyFlatMap = PublisherBase.fromArray(values).flatMap(v -> (v & m) == 0 ? empty : range);
+        rangeEmptyFlatMap = Px.fromArray(values).flatMap(v -> (v & m) == 0 ? empty : range);
 
-        justEmptyConcatMap = PublisherBase.fromArray(values).concatMap(v -> (v & m) == 0 ? empty : just);
+        justEmptyConcatMap = Px.fromArray(values).concatMap(v -> (v & m) == 0 ? empty : just);
         
-        rangeEmptyConcatMap = PublisherBase.fromArray(values).concatMap(v -> (v & m) == 0 ? empty : range);
+        rangeEmptyConcatMap = Px.fromArray(values).concatMap(v -> (v & m) == 0 ? empty : range);
     }
 
     @Benchmark

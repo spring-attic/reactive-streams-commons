@@ -33,7 +33,7 @@ public class FlatMapFrontFusionPerf {
         Integer[] a = new Integer[count];
         Arrays.fill(a, 777);
         
-        source = PublisherBase.fromArray(a).flatMap(PublisherBase::just);
+        source = Px.fromArray(a).flatMap(Px::just);
     }
     @Benchmark
     public void unbounded(Blackhole bh) {
