@@ -1,8 +1,7 @@
-package reactivestreams.commons.processor;
+package reactivestreams.commons.publisher;
 
 import org.reactivestreams.*;
 
-import reactivestreams.commons.publisher.PublisherSource;
 import reactivestreams.commons.util.SubscriptionHelper;
 
 /**

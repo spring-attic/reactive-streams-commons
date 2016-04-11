@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.processor.PublisherDetach;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.state.Introspectable;
 import reactivestreams.commons.subscriber.*;
