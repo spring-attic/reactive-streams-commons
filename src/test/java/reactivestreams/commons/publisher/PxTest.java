@@ -5,7 +5,7 @@ import org.junit.Test;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.EmptySubscription;
 
-public class PublisherBaseTest {
+public class PxTest {
 
     @Test
     public void subscribeLambdaJust() {

@@ -491,7 +491,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
      * This operator is aimed at preventing certain operator optimizations such
      * as operator macro- and micro-fusion.
      * 
-     * @return the new PublisherBase hiding this Publisher
+     * @return the new Px hiding this Publisher
      */
     public final Px<T> hide() {
         return new PublisherHide<>(this);
@@ -670,8 +670,8 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     // ---------------------------------------------------------------------------------------
     
-    static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {
-        public PublisherBaseWrapper(Publisher<? extends T> source) {
+    static final class PxWrapper<T> extends PublisherSource<T, T> {
+        public PxWrapper(Publisher<? extends T> source) {
             super(source);
         }
         
@@ -681,9 +681,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         }
     }
 
-    static final class PublisherBaseFuseableWrapper<T> extends PublisherSource<T, T> 
+    static final class PxFuseableWrapper<T> extends PublisherSource<T, T> 
     implements Fuseable {
-        public PublisherBaseFuseableWrapper(Publisher<? extends T> source) {
+        public PxFuseableWrapper(Publisher<? extends T> source) {
             super(source);
         }
         
@@ -702,24 +702,24 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (source instanceof Px) {
             return (Px<T>)source;
         }
-        return new PublisherBaseWrapper<>(source);
+        return new PxWrapper<>(source);
     }
 
     /**
-     * Wraps an arbitrary publisher source into a PublisherBase instance which also
+     * Wraps an arbitrary publisher source into a Px instance which also
      * implements Fuseable indicating the source publisher can deal with the
      * operator fusion API internally.
      * 
      * @param <T> the value type
      * @param source the publisher to wrap
-     * @return the PublisherBase instance
+     * @return the Px instance
      */
     @SuppressWarnings("unchecked")
     public static <T> Px<T> wrapFuseable(Publisher<? extends T> source) {
         if (source instanceof Px) {
             return (Px<T>)source;
         }
-        return new PublisherBaseFuseableWrapper<>(source);
+        return new PxFuseableWrapper<>(source);
     }
 
     // ---------------------------------------------------------------------------------------
