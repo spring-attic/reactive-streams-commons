@@ -91,7 +91,7 @@ public class DeferredSubscription
         if (a != null) {
             a.request(n);
         } else {
-            BackpressureHelper.addAndGet(REQUESTED, this, n);
+            BackpressureHelper.getAndAddCap(REQUESTED, this, n);
 
             a = s;
 

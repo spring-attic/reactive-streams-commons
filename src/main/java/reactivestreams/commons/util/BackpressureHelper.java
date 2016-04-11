@@ -22,7 +22,14 @@ public enum BackpressureHelper {
         return u;
     }
 
-    public static long addAndGet(AtomicLong requested, long n) {
+    /**
+     * Atomically adds the value to the atomic variable, capping the sum at Long.MAX_VALUE
+     * and returning the original value.
+     * @param requested the target atomic variable
+     * @param n the value to add, n > 0, not validated
+     * @return the original value before the add
+     */
+    public static long getAndAddCap(AtomicLong requested, long n) {
         for (; ; ) {
             long r = requested.get();
             if (r == Long.MAX_VALUE) {
@@ -35,7 +42,16 @@ public enum BackpressureHelper {
         }
     }
 
-    public static <T> long addAndGet(AtomicLongFieldUpdater<T> updater, T instance, long n) {
+    /**
+     * Atomically adds the value to the atomic variable, capping the sum at Long.MAX_VALUE
+     * and returning the original value.
+     * @param <T> the type of the parent class of the field
+     * @param updater the field updater
+     * @param instance the instance of the field to update
+     * @param n the value to add, n > 0, not validated
+     * @return the original value before the add
+     */
+    public static <T> long getAndAddCap(AtomicLongFieldUpdater<T> updater, T instance, long n) {
         for (; ; ) {
             long r = updater.get(instance);
             if (r == Long.MAX_VALUE) {

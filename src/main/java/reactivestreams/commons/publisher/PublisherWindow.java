@@ -758,7 +758,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, PublisherBase<T
                     s.request(u);
                 }
                 
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                 drain();
             }
         }

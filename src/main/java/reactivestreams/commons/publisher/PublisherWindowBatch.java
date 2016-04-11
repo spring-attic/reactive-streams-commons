@@ -212,7 +212,7 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Publish
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
             }
         }
         

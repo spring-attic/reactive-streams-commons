@@ -665,6 +665,9 @@ public abstract class PublisherBase<T> implements Publisher<T>, Introspectable {
         return new PublisherDetach<>(this);
     }
     
+    public final PublisherBase<T> awaitOnSubscribe() {
+        return new PublisherAwaitOnSubscribe<>(this);
+    }
     // ---------------------------------------------------------------------------------------
     
     static final class PublisherBaseWrapper<T> extends PublisherSource<T, T> {

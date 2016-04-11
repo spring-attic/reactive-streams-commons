@@ -350,7 +350,7 @@ implements Fuseable, Backpressurable  {
                 if (enableAsyncFusion) {
                     actual.onNext(null);
                 } else {
-                    BackpressureHelper.addAndGet(REQUESTED, this, n);
+                    BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                     drain();
                 }
             }
@@ -769,7 +769,7 @@ implements Fuseable, Backpressurable  {
                         a.onNext(null); // in op-fusion, onNext(null) is the indicator of more data
                     }
                 } else {
-                    BackpressureHelper.addAndGet(REQUESTED, this, n);
+                    BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                     drain();
                 }
             }

@@ -581,7 +581,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                 parent.drain();
             }
         }

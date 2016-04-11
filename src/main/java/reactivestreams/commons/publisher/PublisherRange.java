@@ -81,7 +81,7 @@ extends PublisherBase<Integer>
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (BackpressureHelper.addAndGet(REQUESTED, this, n) == 0) {
+                if (BackpressureHelper.getAndAddCap(REQUESTED, this, n) == 0) {
                     if (n == Long.MAX_VALUE) {
                         fastPath();
                     } else {
@@ -250,7 +250,7 @@ extends PublisherBase<Integer>
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (BackpressureHelper.addAndGet(REQUESTED, this, n) == 0) {
+                if (BackpressureHelper.getAndAddCap(REQUESTED, this, n) == 0) {
                     if (n == Long.MAX_VALUE) {
                         fastPath();
                     } else {

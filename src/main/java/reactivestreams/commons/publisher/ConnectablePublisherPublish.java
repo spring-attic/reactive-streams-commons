@@ -558,7 +558,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                 State<T> p = parent;
                 if (p != null) {
                     p.drain();

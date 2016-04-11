@@ -240,7 +240,7 @@ extends PublisherBase<R>
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                 drain();
             }
         }
@@ -539,7 +539,7 @@ extends PublisherBase<R>
                 if (a != null) {
                     a.request(p);
                 } else {
-                    BackpressureHelper.addAndGet(REQUESTED, this, p);
+                    BackpressureHelper.getAndAddCap(REQUESTED, this, p);
 
                     a = s;
 

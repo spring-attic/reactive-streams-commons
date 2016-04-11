@@ -550,7 +550,7 @@ public final class PublisherZip<T, R> extends PublisherBase<R> implements Intros
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                 drain();
             }
         }

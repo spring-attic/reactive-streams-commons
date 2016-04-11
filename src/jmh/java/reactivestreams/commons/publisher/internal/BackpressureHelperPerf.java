@@ -100,21 +100,21 @@ public class BackpressureHelperPerf {
 
     @Benchmark
     public void request() {
-        BackpressureHelper.addAndGet(req, 1);
+        BackpressureHelper.getAndAddCap(req, 1);
     }
 
     @Benchmark
     public void requestField() {
-        BackpressureHelper.addAndGet(REQUESTED, this, 1);
+        BackpressureHelper.getAndAddCap(REQUESTED, this, 1);
     }
 
     @Benchmark
     public void requestMax() {
-        BackpressureHelper.addAndGet(reqMax, 1);
+        BackpressureHelper.getAndAddCap(reqMax, 1);
     }
 
     @Benchmark
     public void requestFieldMax() {
-        BackpressureHelper.addAndGet(REQUESTED_MAX, this, 1);
+        BackpressureHelper.getAndAddCap(REQUESTED_MAX, this, 1);
     }
 }

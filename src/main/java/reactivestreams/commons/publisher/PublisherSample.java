@@ -126,7 +126,7 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
             }
         }
 

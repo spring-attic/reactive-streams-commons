@@ -171,7 +171,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
                 return;
             }
 
-            BackpressureHelper.addAndGet(MISSED_REQUESTED, this, n);
+            BackpressureHelper.getAndAddCap(MISSED_REQUESTED, this, n);
 
             drain();
         }
@@ -204,7 +204,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
             return;
         }
 
-        BackpressureHelper.addAndGet(MISSED_PRODUCED, this, 1L);
+        BackpressureHelper.getAndAddCap(MISSED_PRODUCED, this, 1L);
 
         drain();
     }
@@ -236,7 +236,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
             return;
         }
 
-        BackpressureHelper.addAndGet(MISSED_PRODUCED, this, n);
+        BackpressureHelper.getAndAddCap(MISSED_PRODUCED, this, n);
 
         drain();
     }

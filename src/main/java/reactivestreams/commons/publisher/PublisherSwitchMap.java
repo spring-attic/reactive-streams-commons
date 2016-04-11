@@ -216,7 +216,7 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.addAndGet(REQUESTED, this, n);
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                 drain();
             }
         }
