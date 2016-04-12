@@ -4,7 +4,7 @@
 //A complete RS commons coverage minus the lite core
 def excludingCoreScope =  ['generate',
 												 'completablefuture', 'subscribeonother', 'ignoreelements',
-												 'timer', 'interval', 'blockingfuture',
+												 'blockingfuture',
 												 'blockingiterable', 'bufferboundaryandsize',
 												 'windowbeginend', /*'windowboundaryandsize',*/
 												 'lift', //Already managed by reactor-core
@@ -58,6 +58,8 @@ def defaultSingleAPI = ['empty',
 						'future',
 						'ignoreelements',
 						'callable',
+						'completablefuture',
+						'timer',
 						'first',
 						'aggregate',
 						'next',

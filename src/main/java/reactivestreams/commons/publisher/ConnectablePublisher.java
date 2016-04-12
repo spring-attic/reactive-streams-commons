@@ -57,12 +57,7 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      */
     public final Cancellation connect() {
         final Cancellation[] out = { null };
-        connect(new Consumer<Cancellation>() {
-            @Override
-            public void accept(Cancellation r) {
-                out[0] = r;
-            }
-        });
+        connect(r -> out[0] = r);
         return out[0];
     }
 
@@ -97,10 +92,7 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
         return refCount(1);
     }
 
-    static final Consumer<Cancellation> NOOP_DISCONNECT = new Consumer<Cancellation>() {
-        @Override
-        public void accept(Cancellation runnable) {
+    static final Consumer<Cancellation> NOOP_DISCONNECT = runnable -> {
 
-        }
     };
 }
