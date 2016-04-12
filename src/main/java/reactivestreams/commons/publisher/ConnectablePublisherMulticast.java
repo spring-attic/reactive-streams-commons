@@ -1,26 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.*;
+import reactivestreams.commons.util.*;
 
 /**
  * @param <T>
@@ -51,7 +40,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
     }
 
     @Override
-    public void connect(Consumer<? super Runnable> cancelSupport) {
+    public void connect(Consumer<? super Cancellable> cancelSupport) {
         boolean doConnect;
         State<T, U> s;
 
@@ -78,7 +67,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
             break;
         }
 
-        cancelSupport.accept(s);
+        cancelSupport.accept(new CancellableRunnable(s));
         if (doConnect) {
             source.subscribe(s);
         }
@@ -128,6 +117,8 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
         static final AtomicIntegerFieldUpdater<State> CONNECTED =
                 AtomicIntegerFieldUpdater.newUpdater(State.class, "connected");
 
+        volatile boolean downstreamCancelled;
+        
         public State(Processor<? super T, ? extends T> processor, Publisher<? extends U> publisher) {
             this.processor = processor;
             this.publisher = publisher;

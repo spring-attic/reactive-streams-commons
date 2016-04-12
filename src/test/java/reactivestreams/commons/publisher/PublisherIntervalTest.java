@@ -1,28 +1,20 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.LongSupplier;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.*;
 
 public class PublisherIntervalTest {
 
-    ScheduledExecutorService exec;
+    SingleTimedScheduler exec;
     
     @Before
     public void before() {
-        exec = Executors.newScheduledThreadPool(1);
+        exec = new SingleTimedScheduler();
     }
     
     @After
@@ -38,9 +30,7 @@ public class PublisherIntervalTest {
         ctb.addLong("initialDelay", Long.MIN_VALUE, Long.MAX_VALUE);
         ctb.addLong("period", 0, Long.MAX_VALUE);
         ctb.addRef("unit", TimeUnit.SECONDS);
-        ctb.addRef("executor", exec);
-        ctb.addRef("asyncExecutor", (BiFunction<Runnable, Long, Runnable>)(r, a) -> r);
-        ctb.addRef("now", (LongSupplier)() -> 1L);
+        ctb.addRef("timedScheduler", exec);
 
         ctb.test();
     }

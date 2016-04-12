@@ -5,6 +5,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
 import reactivestreams.commons.scheduler.Scheduler;
+import reactivestreams.commons.state.Cancellable;
 
 /**
  * Wraps a java.util.concurrent.Executor and provides the Scheduler API over it.
@@ -27,7 +28,7 @@ public final class ExecutorScheduler implements Scheduler {
     }
     
     @Override
-    public Runnable schedule(Runnable task) {
+    public Cancellable schedule(Runnable task) {
         Objects.requireNonNull(task, "task");
         ExecutorPlainRunnable r = new ExecutorPlainRunnable(task);
         try {
@@ -35,7 +36,7 @@ public final class ExecutorScheduler implements Scheduler {
         } catch (RejectedExecutionException ex) {
             return REJECTED;
         }
-        return r::cancel;
+        return r;
     }
 
     @Override
@@ -50,7 +51,8 @@ public final class ExecutorScheduler implements Scheduler {
      * <p>Since Executor doesn't have cancellation support of its own, the
      * ExecutorRunnable will stay in the Executor's queue and be always executed.
      */
-    static final class ExecutorPlainRunnable extends AtomicBoolean implements Runnable {
+    static final class ExecutorPlainRunnable extends AtomicBoolean 
+    implements Runnable, Cancellable {
         /** */
         private static final long serialVersionUID = 5116223460201378097L;
         
@@ -72,8 +74,14 @@ public final class ExecutorScheduler implements Scheduler {
             }
         }
         
-        void cancel() {
+        @Override
+        public void cancel() {
             set(true);
+        }
+        
+        @Override
+        public boolean isCancelled() {
+            return get();
         }
         
         @Override
@@ -93,7 +101,8 @@ public final class ExecutorScheduler implements Scheduler {
      * A Runnable that wraps a task and has reference back to its parent worker to
      * remove itself once completed or cancelled
      */
-    static final class ExecutorTrackedRunnable extends AtomicBoolean implements Runnable {
+    static final class ExecutorTrackedRunnable extends AtomicBoolean 
+    implements Runnable, Cancellable {
         /** */
         private static final long serialVersionUID = 3503344795919906192L;
         
@@ -119,10 +128,16 @@ public final class ExecutorScheduler implements Scheduler {
             }
         }
         
-        void cancel() {
+        @Override
+        public void cancel() {
             if (compareAndSet(false, true)) {
                 parent.delete(this);
             }
+        }
+        
+        @Override
+        public boolean isCancelled() {
+            return get();
         }
         
         @Override
@@ -148,7 +163,7 @@ public final class ExecutorScheduler implements Scheduler {
         }
 
         @Override
-        public Runnable schedule(Runnable task) {
+        public Cancellable schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
             if (terminated) {
                 return REJECTED;
@@ -173,7 +188,7 @@ public final class ExecutorScheduler implements Scheduler {
                 return REJECTED;
             }
             
-            return r::cancel;
+            return r;
         }
 
         @Override
@@ -227,7 +242,7 @@ public final class ExecutorScheduler implements Scheduler {
         }
 
         @Override
-        public Runnable schedule(Runnable task) {
+        public Cancellable schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
             if (terminated) {
                 return REJECTED;
@@ -250,7 +265,7 @@ public final class ExecutorScheduler implements Scheduler {
                 }
             }
             
-            return r::cancel;
+            return r;
         }
 
         @Override

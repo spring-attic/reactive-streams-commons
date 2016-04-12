@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import org.junit.*;
 
 import reactivestreams.commons.processor.SimpleProcessor;
+import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.ConstructorTestBuilder;
 
@@ -26,14 +27,14 @@ public class ConnectablePublisherAutoConnectTest {
     public void connectImmediately() {
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
-        AtomicReference<Runnable> cancel = new AtomicReference<>();
+        AtomicReference<Cancellable> cancel = new AtomicReference<>();
         
         sp.publish().autoConnect(0, cancel::set);
         
         Assert.assertNotNull(cancel.get());
         Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
 
-        cancel.get().run();
+        cancel.get().cancel();
         Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
     }
 
@@ -41,7 +42,7 @@ public class ConnectablePublisherAutoConnectTest {
     public void connectAfterMany() {
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
-        AtomicReference<Runnable> cancel = new AtomicReference<>();
+        AtomicReference<Cancellable> cancel = new AtomicReference<>();
         
         Px<Integer> p = sp.publish().autoConnect(2, cancel::set);
         
@@ -58,7 +59,7 @@ public class ConnectablePublisherAutoConnectTest {
         Assert.assertNotNull(cancel.get());
         Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
         
-        cancel.get().run();
+        cancel.get().cancel();
         Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
     }
 }

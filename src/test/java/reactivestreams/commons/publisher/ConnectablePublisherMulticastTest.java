@@ -1,17 +1,15 @@
 package reactivestreams.commons.publisher;
 
 import java.util.concurrent.CancellationException;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Processor;
-import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.processor.UnicastProcessor;
+
+import reactivestreams.commons.processor.*;
+import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
-import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.*;
 
 public class ConnectablePublisherMulticastTest {
 
@@ -206,12 +204,12 @@ public class ConnectablePublisherMulticastTest {
         
         p.subscribe(ts);
         
-        Runnable r = p.connect();
+        Cancellable r = p.connect();
                 
         sp.onNext(1);
         sp.onNext(2);
         
-        r.run();
+        r.cancel();
         
         ts.assertValues(1, 2)
         .assertError(CancellationException.class)
@@ -233,7 +231,7 @@ public class ConnectablePublisherMulticastTest {
         p.subscribe(ts1);
         p.subscribe(ts2);
 
-        Runnable r = p.connect();
+        Cancellable r = p.connect();
 
         sp.onNext(1);
         sp.onNext(2);
@@ -242,7 +240,7 @@ public class ConnectablePublisherMulticastTest {
 
         Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
 
-        r.run();
+        r.cancel();
 
         ts1.assertValues(1, 2)
           .assertNoError()
@@ -266,9 +264,9 @@ public class ConnectablePublisherMulticastTest {
         
         p.subscribe(ts);
         
-        Runnable r = p.connect();
+        Cancellable r = p.connect();
                 
-        r.run();
+        r.cancel();
         
         ts.assertNoValues()
         .assertError(CancellationException.class)

@@ -58,7 +58,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
     }
 
     @Override
-    public void connect(Consumer<? super Runnable> cancelSupport) {
+    public void connect(Consumer<? super Cancellable> cancelSupport) {
         boolean doConnect;
         State<T> s;
         for (;;) {
@@ -124,7 +124,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         return source;
     }
     
-    static final class State<T> implements Subscriber<T>, Runnable, Receiver, MultiProducer, Backpressurable,
+    static final class State<T> implements Subscriber<T>, Receiver, MultiProducer, Backpressurable,
                                            Completable, Cancellable, Introspectable {
 
         final int prefetch;
@@ -256,7 +256,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         }
         
         @Override
-        public void run() {
+        public void cancel() {
             if (cancelled) {
                 return;
             }

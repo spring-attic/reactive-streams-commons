@@ -2,6 +2,8 @@ package reactivestreams.commons.publisher;
 
 import java.util.function.Consumer;
 
+import reactivestreams.commons.state.Cancellable;
+
 /**
  * The abstract base class for connectable publishers that let subscribers pile up
  * before they connect to their data source.
@@ -40,7 +42,7 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * @param cancelSupport the consumer that will receive the runnable that allows disconnecting
      * @return the Publisher that connects to the upstream source when the given amount of subscribers subscribed
      */
-    public final Px<T> autoConnect(int minSubscribers, Consumer<? super Runnable> cancelSupport) {
+    public final Px<T> autoConnect(int minSubscribers, Consumer<? super Cancellable> cancelSupport) {
         if (minSubscribers == 0) {
             connect(cancelSupport);
             return this;
@@ -53,11 +55,11 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * can be used for disconnecting.
      * @return the Runnable that allows disconnecting the connection after.
      */
-    public final Runnable connect() {
-        final Runnable[] out = { null };
-        connect(new Consumer<Runnable>() {
+    public final Cancellable connect() {
+        final Cancellable[] out = { null };
+        connect(new Consumer<Cancellable>() {
             @Override
-            public void accept(Runnable r) {
+            public void accept(Cancellable r) {
                 out[0] = r;
             }
         });
@@ -74,7 +76,7 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * @param cancelSupport the callback is called with a Runnable instance that can
      * be called to disconnect the source, even synchronously.
      */
-    public abstract void connect(Consumer<? super Runnable> cancelSupport);
+    public abstract void connect(Consumer<? super Cancellable> cancelSupport);
 
 	/**
      * Connects to the upstream source when the given number of Subscriber subscribes and disconnects
@@ -95,9 +97,9 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
         return refCount(1);
     }
 
-    static final Consumer<Runnable> NOOP_DISCONNECT = new Consumer<Runnable>() {
+    static final Consumer<Cancellable> NOOP_DISCONNECT = new Consumer<Cancellable>() {
         @Override
-        public void accept(Runnable runnable) {
+        public void accept(Cancellable runnable) {
 
         }
     };

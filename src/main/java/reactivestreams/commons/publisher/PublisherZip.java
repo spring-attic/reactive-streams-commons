@@ -491,7 +491,8 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
             return s;
         }
 
-        void cancel() {
+        @Override
+        public void cancel() {
             SubscriptionHelper.terminate(S, this);
         }
     }

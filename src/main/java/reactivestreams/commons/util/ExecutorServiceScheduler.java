@@ -1,14 +1,11 @@
 package reactivestreams.commons.util;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
 import reactivestreams.commons.scheduler.Scheduler;
+import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.util.ExecutorScheduler.ExecutorSchedulerTrampolineWorker;
 
 /**
@@ -23,7 +20,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
         }
     };
 
-    static final Future<?> CANCELLED = new FutureTask<>(EMPTY, null);
+    static final Future<?> CANCELLED_FUTURE = new FutureTask<>(EMPTY, null);
 
     static final Future<?> FINISHED = new FutureTask<>(EMPTY, null);
 
@@ -49,9 +46,9 @@ public final class ExecutorServiceScheduler implements Scheduler {
     }
     
     @Override
-    public Runnable schedule(Runnable task) {
+    public Cancellable schedule(Runnable task) {
         Future<?> f = executor.submit(task);
-        return () -> f.cancel(true);
+        return new CancellableFuture(f);
     }
 
     static final class ExecutorServiceWorker implements Worker {
@@ -68,13 +65,13 @@ public final class ExecutorServiceScheduler implements Scheduler {
         }
         
         @Override
-        public Runnable schedule(Runnable t) {
+        public Cancellable schedule(Runnable t) {
             ScheduledRunnable sr = new ScheduledRunnable(t, this);
             if (add(sr)) {
                 Future<?> f = executor.submit(sr);
                 sr.setFuture(f);
             }
-            return sr::cancel;
+            return sr;
         }
         
         boolean add(ScheduledRunnable sr) {
@@ -120,7 +117,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
     
     static final class ScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable {
+    implements Runnable, Cancellable {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -149,7 +146,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
             } finally {
                 for (;;) {
                     Future<?> a = get();
-                    if (a == CANCELLED) {
+                    if (a == CANCELLED_FUTURE) {
                         break;
                     }
                     if (compareAndSet(a, FINISHED)) {
@@ -171,7 +168,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
                 if (a == FINISHED) {
                     return;
                 }
-                if (compareAndSet(a, CANCELLED)) {
+                if (compareAndSet(a, CANCELLED_FUTURE)) {
                     if (a != null) {
                         doCancel(a);
                     }
@@ -180,13 +177,20 @@ public final class ExecutorServiceScheduler implements Scheduler {
             }
         }
         
-        void cancel() {
+        @Override
+        public boolean isCancelled() {
+            Future<?> f = get();
+            return f == FINISHED || f == CANCELLED_FUTURE;
+        }
+        
+        @Override
+        public void cancel() {
             for (;;) {
                 Future<?> a = get();
                 if (a == FINISHED) {
                     return;
                 }
-                if (compareAndSet(a, CANCELLED)) {
+                if (compareAndSet(a, CANCELLED_FUTURE)) {
                     if (a != null) {
                         doCancel(a);
                     }
@@ -203,7 +207,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
                 if (a == FINISHED) {
                     return;
                 }
-                if (a == CANCELLED) {
+                if (a == CANCELLED_FUTURE) {
                     doCancel(a);
                     return;
                 }
@@ -211,6 +215,11 @@ public final class ExecutorServiceScheduler implements Scheduler {
                     return;
                 }
             }
+        }
+        
+        @Override
+        public String toString() {
+            return "ScheduledRunnable[cancelled=" + get() + ", task=" + task + "]";
         }
     }
 }

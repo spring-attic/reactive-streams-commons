@@ -5,7 +5,9 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
+
 import reactivestreams.commons.flow.Receiver;
+import reactivestreams.commons.state.Cancellable;
 
 /**
  * Connects to the underlying ConnectablePublisher once the given amount of Subscribers
@@ -18,7 +20,7 @@ public final class ConnectablePublisherAutoConnect<T> extends Px<T>
 
     final ConnectablePublisher<? extends T> source;
 
-    final Consumer<? super Runnable> cancelSupport;
+    final Consumer<? super Cancellable> cancelSupport;
 
     volatile int remaining;
     @SuppressWarnings("rawtypes")
@@ -27,7 +29,7 @@ public final class ConnectablePublisherAutoConnect<T> extends Px<T>
 
 
     public ConnectablePublisherAutoConnect(ConnectablePublisher<? extends T> source, 
-            int n, Consumer<? super Runnable> cancelSupport) {
+            int n, Consumer<? super Cancellable> cancelSupport) {
         if (n <= 0) {
             throw new IllegalArgumentException("n > required but it was " + n);
         }

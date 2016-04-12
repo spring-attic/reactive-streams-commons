@@ -1,18 +1,14 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 import java.util.function.Consumer;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Loopback;
-import reactivestreams.commons.flow.MultiProducer;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.util.SubscriptionHelper;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.util.*;
 
 /**
  * Connects to the underlying ConnectablePublisher once the given number of Subscribers subscribed
@@ -72,7 +68,7 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         return source;
     }
 
-    static final class State<T> implements Consumer<Runnable>, MultiProducer, Receiver {
+    static final class State<T> implements Consumer<Cancellable>, MultiProducer, Receiver {
         
         final int n;
         
@@ -83,17 +79,12 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         static final AtomicIntegerFieldUpdater<State> SUBSCRIBERS =
                 AtomicIntegerFieldUpdater.newUpdater(State.class, "subscribers");
         
-        volatile Runnable disconnect;
+        volatile Cancellable disconnect;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<State, Runnable> DISCONNECT =
-                AtomicReferenceFieldUpdater.newUpdater(State.class, Runnable.class, "disconnect");
+        static final AtomicReferenceFieldUpdater<State, Cancellable> DISCONNECT =
+                AtomicReferenceFieldUpdater.newUpdater(State.class, Cancellable.class, "disconnect");
         
-        static final Runnable DISCONNECTED = new Runnable() {
-            @Override
-            public void run() { 
-                
-            }
-        };
+        static final Cancellable DISCONNECTED = new EmptyCancellable();
 
         public State(int n, ConnectablePublisherRefCount<? extends T> parent) {
             this.n = n;
@@ -112,18 +103,18 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         }
         
         @Override
-        public void accept(Runnable r) {
+        public void accept(Cancellable r) {
             if (!DISCONNECT.compareAndSet(this, null, r)) {
-                r.run();
+                r.cancel();
             }
         }
         
         void doDisconnect() {
-            Runnable a = disconnect;
+            Cancellable a = disconnect;
             if (a != DISCONNECTED) {
                 a = DISCONNECT.getAndSet(this, DISCONNECTED);
                 if (a != null && a != DISCONNECTED) {
-                    a.run();
+                    a.cancel();
                 }
             }
         }
@@ -139,7 +130,7 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         }
         
         void upstreamFinished() {
-            Runnable a = disconnect;
+            Cancellable a = disconnect;
             if (a != DISCONNECTED) {
                 DISCONNECT.getAndSet(this, DISCONNECTED);
             }

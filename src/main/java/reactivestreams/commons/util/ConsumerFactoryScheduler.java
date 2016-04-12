@@ -5,6 +5,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import reactivestreams.commons.scheduler.Scheduler;
+import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.util.ExecutorScheduler.ExecutorPlainRunnable;
 
 /**
@@ -12,16 +13,24 @@ import reactivestreams.commons.util.ExecutorScheduler.ExecutorPlainRunnable;
  */
 public final class ConsumerFactoryScheduler implements Scheduler {
     
-    final Callable<Consumer<Runnable>> factory;
+    final Callable<? extends Consumer<Runnable>> factory;
     
-    public ConsumerFactoryScheduler(Callable<Consumer<Runnable>> factory) {
+    public ConsumerFactoryScheduler(Callable<? extends Consumer<Runnable>> factory) {
         this.factory = factory;
     }
     
     @Override
-    public Runnable schedule(Runnable task) {
+    public Cancellable schedule(Runnable task) {
         Objects.requireNonNull(task, "task");
-        Worker w = createWorker();
+        
+        ConsumerFactoryWorker w; 
+        
+        try {
+            w = new ConsumerFactoryWorker(factory.call());
+        } catch (Exception ex) {
+            ExceptionHelper.failUpstream(ex);
+            return REJECTED;
+        }
         
         w.schedule(() -> {
             try {
@@ -31,7 +40,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
             }
         });
         
-        return w::shutdown;
+        return w;
     }
     
     @Override
@@ -45,7 +54,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
     }
     
-    static final class ConsumerFactoryWorker implements Worker {
+    static final class ConsumerFactoryWorker implements Worker, Cancellable {
         final Consumer<Runnable> consumer;
         
         volatile boolean terminated;
@@ -55,7 +64,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
         
         @Override
-        public Runnable schedule(Runnable task) {
+        public Cancellable schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
 
             if (terminated) {
@@ -66,7 +75,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
             
             consumer.accept(r);
             
-            return r::cancel;
+            return r;
         }
         
         @Override
@@ -75,6 +84,16 @@ public final class ConsumerFactoryScheduler implements Scheduler {
                 terminated = true;
                 consumer.accept(null);
             }
+        }
+        
+        @Override
+        public void cancel() {
+            shutdown();
+        }
+        
+        @Override
+        public boolean isCancelled() {
+            return terminated;
         }
     }
 }

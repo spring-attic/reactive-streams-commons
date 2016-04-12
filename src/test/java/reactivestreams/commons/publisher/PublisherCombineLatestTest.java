@@ -1,19 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
+import reactivestreams.commons.util.SingleTimedScheduler;
 
 public class PublisherCombineLatestTest {
 
@@ -262,11 +258,12 @@ public class PublisherCombineLatestTest {
     public void intervalResultInCorrectTotalCouples() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
 
-        ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
+        SingleTimedScheduler exec1 = new SingleTimedScheduler();
+        SingleTimedScheduler exec2 = new SingleTimedScheduler();
 
         new PublisherCombineLatest<>(new Publisher[] {
-                Px.interval(100, TimeUnit.MILLISECONDS, exec).take(20),
-                Px.interval(100, 50, TimeUnit.MILLISECONDS, exec).take(20)
+                Px.interval(100, TimeUnit.MILLISECONDS, exec1).take(20),
+                Px.interval(100, 50, TimeUnit.MILLISECONDS, exec2).take(20)
         },
         a -> Arrays.asList(a[0] , a[1]), qs, 128)
            // .doOnNext(System.out::println)
@@ -277,7 +274,8 @@ public class PublisherCombineLatestTest {
           .assertComplete()
           .assertNoError();
 
-        exec.shutdown();
+        exec1.shutdown();
+        exec2.shutdown();
 
     }
 
@@ -308,8 +306,8 @@ public class PublisherCombineLatestTest {
 
     @Test
     public void asyncInterleaved() {
-        ScheduledExecutorService exec1 = Executors.newScheduledThreadPool(1);
-        ScheduledExecutorService exec2 = Executors.newScheduledThreadPool(1);
+        SingleTimedScheduler exec1 = new SingleTimedScheduler();
+        SingleTimedScheduler exec2 = new SingleTimedScheduler();
 
         try {
             TestSubscriber<String> ts = new TestSubscriber<>();
@@ -344,8 +342,8 @@ public class PublisherCombineLatestTest {
 
     @Test
     public void asyncInterleavedRacing() {
-        ScheduledExecutorService exec1 = Executors.newScheduledThreadPool(1);
-        ScheduledExecutorService exec2 = Executors.newScheduledThreadPool(1);
+        SingleTimedScheduler exec1 = new SingleTimedScheduler();
+        SingleTimedScheduler exec2 = new SingleTimedScheduler();
 
         try {
             TestSubscriber<String> ts = new TestSubscriber<>();
@@ -378,7 +376,7 @@ public class PublisherCombineLatestTest {
 
     @Test
     public void asyncInterleavedRacingSameScheduler() {
-        ScheduledExecutorService exec1 = Executors.newScheduledThreadPool(1);
+        SingleTimedScheduler exec1 = new SingleTimedScheduler();
 
         try {
             TestSubscriber<String> ts = new TestSubscriber<>();

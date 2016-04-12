@@ -1,9 +1,8 @@
 package reactivestreams.commons.scheduler;
 
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import reactivestreams.commons.util.BackpressureHelper;
+import reactivestreams.commons.state.Cancellable;
 
 /**
  * Provides an abstract, timed asychronous boundary to operators.
@@ -22,7 +21,7 @@ public interface TimedScheduler extends Scheduler {
      * @param unit the unit of measure of the delay amount
      * @return the Cancellable that let's one cancel this particular delayed task.
      */
-    Runnable schedule(Runnable task, long delay, TimeUnit unit);
+    Cancellable schedule(Runnable task, long delay, TimeUnit unit);
     
     /**
      * Schedules a periodic execution of the given task with the given initial delay and period.
@@ -41,24 +40,7 @@ public interface TimedScheduler extends Scheduler {
      * @param unit the unit of measure of the delay amount
      * @return the Cancellable that let's one cancel this particular delayed task.
      */
-    Runnable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
-    
-    default Runnable schedule(Runnable task, Duration delay) {
-        long s = BackpressureHelper.multiplyCap(delay.getSeconds(), 1_000_000_000);
-        long d = BackpressureHelper.addCap(s, delay.getNano());
-        
-        return schedule(task, d, TimeUnit.NANOSECONDS);
-    }
-
-    default Runnable schedulePeriodically(Runnable task, Duration initialDelay, Duration period) {
-        long s0 = BackpressureHelper.multiplyCap(initialDelay.getSeconds(), 1_000_000_000);
-        long d0 = BackpressureHelper.addCap(s0, initialDelay.getNano());
-        
-        long s1 = BackpressureHelper.multiplyCap(period.getSeconds(), 1_000_000_000);
-        long d1 = BackpressureHelper.addCap(s1, period.getNano());
-
-        return schedulePeriodically(task, d0, d1, TimeUnit.NANOSECONDS);
-    }
+    Cancellable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
     
     /**
      * Returns the "current time" notion of this scheduler.
@@ -88,7 +70,7 @@ public interface TimedScheduler extends Scheduler {
          * @param unit the unit of measure of the delay amount
          * @return the Cancellable that let's one cancel this particular delayed task.
          */
-        Runnable schedule(Runnable task, long delay, TimeUnit unit);
+        Cancellable schedule(Runnable task, long delay, TimeUnit unit);
         
         /**
          * Schedules a periodic execution of the given task with the given initial delay and period.
@@ -106,25 +88,8 @@ public interface TimedScheduler extends Scheduler {
          * @param unit the unit of measure of the delay amount
          * @return the Cancellable that let's one cancel this particular delayed task.
          */
-        Runnable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
+        Cancellable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
         
-        default Runnable schedule(Runnable task, Duration delay) {
-            long s = BackpressureHelper.multiplyCap(delay.getSeconds(), 1_000_000_000);
-            long d = BackpressureHelper.addCap(s, delay.getNano());
-            
-            return schedule(task, d, TimeUnit.NANOSECONDS);
-        }
-
-        default Runnable schedulePeriodically(Runnable task, Duration initialDelay, Duration period) {
-            long s0 = BackpressureHelper.multiplyCap(initialDelay.getSeconds(), 1_000_000_000);
-            long d0 = BackpressureHelper.addCap(s0, initialDelay.getNano());
-            
-            long s1 = BackpressureHelper.multiplyCap(period.getSeconds(), 1_000_000_000);
-            long d1 = BackpressureHelper.addCap(s1, period.getNano());
-
-            return schedulePeriodically(task, d0, d1, TimeUnit.NANOSECONDS);
-        }
-
         /**
          * Returns the "current time" notion of this scheduler.
          * @param unit the target unit of the current time

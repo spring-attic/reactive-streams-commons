@@ -1,18 +1,14 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Objects;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.BiFunction;
-import java.util.function.LongSupplier;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.scheduler.TimedScheduler;
+import reactivestreams.commons.scheduler.TimedScheduler.TimedWorker;
+import reactivestreams.commons.util.*;
 
 /**
  * Periodically emits an ever increasing long value either via a ScheduledExecutorService
@@ -20,9 +16,7 @@ import reactivestreams.commons.util.SubscriptionHelper;
  */
 public final class PublisherInterval extends Px<Long> {
 
-    final BiFunction<Runnable, Long, ? extends Runnable> asyncExecutor;
-    
-    final LongSupplier now;
+    final TimedScheduler timedScheduler;
     
     final long initialDelay;
     
@@ -34,107 +28,60 @@ public final class PublisherInterval extends Px<Long> {
             long initialDelay, 
             long period, 
             TimeUnit unit, 
-            ScheduledExecutorService executor) {
-        this(initialDelay, period, unit, Objects.requireNonNull(executor, "executor"), 1);
-    }
-
-    PublisherInterval(
-            long initialDelay, 
-            long period, 
-            TimeUnit unit, 
-            ScheduledExecutorService executor, int dummy) {
-        this(initialDelay, period, unit, (r, d) -> {
-            if (r != null) {
-                Future<?> f = executor.schedule(r, d, unit);
-                return () -> f.cancel(true);
-            }
-            return null;
-        }, () -> unit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS));
-    }
-
-    public PublisherInterval(
-            long initialDelay, 
-            long period, 
-            TimeUnit unit, 
-            BiFunction<Runnable, Long, ? extends Runnable> asyncExecutor,
-            LongSupplier now) {
+            TimedScheduler timedScheduler) {
         if (period < 0L) {
             throw new IllegalArgumentException("period >= 0 required but it was " + period);
         }
         this.initialDelay = initialDelay;
         this.period = period;
         this.unit = Objects.requireNonNull(unit, "unit");
-        this.asyncExecutor = Objects.requireNonNull(asyncExecutor, "asyncExecutor");
-        this.now = Objects.requireNonNull(now, "now");
+        this.timedScheduler = Objects.requireNonNull(timedScheduler, "timedScheduler");
     }
     
     @Override
     public void subscribe(Subscriber<? super Long> s) {
-        PublisherIntervalRunnable r = new PublisherIntervalRunnable(s, now.getAsLong() + initialDelay, period, asyncExecutor, now);
+        
+        TimedWorker w = timedScheduler.createWorker();
+        
+        PublisherIntervalRunnable r = new PublisherIntervalRunnable(s, w);
         
         s.onSubscribe(r);
-        
-        Runnable c = asyncExecutor.apply(r, initialDelay);
-        
-        r.setCancel(0, c);
+
+        w.schedulePeriodically(r, initialDelay, period, unit);
     }
     
     static final class PublisherIntervalRunnable implements Runnable, Subscription {
         final Subscriber<? super Long> s;
         
-        final BiFunction<Runnable, Long, ? extends Runnable> asyncExecutor;
-        
-        final LongSupplier now;
+        final TimedWorker worker;
         
         volatile long requested;
         static final AtomicLongFieldUpdater<PublisherIntervalRunnable> REQUESTED = 
                 AtomicLongFieldUpdater.newUpdater(PublisherIntervalRunnable.class, "requested");
         
-        final long startTime;
-        
-        final long period;
-        
         long count;
-
-        volatile IndexedRunnable cancel;
-        static final AtomicReferenceFieldUpdater<PublisherIntervalRunnable, IndexedRunnable> CANCEL =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherIntervalRunnable.class, IndexedRunnable.class, "cancel");
         
-        static final IndexedRunnable CANCELLED = new IndexedRunnable(Long.MAX_VALUE, () -> { });
+        volatile boolean cancelled;
 
-        public PublisherIntervalRunnable(Subscriber<? super Long> s, 
-                long startTime, long period,
-                BiFunction<Runnable, Long, ? extends Runnable> asyncExecutor,
-                LongSupplier now) {
+        public PublisherIntervalRunnable(Subscriber<? super Long> s, TimedWorker worker) {
             this.s = s;
-            this.startTime = startTime;
-            this.period = period;
-            this.now = now;
-            this.asyncExecutor = asyncExecutor;
+            this.worker = worker;
         }
         
         @Override
         public void run() {
-            long c = count;
-            long r = requested;
-            if (r != 0L) {
-                s.onNext(c);
-                if (r != Long.MAX_VALUE) {
-                    REQUESTED.decrementAndGet(this);
+            if (!cancelled) {
+                if (requested != 0L) {
+                    s.onNext(count++);
+                    if (requested != Long.MAX_VALUE) {
+                        REQUESTED.decrementAndGet(this);
+                    }
+                } else {
+                    cancel();
+                    
+                    s.onError(new IllegalStateException("Could not emit value " + count + " due to lack of requests"));
                 }
-            } else {
-                s.onError(new IllegalStateException("Could not emit " + c + " due to lack of requests"));
-                return;
             }
-            
-            long t = now.getAsLong();
-            long next = startTime + (c + 1) * period;
-            
-            long delta = Math.max(next - t, 0);
-            
-            count = c + 1;
-            
-            setCancel(c + 1, asyncExecutor.apply(this, delta));
         }
         
         @Override
@@ -146,39 +93,10 @@ public final class PublisherInterval extends Px<Long> {
         
         @Override
         public void cancel() {
-            IndexedRunnable a = cancel;
-            if (a != CANCELLED) {
-                a = CANCEL.getAndSet(this, CANCELLED);
-                if (a != null && a != CANCELLED) {
-                    a.run.run();
-                }
+            if (!cancelled) {
+                cancelled = true;
+                worker.shutdown();
             }
-            asyncExecutor.apply(null, null);
-        }
-        
-        public void setCancel(long index, Runnable r) {
-            for (;;) {
-                IndexedRunnable a = cancel;
-                if (a != null && a.index > index) {
-                    return;
-                }
-                IndexedRunnable b = new IndexedRunnable(index, r);
-                if (CANCEL.compareAndSet(this, a, b)) {
-                    return;
-                }
-            }
-        }
-    }
-    
-    static final class IndexedRunnable {
-        
-        final long index;
-        
-        final Runnable run;
-
-        public IndexedRunnable(long index, Runnable run) {
-            this.index = index;
-            this.run = run;
         }
     }
 }

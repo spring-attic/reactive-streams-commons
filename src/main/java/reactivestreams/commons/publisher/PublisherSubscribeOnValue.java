@@ -4,12 +4,11 @@ import java.util.Objects;
 
 import org.reactivestreams.Subscriber;
 
-import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledEmpty;
-import reactivestreams.commons.publisher.PublisherSubscribeOn.ScheduledScalar;
+import reactivestreams.commons.publisher.PublisherSubscribeOn.*;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.scheduler.Scheduler.Worker;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ExceptionHelper;
+import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.util.*;
 
 /**
  * Publisher indicating a scalar/empty source that subscribes on the specified scheduler.
@@ -53,7 +52,7 @@ final class PublisherSubscribeOnValue<T> extends Px<T> {
         if (v == null) {
             ScheduledEmpty parent = new ScheduledEmpty(s);
             s.onSubscribe(parent);
-            Runnable f = scheduler.schedule(parent);
+            Cancellable f = scheduler.schedule(parent);
             parent.setFuture(f);
         } else {
             s.onSubscribe(new ScheduledScalar<>(s, v, scheduler));

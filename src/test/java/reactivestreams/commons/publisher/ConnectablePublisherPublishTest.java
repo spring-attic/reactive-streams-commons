@@ -1,17 +1,15 @@
 package reactivestreams.commons.publisher;
 
 import java.util.Queue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import org.junit.Assert;
-import org.junit.Test;
-import reactivestreams.commons.processor.SimpleProcessor;
-import reactivestreams.commons.processor.UnicastProcessor;
+import org.junit.*;
+
+import reactivestreams.commons.processor.*;
+import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
-import reactivestreams.commons.util.SpscArrayQueue;
+import reactivestreams.commons.util.*;
 
 public class ConnectablePublisherPublishTest {
 
@@ -310,12 +308,12 @@ public class ConnectablePublisherPublishTest {
         
         p.subscribe(ts);
         
-        Runnable r = p.connect();
+        Cancellable r = p.connect();
                 
         sp.onNext(1);
         sp.onNext(2);
         
-        r.run();
+        r.cancel();
         
         ts.assertValues(1, 2)
         .assertError(CancellationException.class)
@@ -334,9 +332,9 @@ public class ConnectablePublisherPublishTest {
         
         p.subscribe(ts);
         
-        Runnable r = p.connect();
+        Cancellable r = p.connect();
                 
-        r.run();
+        r.cancel();
         
         ts.assertNoValues()
         .assertError(CancellationException.class)

@@ -1,21 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Publisher;
+
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.*;
 
 public class PublisherWindowBoundaryAndSizeTest {
 
@@ -349,7 +343,9 @@ public class PublisherWindowBoundaryAndSizeTest {
     public void asyncConsumers() {
         for (int maxSize = 1; maxSize < 12; maxSize++) {
 //            System.out.println("asyncConsumers >> " + maxSize);
-            ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
+            SingleTimedScheduler exec1 = new SingleTimedScheduler();
+            SingleTimedScheduler exec2 = new SingleTimedScheduler();
+            SingleTimedScheduler exec3 = new SingleTimedScheduler();
 
             try {
                 List<TestSubscriber<Long>> tss = new ArrayList<>();
@@ -363,8 +359,8 @@ public class PublisherWindowBoundaryAndSizeTest {
                     }
                 };
 
-                Px.interval(1, TimeUnit.MILLISECONDS, exec).observeOn(exec).take(2500)
-                .window(Px.interval(5, TimeUnit.MILLISECONDS, exec), maxSize)
+                Px.interval(1, TimeUnit.MILLISECONDS, exec1).observeOn(exec2).take(2500)
+                .window(Px.interval(5, TimeUnit.MILLISECONDS, exec3), maxSize)
                 .subscribe(ts);
 
                 ts.await(5, TimeUnit.SECONDS);
@@ -382,7 +378,9 @@ public class PublisherWindowBoundaryAndSizeTest {
                     Assert.assertEquals((long)a2, a1 + 1);
                 }
             } finally {
-                exec.shutdownNow();
+                exec1.shutdown();
+                exec2.shutdown();
+                exec3.shutdown();
             }
         }
     }

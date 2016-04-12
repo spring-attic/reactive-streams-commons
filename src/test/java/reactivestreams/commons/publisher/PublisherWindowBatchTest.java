@@ -9,7 +9,7 @@ import org.reactivestreams.Publisher;
 
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.*;
 
 public class PublisherWindowBatchTest {
 
@@ -163,7 +163,7 @@ public class PublisherWindowBatchTest {
 
     @Test(timeout = 10000)
     public void windowBatching() {
-        ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
+        SingleTimedScheduler exec = new SingleTimedScheduler();
         
         try {
             TestSubscriber<Px<Long>> ts = new TestSubscriber<>();
@@ -192,7 +192,7 @@ public class PublisherWindowBatchTest {
             }
             
         } finally {
-            exec.shutdownNow();
+            exec.shutdown();
         }
     }
     

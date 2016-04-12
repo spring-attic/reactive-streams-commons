@@ -1,21 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Publisher;
+
 import reactivestreams.commons.processor.SimpleProcessor;
 import reactivestreams.commons.test.TestSubscriber;
-import reactivestreams.commons.util.ConstructorTestBuilder;
+import reactivestreams.commons.util.*;
 
 public class PublisherWindowBoundaryAndSizeNonEmptyTest {
 
@@ -345,7 +339,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void asyncConsumers() {
         for (int maxSize = 1; maxSize < 12; maxSize++) {
 //            System.out.println("asyncConsumers >> " + maxSize);
-            ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
+            SingleTimedScheduler exec = new SingleTimedScheduler();
 
             try {
                 List<TestSubscriber<Long>> tss = new ArrayList<>();
@@ -378,7 +372,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
                     Assert.assertEquals((long)a2, a1 + 1);
                 }
             } finally {
-                exec.shutdownNow();
+                exec.shutdown();
             }
         }
     }
