@@ -676,7 +676,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final ConnectablePublisher<T> multicast(
             Supplier<? extends Processor<? super T, ? extends T>> processorSupplier) {
-        return multicast(processorSupplier, Function.identity());
+        return multicast(processorSupplier, IDENTITY_FUNCTION);
     }
 
     public final <U> ConnectablePublisher<U> multicast(Processor<? super T, ? extends T>
