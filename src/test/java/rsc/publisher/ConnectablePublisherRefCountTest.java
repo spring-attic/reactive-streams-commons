@@ -2,6 +2,7 @@ package rsc.publisher;
 
 import org.junit.*;
 
+import rsc.flow.Cancellation;
 import rsc.processor.SimpleProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
@@ -139,12 +140,12 @@ public class ConnectablePublisherRefCountTest {
     public void subscribersComeAndGoBelowThreshold() {
         Px<Integer> p = Px.range(1, 5).publish().refCount(2);
 
-        Runnable r = p.subscribe();
-        r.run();
-        p.subscribe().run();
-        p.subscribe().run();
-        p.subscribe().run();
-        p.subscribe().run();
+        Cancellation r = p.subscribe();
+        r.dispose();
+        p.subscribe().dispose();
+        p.subscribe().dispose();
+        p.subscribe().dispose();
+        p.subscribe().dispose();
         
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         p.subscribe(ts1);

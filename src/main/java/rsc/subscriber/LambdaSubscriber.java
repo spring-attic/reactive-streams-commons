@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import rsc.flow.Cancellation;
 import rsc.util.ExceptionHelper;
 import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -17,7 +18,7 @@ import rsc.util.UnsignalledExceptions;
  *
  * @param <T> the value type
  */
-public final class LambdaSubscriber<T> implements Subscriber<T>, Runnable {
+public final class LambdaSubscriber<T> implements Subscriber<T>, Cancellation {
 
     final Consumer<? super T> onNextCall;
     
@@ -39,7 +40,7 @@ public final class LambdaSubscriber<T> implements Subscriber<T>, Runnable {
     }
 
     @Override
-    public void run() {
+    public void dispose() {
         SubscriptionHelper.terminate(S, this);
     }
 
@@ -56,7 +57,7 @@ public final class LambdaSubscriber<T> implements Subscriber<T>, Runnable {
             onNextCall.accept(t);
         } catch (Throwable e) {
             ExceptionHelper.throwIfFatal(e);
-            run();
+            dispose();
             onError(e);
         }
     }

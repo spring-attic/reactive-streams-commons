@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import org.reactivestreams.*;
 
+import rsc.flow.Cancellation;
 import rsc.flow.Fuseable;
 import rsc.scheduler.TimedScheduler;
 import rsc.state.Introspectable;
@@ -569,21 +570,21 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return new PublisherSubscribeOn<>(this, scheduler);
     }
 
-    public final Runnable subscribe() {
+    public final Cancellation subscribe() {
         EmptyAsyncSubscriber<T> s = new EmptyAsyncSubscriber<>();
         subscribe(s);
         return s;
     }
     
-    public final Runnable subscribe(Consumer<? super T> onNext) {
+    public final Cancellation subscribe(Consumer<? super T> onNext) {
         return subscribe(onNext, DROP_ERROR, EMPTY_RUNNABLE);
     }
 
-    public final Runnable subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError) {
+    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError) {
         return subscribe(onNext, onError, EMPTY_RUNNABLE);
     }
 
-    public final Runnable subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError, Runnable onComplete) {
+    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError, Runnable onComplete) {
         LambdaSubscriber<T> s = new LambdaSubscriber<>(onNext, onError, onComplete);
         subscribe(s);
         return s;
