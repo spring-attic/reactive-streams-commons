@@ -61,7 +61,12 @@ public interface Scheduler {
     
     /**
      * A worker representing an asynchronous boundary that executes tasks in
-     * a FIFO order, guaranteed non-concurrently with respect to each other. 
+     * a FIFO order, guaranteed non-concurrently with respect to each other.
+     * 
+     * <p>Implementors note:<br>
+     * The shutdown() method should be implemented in a way that shutting down a
+     * worker of a Scheduler doesn't shuts down other Workers from the same
+     * Scheduler.
      */
     interface Worker {
         

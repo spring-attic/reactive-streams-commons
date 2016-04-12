@@ -54,6 +54,17 @@ public interface TimedScheduler extends Scheduler {
     @Override
     TimedWorker createWorker();
     
+    /**
+     * A timed worker representing an asynchronous boundary that executes tasks in
+     * a FIFO order, possibly delayed and guaranteed non-concurrently with respect 
+     * to each other (delayed or non-delayed alike).
+     * 
+     * <p>Implementors note:<br>
+     * Since TimedWorker extends Worker, the same rule still applies:
+     * the shutdown() method should be implemented in a way that shutting down a
+     * worker of a Scheduler doesn't shuts down other Workers from the same
+     * Scheduler.
+     */
     interface TimedWorker extends Worker {
         
         /**
