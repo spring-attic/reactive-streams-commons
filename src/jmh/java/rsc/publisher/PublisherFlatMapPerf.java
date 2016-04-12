@@ -7,7 +7,7 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
-import rsc.publisher.internal.PerfSubscriber;
+import rsc.util.PerfSubscriber;
 
 
 /**

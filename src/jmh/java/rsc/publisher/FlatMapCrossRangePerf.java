@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import rsc.publisher.internal.*;
+import rsc.util.*;
 
 /**
  * Benchmark flatMap/concatMap running over a mixture of normal and empty Observables.

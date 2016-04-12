@@ -1,13 +1,13 @@
 package rsc.publisher;
 
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
-import rsc.publisher.internal.PerfSubscriber;
-
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import rsc.util.PerfSubscriber;
 
 
 /**

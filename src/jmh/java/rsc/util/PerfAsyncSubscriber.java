@@ -1,4 +1,4 @@
-package rsc.publisher.internal;
+package rsc.util;
 
 import java.util.concurrent.CountDownLatch;
 

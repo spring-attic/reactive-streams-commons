@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import rsc.publisher.internal.PerfSubscriber;
+import rsc.util.PerfSubscriber;
 
 
 /**

@@ -1,12 +1,12 @@
 package rsc.publisher;
 
+import java.util.concurrent.TimeUnit;
+
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
-import rsc.publisher.internal.*;
-
-import java.util.concurrent.TimeUnit;
+import rsc.util.*;
 
 
 /**
