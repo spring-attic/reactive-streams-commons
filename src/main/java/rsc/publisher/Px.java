@@ -690,7 +690,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> Px<R> concatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch) {
-        return new PublisherConcatMapIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
+        return new PublisherFlattenIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
     }
 
     public final <R> Px<R> flatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper) {
@@ -698,7 +698,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> Px<R> flatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch) {
-        return new PublisherConcatMapIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
+        return new PublisherFlattenIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
     }
 
     // ---------------------------------------------------------------------------------------

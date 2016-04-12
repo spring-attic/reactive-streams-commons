@@ -59,7 +59,6 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherCollect` : collects the values into a container and emits it when the source completes
   - `PublisherCombineLatest` : combines the latest values of many sources through a function
   - `PublisherConcatMap` : Maps each upstream value into a Publisher and concatenates them into one sequence of items
-  - `PublisherConcatMapIterable` : concatenates values from Iterable sequences generated via a mapper function
   - `PublisherCount` : counts the number of elements the source sequence emits
   - `PublisherDistinct` : filters out elements that have been seen previously according to a custom collection
   - `PublisherDistinctUntilChanged` : filters out subsequent and repeated elements
@@ -70,6 +69,7 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherElementAt` : emits the element at the specified index location
   - `PublisherFilter` : filters out values which doesn't pass a predicate
   - `PublisherFlatMap` : maps a sequence of values each into a Publisher and flattens them back into a single sequence, interleaving events from the various inner Publishers
+  - `PublisherFlattenIterable` : concatenates values from Iterable sequences generated via a mapper function
   - `PublisherGroupBy` : groups source elements into their own Publisher sequences via a key function
   - `PublisherIgnoreElements` : ignores values and passes only the terminal signals along
   - `PublisherIsEmpty` : returns a single true if the source sequence is empty

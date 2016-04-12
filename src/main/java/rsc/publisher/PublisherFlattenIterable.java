@@ -25,7 +25,7 @@ import rsc.util.UnsignalledExceptions;
  * @param <T> the input value type
  * @param <R> the value type of the iterables and the result type
  */
-public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R> implements Fuseable {
+public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> implements Fuseable {
 
     final Function<? super T, ? extends Iterable<? extends R>> mapper;
     
@@ -33,7 +33,7 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
     
     final Supplier<Queue<T>> queueSupplier;
     
-    public PublisherConcatMapIterable(Publisher<? extends T> source,
+    public PublisherFlattenIterable(Publisher<? extends T> source,
             Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch,
             Supplier<Queue<T>> queueSupplier) {
         super(source);

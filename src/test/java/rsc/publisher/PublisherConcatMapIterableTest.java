@@ -16,7 +16,7 @@ public class PublisherConcatMapIterableTest {
 
     @Test
     public void constructors() {
-        ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherConcatMapIterable.class);
+        ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherFlattenIterable.class);
         
         ctb.addRef("source", PublisherNever.instance());
         ctb.addRef("mapper", (Function<Object, Iterable<Object>>)v -> Collections.emptyList());
