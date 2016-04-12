@@ -188,25 +188,32 @@ public class PublisherObserveOnTest {
 
         up.observeOn(exec).subscribe(ts);
         
-        ts.assertNoValues()
-        .assertNoError()
-        .assertNotComplete();
-        
-        ts.request(500_000);
-        
-        Thread.sleep(250);
-        
-        ts.assertValueCount(500_000)
-        .assertNoError()
-        .assertNotComplete();
-
-        ts.request(500_000);
-
-        ts.await(5, TimeUnit.SECONDS);
-        
-        ts.assertValueCount(1_000_000)
-        .assertNoError()
-        .assertComplete();
+        try {
+            ts.assertNoValues()
+            .assertNoError()
+            .assertNotComplete();
+            
+            ts.request(500_000);
+            
+            Thread.sleep(250);
+            
+            ts.assertValueCount(500_000)
+            .assertNoError()
+            .assertNotComplete();
+    
+            ts.request(500_000);
+    
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                Assert.fail("TestSubscriber timed out: " + ts.received());
+            }
+            
+            ts.assertValueCount(1_000_000)
+            .assertNoError()
+            .assertComplete();
+        } finally {
+            ts.cancel();
+        }
     }
 
     @Test

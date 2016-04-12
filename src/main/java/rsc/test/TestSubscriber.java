@@ -540,4 +540,8 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final int subscriptions() {
         return subscriptions;
     }
+    
+    public final int received() {
+        return volatileSize;
+    }
 }
