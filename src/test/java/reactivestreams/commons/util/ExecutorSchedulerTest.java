@@ -4,8 +4,8 @@ import java.util.concurrent.*;
 
 import org.junit.*;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.Scheduler;
-import reactivestreams.commons.state.Cancellable;
 
 public class ExecutorSchedulerTest {
 
@@ -128,7 +128,7 @@ public class ExecutorSchedulerTest {
 
         w.shutdown();
         
-        Cancellable r = w.schedule(() -> { });
+        Cancellation r = w.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
     }
@@ -142,7 +142,7 @@ public class ExecutorSchedulerTest {
 
         w.shutdown();
         
-        Cancellable r = w.schedule(() -> { });
+        Cancellation r = w.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
     }
@@ -153,7 +153,7 @@ public class ExecutorSchedulerTest {
         exec.shutdown();
         Scheduler s = new ExecutorScheduler(exec, false);
 
-        Cancellable r = s.schedule(() -> { });
+        Cancellation r = s.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
 
@@ -170,7 +170,7 @@ public class ExecutorSchedulerTest {
         exec.shutdown();
         Scheduler s = new ExecutorScheduler(exec, true);
         
-        Cancellable r = s.schedule(() -> { });
+        Cancellation r = s.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
 

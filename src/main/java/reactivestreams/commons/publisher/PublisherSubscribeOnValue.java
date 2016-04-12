@@ -4,10 +4,10 @@ import java.util.Objects;
 
 import org.reactivestreams.Subscriber;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.publisher.PublisherSubscribeOn.*;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.scheduler.Scheduler.Worker;
-import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.util.*;
 
 /**
@@ -52,7 +52,7 @@ final class PublisherSubscribeOnValue<T> extends Px<T> {
         if (v == null) {
             ScheduledEmpty parent = new ScheduledEmpty(s);
             s.onSubscribe(parent);
-            Cancellable f = scheduler.schedule(parent);
+            Cancellation f = scheduler.schedule(parent);
             parent.setFuture(f);
         } else {
             s.onSubscribe(new ScheduledScalar<>(s, v, scheduler));

@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.util.ExecutorScheduler.ExecutorSchedulerTrampolineWorker;
@@ -46,9 +47,9 @@ public final class ExecutorServiceScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellable schedule(Runnable task) {
+    public Cancellation schedule(Runnable task) {
         Future<?> f = executor.submit(task);
-        return new CancellableFuture(f);
+        return () -> f.cancel(true);
     }
 
     static final class ExecutorServiceWorker implements Worker {
@@ -65,7 +66,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
         }
         
         @Override
-        public Cancellable schedule(Runnable t) {
+        public Cancellation schedule(Runnable t) {
             ScheduledRunnable sr = new ScheduledRunnable(t, this);
             if (add(sr)) {
                 Future<?> f = executor.submit(sr);
@@ -117,7 +118,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
     
     static final class ScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellable {
+    implements Runnable, Cancellable, Cancellation {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -184,7 +185,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
         }
         
         @Override
-        public void cancel() {
+        public void dispose() {
             for (;;) {
                 Future<?> a = get();
                 if (a == FINISHED) {

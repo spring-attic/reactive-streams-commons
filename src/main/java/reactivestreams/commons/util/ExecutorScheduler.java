@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.state.Cancellable;
 
@@ -28,7 +29,7 @@ public final class ExecutorScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellable schedule(Runnable task) {
+    public Cancellation schedule(Runnable task) {
         Objects.requireNonNull(task, "task");
         ExecutorPlainRunnable r = new ExecutorPlainRunnable(task);
         try {
@@ -52,7 +53,7 @@ public final class ExecutorScheduler implements Scheduler {
      * ExecutorRunnable will stay in the Executor's queue and be always executed.
      */
     static final class ExecutorPlainRunnable extends AtomicBoolean 
-    implements Runnable, Cancellable {
+    implements Runnable, Cancellable, Cancellation {
         /** */
         private static final long serialVersionUID = 5116223460201378097L;
         
@@ -75,7 +76,7 @@ public final class ExecutorScheduler implements Scheduler {
         }
         
         @Override
-        public void cancel() {
+        public void dispose() {
             set(true);
         }
         
@@ -102,7 +103,7 @@ public final class ExecutorScheduler implements Scheduler {
      * remove itself once completed or cancelled
      */
     static final class ExecutorTrackedRunnable extends AtomicBoolean 
-    implements Runnable, Cancellable {
+    implements Runnable, Cancellable, Cancellation {
         /** */
         private static final long serialVersionUID = 3503344795919906192L;
         
@@ -124,12 +125,12 @@ public final class ExecutorScheduler implements Scheduler {
                 ExceptionHelper.throwIfFatal(e);
                 UnsignalledExceptions.onErrorDropped(e);
             } finally {
-                cancel();
+                dispose();
             }
         }
         
         @Override
-        public void cancel() {
+        public void dispose() {
             if (compareAndSet(false, true)) {
                 parent.delete(this);
             }
@@ -163,7 +164,7 @@ public final class ExecutorScheduler implements Scheduler {
         }
 
         @Override
-        public Cancellable schedule(Runnable task) {
+        public Cancellation schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
             if (terminated) {
                 return REJECTED;
@@ -207,7 +208,7 @@ public final class ExecutorScheduler implements Scheduler {
             }
             
             for (ExecutorTrackedRunnable r : list) {
-                r.cancel();
+                r.dispose();
             }
         }
         
@@ -242,7 +243,7 @@ public final class ExecutorScheduler implements Scheduler {
         }
 
         @Override
-        public Cancellable schedule(Runnable task) {
+        public Cancellation schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
             if (terminated) {
                 return REJECTED;
@@ -260,7 +261,7 @@ public final class ExecutorScheduler implements Scheduler {
                 try {
                     executor.execute(this);
                 } catch (RejectedExecutionException ex) {
-                    r.cancel();
+                    r.dispose();
                     return REJECTED;
                 }
             }
@@ -279,7 +280,7 @@ public final class ExecutorScheduler implements Scheduler {
             ExecutorTrackedRunnable r;
             
             while ((r = q.poll()) != null && !q.isEmpty()) {
-                r.cancel();
+                r.dispose();
             }
         }
         

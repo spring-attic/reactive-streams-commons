@@ -3,6 +3,7 @@ package reactivestreams.commons.util;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.TimedScheduler;
 import reactivestreams.commons.state.Cancellable;
 
@@ -81,30 +82,30 @@ public final class SingleTimedScheduler implements TimedScheduler {
     }
     
     @Override
-    public Cancellable schedule(Runnable task) {
+    public Cancellation schedule(Runnable task) {
         try {
             Future<?> f = executor.submit(task);
-            return new CancellableFuture(f);
+            return () -> f.cancel(true);
         } catch (RejectedExecutionException ex) {
             return REJECTED;
         }
     }
     
     @Override
-    public Cancellable schedule(Runnable task, long delay, TimeUnit unit) {
+    public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
         try {
             Future<?> f = executor.schedule(task, delay, unit);
-            return new CancellableFuture(f);
+            return () -> f.cancel(true);
         } catch (RejectedExecutionException ex) {
             return REJECTED;
         }
     }
     
     @Override
-    public Cancellable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
+    public Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
         try {
             Future<?> f = executor.scheduleAtFixedRate(task, initialDelay, period, unit);
-            return new CancellableFuture(f);
+            return () -> f.cancel(true);
         } catch (RejectedExecutionException ex) {
             return REJECTED;
         }
@@ -138,7 +139,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
 
         @Override
-        public Cancellable schedule(Runnable task) {
+        public Cancellation schedule(Runnable task) {
             if (terminated) {
                 return REJECTED;
             }
@@ -157,7 +158,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
                 Future<?> f = executor.submit(sr);
                 sr.set(f);
             } catch (RejectedExecutionException ex) {
-                sr.cancel();
+                sr.dispose();
                 return REJECTED;
             }
             
@@ -173,7 +174,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
         
         @Override
-        public Cancellable schedule(Runnable task, long delay, TimeUnit unit) {
+        public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
             if (terminated) {
                 return REJECTED;
             }
@@ -192,7 +193,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
                 Future<?> f = executor.schedule(sr, delay, unit);
                 sr.set(f);
             } catch (RejectedExecutionException ex) {
-                sr.cancel();
+                sr.dispose();
                 return REJECTED;
             }
             
@@ -200,7 +201,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
         
         @Override
-        public Cancellable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
+        public Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
             if (terminated) {
                 return REJECTED;
             }
@@ -219,7 +220,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
                 Future<?> f = executor.scheduleAtFixedRate(sr, initialDelay, period, unit);
                 sr.set(f);
             } catch (RejectedExecutionException ex) {
-                sr.cancel();
+                sr.dispose();
                 return REJECTED;
             }
             
@@ -258,7 +259,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
     
     static final class TimedScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellable, CancelFuture {
+    implements Runnable, Cancellable, Cancellation, CancelFuture {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -340,7 +341,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
         
         @Override
-        public void cancel() {
+        public void dispose() {
             for (;;) {
                 Future<?> a = get();
                 if (a == FINISHED) {
@@ -381,7 +382,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
 
     static final class TimedPeriodicScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellable, CancelFuture {
+    implements Runnable, Cancellable, Cancellation, CancelFuture {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -460,7 +461,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
         
         @Override
-        public void cancel() {
+        public void dispose() {
             for (;;) {
                 Future<?> a = get();
                 if (a == FINISHED) {

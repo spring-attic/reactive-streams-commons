@@ -2,8 +2,8 @@ package reactivestreams.commons.util;
 
 import java.util.concurrent.Executor;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.Scheduler;
-import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.util.ExecutorScheduler.ExecutorSchedulerWorker;
 
 /**
@@ -26,7 +26,7 @@ public final class WorkerScheduler implements Scheduler, Executor {
     }
     
     @Override
-    public Cancellable schedule(Runnable task) {
+    public Cancellation schedule(Runnable task) {
         return main.schedule(task);
     }
     

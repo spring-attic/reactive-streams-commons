@@ -7,8 +7,7 @@ import java.util.function.Consumer;
 import org.reactivestreams.*;
 
 import reactivestreams.commons.flow.*;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Connects to the underlying ConnectablePublisher once the given number of Subscribers subscribed
@@ -68,7 +67,7 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         return source;
     }
 
-    static final class State<T> implements Consumer<Cancellable>, MultiProducer, Receiver {
+    static final class State<T> implements Consumer<Cancellation>, MultiProducer, Receiver {
         
         final int n;
         
@@ -79,12 +78,12 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         static final AtomicIntegerFieldUpdater<State> SUBSCRIBERS =
                 AtomicIntegerFieldUpdater.newUpdater(State.class, "subscribers");
         
-        volatile Cancellable disconnect;
+        volatile Cancellation disconnect;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<State, Cancellable> DISCONNECT =
-                AtomicReferenceFieldUpdater.newUpdater(State.class, Cancellable.class, "disconnect");
+        static final AtomicReferenceFieldUpdater<State, Cancellation> DISCONNECT =
+                AtomicReferenceFieldUpdater.newUpdater(State.class, Cancellation.class, "disconnect");
         
-        static final Cancellable DISCONNECTED = new EmptyCancellable();
+        static final Cancellation DISCONNECTED = () -> { };
 
         public State(int n, ConnectablePublisherRefCount<? extends T> parent) {
             this.n = n;
@@ -103,18 +102,18 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         }
         
         @Override
-        public void accept(Cancellable r) {
+        public void accept(Cancellation r) {
             if (!DISCONNECT.compareAndSet(this, null, r)) {
-                r.cancel();
+                r.dispose();
             }
         }
         
         void doDisconnect() {
-            Cancellable a = disconnect;
+            Cancellation a = disconnect;
             if (a != DISCONNECTED) {
                 a = DISCONNECT.getAndSet(this, DISCONNECTED);
                 if (a != null && a != DISCONNECTED) {
-                    a.cancel();
+                    a.dispose();
                 }
             }
         }
@@ -130,7 +129,7 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         }
         
         void upstreamFinished() {
-            Cancellable a = disconnect;
+            Cancellation a = disconnect;
             if (a != DISCONNECTED) {
                 DISCONNECT.getAndSet(this, DISCONNECTED);
             }

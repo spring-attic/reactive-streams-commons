@@ -6,8 +6,7 @@ import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
 
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.flow.*;
 
 /**
  * Connects to the underlying ConnectablePublisher once the given amount of Subscribers
@@ -20,7 +19,7 @@ public final class ConnectablePublisherAutoConnect<T> extends Px<T>
 
     final ConnectablePublisher<? extends T> source;
 
-    final Consumer<? super Cancellable> cancelSupport;
+    final Consumer<? super Cancellation> cancelSupport;
 
     volatile int remaining;
     @SuppressWarnings("rawtypes")
@@ -29,7 +28,7 @@ public final class ConnectablePublisherAutoConnect<T> extends Px<T>
 
 
     public ConnectablePublisherAutoConnect(ConnectablePublisher<? extends T> source, 
-            int n, Consumer<? super Cancellable> cancelSupport) {
+            int n, Consumer<? super Cancellation> cancelSupport) {
         if (n <= 0) {
             throw new IllegalArgumentException("n > required but it was " + n);
         }

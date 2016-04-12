@@ -15,36 +15,16 @@
  */
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.MultiReceiver;
-import reactivestreams.commons.flow.Producer;
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.state.Backpressurable;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.state.Prefetchable;
-import reactivestreams.commons.state.Requestable;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.*;
 import reactivestreams.commons.subscriber.DeferredScalarSubscriber;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.CancelledSubscription;
-import reactivestreams.commons.util.EmptySubscription;
-import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import reactivestreams.commons.util.*;
 
 /**
  * Repeatedly takes one item from all source Publishers and 
@@ -385,13 +365,13 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         void cancelAll() {
             for (PublisherZipSingleSubscriber<T> s : subscribers) {
                 if (s != null) {
-                    s.cancel();
+                    s.dispose();
                 }
             }
         }
     }
     
-    static final class PublisherZipSingleSubscriber<T> implements Subscriber<T>, Cancellable, Backpressurable,
+    static final class PublisherZipSingleSubscriber<T> implements Subscriber<T>, Cancellable, Cancellation, Backpressurable,
                                                                   Completable, Introspectable, Receiver {
         final PublisherZipSingleCoordinator<T, ?> parent;
         
@@ -492,7 +472,7 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         }
 
         @Override
-        public void cancel() {
+        public void dispose() {
             SubscriptionHelper.terminate(S, this);
         }
     }

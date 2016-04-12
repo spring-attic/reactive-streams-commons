@@ -1,32 +1,15 @@
 package reactivestreams.commons.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import reactivestreams.commons.flow.Fuseable;
-import reactivestreams.commons.flow.Loopback;
-import reactivestreams.commons.flow.MultiProducer;
-import reactivestreams.commons.flow.Receiver;
-import reactivestreams.commons.state.Backpressurable;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.state.Completable;
-import reactivestreams.commons.state.Introspectable;
-import reactivestreams.commons.state.Requestable;
-import reactivestreams.commons.util.BackpressureHelper;
-import reactivestreams.commons.util.ExceptionHelper;
-import reactivestreams.commons.util.SubscriptionHelper;
-import reactivestreams.commons.util.UnsignalledExceptions;
+import org.reactivestreams.*;
+
+import reactivestreams.commons.flow.*;
+import reactivestreams.commons.state.*;
+import reactivestreams.commons.util.*;
 
 /**
  * A connectable observable which shares an underlying source and dispatches source values to subscribers in a backpressure-aware
@@ -58,7 +41,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
     }
 
     @Override
-    public void connect(Consumer<? super Cancellable> cancelSupport) {
+    public void connect(Consumer<? super Cancellation> cancelSupport) {
         boolean doConnect;
         State<T> s;
         for (;;) {
@@ -125,7 +108,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
     }
     
     static final class State<T> implements Subscriber<T>, Receiver, MultiProducer, Backpressurable,
-                                           Completable, Cancellable, Introspectable {
+                                           Completable, Cancellable, Cancellation, Introspectable {
 
         final int prefetch;
         
@@ -256,7 +239,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         }
         
         @Override
-        public void cancel() {
+        public void dispose() {
             if (cancelled) {
                 return;
             }

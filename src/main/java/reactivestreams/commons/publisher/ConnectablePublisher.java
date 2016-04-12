@@ -2,7 +2,7 @@ package reactivestreams.commons.publisher;
 
 import java.util.function.Consumer;
 
-import reactivestreams.commons.state.Cancellable;
+import reactivestreams.commons.flow.Cancellation;
 
 /**
  * The abstract base class for connectable publishers that let subscribers pile up
@@ -42,7 +42,7 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * @param cancelSupport the consumer that will receive the runnable that allows disconnecting
      * @return the Publisher that connects to the upstream source when the given amount of subscribers subscribed
      */
-    public final Px<T> autoConnect(int minSubscribers, Consumer<? super Cancellable> cancelSupport) {
+    public final Px<T> autoConnect(int minSubscribers, Consumer<? super Cancellation> cancelSupport) {
         if (minSubscribers == 0) {
             connect(cancelSupport);
             return this;
@@ -55,11 +55,11 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * can be used for disconnecting.
      * @return the Runnable that allows disconnecting the connection after.
      */
-    public final Cancellable connect() {
-        final Cancellable[] out = { null };
-        connect(new Consumer<Cancellable>() {
+    public final Cancellation connect() {
+        final Cancellation[] out = { null };
+        connect(new Consumer<Cancellation>() {
             @Override
-            public void accept(Cancellable r) {
+            public void accept(Cancellation r) {
                 out[0] = r;
             }
         });
@@ -73,10 +73,10 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * and subsequent times. In addition the disconnection should be also tied
      * to a particular connection (so two different connection can't disconnect the other).
      *
-     * @param cancelSupport the callback is called with a Runnable instance that can
+     * @param cancelSupport the callback is called with a Cancellation instance that can
      * be called to disconnect the source, even synchronously.
      */
-    public abstract void connect(Consumer<? super Cancellable> cancelSupport);
+    public abstract void connect(Consumer<? super Cancellation> cancelSupport);
 
 	/**
      * Connects to the upstream source when the given number of Subscriber subscribes and disconnects
@@ -97,9 +97,9 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
         return refCount(1);
     }
 
-    static final Consumer<Cancellable> NOOP_DISCONNECT = new Consumer<Cancellable>() {
+    static final Consumer<Cancellation> NOOP_DISCONNECT = new Consumer<Cancellation>() {
         @Override
-        public void accept(Cancellable runnable) {
+        public void accept(Cancellation runnable) {
 
         }
     };

@@ -9,7 +9,6 @@ import org.reactivestreams.*;
 import reactivestreams.commons.flow.*;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.scheduler.Scheduler.Worker;
-import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.util.*;
 
 /**
@@ -38,7 +37,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         if (v == null) {
             ScheduledEmpty parent = new ScheduledEmpty(s);
             s.onSubscribe(parent);
-            Cancellable f = scheduler.schedule(parent);
+            Cancellation f = scheduler.schedule(parent);
             parent.setFuture(f);
         } else {
             s.onSubscribe(new ScheduledScalar<>(s, v, scheduler));
@@ -290,14 +289,14 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         static final AtomicIntegerFieldUpdater<ScheduledScalar> ONCE =
                 AtomicIntegerFieldUpdater.newUpdater(ScheduledScalar.class, "once");
         
-        volatile Cancellable future;
+        volatile Cancellation future;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<ScheduledScalar, Cancellable> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(ScheduledScalar.class, Cancellable.class, "future");
+        static final AtomicReferenceFieldUpdater<ScheduledScalar, Cancellation> FUTURE =
+                AtomicReferenceFieldUpdater.newUpdater(ScheduledScalar.class, Cancellation.class, "future");
         
-        static final Cancellable CANCELLED = new EmptyCancellable();
+        static final Cancellation CANCELLED = () -> { };
 
-        static final Cancellable FINISHED = new EmptyCancellable();
+        static final Cancellation FINISHED = () -> { };
 
         public ScheduledScalar(Subscriber<? super T> actual, T value, Scheduler scheduler) {
             this.actual = actual;
@@ -309,10 +308,10 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 if (ONCE.compareAndSet(this, 0, 1)) {
-                    Cancellable f = scheduler.schedule(this);
+                    Cancellation f = scheduler.schedule(this);
                     if (!FUTURE.compareAndSet(this, null, f)) {
                         if (future != FINISHED && future != CANCELLED) {
-                            f.cancel();
+                            f.dispose();
                         }
                     }
                 }
@@ -322,11 +321,11 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         @Override
         public void cancel() {
             ONCE.lazySet(this, 1);
-            Cancellable f = future;
+            Cancellation f = future;
             if (f != CANCELLED && future != FINISHED) {
                 f = FUTURE.getAndSet(this, CANCELLED);
                 if (f != null && f != CANCELLED && f != FINISHED) {
-                    f.cancel();
+                    f.dispose();
                 }
             }
         }
@@ -360,13 +359,13 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
     static final class ScheduledEmpty implements Subscription, Runnable, Producer, Loopback {
         final Subscriber<?> actual;
 
-        volatile Cancellable future;
-        static final AtomicReferenceFieldUpdater<ScheduledEmpty, Cancellable> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(ScheduledEmpty.class, Cancellable.class, "future");
+        volatile Cancellation future;
+        static final AtomicReferenceFieldUpdater<ScheduledEmpty, Cancellation> FUTURE =
+                AtomicReferenceFieldUpdater.newUpdater(ScheduledEmpty.class, Cancellation.class, "future");
         
-        static final Cancellable CANCELLED = new EmptyCancellable();
+        static final Cancellation CANCELLED = () -> { };
         
-        static final Cancellable FINISHED = new EmptyCancellable();
+        static final Cancellation FINISHED = () -> { };
 
         public ScheduledEmpty(Subscriber<?> actual) {
             this.actual = actual;
@@ -379,11 +378,11 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
 
         @Override
         public void cancel() {
-            Cancellable f = future;
+            Cancellation f = future;
             if (f != CANCELLED && f != FINISHED) {
                 f = FUTURE.getAndSet(this, CANCELLED);
                 if (f != null && f != CANCELLED && f != FINISHED) {
-                    f.cancel();
+                    f.dispose();
                 }
             }
         }
@@ -397,11 +396,11 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
             }
         }
 
-        void setFuture(Cancellable f) {
+        void setFuture(Cancellation f) {
             if (!FUTURE.compareAndSet(this, null, f)) {
-                Cancellable a = future;
+                Cancellation a = future;
                 if (a != FINISHED && a != CANCELLED) {
-                    f.cancel();
+                    f.dispose();
                 }
             }
         }

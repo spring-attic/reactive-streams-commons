@@ -4,8 +4,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.*;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.Scheduler;
-import reactivestreams.commons.state.Cancellable;
 
 public class WorkerSchedulerTest {
     @Test
@@ -28,7 +28,7 @@ public class WorkerSchedulerTest {
         w2.schedule(a2::getAndIncrement);
         w2.shutdown();
 
-        Cancellable c3 = w2.schedule(a3::getAndIncrement);
+        Cancellation c3 = w2.schedule(a3::getAndIncrement);
         
         Assert.assertEquals(1, a1.get());
         Assert.assertEquals(1, a2.get());

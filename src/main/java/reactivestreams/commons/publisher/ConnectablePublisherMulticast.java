@@ -40,7 +40,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
     }
 
     @Override
-    public void connect(Consumer<? super Cancellable> cancelSupport) {
+    public void connect(Consumer<? super Cancellation> cancelSupport) {
         boolean doConnect;
         State<T, U> s;
 
@@ -67,7 +67,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
             break;
         }
 
-        cancelSupport.accept(new CancellableRunnable(s));
+        cancelSupport.accept(s);
         if (doConnect) {
             source.subscribe(s);
         }
@@ -106,7 +106,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
     }
 
     static abstract class State<T, U>
-            implements Runnable, Completable, Subscription, Receiver, Introspectable, Producer, Subscriber<T> {
+            implements Cancellation, Completable, Subscription, Receiver, Introspectable, Producer, Subscriber<T> {
 
         final Processor<? super T, ? extends T> processor;
         final Publisher<? extends U>            publisher;
@@ -194,7 +194,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
         }
 
         @Override
-        public void run() {
+        public void dispose() {
             if (CONNECTED.compareAndSet(this, 1, 2)) {
                 if(SubscriptionHelper.terminate(S, this)) {
                     processor.onError(new CancellationException("Disconnected"));
@@ -243,7 +243,7 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
         }
 
         @Override
-        public void run() {
+        public void dispose() {
             if (CONNECTED.compareAndSet(this, 1, 2)) {
                 Fuseable.QueueSubscription<?> a = this.s;
                 if (a != null) {

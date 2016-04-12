@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.*;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.TimedScheduler;
-import reactivestreams.commons.state.Cancellable;
-import reactivestreams.commons.util.*;
+import reactivestreams.commons.util.SubscriptionHelper;
 
 /**
  * Emits a single 0L value delayed by some time amount with a help of
@@ -41,29 +41,31 @@ public final class PublisherTimer extends Px<Long> {
     static final class PublisherTimerRunnable implements Runnable, Subscription {
         final Subscriber<? super Long> s;
         
-        volatile Cancellable cancel;
-        static final AtomicReferenceFieldUpdater<PublisherTimerRunnable, Cancellable> CANCEL =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherTimerRunnable.class, Cancellable.class, "cancel");
+        volatile Cancellation cancel;
+        static final AtomicReferenceFieldUpdater<PublisherTimerRunnable, Cancellation> CANCEL =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherTimerRunnable.class, Cancellation.class, "cancel");
         
         volatile boolean requested;
+        
+        static final Cancellation CANCELLED = () -> { };
 
         public PublisherTimerRunnable(Subscriber<? super Long> s) {
             this.s = s;
         }
         
-        public void setCancel(Cancellable cancel) {
+        public void setCancel(Cancellation cancel) {
             if (!CANCEL.compareAndSet(this, null, cancel)) {
-                cancel.cancel();
+                cancel.dispose();
             }
         }
         
         @Override
         public void run() {
             if (requested) {
-                if (cancel != Cancellable.CANCELLED) {
+                if (cancel != CANCELLED) {
                     s.onNext(0L);
                 }
-                if (cancel != Cancellable.CANCELLED) {
+                if (cancel != CANCELLED) {
                     s.onComplete();
                 }
             } else {
@@ -73,11 +75,11 @@ public final class PublisherTimer extends Px<Long> {
         
         @Override
         public void cancel() {
-            Cancellable c = cancel;
-            if (c != Cancellable.CANCELLED) {
-                c =  CANCEL.getAndSet(this, Cancellable.CANCELLED);
-                if (c != null && c != Cancellable.CANCELLED) {
-                    c.cancel();
+            Cancellation c = cancel;
+            if (c != CANCELLED) {
+                c =  CANCEL.getAndSet(this, CANCELLED);
+                if (c != null && c != CANCELLED) {
+                    c.dispose();
                 }
             }
         }

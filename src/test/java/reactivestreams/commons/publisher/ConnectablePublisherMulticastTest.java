@@ -6,8 +6,8 @@ import java.util.function.*;
 import org.junit.*;
 import org.reactivestreams.Processor;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.processor.*;
-import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.test.TestSubscriber;
 import reactivestreams.commons.util.*;
 
@@ -204,12 +204,12 @@ public class ConnectablePublisherMulticastTest {
         
         p.subscribe(ts);
         
-        Cancellable r = p.connect();
+        Cancellation r = p.connect();
                 
         sp.onNext(1);
         sp.onNext(2);
         
-        r.cancel();
+        r.dispose();
         
         ts.assertValues(1, 2)
         .assertError(CancellationException.class)
@@ -231,7 +231,7 @@ public class ConnectablePublisherMulticastTest {
         p.subscribe(ts1);
         p.subscribe(ts2);
 
-        Cancellable r = p.connect();
+        Cancellation r = p.connect();
 
         sp.onNext(1);
         sp.onNext(2);
@@ -240,7 +240,7 @@ public class ConnectablePublisherMulticastTest {
 
         Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
 
-        r.cancel();
+        r.dispose();
 
         ts1.assertValues(1, 2)
           .assertNoError()
@@ -264,9 +264,9 @@ public class ConnectablePublisherMulticastTest {
         
         p.subscribe(ts);
         
-        Cancellable r = p.connect();
+        Cancellation r = p.connect();
                 
-        r.cancel();
+        r.dispose();
         
         ts.assertNoValues()
         .assertError(CancellationException.class)

@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
+import reactivestreams.commons.flow.Cancellation;
 import reactivestreams.commons.scheduler.Scheduler;
 import reactivestreams.commons.state.Cancellable;
 import reactivestreams.commons.util.ExecutorScheduler.ExecutorPlainRunnable;
@@ -20,7 +21,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellable schedule(Runnable task) {
+    public Cancellation schedule(Runnable task) {
         Objects.requireNonNull(task, "task");
         
         ConsumerFactoryWorker w; 
@@ -54,7 +55,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
     }
     
-    static final class ConsumerFactoryWorker implements Worker, Cancellable {
+    static final class ConsumerFactoryWorker implements Worker, Cancellation, Cancellable {
         final Consumer<Runnable> consumer;
         
         volatile boolean terminated;
@@ -64,7 +65,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
         
         @Override
-        public Cancellable schedule(Runnable task) {
+        public Cancellation schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
 
             if (terminated) {
@@ -87,7 +88,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
         
         @Override
-        public void cancel() {
+        public void dispose() {
             shutdown();
         }
         
