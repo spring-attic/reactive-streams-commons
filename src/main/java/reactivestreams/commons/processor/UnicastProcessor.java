@@ -313,11 +313,6 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable,
     }
 
     @Override
-    public T peek() {
-        return queue.peek();
-    }
-
-    @Override
     public int size() {
         return queue.size();
     }
@@ -341,11 +336,6 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable,
         return Fuseable.NONE;
     }
     
-    @Override
-    public void drop() {
-        queue.poll();
-    }
-
     @Override
     public boolean isCancelled() {
         return cancelled;

@@ -197,15 +197,6 @@ extends Px<Integer>
         }
 
         @Override
-        public Integer peek() {
-            long i = index;
-            if (i == end) {
-                return null;
-            }
-            return (int)i;
-        }
-
-        @Override
         public boolean isEmpty() {
             return index == end;
         }
@@ -213,11 +204,6 @@ extends Px<Integer>
         @Override
         public void clear() {
             index = end;
-        }
-        
-        @Override
-        public void drop() {
-            index++;
         }
         
         @Override
@@ -368,15 +354,6 @@ extends Px<Integer>
         }
 
         @Override
-        public Integer peek() {
-            long i = index;
-            if (i == end) {
-                return null;
-            }
-            return (int)i;
-        }
-
-        @Override
         public boolean isEmpty() {
             return index == end;
         }
@@ -384,11 +361,6 @@ extends Px<Integer>
         @Override
         public void clear() {
             index = end;
-        }
-
-        @Override
-        public void drop() {
-            index++;
         }
 
         @Override

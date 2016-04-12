@@ -129,4 +129,18 @@ public class PublisherConcatMapIterableTest {
         ;
     }
 
+    @Test
+    public void fullFusion() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        int n = 1_000_000;
+        
+        Px.range(1, n).concatMapIterable(v -> Arrays.asList(v, v + 1)).concatMap(Px::just)
+        .subscribe(ts);
+
+        ts.assertValueCount(n * 2)
+        .assertNoError()
+        .assertComplete()
+        ;
+    }
 }

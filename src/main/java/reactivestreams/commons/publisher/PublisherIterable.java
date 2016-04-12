@@ -311,25 +311,6 @@ extends Px<T>
         }
         
         @Override
-        public T peek() {
-            if (!isEmpty()) {
-                T c;
-                if (state == STATE_HAS_NEXT_NO_VALUE) {
-                    c = iterator.next();
-                    current = c;
-                    state = STATE_HAS_NEXT_HAS_VALUE;
-                } else {
-                    c = current;
-                }
-                if (c == null) {
-                    throw new NullPointerException();
-                }
-                return c;
-            }
-            return null;
-        }
-        
-        @Override
         public T poll() {
             if (!isEmpty()) {
                 T c;
@@ -346,12 +327,6 @@ extends Px<T>
                 return c;
             }
             return null;
-        }
-        
-        @Override
-        public void drop() {
-            current = null;
-            state = STATE_CALL_HAS_NEXT;
         }
         
         @Override
@@ -583,22 +558,6 @@ extends Px<T>
         }
         
         @Override
-        public T peek() {
-            if (!isEmpty()) {
-                T c;
-                if (state == STATE_HAS_NEXT_NO_VALUE) {
-                    c = iterator.next();
-                    current = c;
-                    state = STATE_HAS_NEXT_HAS_VALUE;
-                } else {
-                    c = current;
-                }
-                return c;
-            }
-            return null;
-        }
-        
-        @Override
         public T poll() {
             if (!isEmpty()) {
                 T c;
@@ -614,12 +573,6 @@ extends Px<T>
             return null;
         }
         
-        @Override
-        public void drop() {
-            current = null;
-            state = STATE_CALL_HAS_NEXT;
-        }
-
         @Override
         public int size() {
             if (state == STATE_NO_NEXT) {

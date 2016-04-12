@@ -712,6 +712,14 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return new PublisherConcatMapIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
     }
 
+    public final <R> Px<R> flatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper) {
+        return flatMapIterable(mapper, BUFFER_SIZE);
+    }
+
+    public final <R> Px<R> flatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch) {
+        return new PublisherConcatMapIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
+    }
+
     // ---------------------------------------------------------------------------------------
     
     static final class PxWrapper<T> extends PublisherSource<T, T> {

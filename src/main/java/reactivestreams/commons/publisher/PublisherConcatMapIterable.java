@@ -25,7 +25,7 @@ import reactivestreams.commons.util.UnsignalledExceptions;
  * @param <T> the input value type
  * @param <R> the value type of the iterables and the result type
  */
-public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R> {
+public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R> implements Fuseable {
 
     final Function<? super T, ? extends Iterable<? extends R>> mapper;
     
@@ -52,7 +52,8 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
         source.subscribe(new PublisherConcatMapIterableSubscriber<>(s, mapper, prefetch, queueSupplier));
     }
     
-    static final class PublisherConcatMapIterableSubscriber<T, R> implements Subscriber<T>, Subscription {
+    static final class PublisherConcatMapIterableSubscriber<T, R> 
+    implements Subscriber<T>, Fuseable.QueueSubscription<R> {
         
         final Subscriber<? super R> actual;
         
@@ -353,7 +354,10 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
             if (d) {
                 if (error != null) {
                     Throwable e = ExceptionHelper.terminate(ERROR, this);
+                    
+                    current = null;
                     q.clear();
+
                     a.onError(e);
                     return true;
                 } else
@@ -363,6 +367,62 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
                 }
             }
             return false;
+        }
+        
+        @Override
+        public void clear() {
+            current = null;
+            queue.clear();
+        }
+        
+        @Override
+        public boolean isEmpty() {
+            Iterator<? extends R> it = current;
+            if (it != null) {
+                return it.hasNext();
+            }
+            return queue.isEmpty(); // estimate
+        }
+        
+        @Override
+        public R poll() {
+            Iterator<? extends R> it = current;
+            for (;;) {
+                if (it == null) {
+                    T v = queue.poll();
+                    if (v == null) {
+                        return null;
+                    }
+                    
+                    it = mapper.apply(v).iterator();
+                    
+                    if (!it.hasNext()) {
+                        continue;
+                    }
+                    current = it;
+                }
+                
+                R r = it.next();
+                
+                if (!it.hasNext()) {
+                    current = null;
+                }
+                
+                return r;
+            }
+        }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            if ((requestedMode & SYNC) != 0 && fusionMode == SYNC) {
+                return SYNC;
+            }
+            return NONE;
+        }
+        
+        @Override
+        public int size() {
+            return queue.size(); // estimate
         }
     }
 }

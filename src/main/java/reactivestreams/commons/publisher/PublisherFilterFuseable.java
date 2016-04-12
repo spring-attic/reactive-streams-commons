@@ -240,46 +240,13 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         }
 
         @Override
-        public T peek() {
-            if (sourceMode == ASYNC) {
-                long dropped = 0;
-                for (;;) {
-                    T v = s.peek();
-    
-                    if (v == null || predicate.test(v)) {
-                        if (dropped != 0) {
-                            request(dropped);
-                        }
-                        return v;
-                    }
-                    s.drop();
-                    dropped++;
-                }
-            } else {
-                for (;;) {
-                    T v = s.peek();
-    
-                    if (v == null || predicate.test(v)) {
-                        return v;
-                    }
-                    s.drop();
-                }
-            }
-        }
-
-        @Override
         public boolean isEmpty() {
-            return peek() == null;
+            return s.isEmpty();
         }
 
         @Override
         public void clear() {
             s.clear();
-        }
-        
-        @Override
-        public void drop() {
-            s.drop();
         }
         
         @Override
@@ -475,46 +442,13 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         }
 
         @Override
-        public T peek() {
-            if (sourceMode == ASYNC) {
-                long dropped = 0;
-                for (;;) {
-                    T v = s.peek();
-    
-                    if (v == null || predicate.test(v)) {
-                        if (dropped != 0) {
-                            request(dropped);
-                        }
-                        return v;
-                    }
-                    s.drop();
-                    dropped++;
-                }
-            } else {
-                for (;;) {
-                    T v = s.peek();
-    
-                    if (v == null || predicate.test(v)) {
-                        return v;
-                    }
-                    s.drop();
-                }
-            }
-        }
-
-        @Override
         public boolean isEmpty() {
-            return peek() == null;
+            return s.isEmpty();
         }
 
         @Override
         public void clear() {
             s.clear();
-        }
-        
-        @Override
-        public void drop() {
-            s.drop();
         }
         
         @Override
