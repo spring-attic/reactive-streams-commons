@@ -7,7 +7,7 @@ import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
 import rsc.publisher.internal.PerfAsyncSubscriber;
-import rsc.util.ExecutorServiceScheduler;
+import rsc.scheduler.ExecutorServiceScheduler;
 
 
 /**
