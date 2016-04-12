@@ -90,7 +90,11 @@ extends Px<T>
             return;
         }
 
-        s.onSubscribe(new IterableSubscription<>(s, it));
+        if (s instanceof ConditionalSubscriber) {
+            s.onSubscribe(new IterableSubscriptionConditional<>((ConditionalSubscriber<? super T>)s, it));
+        } else {
+            s.onSubscribe(new IterableSubscription<>(s, it));
+        }
     }
 
     static final class IterableSubscription<T>

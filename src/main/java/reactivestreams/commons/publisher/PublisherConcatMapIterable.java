@@ -45,10 +45,41 @@ public final class PublisherConcatMapIterable<T, R> extends PublisherSource<T, R
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
     }
 
-
-
+    @SuppressWarnings("unchecked")
     @Override
     public void subscribe(Subscriber<? super R> s) {
+        if (source instanceof Supplier) {
+            T v;
+            
+            try {
+                v = ((Supplier<T>)source).get();
+            } catch (Throwable ex) {
+                ExceptionHelper.throwIfFatal(ex);
+                EmptySubscription.error(s, ex);
+                return;
+            }
+            
+            if (v == null) {
+                EmptySubscription.complete(s);
+                return;
+            }
+            
+            Iterator<? extends R> it;
+            
+            try {
+                Iterable<? extends R> iter = mapper.apply(v);
+                
+                it = iter.iterator();
+            } catch (Throwable ex) {
+                ExceptionHelper.throwIfFatal(ex);
+                EmptySubscription.error(s, ex);
+                return;
+            }
+            
+            PublisherIterable.subscribe(s, it);
+            
+            return;
+        }
         source.subscribe(new PublisherConcatMapIterableSubscriber<>(s, mapper, prefetch, queueSupplier));
     }
     

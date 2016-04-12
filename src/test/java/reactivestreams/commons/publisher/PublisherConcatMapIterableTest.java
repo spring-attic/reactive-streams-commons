@@ -143,4 +143,31 @@ public class PublisherConcatMapIterableTest {
         .assertComplete()
         ;
     }
+
+    @Test
+    public void just() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        Px.just(1).concatMapIterable(v -> Arrays.asList(v, v + 1))
+        .subscribe(ts);
+        
+        System.out.println(ts.values());
+        ts.assertValues(1, 2)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void empty() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        Px.<Integer>empty().concatMapIterable(v -> Arrays.asList(v, v + 1))
+        .subscribe(ts);
+        
+        System.out.println(ts.values());
+        ts.assertNoValues()
+        .assertNoError()
+        .assertComplete();
+    }
+
 }

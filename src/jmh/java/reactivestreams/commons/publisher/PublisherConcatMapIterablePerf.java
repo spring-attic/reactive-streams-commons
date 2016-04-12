@@ -96,8 +96,8 @@ public class PublisherConcatMapIterablePerf {
         xrangePlain = source.concatMap(v -> xsource);
         xrangeIterable = source.concatMapIterable(v -> xvaluesList);
 
-        chainPlain = source.concatMap(v -> range).concatMap(Px::just);
-        chainIterable = source.concatMapIterable(v -> xvaluesList).concatMapIterable(v -> Collections.singleton(v));
+        chainPlain = xrangePlain.concatMap(Px::just);
+        chainIterable = xrangeIterable.concatMapIterable(v -> Collections.singleton(v));
     }
     
     @Benchmark
