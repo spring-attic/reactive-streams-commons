@@ -261,21 +261,26 @@ public class PublisherCombineLatestTest {
         SingleTimedScheduler exec1 = new SingleTimedScheduler();
         SingleTimedScheduler exec2 = new SingleTimedScheduler();
 
-        new PublisherCombineLatest<>(new Publisher[] {
-                Px.interval(100, TimeUnit.MILLISECONDS, exec1).take(20),
-                Px.interval(100, 50, TimeUnit.MILLISECONDS, exec2).take(20)
-        },
-        a -> Arrays.asList(a[0] , a[1]), qs, 128)
-           // .doOnNext(System.out::println)
-            .subscribe(ts);
-
-        ts.await();
-        ts.assertValueCount(39)
-          .assertComplete()
-          .assertNoError();
-
-        exec1.shutdown();
-        exec2.shutdown();
+        try {
+            new PublisherCombineLatest<>(new Publisher[] {
+                    Px.interval(100, TimeUnit.MILLISECONDS, exec1).take(20),
+                    Px.interval(100, 50, TimeUnit.MILLISECONDS, exec2).take(20)
+            },
+            a -> Arrays.asList(a[0] , a[1]), qs, 128)
+               // .doOnNext(System.out::println)
+                .subscribe(ts);
+    
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                Assert.fail("TestScheduler timed out");
+            }
+            ts.assertValueCount(39)
+              .assertComplete()
+              .assertNoError();
+        } finally {
+            exec1.shutdown();
+            exec2.shutdown();
+        }
 
     }
 
@@ -317,7 +322,10 @@ public class PublisherCombineLatestTest {
 
             Px.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
 
-            ts.await(5, TimeUnit.SECONDS);
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                Assert.fail("TestScheduler timed out");
+            }
 
             ts.assertValues("00", "01", "11", "12", "22", "23", "33", "34", 
                     "44", "45", "55", "56", "66", "67", "77", "78", "88", "89", "99")
