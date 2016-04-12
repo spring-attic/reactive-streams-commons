@@ -90,7 +90,7 @@ task generateTargetAPI(type: Sync) {
   def splitted = apiClass.split('\\.')
   def apiClassName = splitted[splitted.length - 1]
 
-  from 'src/main/java/reactivestreams/commons/publisher'
+  from 'src/main/java/rsc/publisher'
   into "build/generated_api/${target['api-package'].replaceAll('\\.', '/')}"
 
   if (target.include) {
@@ -151,7 +151,7 @@ task generateTestCoverage(type: Sync) {
   def splitted = apiClass.split('\\.')
   def apiClassName = splitted[splitted.length - 1]
 
-  from 'src/test/java/reactivestreams/commons/publisher'
+  from 'src/test/java/rsc/publisher'
   into "build/generated_api/test/${target['api-package'].replaceAll('\\.', '/')}"
 
   if (target.include) {
@@ -212,7 +212,7 @@ task generateTargetSingleAPI(type: Copy) {
 
   def license = "\n/**\n * {@see https://github.com/reactor/reactive-streams-commons}\n * $target.header\n */"
 
-  from 'src/main/java/reactivestreams/commons/publisher'
+  from 'src/main/java/rsc/publisher'
   into "build/generated_api/${target['api-package'].replaceAll('\\.', '/')}"
 
   include { details ->
@@ -261,7 +261,7 @@ task generateSingleTestCoverage(type: Copy) {
 
   def license = "\n/**\n * {@see https://github.com/reactor/reactive-streams-commons}\n * $target.header\n */"
 
-  from 'src/test/java/reactivestreams/commons/publisher'
+  from 'src/test/java/rsc/publisher'
   into "build/generated_api/test/${target['api-package'].replaceAll('\\.', '/')}"
 
   include { details ->
@@ -309,7 +309,7 @@ task generateExtra(type: Copy) {
   def splitted = apiClass.split('\\.')
   def apiClassName = splitted[splitted.length - 1]
 
-  from 'src/main/java/reactivestreams/commons'
+  from 'src/main/java/rsc'
   into "build/generated_api/${target['extra-packages']?.replaceAll('\\.', '/')}"
 
   exclude '**/publisher/**'
@@ -361,10 +361,10 @@ task generateExtra(type: Copy) {
 private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiClass) {
   if (line.trim().startsWith('package')) {
 	if (target['extra-packages'] && !line.contains("publisher")) {
-	  return line.replace('reactivestreams.commons', target['extra-packages'])
+	  return line.replace('rsc', target['extra-packages'])
 	}
 	else if (target['api-package']) {
-	  return line.replace('reactivestreams.commons.publisher', target['api-package'])
+	  return line.replace('rsc.publisher', target['api-package'])
 	}
 	else {
 	  return line
@@ -377,14 +377,14 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   if (l.trim().startsWith('import')) {
-	if(l.contains("org.reactivestreams")){
+	if(l.contains("org.rsc")){
 	  return l
 	}
 	if (target.SimpleProcessor) {
-	  l = l.replace("reactivestreams.commons.processor.SimpleProcessor", target.SimpleProcessor)
+	  l = l.replace("rsc.processor.SimpleProcessor", target.SimpleProcessor)
 	}
 	if (target.UnicastProcessor) {
-	  l = l.replace("reactivestreams.commons.processor.UnicastProcessor", target.UnicastProcessor)
+	  l = l.replace("rsc.processor.UnicastProcessor", target.UnicastProcessor)
 	}
 
 	if (target['fn-backport']) {
@@ -392,15 +392,15 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	}
 
 	if (target['api-package']) {
-	  l = l.replace('reactivestreams.commons.publisher', target['api-package'])
+	  l = l.replace('rsc.publisher', target['api-package'])
 	}
 
 	if (target['SerializedSubscriber']) {
-	  l = l.replace('reactivestreams.commons.subscriber.SerializedSubscriber', target['SerializedSubscriber'])
+	  l = l.replace('rsc.subscriber.SerializedSubscriber', target['SerializedSubscriber'])
 	}
 
 	if (target['extra-packages']) {
-	  l = l.replace('reactivestreams.commons', target['extra-packages'])
+	  l = l.replace('rsc', target['extra-packages'])
 	}
 
 	if (l.contains('BackpressureHelper') && target['BackpressureHelper']) {
