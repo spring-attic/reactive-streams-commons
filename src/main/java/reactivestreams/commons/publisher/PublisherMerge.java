@@ -2,7 +2,7 @@ package reactivestreams.commons.publisher;
 
 import java.util.Objects;
 import java.util.Queue;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -59,9 +59,10 @@ public final class PublisherMerge<T> extends Px<T> {
      * This operation doesn't change the current PublisherMerge instance.
      * 
      * @param source the new source to merge with the others
+     * @param newQueueSupplier a function that should return a new queue supplier based on the change in the maxConcurrency value
      * @return the new PublisherMerge instance
      */
-    public PublisherMerge<T> mergeAdditionalSource(Publisher<? extends T> source) {
+    public PublisherMerge<T> mergeAdditionalSource(Publisher<? extends T> source, IntFunction<Supplier<? extends Queue<T>>> newQueueSupplier) {
         int n = sources.length;
         @SuppressWarnings("unchecked")
         Publisher<? extends T>[] newArray = new Publisher[n + 1];
@@ -69,11 +70,15 @@ public final class PublisherMerge<T> extends Px<T> {
         newArray[n] = source;
         
         // increase the maxConcurrency because if merged separately, it would have run concurrently anyway
+        Supplier<? extends Queue<T>> newMainQueue;
         int mc = maxConcurrency;
         if (mc != Integer.MAX_VALUE) {
             mc++;
+            newMainQueue = newQueueSupplier.apply(mc);
+        } else {
+            newMainQueue = mainQueueSupplier;
         }
         
-        return new PublisherMerge<>(newArray, delayError, mc, mainQueueSupplier, prefetch, innerQueueSupplier);
+        return new PublisherMerge<>(newArray, delayError, mc, newMainQueue, prefetch, innerQueueSupplier);
     }
 }

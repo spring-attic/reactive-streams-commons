@@ -699,7 +699,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     
     public final Px<T> mergeWith(Publisher<? extends T> other) {
         if (this instanceof PublisherMerge) {
-            return ((PublisherMerge<T>)this).mergeAdditionalSource(other);
+            return ((PublisherMerge<T>)this).mergeAdditionalSource(other, Px::defaultQueueSupplier);
         }
         return mergeArray(this, other);
     }
