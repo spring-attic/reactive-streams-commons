@@ -182,7 +182,7 @@ public class PublisherObserveOnTest {
         UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscLinkedArrayQueue<>(1024));
         
         for (int i = 0; i < 1_000_000; i++) {
-            up.onNext(i);
+            up.onNext(0);
         }
         up.onComplete();
 
