@@ -136,6 +136,28 @@ extends Px<T>
         coordinator.subscribe(a, n, s);
     }
 
+    /**
+     * Returns a new instance which has the additional source to be amb'd together with
+     * the current array of sources.
+     * <p>
+     * This operation doesn't change the current PublisherAmb instance.
+     * 
+     * @param source the new source to merge with the others
+     * @return the new PublisherAmb instance or null if the Amb runs with an Iterable
+     */
+    public PublisherAmb<T> ambAdditionalSource(Publisher<? extends T> source) {
+        if (array != null) {
+            int n = array.length;
+            @SuppressWarnings("unchecked")
+            Publisher<? extends T>[] newArray = new Publisher[n + 1];
+            System.arraycopy(array, 0, newArray, 0, n);
+            newArray[n] = source;
+            
+            return new PublisherAmb<>(newArray);
+        }
+        return null;
+    }
+
     static final class PublisherAmbCoordinator<T>
       implements Subscription, MultiReceiver, Cancellable {
 

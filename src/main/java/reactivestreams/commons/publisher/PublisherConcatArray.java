@@ -65,6 +65,45 @@ extends Px<T>
         }
     }
 
+    /**
+     * Returns a new instance which has the additional source to be merged together with
+     * the current array of sources.
+     * <p>
+     * This operation doesn't change the current PublisherMerge instance.
+     * 
+     * @param source the new source to merge with the others
+     * @return the new PublisherConcatArray instance
+     */
+    public PublisherConcatArray<T> concatAdditionalSourceLast(Publisher<? extends T> source) {
+        int n = array.length;
+        @SuppressWarnings("unchecked")
+        Publisher<? extends T>[] newArray = new Publisher[n + 1];
+        System.arraycopy(array, 0, newArray, 0, n);
+        newArray[n] = source;
+        
+        return new PublisherConcatArray<>(newArray);
+    }
+
+    /**
+     * Returns a new instance which has the additional first source to be concatenated together with
+     * the current array of sources.
+     * <p>
+     * This operation doesn't change the current PublisherConcatArray instance.
+     * 
+     * @param source the new source to merge with the others
+     * @return the new PublisherConcatArray instance
+     */
+    public PublisherConcatArray<T> concatAdditionalSourceFirst(Publisher<? extends T> source) {
+        int n = array.length;
+        @SuppressWarnings("unchecked")
+        Publisher<? extends T>[] newArray = new Publisher[n + 1];
+        System.arraycopy(array, 0, newArray, 1, n);
+        newArray[0] = source;
+        
+        return new PublisherConcatArray<>(newArray);
+    }
+
+    
     static final class PublisherConcatArraySubscriber<T>
             extends MultiSubscriptionSubscriber<T, T> {
 
