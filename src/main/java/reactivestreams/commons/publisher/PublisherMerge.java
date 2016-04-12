@@ -1,17 +1,21 @@
 package reactivestreams.commons.publisher;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import reactivestreams.commons.flow.MultiReceiver;
+import reactivestreams.commons.state.Backpressurable;
 
 /**
  * Merges a fixed array of Publishers.
  * @param <T> the element type of the publishers
  */
-public final class PublisherMerge<T> extends Px<T> {
+public final class PublisherMerge<T> extends Px<T> implements MultiReceiver, Backpressurable {
 
     final Publisher<? extends T>[] sources;
     
@@ -75,5 +79,20 @@ public final class PublisherMerge<T> extends Px<T> {
         }
         
         return new PublisherMerge<>(newArray, delayError, mc, mainQueueSupplier, prefetch, innerQueueSupplier);
+    }
+
+    @Override
+    public Iterator<?> upstreams() {
+        return Arrays.asList(sources).iterator();
+    }
+
+    @Override
+    public long getCapacity() {
+        return prefetch;
+    }
+
+    @Override
+    public long upstreamCount() {
+        return sources.length;
     }
 }
