@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Publisher;
 
 import reactivestreams.commons.processor.SimpleProcessor;
@@ -329,7 +329,7 @@ public class PublisherCombineLatestTest {
         }
     }
 
-    //    @Test
+        @Test
     public void asyncInterleavedRacingLoop() {
         for (int i = 0; i < 1000; i++) {
             if (i % 10 == 0) {
@@ -353,7 +353,10 @@ public class PublisherCombineLatestTest {
 
             Px.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
 
-            ts.await(5, TimeUnit.SECONDS);
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                Assert.fail("TestSubscriber timed out");
+            }
 
             ts.assertValueCount(19)
             .assertNoError()
@@ -386,7 +389,10 @@ public class PublisherCombineLatestTest {
 
             Px.combineLatest(interval1, interval2, (a, b) -> a + "" + b).subscribe(ts);
 
-            ts.await(5, TimeUnit.SECONDS);
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                Assert.fail("TestSubscriber timed out");
+            }
 
             ts.assertValueCount(19)
             .assertNoError()
