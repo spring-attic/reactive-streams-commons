@@ -34,13 +34,13 @@ public class PublisherConcatArray2Perf {
 
         Arrays.fill(sources, item);
 
-        rangeConcatRange = new PublisherConcatArray<>(sources);
+        rangeConcatRange = Px.concatArray(sources);
 
         sources = new Px[1_000_000];
 
         Arrays.fill(sources, Px.just(777));
 
-        rangeConcatJust = new PublisherConcatArray<>(sources);
+        rangeConcatJust = Px.concatArray(sources);
     }
 
     @Benchmark

@@ -6,7 +6,7 @@ import rsc.test.TestSubscriber;
 
 public class PublisherRetryPredicateTest {
     
-    final Publisher<Integer> source = new PublisherConcatArray<>(new PublisherRange(1, 5), new PublisherError<Integer>(new RuntimeException("forced failure 0")));
+    final Publisher<Integer> source = Px.concatArray(new PublisherRange(1, 5), new PublisherError<Integer>(new RuntimeException("forced failure 0")));
     
     @Test(expected = NullPointerException.class)
     public void sourceNull() {

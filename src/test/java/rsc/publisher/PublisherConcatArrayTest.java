@@ -8,7 +8,7 @@ public class PublisherConcatArrayTest {
 
     @Test(expected = NullPointerException.class)
     public void arrayNull() {
-        new PublisherConcatArray<>((Publisher<Object>[]) null);
+        Px.concatArray((Publisher<Object>[]) null);
     }
 
     final Publisher<Integer> source = new PublisherRange(1, 3);
@@ -17,7 +17,7 @@ public class PublisherConcatArrayTest {
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherConcatArray<>(source, source, source).subscribe(ts);
+        Px.concatArray(source, source, source).subscribe(ts);
 
         ts.assertValues(1, 2, 3, 1, 2, 3, 1, 2, 3)
           .assertComplete()
@@ -28,7 +28,7 @@ public class PublisherConcatArrayTest {
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        new PublisherConcatArray<>(source, source, source).subscribe(ts);
+        Px.concatArray(source, source, source).subscribe(ts);
 
         ts.assertNoValues()
           .assertNoError()
@@ -57,7 +57,7 @@ public class PublisherConcatArrayTest {
     public void oneSourceIsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherConcatArray<>(source, null, source).subscribe(ts);
+        Px.concatArray(source, null, source).subscribe(ts);
 
         ts.assertValues(1, 2, 3)
           .assertNotComplete()
@@ -68,7 +68,7 @@ public class PublisherConcatArrayTest {
     public void singleSourceIsNull() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherConcatArray<>((Publisher<Integer>) null).subscribe(ts);
+        Px.concatArray((Publisher<Integer>) null).subscribe(ts);
 
         ts.assertNoValues()
           .assertNotComplete()
@@ -89,6 +89,36 @@ public class PublisherConcatArrayTest {
         ts.assertValues(1, 2, 3, 4)
         .assertComplete()
         .assertNoError();
+    }
+
+    @Test
+    public void errorDelayed() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        Px.concatArray(true, Px.range(1, 2), Px.error(new RuntimeException("Forced failure")), Px.range(3, 2))
+        .subscribe(ts);
+        
+        ts.assertValues(1, 2, 3, 4)
+        .assertError(RuntimeException.class)
+        .assertErrorMessage("Forced failure")
+        .assertNotComplete();
+    }
+
+    @Test
+    public void errorManyDelayed() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        Px.concatArray(true, Px.range(1, 2), 
+                Px.error(new RuntimeException("Forced failure")), 
+                Px.range(3, 2),
+                Px.error(new RuntimeException("Forced failure")), 
+                Px.empty())
+        .subscribe(ts);
+        
+        ts.assertValues(1, 2, 3, 4)
+        .assertError(Throwable.class)
+        .assertErrorMessage("Multiple exceptions")
+        .assertNotComplete();
     }
 
 }

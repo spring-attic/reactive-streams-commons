@@ -5,10 +5,10 @@ import rsc.test.TestSubscriber;
 
 public class PublisherRetryWhenTest {
 
-    Px<Integer> justError = new PublisherConcatArray<>(new PublisherJust<>(1), new PublisherError<>(new
+    Px<Integer> justError = Px.concatArray(new PublisherJust<>(1), new PublisherError<>(new
       RuntimeException("forced failure 0")));
 
-    Px<Integer> rangeError = new PublisherConcatArray<>(new PublisherRange(1, 2), new PublisherError<>(new
+    Px<Integer> rangeError = Px.concatArray(new PublisherRange(1, 2), new PublisherError<>(new
       RuntimeException("forced failure 0")));
 
     @Test(expected = NullPointerException.class)

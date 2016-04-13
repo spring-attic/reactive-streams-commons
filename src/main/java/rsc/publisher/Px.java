@@ -90,7 +90,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final Px<T> concatWith(Publisher<? extends T> other) {
-        return new PublisherConcatArray<>(this, other);
+        return new PublisherConcatArray<>(false, this, other);
     }
     
     public final Px<T> ambWith(Publisher<? extends T> other) {
@@ -839,7 +839,12 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     
     @SafeVarargs
     public static <T> Px<T> concatArray(Publisher<? extends T>... sources) {
-        return new PublisherConcatArray<>(sources);
+        return concatArray(false, sources);
+    }
+
+    @SafeVarargs
+    public static <T> Px<T> concatArray(boolean delayError, Publisher<? extends T>... sources) {
+        return new PublisherConcatArray<>(delayError, sources);
     }
 
     public static <T> Px<T> concatIterable(Iterable<? extends Publisher<? extends T>> sources) {

@@ -27,7 +27,7 @@ public class PublisherRetryTest {
           .assertNoError();
     }
 
-    final Publisher<Integer> source = new PublisherConcatArray<>(new PublisherRange(1, 3), new PublisherError<>(new
+    final Publisher<Integer> source = Px.concatArray(new PublisherRange(1, 3), new PublisherError<>(new
       RuntimeException("forced failure")));
 
     @Test

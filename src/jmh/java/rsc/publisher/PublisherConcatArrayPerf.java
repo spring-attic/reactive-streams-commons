@@ -40,15 +40,15 @@ public class PublisherConcatArrayPerf {
     }
 
     Publisher<Integer> createSource1() {
-        return new PublisherConcatArray<>(new PublisherRange(0, count), PublisherEmpty.<Integer>instance());
+        return Px.concatArray(new PublisherRange(0, count), PublisherEmpty.<Integer>instance());
     }
 
     Publisher<Integer> createSource2() {
-        return new PublisherConcatArray<>(PublisherEmpty.<Integer>instance(), new PublisherRange(0, count));
+        return Px.concatArray(PublisherEmpty.<Integer>instance(), new PublisherRange(0, count));
     }
 
     Publisher<Integer> createSource3() {
-        return new PublisherConcatArray<>(new PublisherRange(0, count / 2), new PublisherRange(0, count / 2));
+        return Px.concatArray(new PublisherRange(0, count / 2), new PublisherRange(0, count / 2));
     }
 
     @Benchmark
