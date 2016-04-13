@@ -1,16 +1,20 @@
 package rsc.publisher;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.*;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import rsc.flow.Cancellation;
-import rsc.scheduler.Scheduler;
-import rsc.scheduler.Scheduler.Worker;
+import rsc.flow.Fuseable;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
+import rsc.scheduler.Scheduler;
+import rsc.scheduler.Scheduler.Worker;
 import rsc.util.BackpressureHelper;
 import rsc.util.DeferredSubscription;
 import rsc.util.EmptySubscription;
@@ -36,7 +40,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
 
     public static <T> void scalarScheduleOn(Publisher<? extends T> source, Subscriber<? super T> s, Scheduler scheduler) {
         @SuppressWarnings("unchecked")
-        Supplier<T> supplier = (Supplier<T>) source;
+        Fuseable.ScalarSupplier<T> supplier = (Fuseable.ScalarSupplier<T>) source;
         
         T v = supplier.get();
         
@@ -52,7 +56,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
     
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        if (source instanceof Supplier) {
+        if (source instanceof Fuseable.ScalarSupplier) {
             scalarScheduleOn(source, s, scheduler);
             return;
         }
