@@ -530,7 +530,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), true);
+            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor));
         }
         return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier(prefetch));
     }
@@ -547,7 +547,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, scheduler, true);
+            return new PublisherSubscribeOnValue<>(value, scheduler);
         }
         return new PublisherObserveOn<>(this, scheduler, delayError, prefetch, defaultQueueSupplier(prefetch));
     }
@@ -556,7 +556,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor), true);
+            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor));
         }
         return new PublisherSubscribeOn<>(this, fromExecutor(executor));
     }
@@ -565,7 +565,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (this instanceof Fuseable.ScalarSupplier) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarSupplier<T>)this).get();
-            return new PublisherSubscribeOnValue<>(value, scheduler, true);
+            return new PublisherSubscribeOnValue<>(value, scheduler);
         }
         return new PublisherSubscribeOn<>(this, scheduler);
     }

@@ -20,14 +20,10 @@ final class PublisherSubscribeOnValue<T> extends Px<T> {
     
     final Scheduler scheduler;
 
-    final boolean eagerCancel;
-
     public PublisherSubscribeOnValue(T value, 
-            Scheduler scheduler, 
-            boolean eagerCancel) {
+            Scheduler scheduler) {
         this.value = value;
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
-        this.eagerCancel = eagerCancel;
     }
 
     @Override
