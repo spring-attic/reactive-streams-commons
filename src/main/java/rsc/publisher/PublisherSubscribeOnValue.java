@@ -6,8 +6,6 @@ import org.reactivestreams.Subscriber;
 
 import rsc.flow.Cancellation;
 import rsc.scheduler.Scheduler;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
 
 /**
  * Publisher indicating a scalar/empty source that subscribes on the specified scheduler.
@@ -28,21 +26,6 @@ final class PublisherSubscribeOnValue<T> extends Px<T> {
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        Scheduler.Worker worker;
-        
-        try {
-            worker = scheduler.createWorker();
-        } catch (Throwable e) {
-            ExceptionHelper.throwIfFatal(e);
-            EmptySubscription.error(s, e);
-            return;
-        }
-        
-        if (worker == null) {
-            EmptySubscription.error(s, new NullPointerException("The scheduler returned a null Function"));
-            return;
-        }
-
         T v = value;
         if (v == null) {
             PublisherSubscribeOn.ScheduledEmpty parent = new PublisherSubscribeOn.ScheduledEmpty(s);
