@@ -358,14 +358,17 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
                 .window(Px.interval(5, TimeUnit.MILLISECONDS, exec), maxSize, false)
                 .subscribe(ts);
 
-                ts.await(5, TimeUnit.SECONDS);
+                if (!ts.await(5, TimeUnit.SECONDS)) {
+                    ts.cancel();
+                    Assert.fail("TestSubscriber timed out: " + ts.received());
+                }
                 List<Long> data = new ArrayList<>(2500);
                 for (TestSubscriber<Long> its : tss) {
                     its.await(5, TimeUnit.SECONDS);
                     data.addAll(its.values());
                 }
 
-                Assert.assertTrue(data.size() == 2500);
+                Assert.assertEquals(2500, data.size());
                 for (int i = 0; i < data.size() - 1; i++) {
                     Long a1 = data.get(i);
                     Long a2 = data.get(i + 1);

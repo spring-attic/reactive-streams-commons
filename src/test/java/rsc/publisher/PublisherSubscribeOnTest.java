@@ -135,7 +135,14 @@ public class PublisherSubscribeOnTest {
         
         Assert.assertEquals(0, count.get());
         
-        p.subscribe(new TestSubscriber<>());
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        p.subscribe(ts);
+        
+        if (!ts.await(5, TimeUnit.SECONDS)) {
+            ts.cancel();
+            Assert.fail("TestSubscriber timed out");
+        }
         
         Assert.assertEquals(1, count.get());
     }}
