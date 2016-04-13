@@ -138,6 +138,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
             T v = value;
             if (v == null) {
                 subscriber.onComplete();
+                return;
             }
             complete(v);
         }
