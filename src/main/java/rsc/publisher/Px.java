@@ -3,24 +3,15 @@ package rsc.publisher;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.*;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Cancellation;
-import rsc.flow.Fuseable;
-import rsc.scheduler.TimedScheduler;
+import rsc.flow.*;
+import rsc.scheduler.*;
 import rsc.state.Introspectable;
-import rsc.scheduler.Scheduler;
-import rsc.subscriber.BlockingFirstSubscriber;
-import rsc.subscriber.BlockingLastSubscriber;
-import rsc.subscriber.EmptyAsyncSubscriber;
-import rsc.subscriber.LambdaSubscriber;
-import rsc.subscriber.PeekLastSubscriber;
-import rsc.scheduler.ExecutorServiceScheduler;
-import rsc.util.SpscArrayQueue;
-import rsc.util.SpscLinkedArrayQueue;
-import rsc.util.UnsignalledExceptions;
+import rsc.subscriber.*;
+import rsc.util.*;
 
 /**
  * Experimental base class with fluent API: (P)ublisher E(x)tensions.
@@ -702,6 +693,10 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return new PublisherFlattenIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
     }
 
+    public final <R, A> Px<R> collect(Collector<T, A, R> collector) {
+        return new PublisherStreamCollector<>(this, collector);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     static final class PxWrapper<T> extends PublisherSource<T, T> {
