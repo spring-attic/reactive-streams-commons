@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    compile 'io.projectreactor:reactive-streams-commons:0.2.0.BUILD-SNAPSHOT'
+    compile 'io.projectreactor:reactive-streams-commons:0.3.0.BUILD-SNAPSHOT'
 }
 ```
 
