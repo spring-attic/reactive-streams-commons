@@ -1,5 +1,5 @@
 # reactive-streams-commons
-A Repository for commons utilities implementations for Reactive Streams.
+A joint research effort for building highly optimized Reactive-Streams compliant operators.
 
 ## Maven
 
