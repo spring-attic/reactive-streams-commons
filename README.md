@@ -93,7 +93,8 @@ I.e., converts non-reactive data sources into `Publisher`s.
   - `PublisherSkip` : skips a specified amount of values
   - `PublisherSkipLast` : skips the last N elements
   - `PublisherSkipUntil` : skips values until another sequence signals a value or completes
-  - `PublisherSkipWhile` skips values while the predicate returns true
+  - `PublisherSkipWhile`: skips values while the predicate returns true
+  - `PublisherStreamCollector` : Collects the values from the source sequence into a `java.util.stream.Collector` instance; see `Collectors` utility class in Java 8+
   - `PublisherSwitchIfEmpty` : continues with another sequence if the first sequence turns out to be empty.
   - `PublisherSwitchMap` : switches to and streams a Publisher generated via a function whenever the upstream signals a value
   - `PublisherTake` : takes a specified amount of values and completes
