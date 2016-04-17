@@ -94,10 +94,10 @@ public enum ExceptionHelper {
      * <p>
      * The method calls throwIfFatal().
      * 
-     * @param e the exception to propagate
+     * @param e the exception to bubble
      * @return dummy return type to allow using throw with the function call
      */
-    public static RuntimeException propagate(Throwable e) {
+    public static RuntimeException bubble(Throwable e) {
         throwIfFatal(e);
         if (e instanceof RuntimeException) {
             throw (RuntimeException)e;
@@ -136,7 +136,7 @@ public enum ExceptionHelper {
      */
     public static void fail(Throwable t) {
         throwIfFatal(t);
-        throw wrapDownstream(t);
+        throw propagate(t);
     }
 
     /**
@@ -145,9 +145,9 @@ public enum ExceptionHelper {
      * @param t the root cause
      * @return the wrapped RuntimeException of DownstreamException
      */
-    public static RuntimeException wrapDownstream(Throwable t) {
-        if(t instanceof DownstreamException){
-            return (DownstreamException)t;
+    public static RuntimeException propagate(Throwable t) {
+        if(t instanceof RuntimeException){
+            return (RuntimeException)t;
         }
         return new DownstreamException(t);
     }

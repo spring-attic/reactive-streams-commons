@@ -64,7 +64,7 @@ extends Px<T>
         try {
             return callable.call();
         } catch (Throwable e) {
-            throw ExceptionHelper.propagate(e);
+            throw ExceptionHelper.bubble(e);
         }
     }
 }
