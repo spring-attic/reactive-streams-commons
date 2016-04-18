@@ -32,12 +32,7 @@ extends Px<T> {
 
     static Supplier<Throwable> create(final Throwable error) {
         Objects.requireNonNull(error);
-        return new Supplier<Throwable>() {
-            @Override
-            public Throwable get() {
-                return error;
-            }
-        };
+        return () -> error;
     }
 
     public PublisherError(Supplier<? extends Throwable> supplier) {
