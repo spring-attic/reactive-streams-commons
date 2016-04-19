@@ -40,9 +40,9 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
 
     public static <T> void scalarScheduleOn(Publisher<? extends T> source, Subscriber<? super T> s, Scheduler scheduler) {
         @SuppressWarnings("unchecked")
-        Fuseable.ScalarSupplier<T> supplier = (Fuseable.ScalarSupplier<T>) source;
+        Fuseable.ScalarCallable<T> supplier = (Fuseable.ScalarCallable<T>) source;
         
-        T v = supplier.get();
+        T v = supplier.call();
         
         if (v == null) {
             ScheduledEmpty parent = new ScheduledEmpty(s);
@@ -56,7 +56,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
     
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        if (source instanceof Fuseable.ScalarSupplier) {
+        if (source instanceof Fuseable.ScalarCallable) {
             scalarScheduleOn(source, s, scheduler);
             return;
         }

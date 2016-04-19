@@ -13,7 +13,7 @@ public class PublisherJustTest {
 
     @Test
     public void valueSame() {
-        Assert.assertSame(1, new PublisherJust<>(1).get());
+        Assert.assertSame(1, new PublisherJust<>(1).call());
     }
 
     @Test

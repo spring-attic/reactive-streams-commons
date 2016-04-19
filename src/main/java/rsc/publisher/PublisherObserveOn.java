@@ -61,7 +61,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     @Override
     public void subscribe(Subscriber<? super T> s) {
         
-        if (source instanceof Fuseable.ScalarSupplier) {
+        if (source instanceof Fuseable.ScalarCallable) {
             PublisherSubscribeOn.scalarScheduleOn(source, s, scheduler);
             return;
         }

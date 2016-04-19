@@ -1,24 +1,14 @@
 package rsc.publisher;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
 
 import rsc.flow.Fuseable;
-import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import rsc.util.*;
 
 /**
  * Concatenates values from Iterable sequences generated via a mapper function.
@@ -48,11 +38,11 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
     @SuppressWarnings("unchecked")
     @Override
     public void subscribe(Subscriber<? super R> s) {
-        if (source instanceof Supplier) {
+        if (source instanceof Callable) {
             T v;
             
             try {
-                v = ((Supplier<T>)source).get();
+                v = ((Callable<T>)source).call();
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
                 EmptySubscription.error(s, ex);

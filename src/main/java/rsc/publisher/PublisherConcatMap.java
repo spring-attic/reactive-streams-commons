@@ -1,21 +1,15 @@
 package rsc.publisher;
 
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
+
 import rsc.flow.Fuseable;
 import rsc.subscriber.MultiSubscriptionSubscriber;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import rsc.util.*;
 
 /**
  * Maps each upstream value into a Publisher and concatenates them into one
@@ -335,15 +329,16 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                             }
 
 
-                            if (p instanceof Supplier) {
+                            if (p instanceof Callable) {
                                 @SuppressWarnings("unchecked")
-                                Supplier<R> supplier = (Supplier<R>) p;
+                                Callable<R> callable = (Callable<R>) p;
                                 
                                 R vr;
                                 
                                 try {
-                                    vr = supplier.get();
+                                    vr = callable.call();
                                 } catch (Throwable e) {
+                                    ExceptionHelper.throwIfFatal(e);
                                     s.cancel();
                                     actual.onError(ExceptionHelper.unwrap(e));
                                     return;
@@ -660,15 +655,16 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 }
                             }
                             
-                            if (p instanceof Supplier) {
+                            if (p instanceof Callable) {
                                 @SuppressWarnings("unchecked")
-                                Supplier<R> supplier = (Supplier<R>) p;
+                                Callable<R> supplier = (Callable<R>) p;
                                 
                                 R vr;
                                 
                                 try {
-                                    vr = supplier.get();
+                                    vr = supplier.call();
                                 } catch (Throwable e) {
+                                    ExceptionHelper.throwIfFatal(e);
                                     s.cancel();
                                     actual.onError(ExceptionHelper.unwrap(e));
                                     return;

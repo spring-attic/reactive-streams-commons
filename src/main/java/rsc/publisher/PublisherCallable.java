@@ -18,7 +18,7 @@ import rsc.util.ExceptionHelper;
  */
 public final class PublisherCallable<T> 
 extends Px<T>
-        implements Receiver, Supplier<T> {
+        implements Receiver, Callable<T> {
 
     final Callable<? extends T> callable;
 
@@ -60,11 +60,7 @@ extends Px<T>
     }
     
     @Override
-    public T get() {
-        try {
-            return callable.call();
-        } catch (Throwable e) {
-            throw ExceptionHelper.propagate(e);
-        }
+    public T call() throws Exception {
+        return callable.call();
     }
 }

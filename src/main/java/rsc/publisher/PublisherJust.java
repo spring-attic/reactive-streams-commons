@@ -11,7 +11,7 @@ import rsc.util.ScalarSubscription;
 
 public final class PublisherJust<T> 
 extends Px<T>
-implements Fuseable.ScalarSupplier<T>, Receiver, Backpressurable {
+implements Fuseable.ScalarCallable<T>, Receiver, Backpressurable {
 
     final T value;
 
@@ -20,7 +20,7 @@ implements Fuseable.ScalarSupplier<T>, Receiver, Backpressurable {
     }
 
     @Override
-    public T get() {
+    public T call() {
         return value;
     }
 

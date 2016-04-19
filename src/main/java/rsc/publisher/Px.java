@@ -518,9 +518,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final Px<T> observeOn(ExecutorService executor, boolean delayError, int prefetch) {
-        if (this instanceof Fuseable.ScalarSupplier) {
+        if (this instanceof Fuseable.ScalarCallable) {
             @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarSupplier<T>)this).get();
+            T value = ((Fuseable.ScalarCallable<T>)this).call();
             return new PublisherSubscribeOnValue<>(value, fromExecutor(executor));
         }
         return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier(prefetch));
@@ -535,27 +535,27 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final Px<T> observeOn(Scheduler scheduler, boolean delayError, int prefetch) {
-        if (this instanceof Fuseable.ScalarSupplier) {
+        if (this instanceof Fuseable.ScalarCallable) {
             @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarSupplier<T>)this).get();
+            T value = ((Fuseable.ScalarCallable<T>)this).call();
             return new PublisherSubscribeOnValue<>(value, scheduler);
         }
         return new PublisherObserveOn<>(this, scheduler, delayError, prefetch, defaultQueueSupplier(prefetch));
     }
 
     public final Px<T> subscribeOn(ExecutorService executor) {
-        if (this instanceof Fuseable.ScalarSupplier) {
+        if (this instanceof Fuseable.ScalarCallable) {
             @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarSupplier<T>)this).get();
+            T value = ((Fuseable.ScalarCallable<T>)this).call();
             return new PublisherSubscribeOnValue<>(value, fromExecutor(executor));
         }
         return new PublisherSubscribeOn<>(this, fromExecutor(executor));
     }
 
     public final Px<T> subscribeOn(Scheduler scheduler) {
-        if (this instanceof Fuseable.ScalarSupplier) {
+        if (this instanceof Fuseable.ScalarCallable) {
             @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarSupplier<T>)this).get();
+            T value = ((Fuseable.ScalarCallable<T>)this).call();
             return new PublisherSubscribeOnValue<>(value, scheduler);
         }
         return new PublisherSubscribeOn<>(this, scheduler);
@@ -582,7 +582,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final Px<T> aggregate(BiFunction<T, T, T> aggregator) {
-        if (this instanceof Supplier) {
+        if (this instanceof Callable) {
             return this;
         }
         return new PublisherAggregate<>(this, aggregator);

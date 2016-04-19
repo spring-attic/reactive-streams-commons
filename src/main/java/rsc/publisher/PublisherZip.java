@@ -1,29 +1,16 @@
 package rsc.publisher;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.*;
 import java.util.function.*;
 
 import org.reactivestreams.*;
 
-import rsc.state.Requestable;
+import rsc.flow.*;
+import rsc.state.*;
 import rsc.subscriber.DeferredScalarSubscriber;
-import rsc.flow.Cancellation;
-import rsc.flow.Fuseable;
-import rsc.flow.MultiReceiver;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Prefetchable;
-import rsc.util.BackpressureHelper;
-import rsc.util.CancelledSubscription;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import rsc.util.*;
 
 /**
  * Repeatedly takes one item from all source Publishers and 
@@ -93,14 +80,15 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                 return;
             }
             
-            if (p instanceof Supplier) {
-                Supplier<T> supplier = (Supplier<T>) p;
+            if (p instanceof Callable) {
+                Callable<T> callable = (Callable<T>) p;
                 
                 T v;
                 
                 try {
-                    v = supplier.get();
+                    v = callable.call();
                 } catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
                     EmptySubscription.error(s, ExceptionHelper.unwrap(e));
                     return;
                 }
@@ -168,12 +156,13 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                 return;
             }
             
-            if (p instanceof Supplier) {
+            if (p instanceof Callable) {
                 Object v;
                 
                 try {
-                    v = ((Supplier<? extends T>)p).get();
+                    v = ((Callable<? extends T>)p).call();
                 } catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
                     EmptySubscription.error(s, ExceptionHelper.unwrap(e));
                     return;
                 }

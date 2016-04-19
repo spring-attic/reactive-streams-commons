@@ -1,29 +1,15 @@
 package rsc.publisher;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.*;
 import java.util.function.*;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Fuseable;
-import rsc.flow.MultiReceiver;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Prefetchable;
-import rsc.state.Requestable;
-import rsc.util.BackpressureHelper;
-import rsc.util.CancelledSubscription;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
-import rsc.util.ScalarSubscription;
-import rsc.util.SpscFreeListTracker;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import rsc.flow.*;
+import rsc.state.*;
+import rsc.util.*;
 
 /**
  * Maps a sequence of values each into a Publisher and flattens them 
@@ -87,11 +73,11 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             Publisher<? extends T> source,
             Subscriber<? super R> s,
             Function<? super T, ? extends Publisher<? extends R>> mapper) {
-        if (source instanceof Supplier) {
+        if (source instanceof Callable) {
             T t;
 
             try {
-                t = ((Supplier<? extends T>)source).get();
+                t = ((Callable<? extends T>)source).call();
             } catch (Throwable e) {
                 ExceptionHelper.throwIfFatal(e);
                 EmptySubscription.error(s, ExceptionHelper.unwrap(e));
@@ -118,11 +104,11 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 return true;
             }
 
-            if (p instanceof Supplier) {
+            if (p instanceof Callable) {
                 R v;
 
                 try {
-                    v = ((Supplier<R>)p).get();
+                    v = ((Callable<R>)p).call();
                 } catch (Throwable e) {
                     ExceptionHelper.throwIfFatal(e);
                     EmptySubscription.error(s, ExceptionHelper.unwrap(e));
@@ -306,10 +292,10 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 return;
             }
             
-            if (p instanceof Supplier) {
+            if (p instanceof Callable) {
                 R v;
                 try {
-                    v = ((Supplier<R>)p).get();
+                    v = ((Callable<R>)p).call();
                 } catch (Throwable e) {
                     s.cancel();
                     onError(ExceptionHelper.unwrap(e));

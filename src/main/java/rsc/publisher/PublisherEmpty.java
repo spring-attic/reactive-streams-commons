@@ -15,7 +15,7 @@ import rsc.util.EmptySubscription;
  */
 public final class PublisherEmpty 
 extends Px<Object>
-implements Fuseable.ScalarSupplier<Object>, Completable {
+implements Fuseable.ScalarCallable<Object>, Completable {
 
     private static final Publisher<Object> INSTANCE = new PublisherEmpty();
 
@@ -41,7 +41,7 @@ implements Fuseable.ScalarSupplier<Object>, Completable {
     }
 
     @Override
-    public Object get() {
+    public Object call() {
         return null; /* Scalar optimizations on empty */
     }
 
