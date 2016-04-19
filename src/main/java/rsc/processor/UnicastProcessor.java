@@ -1,24 +1,14 @@
 package rsc.processor;
 
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import rsc.flow.Fuseable;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
+import org.reactivestreams.*;
+
+import rsc.flow.*;
 import rsc.publisher.Px;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Requestable;
-import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.state.*;
+import rsc.util.*;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -266,7 +256,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
                 }
             }
         } else {
-            s.onError(new IllegalStateException("This processor allows only a single Subscriber"));
+            EmptySubscription.error(s, new IllegalStateException("This processor allows only a single Subscriber"));
         }
     }
 
