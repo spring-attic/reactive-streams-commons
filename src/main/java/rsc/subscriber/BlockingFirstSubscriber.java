@@ -60,12 +60,12 @@ public class BlockingFirstSubscriber<T> implements Subscriber<T> {
             try {
                 latch.await();
             } catch (InterruptedException ex) {
-                ExceptionHelper.propagate(ex);
+                ExceptionHelper.bubble(ex);
             }
         }
         Throwable e = error;
         if (e != null) {
-            ExceptionHelper.propagate(e);
+            ExceptionHelper.bubble(e);
         }
         return value;
     }
@@ -74,16 +74,16 @@ public class BlockingFirstSubscriber<T> implements Subscriber<T> {
         if (latch.getCount() != 0) {
             try {
                 if (!latch.await(timeout, unit)) {
-                    ExceptionHelper.propagate(new TimeoutException());
+                    ExceptionHelper.bubble(new TimeoutException());
                 }
             } catch (InterruptedException ex) {
-                ExceptionHelper.propagate(ex);
+                ExceptionHelper.bubble(ex);
             }
         }
         
         Throwable e = error;
         if (e != null) {
-            ExceptionHelper.propagate(e);
+            ExceptionHelper.bubble(e);
         }
         return value;
     }
