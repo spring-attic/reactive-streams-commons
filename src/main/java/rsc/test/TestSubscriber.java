@@ -1,21 +1,15 @@
 package rsc.test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.LockSupport;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import rsc.subscriber.DeferredSubscriptionSubscriber;
-import rsc.subscriber.EmptySubscriber;
+import org.reactivestreams.*;
+
+import rsc.subscriber.*;
 import rsc.util.SubscriptionHelper;
+import rsc.flow.Fuseable;
+import rsc.flow.Fuseable.*;
 
 /**
  * A Subscriber implementation that hosts assertion tests for its state and allows asynchronous cancellation and
@@ -45,6 +39,14 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     
     /** Incremented once a value has been added to values. */
     volatile int volatileSize;
+    
+    /** The fusion mode to request. */
+    int requestedFusionMode = -1;
+    
+    /** The established fusion mode. */
+    volatile int establishedFusionMode = -1;
+    
+    QueueSubscription<T> qs;
 
     public TestSubscriber() {
         this(EmptySubscriber.instance(), Long.MAX_VALUE);
@@ -65,12 +67,45 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         this.cdl = new CountDownLatch(1);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final void onSubscribe(Subscription s) {
         subscriptions++;
-        if (!set(s)) {
-            if (!isCancelled()) {
-                errors.add(new IllegalStateException("Subscription already set: " + subscriptions));
+        int requestMode = requestedFusionMode;
+        if (requestMode >= 0) {
+            if (!setWithoutRequesting(s)) {
+                if (!isCancelled()) {
+                    errors.add(new IllegalStateException("Subscription already set: " + subscriptions));
+                }
+            } else {
+                if (s instanceof QueueSubscription) {
+                    this.qs = (QueueSubscription<T>)s;
+                    
+                    int m = qs.requestFusion(requestMode);
+                    establishedFusionMode = m;
+                    
+                    if (m == Fuseable.SYNC) {
+                        for (;;) {
+                            T v = qs.poll();
+                            if (v == null) {
+                                onComplete();
+                                break;
+                            }
+                            
+                            onNext(v);
+                        }
+                    } else {
+                        requestDeferred();
+                    }
+                } else {
+                    requestDeferred();
+                }
+            }
+        } else {
+            if (!set(s)) {
+                if (!isCancelled()) {
+                    errors.add(new IllegalStateException("Subscription already set: " + subscriptions));
+                }
             }
         }
     }
@@ -78,9 +113,21 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     @Override
     public void onNext(T t) {
         verifySubscription();
-        values.add(t);
-        volatileSize++;
-        subscriber.onNext(t);
+        if (establishedFusionMode == Fuseable.ASYNC) {
+            for (;;) {
+                t = qs.poll();
+                if (t == null) {
+                    break;
+                }
+                values.add(t);
+                volatileSize++;
+                subscriber.onNext(t);
+            }
+        } else {
+            values.add(t);
+            volatileSize++;
+            subscriber.onNext(t);
+        }
     }
 
     @Override
@@ -111,7 +158,9 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     @Override
     public void request(long n) {
         if (SubscriptionHelper.validate(n)) {
-            super.request(n);
+            if (establishedFusionMode != Fuseable.SYNC) {
+                super.request(n);
+            }
         }
     }
 
@@ -541,7 +590,89 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         return subscriptions;
     }
     
+    /**
+     * Returns the number of received events (volatile read).
+     * @return
+     */
     public final int received() {
         return volatileSize;
+    }
+    
+    /**
+     * Setup what fusion mode should be requested from the incomining
+     * Subscription if it happens to be QueueSubscription
+     * @param requestMode the mode to request, see Fuseable constants
+     */
+    public final TestSubscriber<T> requestedFusionMode(int requestMode) {
+        this.requestedFusionMode = requestMode;
+        return this;
+    }
+    
+    /**
+     * Returns the established fusion mode or -1 if it was not enabled
+     * @return the fusion mode, see Fuseable constants
+     */
+    public final int establishedFusionMode() {
+        return establishedFusionMode;
+    }
+    
+    String fusionModeName(int mode) {
+        switch (mode) {
+        case -1: return "Disabled";
+        case Fuseable.NONE: return "None";
+        case Fuseable.SYNC: return "Sync";
+        case Fuseable.ASYNC: return "Async";
+        default: return "Unknown(" + mode + ")";
+        }
+    }
+    
+    public final TestSubscriber<T> assertFusionMode(int expectedMode) {
+        if (establishedFusionMode != expectedMode) {
+            throw new AssertionError("Wrong fusion mode: expected: "
+                    + fusionModeName(expectedMode) + ", actual: " 
+                    + fusionModeName(establishedFusionMode));
+        }
+        return this;
+    }
+    
+    /**
+     * Assert that the fusion mode was granted.
+     */
+    public final TestSubscriber<T> assertFusionEnabled() {
+        if (establishedFusionMode == Fuseable.SYNC
+                || establishedFusionMode == Fuseable.ASYNC) {
+            throw new AssertionError("Fusion was not enabled");
+        }
+        return this;
+    }
+
+    /**
+     * Assert that the fusion mode was granted.
+     */
+    public final TestSubscriber<T> assertFusionRejected() {
+        if (establishedFusionMode != Fuseable.NONE) {
+            throw new AssertionError("Fusion was granted");
+        }
+        return this;
+    }
+
+    /**
+     * Assert that the upstream was a Fuseable source.
+     */
+    public final TestSubscriber<T> assertFuseableSource() {
+        if (qs == null) {
+            throw new AssertionError("Upstream was not Fuseable");
+        }
+        return this;
+    }
+    
+    /**
+     * Assert that the upstream was not a Fuseable source.
+     */
+    public final TestSubscriber<T> assertNonFuseableSource() {
+        if (qs != null) {
+            throw new AssertionError("Upstream was Fuseable");
+        }
+        return this;
     }
 }

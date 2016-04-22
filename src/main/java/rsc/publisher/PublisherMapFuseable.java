@@ -176,7 +176,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         @Override
         public R poll() {
-            // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
             T v = s.poll();
             if (v != null) {
                 R u = mapper.apply(v);

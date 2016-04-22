@@ -874,6 +874,17 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
                 defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
     
+    public static <T, S> Px<T> using(Callable<S> resourceSupplier, 
+            Function<? super S, ? extends Publisher<? extends T>> sourceCreator, Consumer<? super S> disposer) {
+        return using(resourceSupplier, sourceCreator, disposer, true);
+    }
+
+    public static <T, S> Px<T> using(Callable<S> resourceSupplier, 
+            Function<? super S, ? extends Publisher<? extends T>> sourceCreator, Consumer<? super S> disposer,
+                    boolean eager) {
+        return new PublisherUsing<>(resourceSupplier, sourceCreator, disposer, eager);
+    }
+
     @SuppressWarnings("rawtypes")
     static final Function IDENTITY_FUNCTION = new Function() {
         @Override
