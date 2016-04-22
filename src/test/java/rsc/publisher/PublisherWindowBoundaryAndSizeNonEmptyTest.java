@@ -354,7 +354,9 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
                     }
                 };
 
-                Px.interval(1, TimeUnit.MILLISECONDS, exec).observeOn(exec).take(2500)
+                Px.interval(1, TimeUnit.MILLISECONDS, exec)
+                .observeOn(exec)
+                .take(2500)
                 .window(Px.interval(5, TimeUnit.MILLISECONDS, exec), maxSize, false)
                 .subscribe(ts);
 

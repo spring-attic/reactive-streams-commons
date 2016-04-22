@@ -32,7 +32,7 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class PublisherObserveOn<T> extends PublisherSource<T, T> implements Loopback {
+public final class PublisherObserveOn<T> extends PublisherSource<T, T> implements Loopback, Fuseable {
 
     final Scheduler scheduler;
     
@@ -102,7 +102,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     }
 
     static final class PublisherObserveOnSubscriber<T>
-    implements Subscriber<T>, Subscription, Runnable, Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable,
+    implements Subscriber<T>, QueueSubscription<T>, Runnable, Producer, Loopback, 
+               Backpressurable, Prefetchable, Receiver, Cancellable,
                Introspectable,
                Requestable, Completable {
         
@@ -141,6 +142,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         int sourceMode;
         
         long produced;
+        
+        boolean outputFused;
         
         public PublisherObserveOnSubscriber(
                 Subscriber<? super T> actual,
@@ -182,43 +185,39 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     if (m == Fuseable.ASYNC) {
                         sourceMode = Fuseable.ASYNC;
                         queue = f;
-                    } else {
-                        try {
-                            queue = queueSupplier.get();
-                        } catch (Throwable e) {
-                            ExceptionHelper.throwIfFatal(e);
-                            s.cancel();
-                            
-                            try {
-                                EmptySubscription.error(actual, e);
-                            } finally {
-                                worker.shutdown();
-                            }
-                            return;
-                        }
-                    }
-                } else {
-                    try {
-                        queue = queueSupplier.get();
-                    } catch (Throwable e) {
-                        ExceptionHelper.throwIfFatal(e);
-                        s.cancel();
-                        try {
-                            EmptySubscription.error(actual, e);
-                        } finally {
-                            worker.shutdown();
-                        }
+                        
+                        actual.onSubscribe(this);
+                        
+                        initialRequest();
+                        
                         return;
                     }
                 }
                 
-                actual.onSubscribe(this);
-                
-                if (prefetch == Integer.MAX_VALUE) {
-                    s.request(Long.MAX_VALUE);
-                } else {
-                    s.request(prefetch);
+                try {
+                    queue = queueSupplier.get();
+                } catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    s.cancel();
+                    try {
+                        EmptySubscription.error(actual, e);
+                    } finally {
+                        worker.shutdown();
+                    }
+                    return;
                 }
+
+                actual.onSubscribe(this);
+
+                initialRequest();
+            }
+        }
+        
+        void initialRequest() {
+            if (prefetch == Integer.MAX_VALUE) {
+                s.request(Long.MAX_VALUE);
+            } else {
+                s.request(prefetch);
             }
         }
         
@@ -433,6 +432,34 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             }
         }
 
+        void runBackfused() {
+            int missed = 1;
+            
+            for (;;) {
+                
+                if (cancelled) {
+                    return;
+                }
+                
+                actual.onNext(null);
+                
+                if (done) {
+                    Throwable e = error;
+                    if (e != null) {
+                        actual.onError(e);
+                    } else {
+                        actual.onComplete();
+                    }
+                    return;
+                }
+                
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+
         void doComplete(Subscriber<?> a) {
             try {
                 a.onComplete();
@@ -451,6 +478,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         @Override
         public void run() {
+            if (outputFused) {
+                runBackfused();
+            } else
             if (sourceMode == Fuseable.SYNC) {
                 runSync();
             } else {
@@ -556,10 +586,39 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         public Object upstream() {
             return s;
         }
+        
+        @Override
+        public void clear() {
+            queue.clear();
+        }
+        
+        @Override
+        public boolean isEmpty() {
+            return queue.isEmpty();
+        }
+        
+        @Override
+        public T poll() {
+            return queue.poll();
+        }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            if ((requestedMode & ASYNC) != 0) {
+                outputFused = true;
+                return ASYNC;
+            }
+            return NONE;
+        }
+        
+        @Override
+        public int size() {
+            return queue.size();
+        }
     }
 
     static final class PublisherObserveOnConditionalSubscriber<T>
-    implements Subscriber<T>, Subscription, Runnable,
+    implements Subscriber<T>, QueueSubscription<T>, Runnable,
                Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Introspectable, Completable, Requestable {
         
         final Fuseable.ConditionalSubscriber<? super T> actual;
@@ -600,6 +659,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         long consumed;
         
+        boolean outputFused;
+
         public PublisherObserveOnConditionalSubscriber(
                 Fuseable.ConditionalSubscriber<? super T> actual,
                 Worker worker,
@@ -640,47 +701,43 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     if (m == Fuseable.ASYNC) {
                         sourceMode = Fuseable.ASYNC;
                         queue = f;
-                    } else {
-                        try {
-                            queue = queueSupplier.get();
-                        } catch (Throwable e) {
-                            ExceptionHelper.throwIfFatal(e);
-                            s.cancel();
-                            try {
-                                EmptySubscription.error(actual, e);
-                            } finally {
-                                worker.shutdown();
-                            }
-                            return;
-                        }
-                    }
-                } else {
-                    try {
-                        queue = queueSupplier.get();
-                    } catch (Throwable e) {
-                        ExceptionHelper.throwIfFatal(e);
-                        s.cancel();
                         
-                        try {
-                            EmptySubscription.error(actual, e);
-                        } finally {
-                            worker.shutdown();
-                        }
-
+                        actual.onSubscribe(this);
+                        
+                        initialRequest();
+                        
                         return;
                     }
                 }
+                try {
+                    queue = queueSupplier.get();
+                } catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    s.cancel();
+                    
+                    try {
+                        EmptySubscription.error(actual, e);
+                    } finally {
+                        worker.shutdown();
+                    }
+
+                    return;
+                }
                 
                 actual.onSubscribe(this);
-                
-                if (prefetch == Integer.MAX_VALUE) {
-                    s.request(Long.MAX_VALUE);
-                } else {
-                    s.request(prefetch);
-                }
+
+                initialRequest();
             }
         }
-        
+
+        void initialRequest() {
+            if (prefetch == Integer.MAX_VALUE) {
+                s.request(Long.MAX_VALUE);
+            } else {
+                s.request(prefetch);
+            }
+        }
+
         @Override
         public void onNext(T t) {
             if (sourceMode == Fuseable.ASYNC) {
@@ -893,8 +950,39 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         }
         
+        void runBackfused() {
+            int missed = 1;
+            
+            for (;;) {
+                
+                if (cancelled) {
+                    return;
+                }
+                
+                actual.onNext(null);
+                
+                if (done) {
+                    Throwable e = error;
+                    if (e != null) {
+                        actual.onError(e);
+                    } else {
+                        actual.onComplete();
+                    }
+                    return;
+                }
+                
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+        
         @Override
         public void run() {
+            if (outputFused) {
+                runBackfused();
+            } else
             if (sourceMode == Fuseable.SYNC) {
                 runSync();
             } else {
@@ -1016,5 +1104,33 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             
             return false;
         }
-    }
+        
+        @Override
+        public void clear() {
+            queue.clear();
+        }
+        
+        @Override
+        public boolean isEmpty() {
+            return queue.isEmpty();
+        }
+        
+        @Override
+        public T poll() {
+            return queue.poll();
+        }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            if ((requestedMode & ASYNC) != 0) {
+                outputFused = true;
+                return ASYNC;
+            }
+            return NONE;
+        }
+        
+        @Override
+        public int size() {
+            return queue.size();
+        }    }
 }
