@@ -161,6 +161,34 @@ public class FuseableTest {
     }
 
     @Test
+    public void longrangeHiddenObserveOnAsyncBack() {
+        SingleTimedScheduler s = new SingleTimedScheduler();
+        try {
+            
+            TestSubscriber<Integer> ts = new TestSubscriber<>();
+            ts.requestedFusionMode(Fuseable.ANY);
+            
+            int n = 2_000_000;
+            
+            Px.range(1, n).hide().observeOn(s).subscribe(ts);
+            
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                Assert.fail("TestScheduler timed out. Received: " + ts.received());
+            }
+            
+            ts.assertFuseableSource()
+            .assertFusionMode(Fuseable.ASYNC)
+            .assertValueCount(n)
+            .assertNoError()
+            .assertComplete();
+            
+        } finally {
+            s.shutdown();
+        }
+    }
+
+    @Test
     public void rangeHiddenObserveOnAsyncBack() {
         SingleTimedScheduler s = new SingleTimedScheduler();
         try {
@@ -178,6 +206,41 @@ public class FuseableTest {
             ts.assertFuseableSource()
             .assertFusionMode(Fuseable.ASYNC)
             .assertValues(1, 2, 3, 4, 5)
+            .assertNoError()
+            .assertComplete();
+            
+        } finally {
+            s.shutdown();
+        }
+    }
+
+    @Test
+    public void unicastObserveOnAsyncBack() {
+        SingleTimedScheduler s = new SingleTimedScheduler();
+        try {
+            
+            TestSubscriber<Integer> ts = new TestSubscriber<>();
+            ts.requestedFusionMode(Fuseable.ANY);
+            
+            int n = 2_000_000;
+            
+            UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscLinkedArrayQueue<>(65536));
+            
+            for (int i = 0; i < n; i++) {
+                up.onNext(777);
+            }
+            up.onComplete();
+            
+            up.observeOn(s).subscribe(ts);
+            
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                Assert.fail("TestScheduler timed out. Received: " + ts.received());
+            }
+            
+            ts.assertFuseableSource()
+            .assertFusionMode(Fuseable.ASYNC)
+            .assertValueCount(n)
             .assertNoError()
             .assertComplete();
             

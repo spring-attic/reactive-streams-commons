@@ -599,7 +599,17 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         @Override
         public T poll() {
-            return queue.poll();
+            T v = queue.poll();
+            if (v != null && sourceMode != SYNC) {
+                long p = produced + 1;
+                if (p == limit) {
+                    produced = 0;
+                    s.request(p);
+                } else {
+                    produced = p;
+                }
+            }
+            return v;
         }
         
         @Override
@@ -1117,7 +1127,17 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         @Override
         public T poll() {
-            return queue.poll();
+            T v = queue.poll();
+            if (v != null && sourceMode != SYNC) {
+                long p = consumed + 1;
+                if (p == limit) {
+                    consumed = 0;
+                    s.request(p);
+                } else {
+                    consumed = p;
+                }
+            }
+            return v;
         }
         
         @Override
