@@ -24,6 +24,7 @@ import rsc.util.*;
  * @param <T> the value type streamed
  * @param <S> the resource type
  */
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, innerInput = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL },  output = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL } )
 public final class PublisherUsing<T, S> 
 extends Px<T>
         implements Receiver, Fuseable {
@@ -98,6 +99,9 @@ extends Px<T>
 
         if (p instanceof Fuseable) {
             p.subscribe(new PublisherUsingFuseableSubscriber<>(s, resourceCleanup, resource, eager));
+        } else 
+        if (s instanceof ConditionalSubscriber) {
+            p.subscribe(new PublisherUsingConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, resourceCleanup, resource, eager));
         } else {
             p.subscribe(new PublisherUsingSubscriber<>(s, resourceCleanup, resource, eager));
         }
@@ -368,4 +372,136 @@ extends Px<T>
         }
     }
 
+    static final class PublisherUsingConditionalSubscriber<T, S>
+    implements ConditionalSubscriber<T>, QueueSubscription<T> {
+
+        final ConditionalSubscriber<? super T> actual;
+
+        final Consumer<? super S> resourceCleanup;
+
+        final S resource;
+
+        final boolean eager;
+
+        Subscription s;
+
+        volatile int wip;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<PublisherUsingConditionalSubscriber> WIP =
+        AtomicIntegerFieldUpdater.newUpdater(PublisherUsingConditionalSubscriber.class, "wip");
+
+        public PublisherUsingConditionalSubscriber(ConditionalSubscriber<? super T> actual, Consumer<? super S> resourceCleanup, S
+                resource, boolean eager) {
+            this.actual = actual;
+            this.resourceCleanup = resourceCleanup;
+            this.resource = resource;
+            this.eager = eager;
+        }
+
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+
+        @Override
+        public void cancel() {
+            if (WIP.compareAndSet(this, 0, 1)) {
+                s.cancel();
+
+                cleanup();
+            }
+        }
+
+        void cleanup() {
+            try {
+                resourceCleanup.accept(resource);
+            } catch (Throwable e) {
+                UnsignalledExceptions.onErrorDropped(e);
+            }
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+
+                actual.onSubscribe(this);
+            }
+        }
+
+        @Override
+        public void onNext(T t) {
+            actual.onNext(t);
+        }
+
+        @Override
+        public boolean tryOnNext(T t) {
+            return actual.tryOnNext(t);
+        }
+        
+        @Override
+        public void onError(Throwable t) {
+            if (eager) {
+                try {
+                    resourceCleanup.accept(resource);
+                } catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    Throwable _e = ExceptionHelper.unwrap(e);
+                    _e.addSuppressed(t);
+                    t = _e;
+                }
+            }
+
+            actual.onError(t);
+
+            if (!eager) {
+                cleanup();
+            }
+        }
+
+        @Override
+        public void onComplete() {
+            if (eager) {
+                try {
+                    resourceCleanup.accept(resource);
+                } catch (Throwable e) {
+                    ExceptionHelper.throwIfFatal(e);
+                    actual.onError(ExceptionHelper.unwrap(e));
+                    return;
+                }
+            }
+
+            actual.onComplete();
+
+            if (!eager) {
+                cleanup();
+            }
+        }
+
+        @Override
+        public int requestFusion(int requestedMode) {
+            return NONE; // always reject, upstream turned out to be non-fuseable after all
+        }
+
+        @Override
+        public void clear() {
+            // ignoring fusion methods
+        }
+
+        @Override
+        public boolean isEmpty() {
+            // ignoring fusion methods
+            return wip != 0;
+        }
+
+        @Override
+        public T poll() {
+            return null;
+        }
+
+        @Override
+        public int size() {
+            return 0;
+        }
+    }
 }

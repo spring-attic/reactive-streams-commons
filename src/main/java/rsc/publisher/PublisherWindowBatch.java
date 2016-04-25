@@ -10,6 +10,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
+import rsc.flow.*;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
 import rsc.util.EmptySubscription;
@@ -24,6 +26,8 @@ import rsc.util.UnsignalledExceptions;
  * @param <T> the source value type
  * @param <U> the window boundary type
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, innerOutput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(innerOutput = { FusionMode.ASYNC })
 public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Px<T>> {
 
     final Supplier<? extends Publisher<U>> boundarySupplier;

@@ -68,12 +68,35 @@ public final class FusionMatrix {
         if (ef.isEmpty() || (ef0.contains(FusionMode.BOUNDARY) && es.contains(FusionMode.BOUNDARY))) {
             b.append("'>Unfuseable");
         } else {
-            b.append("' bgcolor='#FFCC80'>");
+//            b.append("' bgcolor='#FFFFC0'>");
+            b.append("' bgcolor='#FFCC00'>");
             int i = 0;
             for (FusionMode fm : ef) {
-                b.append("        ")
+                b.append("        ");
+                
+                String c = "#000000";
+                
+//                switch (fm) {
+//                case SCALAR:
+//                    c = "#CF0000";
+//                    break;
+//                case SYNC:
+//                    c = "#FF00FF";
+//                    break;
+//                case ASYNC:
+//                    c = "#8080FF";
+//                    break;
+//                case CONDITIONAL:
+//                    c = "#00CC00";
+//                    break;
+//                default:
+//                }
+                
+                b
+                .append("<font color='").append(c).append("'>")
                 .append(fm.toString().substring(0, 1))
-                .append(fm.toString().substring(1).toLowerCase());
+                .append(fm.toString().substring(1).toLowerCase())
+                .append("</font>");
                 if (i != ef.size() - 1) {
                     b.append("<br/>");
                 }
@@ -101,7 +124,7 @@ public final class FusionMatrix {
         Collections.sort(classes, (a, c) -> trim(a.getSimpleName()).compareToIgnoreCase(trim(c.getSimpleName())));
         
         b.append("<html><head><title>Reactive-Streams-Commons Fusion Matrix</title></head>\r\n")
-        .append("<body><center><h1>Rsc Fusion Matrix</h1></center>\r\n");
+        .append("<body><center><h1><a href='https://github.com/reactor/reactive-streams-commons'>Reactive-Streams-Commons</a> Fusion Matrix</h1></center>\r\n");
         
         int w = 100;
         

@@ -19,6 +19,8 @@ import rsc.util.*;
  * @param <T> the common input type
  * @param <R> the output value type
  */
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(innerInput = { FusionMode.SCALAR, FusionMode.SYNC, FusionMode.ASYNC })
 public final class PublisherZip<T, R> extends Px<R> implements Introspectable, Backpressurable, MultiReceiver {
 
     final Publisher<? extends T>[] sources;

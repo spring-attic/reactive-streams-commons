@@ -1,19 +1,13 @@
 package rsc.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.*;
 
 import rsc.flow.*;
-import rsc.state.Cancellable;
-import rsc.state.Requestable;
-import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.state.*;
+import rsc.util.*;
 
 /**
  * Emits the contents of a wrapped (shared) array.
@@ -21,7 +15,7 @@ import rsc.util.SubscriptionHelper;
  * @param <T> the value type
  */
 @BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
-@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC /* TODO , FusionMode.CONDITIONAL*/ })
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC, FusionMode.CONDITIONAL })
 public final class PublisherArray<T> 
 extends Px<T>
         implements Fuseable {
@@ -38,7 +32,11 @@ extends Px<T>
             EmptySubscription.complete(s);
             return;
         }
-        s.onSubscribe(new ArraySubscription<>(s, array));
+        if (s instanceof ConditionalSubscriber) {
+            s.onSubscribe(new ArrayConditionalSubscription<>((ConditionalSubscriber<? super T>)s, array));
+        } else {
+            s.onSubscribe(new ArraySubscription<>(s, array));
+        }
     }
 
     static final class ArraySubscription<T>
@@ -203,6 +201,176 @@ extends Px<T>
             index = array.length;
         }
         
+        @Override
+        public int size() {
+            return array.length - index;
+        }
+    }
+
+    static final class ArrayConditionalSubscription<T>
+    implements Producer, Requestable, Cancellable, MultiReceiver, SynchronousSubscription<T> {
+        final ConditionalSubscriber<? super T> actual;
+
+        final T[] array;
+
+        int index;
+
+        volatile boolean cancelled;
+
+        volatile long requested;
+        @SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<ArrayConditionalSubscription> REQUESTED =
+        AtomicLongFieldUpdater.newUpdater(ArrayConditionalSubscription.class, "requested");
+
+        public ArrayConditionalSubscription(ConditionalSubscriber<? super T> actual, T[] array) {
+            this.actual = actual;
+            this.array = array;
+        }
+
+        @Override
+        public void request(long n) {
+            if (SubscriptionHelper.validate(n)) {
+                if (BackpressureHelper.getAndAddCap(REQUESTED, this, n) == 0) {
+                    if (n == Long.MAX_VALUE) {
+                        fastPath();
+                    } else {
+                        slowPath(n);
+                    }
+                }
+            }
+        }
+
+        void slowPath(long n) {
+            final T[] a = array;
+            final int len = a.length;
+            final ConditionalSubscriber<? super T> s = actual;
+
+            int i = index;
+            int e = 0;
+
+            for (; ; ) {
+                if (cancelled) {
+                    return;
+                }
+
+                while (i != len && e != n) {
+                    T t = a[i];
+
+                    if (t == null) {
+                        s.onError(new NullPointerException("The " + i + "th array element was null"));
+                        return;
+                    }
+
+                    boolean b = s.tryOnNext(t);
+
+                    if (cancelled) {
+                        return;
+                    }
+
+                    i++;
+                    if (b) {
+                        e++;
+                    }
+                }
+
+                if (i == len) {
+                    s.onComplete();
+                    return;
+                }
+
+                n = requested;
+
+                if (n == e) {
+                    index = i;
+                    n = REQUESTED.addAndGet(this, -e);
+                    if (n == 0) {
+                        return;
+                    }
+                    e = 0;
+                }
+            }
+        }
+
+        void fastPath() {
+            final T[] a = array;
+            final int len = a.length;
+            final Subscriber<? super T> s = actual;
+
+            for (int i = index; i != len; i++) {
+                if (cancelled) {
+                    return;
+                }
+
+                T t = a[i];
+
+                if (t == null) {
+                    s.onError(new NullPointerException("The " + i + "th array element was null"));
+                    return;
+                }
+
+                s.onNext(t);
+            }
+            if (cancelled) {
+                return;
+            }
+            s.onComplete();
+        }
+
+        @Override
+        public void cancel() {
+            cancelled = true;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public Iterator<?> upstreams() {
+            return array instanceof Publisher[] ? Arrays.asList(array).iterator() : null;
+        }
+
+        @Override
+        public long upstreamCount() {
+            return array instanceof Publisher[] ? array.length : -1;
+        }
+
+        @Override
+        public T poll() {
+            int i = index;
+            T[] a = array;
+            if (i != a.length) {
+                T t = a[i];
+                if (t == null) {
+                    throw new NullPointerException();
+                }
+                index = i + 1;
+                return t;
+            }
+            return null;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return index == array.length;
+        }
+
+        @Override
+        public void clear() {
+            index = array.length;
+        }
+
         @Override
         public int size() {
             return array.length - index;

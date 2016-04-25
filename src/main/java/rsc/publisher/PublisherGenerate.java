@@ -8,6 +8,8 @@ import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
+import rsc.flow.*;
 import rsc.util.BackpressureHelper;
 import rsc.util.EmptySubscription;
 import rsc.util.SubscriptionHelper;
@@ -22,6 +24,8 @@ import rsc.util.SubscriptionHelper;
  * @param <T> the value type emitted
  * @param <S> the custom state per subscriber
  */
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
+// TODO @FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC, FusionMode.CONDITIONAL })
 public final class PublisherGenerate<T, S> 
 extends Px<T> {
 

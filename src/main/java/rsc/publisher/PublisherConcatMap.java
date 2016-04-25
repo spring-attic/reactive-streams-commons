@@ -7,7 +7,7 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Fuseable;
+import rsc.flow.*;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.util.*;
 
@@ -18,6 +18,8 @@ import rsc.util.*;
  * @param <T> the source value type
  * @param <R> the output value type
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC } /* TODO output = { FusionMode.CONDITIONAL } */)
 public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
     
     final Function<? super T, ? extends Publisher<? extends R>> mapper;

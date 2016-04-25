@@ -5,6 +5,9 @@ import java.lang.annotation.*;
 /**
  * Specifies the fusion mode the operators supports externally or
  * internally if it takes or produces Publishers.
+ * <p>
+ * Defaults for input and output is NONE and for
+ * innerInput and innerOutput is NOT_APPLICABLE.
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FusionSupport {

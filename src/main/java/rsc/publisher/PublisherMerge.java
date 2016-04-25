@@ -8,13 +8,16 @@ import java.util.function.*;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import rsc.flow.MultiReceiver;
+
+import rsc.flow.*;
 import rsc.state.Backpressurable;
 
 /**
  * Merges a fixed array of Publishers.
  * @param <T> the element type of the publishers
  */
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, innerInput = { FusionMode.SCALAR, FusionMode.SYNC, FusionMode.ASYNC })
 public final class PublisherMerge<T> extends Px<T> implements MultiReceiver, Backpressurable {
 
     final Publisher<? extends T>[] sources;

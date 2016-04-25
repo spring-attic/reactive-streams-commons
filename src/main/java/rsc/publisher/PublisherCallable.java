@@ -5,7 +5,8 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.ExceptionHelper;
 
@@ -16,6 +17,8 @@ import rsc.util.ExceptionHelper;
  *
  * @param <T> the returned value type
  */
+@BackpressureSupport(input = BackpressureMode.NONE, output = BackpressureMode.BOUNDED)
+@FusionSupport(output = { FusionMode.SCALAR })
 public final class PublisherCallable<T> 
 extends Px<T>
         implements Receiver, Callable<T> {

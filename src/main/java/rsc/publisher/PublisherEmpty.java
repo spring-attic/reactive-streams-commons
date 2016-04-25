@@ -3,7 +3,7 @@ package rsc.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
-import rsc.flow.Fuseable;
+import rsc.flow.*;
 import rsc.state.Completable;
 import rsc.util.EmptySubscription;
 
@@ -13,6 +13,8 @@ import rsc.util.EmptySubscription;
  * This Publisher is effectively stateless and only a single instance exists.
  * Use the {@link #instance()} method to obtain a properly type-parametrized view of it.
  */
+@BackpressureSupport(input = BackpressureMode.NONE, output = BackpressureMode.NONE)
+@FusionSupport(output = { FusionMode.SCALAR })
 public final class PublisherEmpty 
 extends Px<Object>
 implements Fuseable.ScalarCallable<Object>, Completable {

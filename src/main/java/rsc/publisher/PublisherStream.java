@@ -5,7 +5,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.reactivestreams.Subscriber;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.util.EmptySubscription;
 
 /**
@@ -13,6 +14,8 @@ import rsc.util.EmptySubscription;
  *
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC, FusionMode.CONDITIONAL })
 public final class PublisherStream<T>
 extends Px<T>
         implements Receiver {

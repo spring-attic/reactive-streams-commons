@@ -64,7 +64,7 @@ public class PublisherSkipWhileTest {
     public void skipSomeBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        new PublisherSkipWhile<>(new PublisherRange(1, 5), v -> v < 3).subscribe(ts);
+        Px.range(1, 5).skipWhile(v -> v < 3).subscribe(ts);
 
         ts.assertNoValues()
           .assertNoError()

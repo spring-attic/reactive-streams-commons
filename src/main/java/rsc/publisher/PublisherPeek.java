@@ -6,10 +6,9 @@ import java.util.function.LongConsumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Fuseable;
+
+import rsc.flow.*;
 import rsc.flow.Fuseable.ConditionalSubscriber;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekConditionalSubscriber;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekFuseableSubscriber;
 import rsc.util.EmptySubscription;
@@ -26,6 +25,7 @@ import rsc.util.ExceptionHelper;
  *
  * @param <T> the value type
  */
+@FusionSupport(input = { FusionMode.CONDITIONAL }, output = { FusionMode.CONDITIONAL })
 public final class PublisherPeek<T> extends PublisherSource<T, T>
 implements PublisherPeekHelper<T> {
 

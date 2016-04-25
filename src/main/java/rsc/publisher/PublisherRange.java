@@ -3,8 +3,8 @@ package rsc.publisher;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Subscriber;
-import rsc.flow.Fuseable;
-import rsc.flow.Producer;
+
+import rsc.flow.*;
 import rsc.state.Cancellable;
 import rsc.state.Completable;
 import rsc.state.Requestable;
@@ -16,6 +16,8 @@ import rsc.util.SubscriptionHelper;
 /**
  * Emits a range of integer values.
  */
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC, FusionMode.CONDITIONAL })
 public final class PublisherRange 
 extends Px<Integer>
         implements Fuseable {

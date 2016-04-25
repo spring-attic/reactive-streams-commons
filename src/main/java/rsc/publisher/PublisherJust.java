@@ -4,11 +4,17 @@ import java.util.Objects;
 
 import org.reactivestreams.Subscriber;
 
-import rsc.flow.Fuseable;
-import rsc.flow.Receiver;
+import rsc.flow.*;
 import rsc.state.Backpressurable;
 import rsc.util.ScalarSubscription;
 
+/**
+ * Emits exactly one, non-null value synchronously.
+ *
+ * @param <T> the value type
+ */
+@BackpressureSupport(input = BackpressureMode.NONE, output = BackpressureMode.BOUNDED)
+@FusionSupport(output = { FusionMode.SCALAR })
 public final class PublisherJust<T> 
 extends Px<T>
 implements Fuseable.ScalarCallable<T>, Receiver, Backpressurable {

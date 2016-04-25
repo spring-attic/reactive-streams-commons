@@ -59,7 +59,7 @@ public class PublisherDistinctUntilChangedTest {
     public void someRepetiton() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherDistinctUntilChanged<>(new PublisherArray<>(1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3, 3), v -> v)
+        Px.fromArray(1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3, 3).distinctUntilChanged(v -> v)
           .subscribe(ts);
 
         ts.assertValues(1, 2, 1, 2, 1, 2, 3)

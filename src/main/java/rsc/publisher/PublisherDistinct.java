@@ -1,21 +1,14 @@
 package rsc.publisher;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import rsc.flow.Loopback;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
+import org.reactivestreams.*;
+
+import rsc.flow.*;
 import rsc.state.Completable;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import rsc.util.*;
+import rsc.flow.Fuseable.*;
 
 /**
  * For each subscriber, tracks the source values that have been seen and
@@ -25,6 +18,8 @@ import rsc.util.UnsignalledExceptions;
  * @param <K> the key extacted from the source value to be used for duplicate testing
  * @param <C> the collection type whose add() method is used for testing for duplicates
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.CONDITIONAL }, output = { FusionMode.CONDITIONAL })
 public final class PublisherDistinct<T, K, C extends Collection<? super K>> extends PublisherSource<T, T> {
 
     final Function<? super T, ? extends K> keyExtractor;
@@ -54,11 +49,15 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
             return;
         }
 
-        source.subscribe(new PublisherDistinctSubscriber<>(s, collection, keyExtractor));
+        if (s instanceof ConditionalSubscriber) {
+            source.subscribe(new PublisherDistinctConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, collection, keyExtractor));
+        } else {
+            source.subscribe(new PublisherDistinctSubscriber<>(s, collection, keyExtractor));
+        }
     }
 
     static final class PublisherDistinctSubscriber<T, K, C extends Collection<? super K>>
-            implements Subscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+            implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
         final Subscriber<? super T> actual;
 
         final C collection;
@@ -87,9 +86,16 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
 
         @Override
         public void onNext(T t) {
+            if (!tryOnNext(t)) {
+                s.request(1);
+            }
+        }
+        
+        @Override
+        public boolean tryOnNext(T t) {
             if (done) {
                 UnsignalledExceptions.onNextDropped(t);
-                return;
+                return true;
             }
 
             K k;
@@ -100,7 +106,7 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
                 s.cancel();
                 ExceptionHelper.throwIfFatal(e);
                 onError(ExceptionHelper.unwrap(e));
-                return;
+                return true;
             }
 
             boolean b;
@@ -111,15 +117,15 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
                 s.cancel();
 
                 onError(e);
-                return;
+                return true;
             }
 
 
             if (b) {
                 actual.onNext(t);
-            } else {
-                s.request(1);
+                return true;
             }
+            return false;
         }
 
         @Override
@@ -178,4 +184,163 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
             s.cancel();
         }
     }
+
+    static final class PublisherDistinctConditionalSubscriber<T, K, C extends Collection<? super K>>
+    implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+        final ConditionalSubscriber<? super T> actual;
+
+        final C collection;
+
+        final Function<? super T, ? extends K> keyExtractor;
+
+        Subscription s;
+
+        boolean done;
+
+        public PublisherDistinctConditionalSubscriber(ConditionalSubscriber<? super T> actual, C collection,
+                Function<? super T, ? extends K> keyExtractor) {
+            this.actual = actual;
+            this.collection = collection;
+            this.keyExtractor = keyExtractor;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (SubscriptionHelper.validate(this.s, s)) {
+                this.s = s;
+
+                actual.onSubscribe(this);
+            }
+        }
+
+        @Override
+        public void onNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return;
+            }
+
+            K k;
+
+            try {
+                k = keyExtractor.apply(t);
+            } catch (Throwable e) {
+                s.cancel();
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
+                return;
+            }
+
+            boolean b;
+
+            try {
+                b = collection.add(k);
+            } catch (Throwable e) {
+                s.cancel();
+
+                onError(e);
+                return;
+            }
+
+
+            if (b) {
+                actual.onNext(t);
+            } else {
+                s.request(1);
+            }
+        }
+
+        @Override
+        public boolean tryOnNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return true;
+            }
+
+            K k;
+
+            try {
+                k = keyExtractor.apply(t);
+            } catch (Throwable e) {
+                s.cancel();
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
+                return true;
+            }
+
+            boolean b;
+
+            try {
+                b = collection.add(k);
+            } catch (Throwable e) {
+                s.cancel();
+
+                onError(e);
+                return true;
+            }
+
+
+            if (b) {
+                return actual.tryOnNext(t);
+            }
+            return false;
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+            done = true;
+
+            actual.onError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            if (done) {
+                return;
+            }
+            done = true;
+
+            actual.onComplete();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return s != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return keyExtractor;
+        }
+
+        @Override
+        public Object upstream() {
+            return s;
+        }
+
+        @Override
+        public void request(long n) {
+            s.request(n);
+        }
+
+        @Override
+        public void cancel() {
+            s.cancel();
+        }
+    }
+
 }

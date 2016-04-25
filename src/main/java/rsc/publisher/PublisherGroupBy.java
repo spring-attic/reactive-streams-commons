@@ -14,10 +14,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Fuseable;
-import rsc.flow.MultiProducer;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.state.Backpressurable;
 import rsc.state.Cancellable;
 import rsc.state.Completable;
@@ -37,6 +35,8 @@ import rsc.util.UnsignalledExceptions;
  * @param <K> the key value type
  * @param <V> the group item value type
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, innerOutput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(innerOutput = { FusionMode.ASYNC}, output = { FusionMode.ASYNC })
 public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedPublisher<K, V>>
         implements Fuseable, Backpressurable {
 
