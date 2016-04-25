@@ -17,6 +17,7 @@
     <td width='100'><b>Peek</b></td>
     <td width='100'><b>PeekFuseable</b></td>
     <td width='100'><b>SkipWhile</b></td>
+    <td width='100'><b>SubscribeOn</b></td>
     <td width='100'><b>Take</b></td>
     <td width='100' bgColor='#CCFFCC'><b>Using - inner</b></td>
     <td width='100' bgColor='#CCFFCC'><b>Zip - inner</b></td>
@@ -58,6 +59,7 @@
 </td>
     <td title='Array -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Array -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Array -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
 </td>
@@ -84,10 +86,13 @@
     <td title='Callable -&gt; MapFuseable' '>Unfuseable</td>
     <td title='Callable -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
 </td>
-    <td title='Callable -&gt; ObserveOn' '>Unfuseable</td>
+    <td title='Callable -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Callable -&gt; Peek' '>Unfuseable</td>
     <td title='Callable -&gt; PeekFuseable' '>Unfuseable</td>
     <td title='Callable -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='Callable -&gt; SubscribeOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Callable -&gt; Take' '>Unfuseable</td>
     <td title='Callable -&gt; Using - inner' '>Unfuseable</td>
     <td title='Callable -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
@@ -119,6 +124,7 @@
 </td>
     <td title='Distinct -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Distinct -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Distinct -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='Distinct -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
@@ -151,6 +157,7 @@
 </td>
     <td title='DistinctUntilChanged -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='DistinctUntilChanged -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='DistinctUntilChanged -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='DistinctUntilChanged -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
@@ -174,10 +181,13 @@
     <td title='Empty -&gt; MapFuseable' '>Unfuseable</td>
     <td title='Empty -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
 </td>
-    <td title='Empty -&gt; ObserveOn' '>Unfuseable</td>
+    <td title='Empty -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Empty -&gt; Peek' '>Unfuseable</td>
     <td title='Empty -&gt; PeekFuseable' '>Unfuseable</td>
     <td title='Empty -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='Empty -&gt; SubscribeOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Empty -&gt; Take' '>Unfuseable</td>
     <td title='Empty -&gt; Using - inner' '>Unfuseable</td>
     <td title='Empty -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
@@ -228,6 +238,7 @@
 </td>
     <td title='Filter -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Filter -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Filter -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -285,6 +296,7 @@
 </td>
     <td title='FilterFuseable -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='FilterFuseable -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='FilterFuseable -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -325,6 +337,7 @@
     <td title='FlattenIterable -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='FlattenIterable -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='FlattenIterable -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='FlattenIterable -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='FlattenIterable -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
@@ -359,6 +372,7 @@
     <td title='GroupBy -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='GroupBy -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='GroupBy -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -393,6 +407,7 @@
     <td title='GroupBy -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='GroupBy -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='GroupBy -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy - inner -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -437,6 +452,7 @@
 </td>
     <td title='Iterable -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Iterable -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Iterable -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
 </td>
@@ -463,10 +479,13 @@
     <td title='Just -&gt; MapFuseable' '>Unfuseable</td>
     <td title='Just -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
 </td>
-    <td title='Just -&gt; ObserveOn' '>Unfuseable</td>
+    <td title='Just -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Just -&gt; Peek' '>Unfuseable</td>
     <td title='Just -&gt; PeekFuseable' '>Unfuseable</td>
     <td title='Just -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='Just -&gt; SubscribeOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Just -&gt; Take' '>Unfuseable</td>
     <td title='Just -&gt; Using - inner' '>Unfuseable</td>
     <td title='Just -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
@@ -517,6 +536,7 @@
 </td>
     <td title='Map -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Map -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Map -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -574,6 +594,7 @@
 </td>
     <td title='MapFuseable -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='MapFuseable -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='MapFuseable -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -613,6 +634,7 @@
     <td title='ObserveOn -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ObserveOn -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='ObserveOn -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='ObserveOn -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ObserveOn -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -646,6 +668,7 @@
 </td>
     <td title='Peek -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Peek -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Peek -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='Peek -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
@@ -699,6 +722,7 @@
 </td>
     <td title='PeekFuseable -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='PeekFuseable -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='PeekFuseable -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -748,6 +772,7 @@
 </td>
     <td title='Range -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Range -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Range -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
 </td>
@@ -783,6 +808,7 @@
 </td>
     <td title='SkipWhile -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='SkipWhile -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='SkipWhile -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='SkipWhile -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
@@ -826,6 +852,7 @@
 </td>
     <td title='Stream -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Stream -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Stream -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
 </td>
@@ -882,6 +909,7 @@
 </td>
     <td title='Take -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Take -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Take -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -921,6 +949,7 @@
     <td title='UnicastProcessor -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='UnicastProcessor -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='UnicastProcessor -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='UnicastProcessor -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='UnicastProcessor -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -975,6 +1004,7 @@
 </td>
     <td title='Using -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
+    <td title='Using -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Using -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -1014,6 +1044,7 @@
     <td title='Window -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Window -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='Window -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='Window -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Window - inner -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1048,6 +1079,7 @@
     <td title='WindowBatch -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='WindowBatch -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='WindowBatch -&gt; SubscribeOn' '>Unfuseable</td>
     <td title='WindowBatch -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='WindowBatch - inner -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>

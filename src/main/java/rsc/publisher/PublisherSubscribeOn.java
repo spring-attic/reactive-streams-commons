@@ -9,10 +9,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import rsc.flow.Cancellation;
-import rsc.flow.Fuseable;
-import rsc.flow.Loopback;
-import rsc.flow.Producer;
+import rsc.flow.*;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
 import rsc.util.BackpressureHelper;
@@ -27,6 +24,7 @@ import rsc.util.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
+@FusionSupport(input = { FusionMode.SCALAR })
 public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> implements Loopback {
 
     final Scheduler scheduler;
