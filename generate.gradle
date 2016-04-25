@@ -450,6 +450,10 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	l = l.replaceAll('Publisher([^ ]*)Subscriber', target['api-inner']+'$1Subscriber')
   }
 
+  if(l.startsWith("@")){
+	return null
+  }
+
   l = l
 		  .replace("PublisherSource", apiBarrierClass)
 		  .replace("Px", apiClass)
