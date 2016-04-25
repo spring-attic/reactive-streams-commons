@@ -77,6 +77,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final Px<T> take(long n) {
+        if (this instanceof Fuseable) {
+            return new PublisherTakeFuseable<>(this, n);
+        }
         return new PublisherTake<>(this, n);
     }
     
@@ -192,6 +195,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final <K> Px<T> distinct(Function<? super T, K> keyExtractor) {
+        if (this instanceof Fuseable) {
+            return new PublisherDistinctFuseable<>(this, keyExtractor, () -> new HashSet<>());
+        }
         return new PublisherDistinct<>(this, keyExtractor, () -> new HashSet<>());
     }
     

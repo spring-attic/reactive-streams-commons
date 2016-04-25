@@ -336,4 +336,38 @@ public class FuseableTest {
         .assertComplete();
     }
 
+    @Test
+    public void rangeDistinctMapFuseableConsumer() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        Px.range(1, 5).distinct().map(v ->v)
+        .subscribe(ts);
+        
+        ts
+        .assertFuseableSource()
+        .assertFusionMode(Fuseable.SYNC)
+        .assertValues(1, 2, 3, 4, 5)
+        .assertNoError()
+        .assertComplete();
+    }
+
+    @Test
+    public void rangeTakeMapFuseableConsumer() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        Px.range(1, 5).take(3).map(v -> v)
+        .subscribe(ts);
+        
+        ts
+        .assertFuseableSource()
+        .assertFusionMode(Fuseable.SYNC)
+        .assertValues(1, 2, 3)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }
