@@ -6,6 +6,7 @@ import java.util.function.*;
 import org.reactivestreams.*;
 
 import rsc.flow.*;
+import rsc.flow.Fuseable.ConditionalSubscriber;
 import rsc.state.Completable;
 import rsc.util.*;
 import rsc.flow.Fuseable.*;
@@ -19,7 +20,7 @@ import rsc.flow.Fuseable.*;
  * @param <C> the collection type whose add() method is used for testing for duplicates
  */
 @BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
-@FusionSupport(input = { FusionMode.CONDITIONAL }, output = { FusionMode.CONDITIONAL })
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL }, output = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL })
 public final class PublisherDistinct<T, K, C extends Collection<? super K>> extends PublisherSource<T, T> {
 
     final Function<? super T, ? extends K> keyExtractor;
@@ -48,7 +49,10 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
             EmptySubscription.error(s, new NullPointerException("The collectionSupplier returned a null collection"));
             return;
         }
-
+        
+        if (source instanceof Fuseable) {
+            source.subscribe(new PublisherDistinctFuseableSubscriber<>(s, collection, keyExtractor));
+        } else
         if (s instanceof ConditionalSubscriber) {
             source.subscribe(new PublisherDistinctConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, collection, keyExtractor));
         } else {
@@ -135,6 +139,7 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
                 return;
             }
             done = true;
+            collection.clear();
 
             actual.onError(t);
         }
@@ -145,6 +150,7 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
                 return;
             }
             done = true;
+            collection.clear();
 
             actual.onComplete();
         }
@@ -293,6 +299,7 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
                 return;
             }
             done = true;
+            collection.clear();
 
             actual.onError(t);
         }
@@ -303,6 +310,7 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
                 return;
             }
             done = true;
+            collection.clear();
 
             actual.onComplete();
         }
@@ -340,6 +348,195 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
         @Override
         public void cancel() {
             s.cancel();
+        }
+    }
+
+    
+    static final class PublisherDistinctFuseableSubscriber<T, K, C extends Collection<? super K>>
+    implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, QueueSubscription<T> {
+        final Subscriber<? super T> actual;
+
+        final C collection;
+
+        final Function<? super T, ? extends K> keyExtractor;
+
+        QueueSubscription<T> qs;
+
+        boolean done;
+        
+        int sourceMode;
+
+        public PublisherDistinctFuseableSubscriber(Subscriber<? super T> actual, C collection,
+                Function<? super T, ? extends K> keyExtractor) {
+            this.actual = actual;
+            this.collection = collection;
+            this.keyExtractor = keyExtractor;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (SubscriptionHelper.validate(this.qs, s)) {
+                this.qs = (QueueSubscription<T>)s;
+
+                actual.onSubscribe(this);
+            }
+        }
+
+        @Override
+        public void onNext(T t) {
+            if (!tryOnNext(t)) {
+                qs.request(1);
+            }
+        }
+
+        @Override
+        public boolean tryOnNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return true;
+            }
+
+            if (sourceMode == Fuseable.ASYNC) {
+                actual.onNext(null);
+                return true;
+            }
+            
+            K k;
+
+            try {
+                k = keyExtractor.apply(t);
+            } catch (Throwable e) {
+                qs.cancel();
+                ExceptionHelper.throwIfFatal(e);
+                onError(ExceptionHelper.unwrap(e));
+                return true;
+            }
+
+            boolean b;
+
+            try {
+                b = collection.add(k);
+            } catch (Throwable e) {
+                qs.cancel();
+
+                onError(e);
+                return true;
+            }
+
+
+            if (b) {
+                actual.onNext(t);
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+            done = true;
+            collection.clear();
+
+            actual.onError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            if (done) {
+                return;
+            }
+            done = true;
+            collection.clear();
+
+            actual.onComplete();
+        }
+
+        @Override
+        public boolean isStarted() {
+            return qs != null && !done;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return done;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object connectedInput() {
+            return keyExtractor;
+        }
+
+        @Override
+        public Object upstream() {
+            return qs;
+        }
+
+        @Override
+        public void request(long n) {
+            qs.request(n);
+        }
+
+        @Override
+        public void cancel() {
+            qs.cancel();
+        }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            int m = qs.requestFusion(requestedMode);
+            sourceMode = m;
+            return m;
+        }
+        
+        @Override
+        public T poll() {
+            if (sourceMode == Fuseable.ASYNC) {
+                long dropped = 0;
+                for (;;) {
+                    T v = qs.poll();
+    
+                    if (v == null || collection.add(keyExtractor.apply(v))) {
+                        if (dropped != 0) {
+                            request(dropped);
+                        }
+                        return v;
+                    }
+                    dropped++;
+                }
+            } else {
+                for (;;) {
+                    T v = qs.poll();
+    
+                    if (v == null || collection.add(keyExtractor.apply(v))) {
+                        return v;
+                    }
+                }
+            }
+        }
+        
+        @Override
+        public boolean isEmpty() {
+            return qs.isEmpty();
+        }
+        
+        @Override
+        public void clear() {
+            qs.clear();
+            collection.clear();
+        }
+        
+        @Override
+        public int size() {
+            return qs.size();
         }
     }
 

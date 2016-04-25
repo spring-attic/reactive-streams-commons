@@ -17,6 +17,13 @@ dependencies {
 
 [Snapshot](http://repo.spring.io/libs-snapshot/io/projectreactor/reactive-streams-commons/) directory.
 
+## Operator-fusion documentation
+
+[Operator fusion, 1/2](http://akarnokd.blogspot.hu/2016/03/operator-fusion-part-1.html)
+[Operator fusion, 2/2](http://akarnokd.blogspot.hu/2016/04/operator-fusion-part-2-final.html)
+
+[Fusion Matrix](https://raw.githubusercontent.com/reactor/reactive-streams-commons/master/fusion-matrix.html)
+
 ## Supported datasources
 
 I.e., converts non-reactive data sources into `Publisher`s.

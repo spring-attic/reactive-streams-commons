@@ -292,4 +292,48 @@ public class FuseableTest {
         .assertComplete();
     }
 
+    @Test
+    public void rangeDistinctFuseableConsumer() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        Px.range(1, 5).distinct()
+        .subscribe(ts);
+        
+        ts
+        .assertFuseableSource()
+        .assertFusionMode(Fuseable.SYNC)
+        .assertValues(1, 2, 3, 4, 5)
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void unicastDistinctFuseableConsumer() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscLinkedArrayQueue<>(16));
+        
+        up.distinct()
+        .subscribe(ts);
+        
+        up.onNext(1);
+        up.onNext(2);
+        up.onNext(2);
+        up.onNext(3);
+        up.onNext(3);
+        up.onComplete();
+        
+        
+        ts
+        .assertFuseableSource()
+        .assertFusionMode(Fuseable.ASYNC)
+        .assertValues(1, 2, 3)
+        .assertNoError()
+        .assertComplete();
+    }
+
 }

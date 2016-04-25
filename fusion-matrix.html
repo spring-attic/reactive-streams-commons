@@ -25,7 +25,8 @@
 <tr><td><b>Array</b></td>
     <td title='Array -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='Array -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Array -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Array -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -99,37 +100,66 @@
 </td>
 </tr>
 <tr><td><b>Distinct</b></td>
-    <td title='Distinct -&gt; ConcatMap' '>Unfuseable</td>
-    <td title='Distinct -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+</td>
+    <td title='Distinct -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Distinct -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
-    <td title='Distinct -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
-    <td title='Distinct -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Distinct -&gt; FlatMap' '>Unfuseable</td>
-    <td title='Distinct -&gt; FlatMap - inner' '>Unfuseable</td>
-    <td title='Distinct -&gt; FlattenIterable' '>Unfuseable</td>
-    <td title='Distinct -&gt; FlattenIterable - inner' '>Unfuseable</td>
-    <td title='Distinct -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Distinct -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Distinct -&gt; Merge - inner' '>Unfuseable</td>
-    <td title='Distinct -&gt; ObserveOn' '>Unfuseable</td>
+    <td title='Distinct -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Distinct -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
+</td>
+    <td title='Distinct -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
+</td>
+    <td title='Distinct -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+</td>
+    <td title='Distinct -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+</td>
     <td title='Distinct -&gt; Peek' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
-    <td title='Distinct -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Distinct -&gt; SkipWhile' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='Distinct -&gt; SubscribeOn' '>Unfuseable</td>
-    <td title='Distinct -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
-    <td title='Distinct -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Distinct -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
-    <td title='Distinct -&gt; Zip - inner' '>Unfuseable</td>
+    <td title='Distinct -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+</td>
 </tr>
 <tr><td><b>DistinctUntilChanged</b></td>
     <td title='DistinctUntilChanged -&gt; ConcatMap' '>Unfuseable</td>
@@ -197,7 +227,9 @@
     <td title='Filter -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Filter -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Filter -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Filter -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -255,7 +287,9 @@
     <td title='FilterFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='FilterFuseable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='FilterFuseable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='FilterFuseable -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -312,7 +346,8 @@
 <tr><td><b>FlattenIterable</b></td>
     <td title='FlattenIterable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='FlattenIterable -&gt; Distinct' '>Unfuseable</td>
+    <td title='FlattenIterable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
     <td title='FlattenIterable -&gt; DistinctUntilChanged' '>Unfuseable</td>
     <td title='FlattenIterable -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
@@ -348,7 +383,8 @@
 <tr><td><b>GroupBy</b></td>
     <td title='GroupBy -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='GroupBy -&gt; Distinct' '>Unfuseable</td>
+    <td title='GroupBy -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
     <td title='GroupBy -&gt; DistinctUntilChanged' '>Unfuseable</td>
     <td title='GroupBy -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
@@ -383,7 +419,8 @@
 <tr><td bgColor='#CCFFCC'><b>GroupBy - inner</td></td>
     <td title='GroupBy -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='GroupBy -&gt; Distinct' '>Unfuseable</td>
+    <td title='GroupBy -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
     <td title='GroupBy -&gt; DistinctUntilChanged' '>Unfuseable</td>
     <td title='GroupBy -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
@@ -418,7 +455,8 @@
 <tr><td><b>Iterable</b></td>
     <td title='Iterable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='Iterable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Iterable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Iterable -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -495,7 +533,9 @@
     <td title='Map -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Map -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Map -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Map -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -553,7 +593,9 @@
     <td title='MapFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='MapFuseable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='MapFuseable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='MapFuseable -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -610,7 +652,8 @@
 <tr><td><b>ObserveOn</b></td>
     <td title='ObserveOn -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='ObserveOn -&gt; Distinct' '>Unfuseable</td>
+    <td title='ObserveOn -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
     <td title='ObserveOn -&gt; DistinctUntilChanged' '>Unfuseable</td>
     <td title='ObserveOn -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
@@ -679,7 +722,9 @@
     <td title='PeekFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='PeekFuseable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='PeekFuseable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='PeekFuseable -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -738,7 +783,8 @@
 <tr><td><b>Range</b></td>
     <td title='Range -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='Range -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Range -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Range -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -818,7 +864,8 @@
 <tr><td><b>Stream</b></td>
     <td title='Stream -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='Stream -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Stream -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Stream -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -866,7 +913,9 @@
     <td title='Take -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Take -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Take -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Take -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -925,7 +974,8 @@
 <tr><td><b>UnicastProcessor</b></td>
     <td title='UnicastProcessor -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='UnicastProcessor -&gt; Distinct' '>Unfuseable</td>
+    <td title='UnicastProcessor -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
     <td title='UnicastProcessor -&gt; DistinctUntilChanged' '>Unfuseable</td>
     <td title='UnicastProcessor -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
@@ -961,7 +1011,9 @@
     <td title='Using -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Using -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
+    <td title='Using -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
+        <font color='#000000'>Async</font><br/>
+        <font color='#000000'>Conditional</font><br/>
 </td>
     <td title='Using -&gt; DistinctUntilChanged' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -1020,7 +1072,8 @@
 <tr><td bgColor='#CCFFCC'><b>Window - inner</td></td>
     <td title='Window -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Window -&gt; Distinct' '>Unfuseable</td>
+    <td title='Window -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
     <td title='Window -&gt; DistinctUntilChanged' '>Unfuseable</td>
     <td title='Window -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
@@ -1055,7 +1108,8 @@
 <tr><td bgColor='#CCFFCC'><b>WindowBatch - inner</td></td>
     <td title='WindowBatch -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='WindowBatch -&gt; Distinct' '>Unfuseable</td>
+    <td title='WindowBatch -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
     <td title='WindowBatch -&gt; DistinctUntilChanged' '>Unfuseable</td>
     <td title='WindowBatch -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
