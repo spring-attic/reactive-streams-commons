@@ -69,7 +69,7 @@ public final class FusionMatrix {
             b.append("'>Unfuseable");
         } else {
 //            b.append("' bgcolor='#FFFFC0'>");
-            b.append("' bgcolor='#FFCC00'>");
+            b.append("' bgcolor='#FFCC80'>");
             int i = 0;
             for (FusionMode fm : ef) {
                 b.append("        ");
