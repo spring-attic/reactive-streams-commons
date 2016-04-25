@@ -19,7 +19,7 @@ import rsc.util.*;
  * @param <R> the result value type
  */
 @BackpressureSupport(input = BackpressureMode.BOUNDED, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
-@FusionSupport(innerInput = { FusionMode.SYNC, FusionMode.ASYNC })
+@FusionSupport(input = { FusionMode.SCALAR }, innerInput = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.SCALAR })
 public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
     final Function<? super T, ? extends Publisher<? extends R>> mapper;

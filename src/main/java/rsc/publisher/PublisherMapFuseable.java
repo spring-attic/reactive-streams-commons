@@ -6,10 +6,8 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Fuseable;
-import rsc.flow.Loopback;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.state.Completable;
 import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -22,6 +20,8 @@ import rsc.util.UnsignalledExceptions;
  * @param <T> the source value type
  * @param <R> the result value type
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL }, output = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL, FusionMode.BOUNDARY_SENSITIVE })
 public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         implements Fuseable {
 

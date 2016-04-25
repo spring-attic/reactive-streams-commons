@@ -9,15 +9,21 @@ public enum FusionMode {
     NOT_APPLICABLE,
     /** Does not support fusion. */
     NONE,
-    /** Supports macro-fusion on any Callable sources (including ScalarCallables). */
-    CALLABLE,
-    /** Supports macro-fusion only on ScalarCallable sources. */
+    /** Supports macro-fusion with both Callable and ScalarCallable sources. */
     SCALAR,
     /** Supports synchronous fusion. */
     SYNC,
     /** Supports asynchronous fusion. */
     ASYNC,
-    /** Fusion is sensitive to a boundary marker. */
+    /** 
+     * Fusion is sensitive to a boundary marker.
+     * <p> 
+     * If applied to an input, it means the requestFusion call to upstream will have the
+     * {@link Fuseable#THREAD_BARRIER} flag.
+     * <p>
+     * If applied to an output, it means the incoming requestFusion call is checked against the
+     * {@link Fuseable#THREAD_BARRIER} flag and will result in (likely) rejection of the fusion.
+     */
     BOUNDARY_SENSITIVE,
     /** Supports the specific ConditionalSubscriber. */ 
     CONDITIONAL,
