@@ -1,22 +1,17 @@
 <html><head><title>Reactive-Streams-Commons Fusion Matrix</title></head>
 <body><center><h1>Rsc Fusion Matrix</h1></center>
 <table border='1' style='border-collapse:collapse;'><thead><td><b>First \ Second</b></td>
-    <td width='125'><b>Array</b></td>
-    <td width='125'><b>Filter</b></td>
-    <td width='125'><b>FilterFuseable</b></td>
-    <td width='125'><b>FlatMap</b></td>
-    <td width='125' bgColor='#CCFFCC'><b>FlatMap - inner</b></td>
-    <td width='125'><b>FlattenIterable</b></td>
-    <td width='125' bgColor='#CCFFCC'><b>FlattenIterable - inner</b></td>
-    <td width='125'><b>Iterable</b></td>
-    <td width='125'><b>Map</b></td>
-    <td width='125'><b>MapFuseable</b></td>
-    <td width='125'><b>ObserveOn</b></td>
-    <td width='125'><b>UnicastProcessor</b></td>
-    <td width='125'><b>Window</b></td>
+    <td width='100'><b>Filter</b></td>
+    <td width='100'><b>FilterFuseable</b></td>
+    <td width='100'><b>FlatMap</b></td>
+    <td width='100' bgColor='#CCFFCC'><b>FlatMap - inner</b></td>
+    <td width='100'><b>FlattenIterable</b></td>
+    <td width='100' bgColor='#CCFFCC'><b>FlattenIterable - inner</b></td>
+    <td width='100'><b>Map</b></td>
+    <td width='100'><b>MapFuseable</b></td>
+    <td width='100'><b>ObserveOn</b></td>
 </thead><tbody>
 <tr><td><b>Array</b></td>
-    <td title='Array -&gt; Array' '>Unfuseable</td>
     <td title='Array -&gt; Filter' ' bgcolor='#FFCC80'>        Sync
 </td>
     <td title='Array -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        Sync
@@ -28,18 +23,14 @@
 </td>
     <td title='Array -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='Array -&gt; Iterable' '>Unfuseable</td>
     <td title='Array -&gt; Map' ' bgcolor='#FFCC80'>        Sync
 </td>
     <td title='Array -&gt; MapFuseable' ' bgcolor='#FFCC80'>        Sync
 </td>
     <td title='Array -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='Array -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='Array -&gt; Window' '>Unfuseable</td>
 </tr>
 <tr><td><b>Filter</b></td>
-    <td title='Filter -&gt; Array' '>Unfuseable</td>
     <td title='Filter -&gt; Filter' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -57,7 +48,6 @@
 </td>
     <td title='Filter -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='Filter -&gt; Iterable' '>Unfuseable</td>
     <td title='Filter -&gt; Map' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -66,15 +56,9 @@
         Async<br/>
         Conditional<br/>
 </td>
-    <td title='Filter -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Sync<br/>
-        Async<br/>
-        Boundary_sensitive<br/>
-</td>
-    <td title='Filter -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='Filter -&gt; Window' '>Unfuseable</td>
+    <td title='Filter -&gt; ObserveOn' '>Unfuseable</td>
 </tr>
 <tr><td><b>FilterFuseable</b></td>
-    <td title='FilterFuseable -&gt; Array' '>Unfuseable</td>
     <td title='FilterFuseable -&gt; Filter' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -92,7 +76,6 @@
 </td>
     <td title='FilterFuseable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='FilterFuseable -&gt; Iterable' '>Unfuseable</td>
     <td title='FilterFuseable -&gt; Map' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -101,30 +84,9 @@
         Async<br/>
         Conditional<br/>
 </td>
-    <td title='FilterFuseable -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Sync<br/>
-        Async<br/>
-        Boundary_sensitive<br/>
-</td>
-    <td title='FilterFuseable -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='FilterFuseable -&gt; Window' '>Unfuseable</td>
-</tr>
-<tr><td><b>FlatMap</b></td>
-    <td title='FlatMap -&gt; Array' '>Unfuseable</td>
-    <td title='FlatMap -&gt; Filter' '>Unfuseable</td>
-    <td title='FlatMap -&gt; FilterFuseable' '>Unfuseable</td>
-    <td title='FlatMap -&gt; FlatMap' '>Unfuseable</td>
-    <td title='FlatMap -&gt; FlatMap - inner' '>Unfuseable</td>
-    <td title='FlatMap -&gt; FlattenIterable' '>Unfuseable</td>
-    <td title='FlatMap -&gt; FlattenIterable - inner' '>Unfuseable</td>
-    <td title='FlatMap -&gt; Iterable' '>Unfuseable</td>
-    <td title='FlatMap -&gt; Map' '>Unfuseable</td>
-    <td title='FlatMap -&gt; MapFuseable' '>Unfuseable</td>
-    <td title='FlatMap -&gt; ObserveOn' '>Unfuseable</td>
-    <td title='FlatMap -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='FlatMap -&gt; Window' '>Unfuseable</td>
+    <td title='FilterFuseable -&gt; ObserveOn' '>Unfuseable</td>
 </tr>
 <tr><td><b>FlattenIterable</b></td>
-    <td title='FlattenIterable -&gt; Array' '>Unfuseable</td>
     <td title='FlattenIterable -&gt; Filter' ' bgcolor='#FFCC80'>        Sync
 </td>
     <td title='FlattenIterable -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        Sync
@@ -136,18 +98,14 @@
 </td>
     <td title='FlattenIterable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='FlattenIterable -&gt; Iterable' '>Unfuseable</td>
     <td title='FlattenIterable -&gt; Map' ' bgcolor='#FFCC80'>        Sync
 </td>
     <td title='FlattenIterable -&gt; MapFuseable' ' bgcolor='#FFCC80'>        Sync
 </td>
     <td title='FlattenIterable -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='FlattenIterable -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='FlattenIterable -&gt; Window' '>Unfuseable</td>
 </tr>
 <tr><td><b>Iterable</b></td>
-    <td title='Iterable -&gt; Array' '>Unfuseable</td>
     <td title='Iterable -&gt; Filter' ' bgcolor='#FFCC80'>        Sync<br/>
         Conditional<br/>
 </td>
@@ -161,7 +119,6 @@
 </td>
     <td title='Iterable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='Iterable -&gt; Iterable' '>Unfuseable</td>
     <td title='Iterable -&gt; Map' ' bgcolor='#FFCC80'>        Sync<br/>
         Conditional<br/>
 </td>
@@ -170,11 +127,8 @@
 </td>
     <td title='Iterable -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='Iterable -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='Iterable -&gt; Window' '>Unfuseable</td>
 </tr>
 <tr><td><b>Map</b></td>
-    <td title='Map -&gt; Array' '>Unfuseable</td>
     <td title='Map -&gt; Filter' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -192,7 +146,6 @@
 </td>
     <td title='Map -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='Map -&gt; Iterable' '>Unfuseable</td>
     <td title='Map -&gt; Map' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -201,15 +154,9 @@
         Async<br/>
         Conditional<br/>
 </td>
-    <td title='Map -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Sync<br/>
-        Async<br/>
-        Boundary_sensitive<br/>
-</td>
-    <td title='Map -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='Map -&gt; Window' '>Unfuseable</td>
+    <td title='Map -&gt; ObserveOn' '>Unfuseable</td>
 </tr>
 <tr><td><b>MapFuseable</b></td>
-    <td title='MapFuseable -&gt; Array' '>Unfuseable</td>
     <td title='MapFuseable -&gt; Filter' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -227,7 +174,6 @@
 </td>
     <td title='MapFuseable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        Sync
 </td>
-    <td title='MapFuseable -&gt; Iterable' '>Unfuseable</td>
     <td title='MapFuseable -&gt; Map' ' bgcolor='#FFCC80'>        Sync<br/>
         Async<br/>
         Conditional<br/>
@@ -236,15 +182,9 @@
         Async<br/>
         Conditional<br/>
 </td>
-    <td title='MapFuseable -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Sync<br/>
-        Async<br/>
-        Boundary_sensitive<br/>
-</td>
-    <td title='MapFuseable -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='MapFuseable -&gt; Window' '>Unfuseable</td>
+    <td title='MapFuseable -&gt; ObserveOn' '>Unfuseable</td>
 </tr>
 <tr><td><b>ObserveOn</b></td>
-    <td title='ObserveOn -&gt; Array' '>Unfuseable</td>
     <td title='ObserveOn -&gt; Filter' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='ObserveOn -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        Async
@@ -255,18 +195,14 @@
     <td title='ObserveOn -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='ObserveOn -&gt; FlattenIterable - inner' '>Unfuseable</td>
-    <td title='ObserveOn -&gt; Iterable' '>Unfuseable</td>
     <td title='ObserveOn -&gt; Map' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='ObserveOn -&gt; MapFuseable' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='ObserveOn -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Async
 </td>
-    <td title='ObserveOn -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='ObserveOn -&gt; Window' '>Unfuseable</td>
 </tr>
 <tr><td><b>UnicastProcessor</b></td>
-    <td title='UnicastProcessor -&gt; Array' '>Unfuseable</td>
     <td title='UnicastProcessor -&gt; Filter' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='UnicastProcessor -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        Async
@@ -277,33 +213,14 @@
     <td title='UnicastProcessor -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='UnicastProcessor -&gt; FlattenIterable - inner' '>Unfuseable</td>
-    <td title='UnicastProcessor -&gt; Iterable' '>Unfuseable</td>
     <td title='UnicastProcessor -&gt; Map' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='UnicastProcessor -&gt; MapFuseable' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='UnicastProcessor -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Async
 </td>
-    <td title='UnicastProcessor -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='UnicastProcessor -&gt; Window' '>Unfuseable</td>
-</tr>
-<tr><td><b>Window</b></td>
-    <td title='Window -&gt; Array' '>Unfuseable</td>
-    <td title='Window -&gt; Filter' '>Unfuseable</td>
-    <td title='Window -&gt; FilterFuseable' '>Unfuseable</td>
-    <td title='Window -&gt; FlatMap' '>Unfuseable</td>
-    <td title='Window -&gt; FlatMap - inner' '>Unfuseable</td>
-    <td title='Window -&gt; FlattenIterable' '>Unfuseable</td>
-    <td title='Window -&gt; FlattenIterable - inner' '>Unfuseable</td>
-    <td title='Window -&gt; Iterable' '>Unfuseable</td>
-    <td title='Window -&gt; Map' '>Unfuseable</td>
-    <td title='Window -&gt; MapFuseable' '>Unfuseable</td>
-    <td title='Window -&gt; ObserveOn' '>Unfuseable</td>
-    <td title='Window -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='Window -&gt; Window' '>Unfuseable</td>
 </tr>
 <tr><td bgColor='#CCFFCC'><b>Window - inner</td></td>
-    <td title='Window -&gt; Array' '>Unfuseable</td>
     <td title='Window -&gt; Filter' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='Window -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        Async
@@ -314,15 +231,12 @@
     <td title='Window -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='Window - inner -&gt; FlattenIterable - inner' '>Unfuseable</td>
-    <td title='Window -&gt; Iterable' '>Unfuseable</td>
     <td title='Window -&gt; Map' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='Window -&gt; MapFuseable' ' bgcolor='#FFCC80'>        Async
 </td>
     <td title='Window -&gt; ObserveOn' ' bgcolor='#FFCC80'>        Async
 </td>
-    <td title='Window -&gt; UnicastProcessor' '>Unfuseable</td>
-    <td title='Window -&gt; Window' '>Unfuseable</td>
 </tr
 </tbody></table>
 </body></html>

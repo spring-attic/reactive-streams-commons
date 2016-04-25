@@ -30,7 +30,7 @@ import rsc.util.SubscriptionHelper;
  * @param <T> the value type
  */
 @BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
-@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.BOUNDARY_SENSITIVE}, output = { FusionMode.ASYNC })
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.BOUNDARY}, output = { FusionMode.ASYNC })
 public final class PublisherObserveOn<T> extends PublisherSource<T, T> implements Loopback, Fuseable {
 
     final Scheduler scheduler;

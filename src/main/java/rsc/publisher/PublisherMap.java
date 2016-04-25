@@ -20,7 +20,7 @@ import rsc.util.UnsignalledExceptions;
  * @param <R> the result value type
  */
 @BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
-@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL }, output = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL, FusionMode.BOUNDARY_SENSITIVE })
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL }, output = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL, FusionMode.BOUNDARY })
 public final class PublisherMap<T, R> extends PublisherSource<T, R> {
 
     final Function<? super T, ? extends R> mapper;

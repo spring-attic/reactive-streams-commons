@@ -53,6 +53,9 @@ public final class FusionMatrix {
     
     static void createRelation(StringBuilder b, 
             Class<?> first, FusionMode[] firstModes, Class<?> second, FusionMode[] secondModes) {
+        EnumSet<FusionMode> ef0 = EnumSet.noneOf(FusionMode.class);
+        ef0.addAll(Arrays.asList(firstModes));
+
         EnumSet<FusionMode> ef = EnumSet.noneOf(FusionMode.class);
         ef.addAll(Arrays.asList(firstModes));
         
@@ -62,7 +65,7 @@ public final class FusionMatrix {
         ef.retainAll(es);
         ef.remove(FusionMode.NONE);
         
-        if (ef.isEmpty()) {
+        if (ef.isEmpty() || (ef0.contains(FusionMode.BOUNDARY) && es.contains(FusionMode.BOUNDARY))) {
             b.append("'>Unfuseable");
         } else {
             b.append("' bgcolor='#FFCC80'>");
@@ -100,14 +103,18 @@ public final class FusionMatrix {
         b.append("<html><head><title>Reactive-Streams-Commons Fusion Matrix</title></head>\r\n")
         .append("<body><center><h1>Rsc Fusion Matrix</h1></center>\r\n");
         
+        int w = 100;
+        
         b.append("<table border='1' style='border-collapse:collapse;'><thead><td><b>First \\ Second</b></td>\r\n");
         for (Class<?> clazz : classes) {
             FusionSupport ff = clazz.getAnnotation(FusionSupport.class);
 
-            b.append("    <td width='125'><b>").append(trim(clazz.getSimpleName())).append("</b></td>\r\n");
+            if (hasInner(ff.input())) {
+                b.append("    <td width='").append(w).append("'><b>").append(trim(clazz.getSimpleName())).append("</b></td>\r\n");
+            }
             
             if (hasInner(ff.innerInput())) {
-                b.append("    <td width='125' bgColor='#CCFFCC'><b>").append(trim(clazz.getSimpleName())).append(" - inner</b></td>\r\n");
+                b.append("    <td width='").append(w).append("' bgColor='#CCFFCC'><b>").append(trim(clazz.getSimpleName())).append(" - inner</b></td>\r\n");
             }
         }
         b.append("</thead><tbody>\r\n");
@@ -116,48 +123,56 @@ public final class FusionMatrix {
             
             FusionSupport ff = first.getAnnotation(FusionSupport.class);
             
-            b.append("<tr><td><b>").append(trim(first.getSimpleName())).append("</b></td>\r\n");
-            
-            for (Class<?> second : classes) {
-                b.append("    <td title='")
-                .append(trim(first.getSimpleName()))
-                .append(" -&gt; ")
-                .append(trim(second.getSimpleName()))
-                .append("' ");
+            if (hasInner(ff.output())) {
+                b.append("<tr><td><b>").append(trim(first.getSimpleName())).append("</b></td>\r\n");
                 
-                FusionSupport fs = second.getAnnotation(FusionSupport.class);
-                createRelation(b, first, ff.output(), second, fs.input());
-                
-                b.append("</td>\r\n");
-                
-                if (hasInner(fs.innerInput())) {
-                    b.append("    <td title='")
-                    .append(trim(first.getSimpleName()))
-                    .append(" -&gt; ")
-                    .append(trim(second.getSimpleName()))
-                    .append(" - inner' ");
+                for (Class<?> second : classes) {
+                    FusionSupport fs = second.getAnnotation(FusionSupport.class);
+    
+                    if (hasInner(fs.input())) {
+                        b.append("    <td title='")
+                        .append(trim(first.getSimpleName()))
+                        .append(" -&gt; ")
+                        .append(trim(second.getSimpleName()))
+                        .append("' ");
+                        
+                        createRelation(b, first, ff.output(), second, fs.input());
+                        
+                        b.append("</td>\r\n");
+                    }
                     
-                    createRelation(b, first, ff.output(), second, fs.innerInput());
-                    
-                    b.append("</td>\r\n");
+                    if (hasInner(fs.innerInput())) {
+                        b.append("    <td title='")
+                        .append(trim(first.getSimpleName()))
+                        .append(" -&gt; ")
+                        .append(trim(second.getSimpleName()))
+                        .append(" - inner' ");
+                        
+                        createRelation(b, first, ff.output(), second, fs.innerInput());
+                        
+                        b.append("</td>\r\n");
+                    }
                 }
+                b.append("</tr>\r\n");
             }
-            b.append("</tr>\r\n");
-
+            
             if (hasInner(ff.innerOutput())) {
                 b.append("<tr><td bgColor='#CCFFCC'><b>").append(trim(first.getSimpleName())).append(" - inner</td></td>\r\n");
 
                 for (Class<?> second : classes) {
-                    b.append("    <td title='")
-                    .append(trim(first.getSimpleName()))
-                    .append(" -&gt; ")
-                    .append(trim(second.getSimpleName()))
-                    .append("' ");
-                    
                     FusionSupport fs = second.getAnnotation(FusionSupport.class);
-                    createRelation(b, first, ff.innerOutput(), second, fs.input());
-                    
-                    b.append("</td>\r\n");
+
+                    if (hasInner(fs.input())) {
+                        b.append("    <td title='")
+                        .append(trim(first.getSimpleName()))
+                        .append(" -&gt; ")
+                        .append(trim(second.getSimpleName()))
+                        .append("' ");
+                        
+                        createRelation(b, first, ff.innerOutput(), second, fs.input());
+                        
+                        b.append("</td>\r\n");
+                    }
                     
                     if (hasInner(fs.innerInput())) {
                         b.append("    <td title='")

@@ -19,7 +19,7 @@ import rsc.util.UnsignalledExceptions;
  * @param <T> the value type
  */
 @BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
-@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL }, output = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL, FusionMode.BOUNDARY_SENSITIVE })
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL }, output = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.CONDITIONAL, FusionMode.BOUNDARY })
 public final class PublisherFilter<T> extends PublisherSource<T, T> {
 
     final Predicate<? super T> predicate;

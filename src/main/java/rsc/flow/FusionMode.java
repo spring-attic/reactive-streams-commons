@@ -24,7 +24,7 @@ public enum FusionMode {
      * If applied to an output, it means the incoming requestFusion call is checked against the
      * {@link Fuseable#THREAD_BARRIER} flag and will result in (likely) rejection of the fusion.
      */
-    BOUNDARY_SENSITIVE,
+    BOUNDARY,
     /** Supports the specific ConditionalSubscriber. */ 
     CONDITIONAL,
     ;
