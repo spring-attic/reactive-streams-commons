@@ -9,9 +9,8 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.MultiProducer;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.publisher.Px;
 import rsc.state.Cancellable;
 import rsc.state.Completable;
@@ -35,6 +34,7 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the input and output value type
  */
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.ERROR)
 public final class SimpleProcessor<T> 
     extends Px<T>
     implements Processor<T, T>, Receiver, Completable, MultiProducer {

@@ -7,9 +7,8 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import rsc.flow.Fuseable;
-import rsc.flow.MultiReceiver;
-import rsc.flow.Producer;
+
+import rsc.flow.*;
 import rsc.state.Cancellable;
 import rsc.state.Requestable;
 import rsc.util.BackpressureHelper;
@@ -21,6 +20,8 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC /* TODO , FusionMode.CONDITIONAL*/ })
 public final class PublisherArray<T> 
 extends Px<T>
         implements Fuseable {

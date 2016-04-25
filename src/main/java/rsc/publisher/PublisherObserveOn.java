@@ -10,10 +10,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import rsc.flow.Fuseable;
-import rsc.flow.Loopback;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
+import rsc.flow.*;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
 import rsc.state.Backpressurable;
@@ -32,6 +29,8 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC, FusionMode.BOUNDARY_SENSITIVE}, output = { FusionMode.ASYNC })
 public final class PublisherObserveOn<T> extends PublisherSource<T, T> implements Loopback, Fuseable {
 
     final Scheduler scheduler;

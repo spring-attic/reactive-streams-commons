@@ -7,7 +7,7 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Fuseable;
+import rsc.flow.*;
 import rsc.util.*;
 
 /**
@@ -15,6 +15,8 @@ import rsc.util.*;
  * @param <T> the input value type
  * @param <R> the value type of the iterables and the result type
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC }, innerInput = { FusionMode.SYNC }, output = { FusionMode.SYNC })
 public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> implements Fuseable {
 
     final Function<? super T, ? extends Iterable<? extends R>> mapper;

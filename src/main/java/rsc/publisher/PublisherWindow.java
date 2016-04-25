@@ -13,9 +13,8 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.MultiProducer;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.processor.UnicastProcessor;
 import rsc.state.Backpressurable;
 import rsc.state.Cancellable;
@@ -32,6 +31,8 @@ import rsc.util.UnsignalledExceptions;
  * 
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, innerOutput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(innerOutput = { FusionMode.ASYNC })
 public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
 
     final int size;

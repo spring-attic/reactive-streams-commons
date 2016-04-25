@@ -19,6 +19,8 @@ import rsc.util.*;
  *
  * @param <T> the input and output type
  */
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class UnicastProcessor<T> 
 extends Px<T>
 implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, Receiver, Completable, Cancellable, Requestable, Backpressurable {
