@@ -35,7 +35,11 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
     int subscriptions;
     
-    boolean subscriberVerified;
+    /** Set to true once to indicate a lack of Subscription has been detected and reported. */
+    boolean subscriptionVerified;
+    
+    /** The timestamp of the last event. */
+    long lastEvent;
     
     /** Incremented once a value has been added to values. */
     volatile int volatileSize;
@@ -46,8 +50,13 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     /** The established fusion mode. */
     volatile int establishedFusionMode = -1;
     
+    /** The fuseable QueueSubscription in case a fusion mode was specified. */
     QueueSubscription<T> qs;
 
+    /**
+     * Construct a TestSubscriber with no delegate Subscriber and requesting
+     * Long.MAX_VALUE.
+     */
     public TestSubscriber() {
         this(EmptySubscriber.instance(), Long.MAX_VALUE);
     }
@@ -56,6 +65,11 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         this(delegate, Long.MAX_VALUE);
     }
 
+    /**
+     * Construct a TestSubscriber with the specified initial request value
+     * or 0 to not request anything upfront
+     * @param initialRequest the initial request amount
+     */
     public TestSubscriber(long initialRequest) {
         this(EmptySubscriber.instance(), initialRequest);
     }
@@ -120,11 +134,13 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
                     break;
                 }
                 values.add(t);
+                lastEvent = System.currentTimeMillis();
                 volatileSize++;
                 subscriber.onNext(t);
             }
         } else {
             values.add(t);
+            lastEvent = System.currentTimeMillis();
             volatileSize++;
             subscriber.onNext(t);
         }
@@ -133,6 +149,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     @Override
     public void onError(Throwable t) {
         verifySubscription();
+        lastEvent = System.currentTimeMillis();
         errors.add(t);
         subscriber.onError(t);
         cdl.countDown();
@@ -141,14 +158,15 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     @Override
     public void onComplete() {
         verifySubscription();
+        lastEvent = System.currentTimeMillis();
         completions++;
         subscriber.onComplete();
         cdl.countDown();
     }
 
     void verifySubscription() {
-        if (!subscriberVerified) {
-            subscriberVerified = true;
+        if (!subscriptionVerified) {
+            subscriptionVerified = true;
             if (subscriptions != 1) {
                 errors.add(new IllegalStateException("Exactly 1 onSubscribe call expected but it was " + subscriptions));
             }
@@ -592,7 +610,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     
     /**
      * Returns the number of received events (volatile read).
-     * @return
+     * @return the number of received events
      */
     public final int received() {
         return volatileSize;
@@ -602,6 +620,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
      * Setup what fusion mode should be requested from the incomining
      * Subscription if it happens to be QueueSubscription
      * @param requestMode the mode to request, see Fuseable constants
+     * @return this
      */
     public final TestSubscriber<T> requestedFusionMode(int requestMode) {
         this.requestedFusionMode = requestMode;
@@ -637,6 +656,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     
     /**
      * Assert that the fusion mode was granted.
+     * @return this
      */
     public final TestSubscriber<T> assertFusionEnabled() {
         if (establishedFusionMode == Fuseable.SYNC
@@ -648,6 +668,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
     /**
      * Assert that the fusion mode was granted.
+     * @return this
      */
     public final TestSubscriber<T> assertFusionRejected() {
         if (establishedFusionMode != Fuseable.NONE) {
@@ -658,6 +679,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
     /**
      * Assert that the upstream was a Fuseable source.
+     * @return this
      */
     public final TestSubscriber<T> assertFuseableSource() {
         if (qs == null) {
@@ -668,10 +690,28 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     
     /**
      * Assert that the upstream was not a Fuseable source.
+     * @return this
      */
     public final TestSubscriber<T> assertNonFuseableSource() {
         if (qs != null) {
             throw new AssertionError("Upstream was Fuseable");
+        }
+        return this;
+    }
+    
+    /**
+     * Asserts that the source terminates within the specified amount of
+     * time or else throws an AssertionError with the received event
+     * count and how long the last event was seen.
+     * @param timeout the timeout value
+     * @param unit the timeout unit
+     * @return this
+     */
+    public final TestSubscriber<T> assertTerminated(long timeout, TimeUnit unit) {
+        long ts = System.currentTimeMillis();
+        if (!await(timeout, unit)) {
+            cancel();
+            throw new AssertionError("TestSubscriber timed out. Received: " + volatileSize + ", last event: " + (ts - lastEvent) + " ms ago");
         }
         return this;
     }

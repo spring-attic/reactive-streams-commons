@@ -360,10 +360,9 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
                 .window(Px.interval(5, TimeUnit.MILLISECONDS, exec), maxSize, false)
                 .subscribe(ts);
 
-                if (!ts.await(5, TimeUnit.SECONDS)) {
-                    ts.cancel();
-                    Assert.fail("TestSubscriber timed out: " + ts.received());
-                }
+                ts.assertTerminated(5, TimeUnit.SECONDS);
+
+                
                 List<Long> data = new ArrayList<>(2500);
                 for (TestSubscriber<Long> its : tss) {
                     its.await(5, TimeUnit.SECONDS);
