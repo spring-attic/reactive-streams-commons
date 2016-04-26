@@ -217,7 +217,6 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
                 ExceptionHelper.throwIfFatal(e);
                 s.cancel();
 
-                ExceptionHelper.throwIfFatal(e);
                 onError(ExceptionHelper.unwrap(e));
                 return;
             }
