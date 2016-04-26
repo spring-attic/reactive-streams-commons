@@ -85,6 +85,7 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
+                ExceptionHelper.throwIfFatal(e);
                 s.cancel();
 
                 ExceptionHelper.throwIfFatal(e);
@@ -110,9 +111,9 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
+                ExceptionHelper.throwIfFatal(e);
                 s.cancel();
 
-                ExceptionHelper.throwIfFatal(e);
                 onError(ExceptionHelper.unwrap(e));
                 return false;
             }
@@ -213,6 +214,7 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
+                ExceptionHelper.throwIfFatal(e);
                 s.cancel();
 
                 ExceptionHelper.throwIfFatal(e);
@@ -238,9 +240,9 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
             try {
                 b = predicate.test(t);
             } catch (Throwable e) {
+                ExceptionHelper.throwIfFatal(e);
                 s.cancel();
 
-                ExceptionHelper.throwIfFatal(e);
                 onError(ExceptionHelper.unwrap(e));
                 return false;
             }

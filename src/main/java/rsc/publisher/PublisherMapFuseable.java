@@ -9,8 +9,7 @@ import org.reactivestreams.Subscription;
 
 import rsc.flow.*;
 import rsc.state.Completable;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import rsc.util.*;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
@@ -97,16 +96,15 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
                 try {
                     v = mapper.apply(t);
                 } catch (Throwable e) {
-                    done = true;
+                    ExceptionHelper.throwIfFatal(e);
                     s.cancel();
-                    actual.onError(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
     
                 if (v == null) {
-                    done = true;
                     s.cancel();
-                    actual.onError(new NullPointerException("The mapper returned a null value."));
+                    onError(new NullPointerException("The mapper returned a null value."));
                     return;
                 }
     
@@ -259,9 +257,9 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
                 try {
                     v = mapper.apply(t);
                 } catch (Throwable e) {
-                    done = true;
+                    ExceptionHelper.throwIfFatal(e);
                     s.cancel();
-                    actual.onError(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return;
                 }
     
@@ -294,9 +292,9 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
                 try {
                     v = mapper.apply(t);
                 } catch (Throwable e) {
-                    done = true;
+                    ExceptionHelper.throwIfFatal(e);
                     s.cancel();
-                    actual.onError(e);
+                    onError(ExceptionHelper.unwrap(e));
                     return true;
                 }
     
@@ -375,7 +373,6 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         @Override
         public R poll() {
-            // FIXME maybe should cache the result to avoid mapping twice in case of peek/poll pairs
             T v = s.poll();
             if (v != null) {
                 R u = mapper.apply(v);

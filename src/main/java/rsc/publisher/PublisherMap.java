@@ -10,8 +10,7 @@ import org.reactivestreams.Subscription;
 import rsc.flow.*;
 import rsc.publisher.PublisherMapFuseable.PublisherMapFuseableSubscriber;
 import rsc.state.Completable;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import rsc.util.*;
 
 /**
  * Maps the values of the source publisher one-on-one via a mapper function.
@@ -89,9 +88,9 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
             try {
                 v = mapper.apply(t);
             } catch (Throwable e) {
-                done = true;
+                ExceptionHelper.throwIfFatal(e);
                 s.cancel();
-                actual.onError(e);
+                onError(ExceptionHelper.unwrap(e));
                 return;
             }
 
@@ -197,9 +196,9 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
             try {
                 v = mapper.apply(t);
             } catch (Throwable e) {
-                done = true;
+                ExceptionHelper.throwIfFatal(e);
                 s.cancel();
-                actual.onError(e);
+                onError(ExceptionHelper.unwrap(e));
                 return;
             }
 
