@@ -2,9 +2,10 @@
 //Sample tasks used by reactor.
 
 //A complete RS commons coverage minus the lite core
-def excludingCoreScope =  ['generate',
+def excludingCoreScope =  ['generate', 'detach',
 												 'completablefuture', 'subscribeonother', 'ignoreelements',
-												 'blockingfuture',
+												 'blockingfuture', 'windowbatch',
+						   					'awaitonsubscribe',
 												 'blockingiterable', 'bufferboundaryandsize',
 												 'windowbeginend', /*'windowboundaryandsize',*/
 												 'lift', //Already managed by reactor-core
@@ -22,14 +23,14 @@ def reactorCommon = ['api-single'           : 'reactor.core.publisher.Mono',
 					 'packageScope'         : true,
 					 'test-coverage'         : true,
 					 'FunctionHelper'       : 'FunctionUtils',
-					 'DrainHelper'          : 'reactor.rx.util.DrainUtils',
+					 'DrainHelper'          : 'DrainUtils',
 					 'ExceptionHelper'      : 'Exceptions',
 					 'ObserveOn'            : 'PublishOn',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
 					 'SimpleProcessor'      : 'reactor.core.publisher.EmitterProcessor',
 					 'SerializedSubscriber': 'reactor.core.publisher.SerializedSubscriber',
-					 'UnicastProcessor'     : 'reactor.rx.UnicastProcessor']
+					 'UnicastProcessor'     : 'UnicastProcessor']
 
 //Reactor Core configuration
 def reactorCore = ['api'                 : 'reactor.core.publisher.Flux',
@@ -116,6 +117,7 @@ task generateTargetAPI(type: Sync) {
   }
 
   exclude 'Px.java'
+  exclude 'ConnectablePublisher.java'
 
   if(target['api-operator']){
 	exclude 'PublisherSource.java'
@@ -378,7 +380,7 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
   }
 
   if (l.trim().startsWith('import')) {
-	if(l.contains("org.rsc")){
+	if(l.contains("org.reactivestreams")){
 	  return l
 	}
 	if (target.SimpleProcessor) {

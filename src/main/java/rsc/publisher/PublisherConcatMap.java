@@ -164,8 +164,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                         try {
                             queue = queueSupplier.get();
                         } catch (Throwable ex) {
+                            ExceptionHelper.throwIfFatal(ex);
                             s.cancel();
-                            
                             EmptySubscription.error(actual, ex);
                             return;
                         }
@@ -490,8 +490,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                         try {
                             queue = queueSupplier.get();
                         } catch (Throwable ex) {
+                            ExceptionHelper.throwIfFatal(ex);
                             s.cancel();
-                            
                             EmptySubscription.error(actual, ex);
                             return;
                         }
@@ -500,8 +500,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                     try {
                         queue = queueSupplier.get();
                     } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
                         s.cancel();
-                        
                         EmptySubscription.error(actual, ex);
                         return;
                     }
