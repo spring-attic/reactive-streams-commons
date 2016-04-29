@@ -241,6 +241,7 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
             }
         }
         
+        @SuppressWarnings("unchecked")
         void drainSync() {
             int missed = 1;
             
@@ -282,6 +283,8 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                             } catch (Throwable ex) {
                                 ExceptionHelper.throwIfFatal(ex);
                                 queue.clear();
+                                error = ex;
+                                a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                 for (int i = 0; i < n; i++) {
                                     a[i].actual.onError(ex);
                                 }
@@ -289,6 +292,7 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                             }
                             
                             if (v == null) {
+                                a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                 for (int i = 0; i < n; i++) {
                                     a[i].actual.onComplete();
                                 }
@@ -313,6 +317,8 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                             } catch (Throwable ex) {
                                 ExceptionHelper.throwIfFatal(ex);
                                 queue.clear();
+                                error = ex;
+                                a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                 for (int i = 0; i < n; i++) {
                                     a[i].actual.onError(ex);
                                 }
@@ -320,6 +326,7 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                             }
                             
                             if (empty) {
+                                a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                 for (int i = 0; i < n; i++) {
                                     a[i].actual.onComplete();
                                 }
@@ -342,6 +349,7 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
             }
         }
         
+        @SuppressWarnings("unchecked")
         void drainAsync() {
             int missed = 1;
             
@@ -384,7 +392,10 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                                 v = queue.poll();
                             } catch (Throwable ex) {
                                 ExceptionHelper.throwIfFatal(ex);
+                                s.cancel();
                                 queue.clear();
+                                error = ex;
+                                a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                 for (int i = 0; i < n; i++) {
                                     a[i].actual.onError(ex);
                                 }
@@ -397,12 +408,14 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                                 Throwable ex = error;
                                 if (ex != null) {
                                     queue.clear();
+                                    a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                     for (int i = 0; i < n; i++) {
                                         a[i].actual.onError(ex);
                                     }
                                     return;
                                 } else
                                 if (empty) {
+                                    a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                     for (int i = 0; i < n; i++) {
                                         a[i].actual.onComplete();
                                     }
@@ -439,7 +452,10 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                                 empty = queue.isEmpty();
                             } catch (Throwable ex) {
                                 ExceptionHelper.throwIfFatal(ex);
+                                s.cancel();
                                 queue.clear();
+                                error = ex;
+                                a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                 for (int i = 0; i < n; i++) {
                                     a[i].actual.onError(ex);
                                 }
@@ -450,12 +466,14 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
                                 Throwable ex = error;
                                 if (ex != null) {
                                     queue.clear();
+                                    a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                     for (int i = 0; i < n; i++) {
                                         a[i].actual.onError(ex);
                                     }
                                     return;
                                 } else
                                 if (empty) {
+                                    a = SUBSCRIBERS.getAndSet(this, TERMINATED);
                                     for (int i = 0; i < n; i++) {
                                         a[i].actual.onComplete();
                                     }
