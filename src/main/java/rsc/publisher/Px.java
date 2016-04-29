@@ -702,6 +702,14 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     public final <R, A> Px<R> collect(Collector<T, A, R> collector) {
         return new PublisherStreamCollector<>(this, collector);
     }
+
+    public final <R> Px<R> publish(Function<? super Px<T>, ? extends Publisher<? extends R>> transform) {
+        return publish(transform, BUFFER_SIZE);
+    }
+    
+    public final <R> Px<R> publish(Function<? super Px<T>, ? extends Publisher<? extends R>> transform, int prefetch) {
+        return new PublisherPublish<>(this, transform, prefetch, defaultQueueSupplier(prefetch));
+    }
     
     // ---------------------------------------------------------------------------------------
     
