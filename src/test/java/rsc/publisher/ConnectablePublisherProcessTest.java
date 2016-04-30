@@ -13,11 +13,11 @@ import rsc.test.TestSubscriber;
 import rsc.util.*;
 import rsc.util.SpscArrayQueue;
 
-public class ConnectablePublisherMulticastTest {
+public class ConnectablePublisherProcessTest {
 
     @Test
     public void constructors() {
-        ConstructorTestBuilder ctb = new ConstructorTestBuilder(ConnectablePublisherMulticast.class);
+        ConstructorTestBuilder ctb = new ConstructorTestBuilder(ConnectablePublisherProcess.class);
         
         ctb.addRef("source", Px.never());
         ctb.addRef("processorSupplier", (Supplier<Processor<Object,Object>>)() -> new SimpleProcessor<>());

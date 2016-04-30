@@ -23,7 +23,7 @@ import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
- * A connectable observable which shares an underlying source and dispatches source values to subscribers in a backpressure-aware
+ * A connectable publisher which shares an underlying source and dispatches source values to subscribers in a backpressure-aware
  * manner. 
  * @param <T> the value type
  */

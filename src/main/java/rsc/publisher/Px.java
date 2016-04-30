@@ -665,7 +665,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final <U> ConnectablePublisher<U> multicast(Supplier<? extends Processor<? super T, ? extends T>>
             processorSupplier, Function<Px<T>, ? extends Publisher<? extends U>> selector) {
-        return new ConnectablePublisherMulticast<>(this, processorSupplier, selector);
+        return new ConnectablePublisherProcess<>(this, processorSupplier, selector);
     }
     
     public final Px<T> onTerminateDetach() {

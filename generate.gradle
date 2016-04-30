@@ -3,12 +3,13 @@
 
 //A complete RS commons coverage minus the lite core
 def excludingCoreScope =  ['generate', 'detach',
-												 'completablefuture', 'subscribeonother', 'ignoreelements',
-												 'blockingfuture', 'windowbatch',
-						   					'awaitonsubscribe',
-												 'blockingiterable', 'bufferboundaryandsize',
-												 'windowbeginend', /*'windowboundaryandsize',*/
-												 'lift', //Already managed by reactor-core
+						   'completablefuture', 'subscribeonother', 'ignoreelements',
+						   'blockingfuture', 'windowbatch',
+						   'empty', 'just',
+						   'awaitonsubscribe',
+						   'blockingiterable', 'bufferboundaryandsize',
+						   'windowbeginend', /*'windowboundaryandsize',*/
+						   'lift', //Already managed by reactor-core
 												 ]
 
 //Common reactor helper references
@@ -130,7 +131,7 @@ task generateTargetAPI(type: Sync) {
 	}
 
 	fileName.replace('ConnectablePublisher.java', 'Connectable' +apiClassName+ '.java')
-			.replace('ConnectablePublisher', apiClassName)
+			.replace('ConnectablePublisher', 'Connectable' + apiClassName)
 			.replace('Publisher', apiClassName)
   }
 
@@ -242,7 +243,7 @@ task generateTargetSingleAPI(type: Copy) {
 
   rename { String fileName ->
 	fileName.replace('ConnectablePublisher.java', 'Connectable' + apiSingleClassName + '.java')
-			.replace('ConnectablePublisher', apiSingleClassName)
+			.replace('ConnectablePublisher', 'Connectable' + apiSingleClassName)
 			.replace('Publisher', apiSingleClassName)
   }
 

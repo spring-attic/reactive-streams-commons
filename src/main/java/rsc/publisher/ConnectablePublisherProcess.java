@@ -20,7 +20,7 @@ import rsc.util.UnsignalledExceptions;
  * @param <T>
  * @param <U>
  */
-public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublisher<U> implements Receiver, Producer {
+public final class ConnectablePublisherProcess<T, U> extends ConnectablePublisher<U> implements Receiver, Producer {
 
     final Publisher<T>                                                 source;
     final Supplier<? extends Processor<? super T, ? extends T>>        processorSupplier;
@@ -28,10 +28,10 @@ public final class ConnectablePublisherMulticast<T, U> extends ConnectablePublis
 
     volatile State<T, U> connection;
     @SuppressWarnings("rawtypes")
-    static final AtomicReferenceFieldUpdater<ConnectablePublisherMulticast, State> CONNECTION =
-            AtomicReferenceFieldUpdater.newUpdater(ConnectablePublisherMulticast.class, State.class, "connection");
+    static final AtomicReferenceFieldUpdater<ConnectablePublisherProcess, State> CONNECTION =
+            AtomicReferenceFieldUpdater.newUpdater(ConnectablePublisherProcess.class, State.class, "connection");
 
-    ConnectablePublisherMulticast(Publisher<T> source,
+    ConnectablePublisherProcess(Publisher<T> source,
             Supplier<? extends Processor<? super T, ? extends T>> processorSupplier,
             Function<Px<T>, ? extends Publisher<? extends U>> selector) {
         this.source = Objects.requireNonNull(source, "source");
