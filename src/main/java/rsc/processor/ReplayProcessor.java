@@ -9,7 +9,11 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import rsc.flow.BackpressureMode;
+import rsc.flow.BackpressureSupport;
 import rsc.flow.Fuseable;
+import rsc.flow.FusionMode;
+import rsc.flow.FusionSupport;
 import rsc.publisher.Px;
 import rsc.util.BackpressureHelper;
 import rsc.util.SubscriptionHelper;
@@ -20,6 +24,8 @@ import rsc.util.UnsignalledExceptions;
  * 
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class ReplayProcessor<T> 
 extends Px<T> implements Processor<T, T>, Fuseable {
 
@@ -90,6 +96,7 @@ extends Px<T> implements Processor<T, T>, Fuseable {
     
     @SuppressWarnings("unchecked")
     void remove(ReplaySubscription<T> rp) {
+        outer:
         for (;;) {
             ReplaySubscription<T>[] a = subscribers;
             if (a == TERMINATED || a == EMPTY) {
@@ -113,9 +120,11 @@ extends Px<T> implements Processor<T, T>, Fuseable {
                         return;
                     }
                     
-                    break;
+                    continue outer;
                 }
             }
+            
+            break;
         }
     }
 
@@ -184,6 +193,14 @@ extends Px<T> implements Processor<T, T>, Fuseable {
         void drain(ReplaySubscription<T> rp);
         
         boolean isDone();
+        
+        T poll(ReplaySubscription<T> rp);
+        
+        void clear(ReplaySubscription<T> rp);
+        
+        boolean isEmpty(ReplaySubscription<T> rp);
+        
+        int size(ReplaySubscription<T> rp);
     }
     
     static final class UnboundedBuffer<T> implements Buffer<T> {
@@ -217,6 +234,7 @@ extends Px<T> implements Processor<T, T>, Fuseable {
                 b[0] = value;
                 tailIndex = 1;
                 a[i] = b;
+                tail = b;
             } else {
                 a[i] = value;
                 tailIndex = i + 1;
@@ -235,12 +253,7 @@ extends Px<T> implements Processor<T, T>, Fuseable {
             done = true;
         }
 
-        @Override
-        public void drain(ReplaySubscription<T> rp) {
-            if (!rp.enter()) {
-                return;
-            }
-            
+        void drainNormal(ReplaySubscription<T> rp) {
             int missed = 1;
             
             final Subscriber<? super T> a = rp.actual;
@@ -334,10 +347,92 @@ extends Px<T> implements Processor<T, T>, Fuseable {
                 }
             }
         }
+        
+        void drainFused(ReplaySubscription<T> rp) {
+            int missed = 1;
+            
+            final Subscriber<? super T> a = rp.actual;
+            
+            for (;;) {
+                
+                if (rp.cancelled) {
+                    rp.node = null;
+                    return;
+                }
+                
+                a.onNext(null);
+                
+                if (done) {
+                    Throwable ex = error;
+                    if (ex != null) {
+                        a.onError(ex);
+                    } else {
+                        a.onComplete();
+                    }
+                    return;
+                }
+                
+                missed = rp.leave(missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+        
+        @Override
+        public void drain(ReplaySubscription<T> rp) {
+            if (!rp.enter()) {
+                return;
+            }
+            
+            if (rp.fusionMode == NONE) {
+                drainNormal(rp);
+            } else {
+                drainFused(rp);
+            }
+        }
 
         @Override
         public boolean isDone() {
             return done;
+        }
+
+        @Override
+        public T poll(ReplaySubscription<T> rp) {
+            int index = rp.index;
+            if (index == size) {
+                return null;
+            }
+            Object[] node = (Object[])rp.node;
+            if (node == null) {
+                node = head;
+                rp.node = node;
+            }
+            int tailIndex = rp.tailIndex;
+            if (tailIndex == batchSize) {
+                node = (Object[])node[tailIndex];
+                tailIndex = 0;
+            }
+            @SuppressWarnings("unchecked")
+            T v = (T)node[tailIndex];
+            rp.index = index + 1;
+            rp.tailIndex = tailIndex + 1;
+            return v;
+        }
+
+        @Override
+        public void clear(ReplaySubscription<T> rp) {
+            rp.node = null;
+        }
+
+        @Override
+        public boolean isEmpty(ReplaySubscription<T> rp) {
+            return rp.index == size;
+        }
+
+        @Override
+        public int size(ReplaySubscription<T> rp) {
+            return size - rp.index;
         }
         
     }
@@ -386,12 +481,7 @@ extends Px<T> implements Processor<T, T>, Fuseable {
             done = true;
         }
 
-        @Override
-        public void drain(ReplaySubscription<T> rp) {
-            if (!rp.enter()) {
-                return;
-            }
-            
+        void drainNormal(ReplaySubscription<T> rp) {
             final Subscriber<? super T> a = rp.actual;
             
             int missed = 1;
@@ -473,6 +563,50 @@ extends Px<T> implements Processor<T, T>, Fuseable {
                 }
             }
         }
+        
+        void drainFused(ReplaySubscription<T> rp) {
+            int missed = 1;
+            
+            final Subscriber<? super T> a = rp.actual;
+            
+            for (;;) {
+                
+                if (rp.cancelled) {
+                    rp.node = null;
+                    return;
+                }
+                
+                a.onNext(null);
+                
+                if (done) {
+                    Throwable ex = error;
+                    if (ex != null) {
+                        a.onError(ex);
+                    } else {
+                        a.onComplete();
+                    }
+                    return;
+                }
+                
+                missed = rp.leave(missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+        
+        @Override
+        public void drain(ReplaySubscription<T> rp) {
+            if (!rp.enter()) {
+                return;
+            }
+            
+            if (rp.fusionMode == NONE) {
+                drainNormal(rp);
+            } else {
+                drainFused(rp);
+            }
+        }
 
         @Override
         public boolean isDone() {
@@ -489,12 +623,66 @@ extends Px<T> implements Processor<T, T>, Fuseable {
                 this.value = value;
             }
         }
+
+        @Override
+        public T poll(ReplaySubscription<T> rp) {
+            @SuppressWarnings("unchecked")
+            Node<T> node = (Node<T>)rp.node;
+            if (node == null) {
+                node = head;
+                rp.node = node;
+            }
+            
+            Node<T> next = node.get();
+            if (next == null) {
+                return null;
+            }
+            rp.node = next;
+            
+            return next.value;
+        }
+
+        @Override
+        public void clear(ReplaySubscription<T> rp) {
+            rp.node = null;
+        }
+
+        @Override
+        public boolean isEmpty(ReplaySubscription<T> rp) {
+            @SuppressWarnings("unchecked")
+            Node<T> node = (Node<T>)rp.node;
+            if (node == null) {
+                node = head;
+                rp.node = node;
+            }
+            return node.get() == null;
+        }
+
+        @Override
+        public int size(ReplaySubscription<T> rp) {
+            @SuppressWarnings("unchecked")
+            Node<T> node = (Node<T>)rp.node;
+            if (node == null) {
+                node = head;
+            }
+            int count = 0;
+            
+            Node<T> next;
+            while ((next = node.get()) != null && count != Integer.MAX_VALUE) {
+                count++;
+                node = next;
+            }
+            
+            return count;
+        }
     }
     
     static final class ReplaySubscription<T> implements QueueSubscription<T> {
         final Subscriber<? super T> actual;
         
         final ReplayProcessor<T> parent;
+        
+        final Buffer<T> buffer;
 
         int index;
         
@@ -513,47 +701,51 @@ extends Px<T> implements Processor<T, T>, Fuseable {
                 AtomicLongFieldUpdater.newUpdater(ReplaySubscription.class, "requested");
         
         volatile boolean cancelled;
+        
+        int fusionMode;
 
         public ReplaySubscription(Subscriber<? super T> actual, ReplayProcessor<T> parent) {
             this.actual = actual;
             this.parent = parent;
+            this.buffer = parent.buffer;
         }
         
         @Override
         public int requestFusion(int requestedMode) {
-            // TODO Auto-generated method stub
+            if ((requestedMode & ASYNC) != 0) {
+                fusionMode = ASYNC;
+                return ASYNC;
+            }
             return NONE;
         }
         
         @Override
         public T poll() {
-            // TODO Auto-generated method stub
-            return null;
+            return buffer.poll(this);
         }
         
         @Override
         public void clear() {
-            // TODO Auto-generated method stub
-            
+            buffer.clear(this);
         }
         
         @Override
         public boolean isEmpty() {
-            // TODO Auto-generated method stub
-            return false;
+            return buffer.isEmpty(this);
         }
         
         @Override
         public int size() {
-            // TODO Auto-generated method stub
-            return 0;
+            return buffer.size(this);
         }
         
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
-                parent.buffer.drain(this);
+                if (fusionMode == NONE) {
+                    BackpressureHelper.getAndAddCap(REQUESTED, this, n);
+                }
+                buffer.drain(this);
             }
         }
         
