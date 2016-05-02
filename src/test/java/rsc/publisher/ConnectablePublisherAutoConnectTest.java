@@ -32,10 +32,10 @@ public class ConnectablePublisherAutoConnectTest {
         sp.publish().autoConnect(0, cancel::set);
         
         Assert.assertNotNull(cancel.get());
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
 
         cancel.get().dispose();
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
     }
 
     @Test
@@ -47,19 +47,19 @@ public class ConnectablePublisherAutoConnectTest {
         Px<Integer> p = sp.publish().autoConnect(2, cancel::set);
         
         Assert.assertNull(cancel.get());
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
         
         p.subscribe(new TestSubscriber<>());
         
         Assert.assertNull(cancel.get());
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
 
         p.subscribe(new TestSubscriber<>());
 
         Assert.assertNotNull(cancel.get());
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
         
         cancel.get().dispose();
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
     }
 }

@@ -61,9 +61,9 @@ public class PublisherThrottleFirstTest {
         .assertNoError()
         .assertComplete();
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp1 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp1 has subscribers?", sp3.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp1 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp1 has subscribers?", sp3.hasDownstreams());
     }
     
     @Test
@@ -84,9 +84,9 @@ public class PublisherThrottleFirstTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp1 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp1 has subscribers?", sp3.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp1 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp1 has subscribers?", sp3.hasDownstreams());
     }
 
     @Test
@@ -107,9 +107,9 @@ public class PublisherThrottleFirstTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp1 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp1 has subscribers?", sp3.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp1 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp1 has subscribers?", sp3.hasDownstreams());
     }
 
     @Test
@@ -127,7 +127,7 @@ public class PublisherThrottleFirstTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
     }
 
     @Test
@@ -144,7 +144,7 @@ public class PublisherThrottleFirstTest {
         .assertError(NullPointerException.class)
         .assertNotComplete();
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
     }
 
 }

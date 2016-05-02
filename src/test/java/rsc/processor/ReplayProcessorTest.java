@@ -21,7 +21,7 @@ public class ReplayProcessorTest {
         rp.onNext(3);
         rp.onComplete();
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts.assertNoValues();
         
@@ -49,7 +49,7 @@ public class ReplayProcessorTest {
         rp.onNext(3);
         rp.onComplete();
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts.assertNoValues();
         
@@ -74,7 +74,7 @@ public class ReplayProcessorTest {
         
         ts.cancel();
         
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ReplayProcessorTest {
 
         rp.subscribe(ts);
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts.assertNoValues();
         
@@ -119,7 +119,7 @@ public class ReplayProcessorTest {
 
         rp.subscribe(ts);
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts.assertNoValues();
         
@@ -147,7 +147,7 @@ public class ReplayProcessorTest {
 
         rp.subscribe(ts);
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts.assertNoValues();
         
@@ -171,7 +171,7 @@ public class ReplayProcessorTest {
 
         rp.subscribe(ts);
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts.assertNoValues();
         
@@ -196,7 +196,7 @@ public class ReplayProcessorTest {
 
         rp.subscribe(ts);
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts
         .assertFuseableSource()
@@ -221,7 +221,7 @@ public class ReplayProcessorTest {
         rp.onComplete();
 
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts
         .assertFuseableSource()
@@ -245,7 +245,7 @@ public class ReplayProcessorTest {
 
         rp.subscribe(ts);
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts
         .assertFuseableSource()
@@ -270,7 +270,7 @@ public class ReplayProcessorTest {
         rp.onComplete();
 
 
-        Assert.assertFalse("Has subscribers?", rp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?", rp.hasDownstreams());
 
         ts
         .assertFuseableSource()

@@ -24,30 +24,30 @@ public class ConnectablePublisherRefCountTest {
         
         Px<Integer> p = sp.publish().refCount();
         
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
         
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         p.subscribe(ts1);
 
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
 
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         p.subscribe(ts2);
 
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
         
         sp.onNext(1);
         sp.onNext(2);
         
         ts1.cancel();
         
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
         
         sp.onNext(3);
         
         ts2.cancel();
         
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
         
         ts1.assertValues(1, 2)
         .assertNoError()
@@ -64,30 +64,30 @@ public class ConnectablePublisherRefCountTest {
         
         Px<Integer> p = sp.publish().refCount(2);
         
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
         
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         p.subscribe(ts1);
 
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
 
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         p.subscribe(ts2);
 
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
         
         sp.onNext(1);
         sp.onNext(2);
         
         ts1.cancel();
         
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
         
         sp.onNext(3);
         
         ts2.cancel();
         
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
         
         ts1.assertValues(1, 2)
         .assertNoError()

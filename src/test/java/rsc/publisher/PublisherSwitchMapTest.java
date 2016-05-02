@@ -112,7 +112,7 @@ public class PublisherSwitchMapTest {
         
         sp1.onNext(2);
         
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
         
         sp2.onNext(30);
         sp3.onNext(300);
@@ -207,8 +207,8 @@ public class PublisherSwitchMapTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
     }
 
     @Test

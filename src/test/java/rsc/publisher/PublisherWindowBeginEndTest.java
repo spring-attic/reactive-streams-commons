@@ -131,8 +131,8 @@ public class PublisherWindowBeginEndTest {
         
         ts1.assertNoError();
         
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp3 has subscribers?", sp3.hasSubscribers());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp3 has subscribers?", sp3.hasDownstreams());
     }
     
     @Test
@@ -149,8 +149,8 @@ public class PublisherWindowBeginEndTest {
         .assertNoError()
         .assertComplete();
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp3 has subscribers?", sp3.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp3 has subscribers?", sp3.hasDownstreams());
     }
 }

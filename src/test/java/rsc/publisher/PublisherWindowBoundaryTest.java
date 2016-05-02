@@ -69,8 +69,8 @@ public class PublisherWindowBoundaryTest {
         ts.assertNoError()
         .assertComplete();
         
-        Assert.assertFalse("sp1 has subscribers", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers", sp1.hasDownstreams());
     }
 
     @Test
@@ -103,8 +103,8 @@ public class PublisherWindowBoundaryTest {
         ts.assertNoError()
         .assertComplete();
         
-        Assert.assertFalse("sp1 has subscribers", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers", sp1.hasDownstreams());
     }
 
     @Test
@@ -144,8 +144,8 @@ public class PublisherWindowBoundaryTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("sp1 has subscribers", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers", sp1.hasDownstreams());
     }
 
     @Test
@@ -185,8 +185,8 @@ public class PublisherWindowBoundaryTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("sp1 has subscribers", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers", sp1.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers", sp1.hasDownstreams());
     }
 
 }

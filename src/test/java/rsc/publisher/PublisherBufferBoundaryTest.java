@@ -104,7 +104,7 @@ public class PublisherBufferBoundaryTest {
 
         sp1.onError(new RuntimeException("forced failure"));
 
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
         
         sp2.onNext(2);
         
@@ -151,7 +151,7 @@ public class PublisherBufferBoundaryTest {
 
         sp2.onError(new RuntimeException("forced failure"));
 
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
 
         ts.assertValues(Arrays.asList(1, 2))
         .assertError(RuntimeException.class)
@@ -175,8 +175,8 @@ public class PublisherBufferBoundaryTest {
         
         sp1.buffer(sp2, (Supplier<List<Integer>>)() -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
@@ -206,8 +206,8 @@ public class PublisherBufferBoundaryTest {
         
         sp2.onNext(1);
 
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
         
         ts.assertNoValues()
         .assertError(RuntimeException.class)
@@ -224,8 +224,8 @@ public class PublisherBufferBoundaryTest {
         
         sp1.buffer(sp2, (Supplier<List<Integer>>)() -> null).subscribe(ts);
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
         
         ts.assertNoValues()
         .assertError(NullPointerException.class)

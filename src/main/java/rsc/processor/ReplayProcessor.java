@@ -1,5 +1,7 @@
 package rsc.processor;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,7 +16,14 @@ import rsc.flow.BackpressureSupport;
 import rsc.flow.Fuseable;
 import rsc.flow.FusionMode;
 import rsc.flow.FusionSupport;
+import rsc.flow.MultiProducer;
+import rsc.flow.Producer;
+import rsc.flow.Receiver;
 import rsc.publisher.Px;
+import rsc.state.Backpressurable;
+import rsc.state.Cancellable;
+import rsc.state.Completable;
+import rsc.state.Requestable;
 import rsc.util.BackpressureHelper;
 import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -27,9 +36,12 @@ import rsc.util.UnsignalledExceptions;
 @BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class ReplayProcessor<T> 
-extends Px<T> implements Processor<T, T>, Fuseable {
+extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurable,
+                         Completable, Receiver {
 
     final Buffer<T> buffer;
+
+    Subscription subscription;
     
     volatile ReplaySubscription<T>[] subscribers;
     @SuppressWarnings("rawtypes")
@@ -57,10 +69,6 @@ extends Px<T> implements Processor<T, T>, Fuseable {
         SUBSCRIBERS.lazySet(this, EMPTY);
     }
     
-    public boolean hasSubscribers() {
-        return subscribers.length != 0;
-    }
-    
     @Override
     public void subscribe(Subscriber<? super T> s) {
         
@@ -75,7 +83,37 @@ extends Px<T> implements Processor<T, T>, Fuseable {
             buffer.drain(rp);
         }
     }
-    
+
+    @Override
+    public Iterator<?> downstreams() {
+        return Arrays.asList(subscribers).iterator();
+    }
+
+    @Override
+    public long downstreamCount() {
+        return subscribers.length;
+    }
+
+    @Override
+    public long getCapacity() {
+        return buffer.capacity();
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return buffer.isDone();
+    }
+
+    @Override
+    public boolean isStarted() {
+        return subscription != null;
+    }
+
+    @Override
+    public Object upstream() {
+        return subscription;
+    }
+
     boolean add(ReplaySubscription<T> rp) {
         for (;;) {
             ReplaySubscription<T>[] a = subscribers;
@@ -133,6 +171,10 @@ extends Px<T> implements Processor<T, T>, Fuseable {
         if (buffer.isDone()) {
             s.cancel();
         } else {
+            if(!SubscriptionHelper.validate(subscription, s)) {
+                s.cancel();
+            }
+            subscription = s;
             s.request(Long.MAX_VALUE);
         }
     }
@@ -201,6 +243,8 @@ extends Px<T> implements Processor<T, T>, Fuseable {
         boolean isEmpty(ReplaySubscription<T> rp);
         
         int size(ReplaySubscription<T> rp);
+
+        int capacity();
     }
     
     static final class UnboundedBuffer<T> implements Buffer<T> {
@@ -224,7 +268,12 @@ extends Px<T> implements Processor<T, T>, Fuseable {
             this.tail = n;
             this.head = n;
         }
-        
+
+        @Override
+        public int capacity() {
+            return size;
+        }
+
         @Override
         public void onNext(T value) {
             int i = tailIndex;
@@ -456,7 +505,12 @@ extends Px<T> implements Processor<T, T>, Fuseable {
             this.tail = n;
             this.head = n;
         }
-        
+
+        @Override
+        public int capacity() {
+            return size;
+        }
+
         @Override
         public void onNext(T value) {
             Node<T> n = new Node<>(value);
@@ -677,7 +731,9 @@ extends Px<T> implements Processor<T, T>, Fuseable {
         }
     }
     
-    static final class ReplaySubscription<T> implements QueueSubscription<T> {
+    static final class ReplaySubscription<T> implements QueueSubscription<T>, Producer,
+                                                        Cancellable, Receiver,
+                                                        Requestable {
         final Subscriber<? super T> actual;
         
         final ReplayProcessor<T> parent;
@@ -709,7 +765,27 @@ extends Px<T> implements Processor<T, T>, Fuseable {
             this.parent = parent;
             this.buffer = parent.buffer;
         }
-        
+
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public Object downstream() {
+            return actual;
+        }
+
+        @Override
+        public Object upstream() {
+            return parent;
+        }
+
         @Override
         public int requestFusion(int requestedMode) {
             if ((requestedMode & ASYNC) != 0) {

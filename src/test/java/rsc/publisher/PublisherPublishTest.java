@@ -64,11 +64,11 @@ public class PublisherPublishTest {
         
         sp.publish(o -> Px.<Integer>never()).subscribe(ts);
         
-        Assert.assertTrue("Not subscribed?", sp.hasSubscribers());
+        Assert.assertTrue("Not subscribed?", sp.hasDownstreams());
         
         ts.cancel();
         
-        Assert.assertFalse("Still subscribed?", sp.hasSubscribers());
+        Assert.assertFalse("Still subscribed?", sp.hasDownstreams());
     }
 
     @Test
@@ -79,7 +79,7 @@ public class PublisherPublishTest {
         
         sp.publish(o -> Px.<Integer>empty()).subscribe(ts);
         
-        Assert.assertFalse("Still subscribed?", sp.hasSubscribers());
+        Assert.assertFalse("Still subscribed?", sp.hasDownstreams());
     }
 
     @Test

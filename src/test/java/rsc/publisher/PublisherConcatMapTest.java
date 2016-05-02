@@ -160,8 +160,8 @@ public class PublisherConcatMapTest {
         source.onNext(1);
         source.onNext(2);
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
         source2.onNext(10);
@@ -194,8 +194,8 @@ public class PublisherConcatMapTest {
         
         source.onNext(1);
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
         source2.onNext(10);
@@ -211,8 +211,8 @@ public class PublisherConcatMapTest {
         .assertNoError()
         .assertComplete();
 
-        Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertFalse("source1 has subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
     }
 
     @Test
@@ -232,8 +232,8 @@ public class PublisherConcatMapTest {
         
         source.onNext(1);
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
 
@@ -244,8 +244,8 @@ public class PublisherConcatMapTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertFalse("source1 has subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
     }
 
     @Test
@@ -265,8 +265,8 @@ public class PublisherConcatMapTest {
         
         source.onNext(1);
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
 
@@ -284,8 +284,8 @@ public class PublisherConcatMapTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertFalse("source1 has subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
     }
 
     @Test
@@ -305,8 +305,8 @@ public class PublisherConcatMapTest {
         
         source.onNext(1);
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
 
@@ -317,8 +317,8 @@ public class PublisherConcatMapTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertFalse("source1 has subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
     }
 
     @Test
@@ -338,8 +338,8 @@ public class PublisherConcatMapTest {
         
         source.onNext(1);
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
 
@@ -350,8 +350,8 @@ public class PublisherConcatMapTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertFalse("source1 has subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
     }
 
     @Test
@@ -371,8 +371,8 @@ public class PublisherConcatMapTest {
         
         source.onNext(1);
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
 
@@ -380,7 +380,7 @@ public class PublisherConcatMapTest {
         
         source.onNext(2);
 
-        Assert.assertTrue("source2 no subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source2 no subscribers?", source2.hasDownstreams());
 
         source2.onNext(2);
         source2.onComplete();
@@ -392,8 +392,8 @@ public class PublisherConcatMapTest {
         .assertErrorMessage("forced failure")
         .assertNotComplete();
         
-        Assert.assertFalse("source1 has subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertFalse("source1 has subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
     }
 
 

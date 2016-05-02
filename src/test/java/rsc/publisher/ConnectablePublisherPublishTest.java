@@ -321,7 +321,7 @@ public class ConnectablePublisherPublishTest {
         .assertError(CancellationException.class)
         .assertNotComplete();
         
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
     }
 
     @Test
@@ -342,7 +342,7 @@ public class ConnectablePublisherPublishTest {
         .assertError(CancellationException.class)
         .assertNotComplete();
 
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
     }
 
     @Test

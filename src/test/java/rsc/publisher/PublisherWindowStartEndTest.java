@@ -76,10 +76,10 @@ public class PublisherWindowStartEndTest {
         expect(ts, 0, 2, 3);
         expect(ts, 1, 3, 4);
         
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp3 has subscribers?", sp3.hasSubscribers());
-        Assert.assertFalse("sp4 has subscribers?", sp4.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp3 has subscribers?", sp3.hasDownstreams());
+        Assert.assertFalse("sp4 has subscribers?", sp4.hasDownstreams());
     }
     
     @Test
@@ -118,10 +118,10 @@ public class PublisherWindowStartEndTest {
         expect(ts, 0, 2, 3);
         expect(ts, 1, 3, 4);
 
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp3 has subscribers?", sp3.hasSubscribers());
-        Assert.assertFalse("sp4 has subscribers?", sp4.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp3 has subscribers?", sp3.hasDownstreams());
+        Assert.assertFalse("sp4 has subscribers?", sp4.hasDownstreams());
     }
 
     @Test
@@ -153,10 +153,10 @@ public class PublisherWindowStartEndTest {
         
         expect(ts, 0, 1, 2, 3);
 
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp3 has subscribers?", sp3.hasSubscribers());
-        Assert.assertFalse("sp4 has subscribers?", sp4.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp3 has subscribers?", sp3.hasDownstreams());
+        Assert.assertFalse("sp4 has subscribers?", sp4.hasDownstreams());
     }
 
 }

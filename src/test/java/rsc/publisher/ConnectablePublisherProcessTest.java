@@ -217,7 +217,7 @@ public class ConnectablePublisherProcessTest {
         .assertError(CancellationException.class)
         .assertNotComplete();
         
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
     }
 
 
@@ -240,7 +240,7 @@ public class ConnectablePublisherProcessTest {
 
         ts1.cancel();
 
-        Assert.assertTrue("sp has no subscribers?", sp.hasSubscribers());
+        Assert.assertTrue("sp has no subscribers?", sp.hasDownstreams());
 
         r.dispose();
 
@@ -252,7 +252,7 @@ public class ConnectablePublisherProcessTest {
            .assertError(CancellationException.class)
           .assertNotComplete();
 
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
     }
 
 
@@ -274,7 +274,7 @@ public class ConnectablePublisherProcessTest {
         .assertError(CancellationException.class)
         .assertNotComplete();
 
-        Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+        Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
     }
 
     @Test

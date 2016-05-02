@@ -77,8 +77,8 @@ public class PublisherSampleTest {
               .assertErrorMessage("forced failure");
         }
 
-        Assert.assertFalse("Main has subscribers?", main.hasSubscribers());
-        Assert.assertFalse("Other has subscribers?", other.hasSubscribers());
+        Assert.assertFalse("Main has subscribers?", main.hasDownstreams());
+        Assert.assertFalse("Other has subscribers?", other.hasDownstreams());
     }
 
     @Test
@@ -111,13 +111,13 @@ public class PublisherSampleTest {
 
         new PublisherSample<>(main, other).subscribe(ts);
 
-        Assert.assertTrue("Main no subscriber?", main.hasSubscribers());
-        Assert.assertTrue("Other no subscriber?", other.hasSubscribers());
+        Assert.assertTrue("Main no subscriber?", main.hasDownstreams());
+        Assert.assertTrue("Other no subscriber?", other.hasDownstreams());
 
         ts.cancel();
 
-        Assert.assertFalse("Main no subscriber?", main.hasSubscribers());
-        Assert.assertFalse("Other no subscriber?", other.hasSubscribers());
+        Assert.assertFalse("Main no subscriber?", main.hasDownstreams());
+        Assert.assertFalse("Other no subscriber?", other.hasDownstreams());
 
         ts.assertNoValues()
           .assertNoError()
@@ -139,8 +139,8 @@ public class PublisherSampleTest {
 
         new PublisherSample<>(main, other).subscribe(ts);
 
-        Assert.assertFalse("Main subscriber?", main.hasSubscribers());
-        Assert.assertFalse("Other subscriber?", other.hasSubscribers());
+        Assert.assertFalse("Main subscriber?", main.hasDownstreams());
+        Assert.assertFalse("Other subscriber?", other.hasDownstreams());
 
         ts.assertNoValues()
           .assertNoError()

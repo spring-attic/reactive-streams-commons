@@ -210,7 +210,7 @@ public class BlockingFutureTest {
 
             g.get();
             
-            Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+            Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
             
         } finally {
             exec.shutdown();
@@ -233,7 +233,7 @@ public class BlockingFutureTest {
 
             g.get();
             
-            Assert.assertFalse("sp has subscribers?", sp.hasSubscribers());
+            Assert.assertFalse("sp has subscribers?", sp.hasDownstreams());
             
         } finally {
             exec.shutdown();

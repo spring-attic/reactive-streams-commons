@@ -36,7 +36,7 @@ public class SimpleProcessorTest {
 
         tp.subscribe(ts);
 
-        Assert.assertTrue("No subscribers?", tp.hasSubscribers());
+        Assert.assertTrue("No subscribers?", tp.hasDownstreams());
         Assert.assertFalse("Completed?", tp.hasCompleted());
         Assert.assertNull("Has error?", tp.getError());
         Assert.assertFalse("Has error?", tp.hasError());
@@ -55,7 +55,7 @@ public class SimpleProcessorTest {
         tp.onNext(3);
         tp.onComplete();
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
         Assert.assertTrue("Not completed?", tp.hasCompleted());
         Assert.assertNull("Has error?", tp.getError());
         Assert.assertFalse("Has error?", tp.hasError());
@@ -74,7 +74,7 @@ public class SimpleProcessorTest {
 
         tp.subscribe(ts);
 
-        Assert.assertTrue("No subscribers?", tp.hasSubscribers());
+        Assert.assertTrue("No subscribers?", tp.hasDownstreams());
         Assert.assertFalse("Completed?", tp.hasCompleted());
         Assert.assertNull("Has error?", tp.getError());
         Assert.assertFalse("Has error?", tp.hasError());
@@ -89,7 +89,7 @@ public class SimpleProcessorTest {
         tp.onNext(2);
         tp.onComplete();
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
         Assert.assertTrue("Not completed?", tp.hasCompleted());
         Assert.assertNull("Has error?", tp.getError());
         Assert.assertFalse("Has error?", tp.hasError());
@@ -118,7 +118,7 @@ public class SimpleProcessorTest {
         tp.onNext(2);
         tp.onComplete();
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
         Assert.assertTrue("Not completed?", tp.hasCompleted());
         Assert.assertNull("Has error?", tp.getError());
         Assert.assertFalse("Has error?", tp.hasError());
@@ -136,7 +136,7 @@ public class SimpleProcessorTest {
 
         tp.subscribe(ts);
 
-        Assert.assertTrue("No subscribers?", tp.hasSubscribers());
+        Assert.assertTrue("No subscribers?", tp.hasDownstreams());
         Assert.assertFalse("Completed?", tp.hasCompleted());
         Assert.assertNull("Has error?", tp.getError());
         Assert.assertFalse("Has error?", tp.hasError());
@@ -155,7 +155,7 @@ public class SimpleProcessorTest {
         tp.onNext(3);
         tp.onError(new RuntimeException("forced failure"));
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
         Assert.assertFalse("Completed?", tp.hasCompleted());
         Assert.assertNotNull("Has error?", tp.getError());
         Assert.assertTrue("No error?", tp.hasError());
@@ -179,7 +179,7 @@ public class SimpleProcessorTest {
 
         tp.subscribe(ts);
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
         Assert.assertFalse("Completed?", tp.hasCompleted());
         Assert.assertNotNull("No error?", tp.getError());
         Assert.assertTrue("No error?", tp.hasError());
@@ -203,7 +203,7 @@ public class SimpleProcessorTest {
 
         tp.subscribe(ts);
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
         Assert.assertTrue("Not completed?", tp.hasCompleted());
         Assert.assertNull("Has error?", tp.getError());
         Assert.assertFalse("Has error?", tp.hasError());
@@ -222,7 +222,7 @@ public class SimpleProcessorTest {
 
         tp.subscribe(ts);
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
 
         tp.onNext(1);
 
@@ -240,7 +240,7 @@ public class SimpleProcessorTest {
 
         tp.subscribe(ts);
 
-        Assert.assertTrue("No Subscribers present?", tp.hasSubscribers());
+        Assert.assertTrue("No Subscribers present?", tp.hasDownstreams());
 
         tp.onNext(1);
 
@@ -250,7 +250,7 @@ public class SimpleProcessorTest {
 
         ts.cancel();
 
-        Assert.assertFalse("Subscribers present?", tp.hasSubscribers());
+        Assert.assertFalse("Subscribers present?", tp.hasDownstreams());
 
         tp.onNext(2);
 

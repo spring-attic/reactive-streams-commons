@@ -53,7 +53,7 @@ public class PublisherBufferStartEndTest {
 
         sp2.onNext(1);
         
-        Assert.assertTrue("sp3 has no subscribers?", sp3.hasSubscribers());
+        Assert.assertTrue("sp3 has no subscribers?", sp3.hasDownstreams());
         
         sp1.onNext(2);
         sp1.onNext(3);
@@ -69,7 +69,7 @@ public class PublisherBufferStartEndTest {
         
         sp2.onNext(2);
 
-        Assert.assertTrue("sp4 has no subscribers?", sp4.hasSubscribers());
+        Assert.assertTrue("sp4 has no subscribers?", sp4.hasDownstreams());
         
         sp1.onNext(6);
         
@@ -109,7 +109,7 @@ public class PublisherBufferStartEndTest {
         sp2.onNext(1);
         sp2.onComplete();
         
-        Assert.assertTrue("sp3 has no subscribers?", sp3.hasSubscribers());
+        Assert.assertTrue("sp3 has no subscribers?", sp3.hasDownstreams());
         
         sp1.onNext(2);
         sp1.onNext(3);
@@ -121,9 +121,9 @@ public class PublisherBufferStartEndTest {
         .assertNoError()
         .assertComplete();
 
-        Assert.assertFalse("sp1 has subscribers?", sp1.hasSubscribers());
-        Assert.assertFalse("sp2 has subscribers?", sp2.hasSubscribers());
-        Assert.assertFalse("sp3 has subscribers?", sp3.hasSubscribers());
+        Assert.assertFalse("sp1 has subscribers?", sp1.hasDownstreams());
+        Assert.assertFalse("sp2 has subscribers?", sp2.hasDownstreams());
+        Assert.assertFalse("sp3 has subscribers?", sp3.hasDownstreams());
 
     }
 

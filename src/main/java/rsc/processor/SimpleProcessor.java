@@ -193,7 +193,8 @@ public final class SimpleProcessor<T>
         }
     }
 
-    public boolean hasSubscribers() {
+    @Override
+    public boolean hasDownstreams() {
         SimpleProcessorSubscription<T>[] s = subscribers;
         return s != EMPTY && s != TERMINATED;
     }

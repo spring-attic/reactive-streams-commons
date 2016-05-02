@@ -509,8 +509,8 @@ public class PublisherFlatMapTest {
         .assertNoError()
         .assertNotComplete();
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertFalse("source2 has subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertFalse("source2 has subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
         source2.onNext(10);
@@ -544,8 +544,8 @@ public class PublisherFlatMapTest {
         .assertNoError()
         .assertNotComplete();
         
-        Assert.assertTrue("source1 no subscribers?", source1.hasSubscribers());
-        Assert.assertTrue("source2 no  subscribers?", source2.hasSubscribers());
+        Assert.assertTrue("source1 no subscribers?", source1.hasDownstreams());
+        Assert.assertTrue("source2 no  subscribers?", source2.hasDownstreams());
         
         source1.onNext(1);
         source1.onComplete();

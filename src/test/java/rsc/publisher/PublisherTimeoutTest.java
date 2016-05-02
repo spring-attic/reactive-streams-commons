@@ -101,7 +101,7 @@ public class PublisherTimeoutTest {
 
         source.onComplete();
 
-        Assert.assertFalse("Timeout has subscribers?", tp.hasSubscribers());
+        Assert.assertFalse("Timeout has subscribers?", tp.hasDownstreams());
 
         ts.assertValue(0)
           .assertComplete()
@@ -125,7 +125,7 @@ public class PublisherTimeoutTest {
 
         source.onComplete();
 
-        Assert.assertFalse("Timeout has subscribers?", tp.hasSubscribers());
+        Assert.assertFalse("Timeout has subscribers?", tp.hasDownstreams());
 
         ts.assertValue(0)
           .assertComplete()
@@ -149,7 +149,7 @@ public class PublisherTimeoutTest {
 
         source.onComplete();
 
-        Assert.assertFalse("Timeout has subscribers?", tp.hasSubscribers());
+        Assert.assertFalse("Timeout has subscribers?", tp.hasDownstreams());
 
         ts.assertValue(0)
           .assertComplete()

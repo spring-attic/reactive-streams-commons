@@ -194,7 +194,7 @@ public class PublisherUsingTest {
 
         new PublisherUsing<>(() -> 1, r -> tp, cleanup::set, true).subscribe(ts);
 
-        Assert.assertTrue("No subscriber?", tp.hasSubscribers());
+        Assert.assertTrue("No subscriber?", tp.hasDownstreams());
 
         tp.onNext(1);
 
@@ -210,7 +210,7 @@ public class PublisherUsingTest {
           .assertNotComplete()
           .assertNoError();
 
-        Assert.assertFalse("Has subscriber?", tp.hasSubscribers());
+        Assert.assertFalse("Has subscriber?", tp.hasDownstreams());
 
         Assert.assertEquals(1, cleanup.get());
     }

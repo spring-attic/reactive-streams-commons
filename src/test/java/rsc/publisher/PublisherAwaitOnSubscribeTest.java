@@ -79,7 +79,7 @@ public class PublisherAwaitOnSubscribeTest {
         Assert.assertNull("Error: " + e.get(), e.get());
         
         Assert.assertFalse("Cancel executed before onSubscribe finished", state2.get());
-        Assert.assertFalse("Has subscribers?!", sp.hasSubscribers());
+        Assert.assertFalse("Has subscribers?!", sp.hasDownstreams());
     }
 
     @Test

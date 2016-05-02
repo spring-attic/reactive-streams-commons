@@ -57,7 +57,7 @@ public class PublisherWindowBatchTest {
         .assertNoError()
         .assertNotComplete();
         
-        Assert.assertTrue("b1 has no subscribers?", b1.hasSubscribers());
+        Assert.assertTrue("b1 has no subscribers?", b1.hasDownstreams());
         
         main.onNext(1);
         
@@ -68,8 +68,8 @@ public class PublisherWindowBatchTest {
         main.onNext(2);
         main.onNext(3);
         
-        Assert.assertFalse("b1 has subscribers?", b1.hasSubscribers());
-        Assert.assertTrue("b2 has no subscribers?", b2.hasSubscribers());
+        Assert.assertFalse("b1 has subscribers?", b1.hasDownstreams());
+        Assert.assertTrue("b2 has no subscribers?", b2.hasDownstreams());
         
         main.onNext(4);
 
@@ -79,12 +79,12 @@ public class PublisherWindowBatchTest {
 
         b2.onNext(100);
 
-        Assert.assertFalse("b2 has subscribers?", b2.hasSubscribers());
-        Assert.assertTrue("b3 has no subscribers?", b3.hasSubscribers());
+        Assert.assertFalse("b2 has subscribers?", b2.hasDownstreams());
+        Assert.assertTrue("b3 has no subscribers?", b3.hasDownstreams());
         
         b3.onComplete();
 
-        Assert.assertFalse("b2 has subscribers?", b3.hasSubscribers());
+        Assert.assertFalse("b2 has subscribers?", b3.hasDownstreams());
         
         main.onComplete();
         
@@ -123,7 +123,7 @@ public class PublisherWindowBatchTest {
         .assertNoError()
         .assertNotComplete();
         
-        Assert.assertTrue("b1 has no subscribers?", b1.hasSubscribers());
+        Assert.assertTrue("b1 has no subscribers?", b1.hasDownstreams());
         
         main.onNext(1);
         
@@ -134,8 +134,8 @@ public class PublisherWindowBatchTest {
         main.onNext(2);
         main.onNext(3);
         
-        Assert.assertFalse("b1 has subscribers?", b1.hasSubscribers());
-        Assert.assertTrue("b2 has no subscribers?", b2.hasSubscribers());
+        Assert.assertFalse("b1 has subscribers?", b1.hasDownstreams());
+        Assert.assertTrue("b2 has no subscribers?", b2.hasDownstreams());
         
         main.onNext(4);
 
@@ -145,12 +145,12 @@ public class PublisherWindowBatchTest {
 
         b2.onNext(100);
 
-        Assert.assertFalse("b2 has subscribers?", b2.hasSubscribers());
-        Assert.assertTrue("b3 has no subscribers?", b3.hasSubscribers());
+        Assert.assertFalse("b2 has subscribers?", b2.hasDownstreams());
+        Assert.assertTrue("b3 has no subscribers?", b3.hasDownstreams());
         
         b3.onComplete();
 
-        Assert.assertFalse("b2 has subscribers?", b3.hasSubscribers());
+        Assert.assertFalse("b2 has subscribers?", b3.hasDownstreams());
         
         main.onComplete();
         
