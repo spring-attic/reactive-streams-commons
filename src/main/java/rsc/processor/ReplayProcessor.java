@@ -271,7 +271,7 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurab
 
         @Override
         public int capacity() {
-            return size;
+            return batchSize;
         }
 
         @Override
@@ -508,7 +508,7 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurab
 
         @Override
         public int capacity() {
-            return size;
+            return limit;
         }
 
         @Override
