@@ -3,6 +3,7 @@ package rsc.publisher;
 import java.util.HashSet;
 
 import org.junit.Test;
+import reactor.core.flow.Fuseable;
 import rsc.processor.ReplayProcessor;
 import rsc.test.TestSubscriber;
 
@@ -126,6 +127,7 @@ public class PublisherDistinctTest {
     public void allSameFusable() {
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
+        ts.requestedFusionMode(Fuseable.ANY);
 
         new PublisherDistinct<>(new PublisherArray<>(1, 1, 1, 1, 1, 1, 1, 1, 1),
                 k -> k,
@@ -136,6 +138,9 @@ public class PublisherDistinctTest {
                              .subscribe(ts);
 
         ts.assertValue(1)
+          .assertFuseableSource()
+          .assertFusionEnabled()
+          .assertFusionMode(Fuseable.ASYNC)
           .assertComplete()
           .assertNoError();
     }
