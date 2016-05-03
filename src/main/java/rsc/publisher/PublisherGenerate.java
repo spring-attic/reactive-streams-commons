@@ -8,6 +8,7 @@ import java.util.function.*;
 import org.reactivestreams.Subscriber;
 
 import rsc.flow.*;
+import rsc.subscriber.SignalEmitter;
 import rsc.util.*;
 import rsc.flow.Fuseable.*;
 
@@ -26,49 +27,23 @@ import rsc.flow.Fuseable.*;
 public final class PublisherGenerate<T, S> 
 extends Px<T> {
 
-    /**
-     * Interface to receive generated signals from the callback function.
-     * <p>
-     * Methods of this interface should be called at most once per invocation
-     * of the generator function. In addition, at least one of the methods
-     * should be called per invocation of the generator function
-     *
-     * @param <T> the output value type
-     */
-    public interface PublisherGenerateOutput<T> {
-
-        void onNext(T t);
-
-        void onError(Throwable e);
-
-        void onComplete();
-
-        /**
-         * Indicate there won't be any further signals delivered by
-         * the generator and the operator will stop calling it.
-         * <p>
-         * Call to this method will also trigger the state consumer.
-         */
-        void stop();
-    }
-
     final Callable<S> stateSupplier;
 
-    final BiFunction<S, PublisherGenerateOutput<T>, S> generator;
+    final BiFunction<S, SignalEmitter<T>, S> generator;
 
     final Consumer<? super S> stateConsumer;
 
-    public PublisherGenerate(BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
+    public PublisherGenerate(BiFunction<S, SignalEmitter<T>, S> generator) {
         this(() -> null, generator, s -> {
         });
     }
 
-    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
+    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator) {
         this(stateSupplier, generator, s -> {
         });
     }
 
-    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator,
+    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator,
                              Consumer<? super S> stateConsumer) {
         this.stateSupplier = Objects.requireNonNull(stateSupplier, "stateSupplier");
         this.generator = Objects.requireNonNull(generator, "generator");
@@ -89,11 +64,11 @@ extends Px<T> {
     }
 
     static final class GenerateSubscription<T, S>
-      implements QueueSubscription<T>, PublisherGenerateOutput<T> {
+      implements QueueSubscription<T>, SignalEmitter<T> {
 
         final Subscriber<? super T> actual;
 
-        final BiFunction<S, PublisherGenerateOutput<T>, S> generator;
+        final BiFunction<S, SignalEmitter<T>, S> generator;
 
         final Consumer<? super S> stateConsumer;
 
@@ -117,7 +92,7 @@ extends Px<T> {
             AtomicLongFieldUpdater.newUpdater(GenerateSubscription.class, "requested");
 
         public GenerateSubscription(Subscriber<? super T> actual, S state,
-                                             BiFunction<S, PublisherGenerateOutput<T>, S> generator, Consumer<? super
+                                             BiFunction<S, SignalEmitter<T>, S> generator, Consumer<? super
           S> stateConsumer) {
             this.actual = actual;
             this.state = state;
@@ -194,7 +169,7 @@ extends Px<T> {
         void fastPath() {
             S s = state;
 
-            final BiFunction<S, PublisherGenerateOutput<T>, S> g = generator;
+            final BiFunction<S, SignalEmitter<T>, S> g = generator;
 
             for (; ; ) {
 
@@ -232,7 +207,7 @@ extends Px<T> {
 
             long e = 0L;
 
-            final BiFunction<S, PublisherGenerateOutput<T>, S> g = generator;
+            final BiFunction<S, SignalEmitter<T>, S> g = generator;
 
             for (; ; ) {
                 while (e != n) {
