@@ -3,16 +3,13 @@ package rsc.publisher;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.*;
 
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import rsc.flow.*;
-import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.util.*;
+import rsc.flow.Fuseable.*;
 
 /**
  * Generate signals one-by-one via a function callback.
@@ -25,7 +22,7 @@ import rsc.util.SubscriptionHelper;
  * @param <S> the custom state per subscriber
  */
 @BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
-// TODO @FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC, FusionMode.CONDITIONAL })
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SYNC, FusionMode.BOUNDARY })
 public final class PublisherGenerate<T, S> 
 extends Px<T> {
 
@@ -92,7 +89,7 @@ extends Px<T> {
     }
 
     static final class GenerateSubscription<T, S>
-      implements Subscription, PublisherGenerateOutput<T> {
+      implements QueueSubscription<T>, PublisherGenerateOutput<T> {
 
         final Subscriber<? super T> actual;
 
@@ -107,11 +104,17 @@ extends Px<T> {
         boolean terminate;
 
         boolean hasValue;
+        
+        boolean outputFused;
+        
+        T generatedValue;
+        
+        Throwable generatedError;
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<GenerateSubscription> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(GenerateSubscription.class, "requested");
+        static final AtomicLongFieldUpdater<GenerateSubscription> REQUESTED = 
+            AtomicLongFieldUpdater.newUpdater(GenerateSubscription.class, "requested");
 
         public GenerateSubscription(Subscriber<? super T> actual, S state,
                                              BiFunction<S, PublisherGenerateOutput<T>, S> generator, Consumer<? super
@@ -136,7 +139,11 @@ extends Px<T> {
                 return;
             }
             hasValue = true;
-            actual.onNext(t);
+            if (outputFused) {
+                generatedValue = t;
+            } else {
+                actual.onNext(t);
+            }
         }
 
         @Override
@@ -145,7 +152,11 @@ extends Px<T> {
                 return;
             }
             terminate = true;
-            actual.onError(e);
+            if (outputFused) {
+                generatedError = e;
+            } else {
+                actual.onError(e);
+            }
         }
 
         @Override
@@ -154,7 +165,9 @@ extends Px<T> {
                 return;
             }
             terminate = true;
-            actual.onComplete();
+            if (!outputFused) {
+                actual.onComplete();
+            }
         }
 
         @Override
@@ -282,8 +295,75 @@ extends Px<T> {
 
                 stateConsumer.accept(s);
             } catch (Throwable e) {
-                // FIXME this exception has nowhere to go
+                UnsignalledExceptions.onErrorDropped(e);
             }
+        }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            if ((requestedMode & Fuseable.SYNC) != 0 && (requestedMode & Fuseable.THREAD_BARRIER) == 0) {
+                outputFused = true;
+                return Fuseable.SYNC;
+            }
+            return Fuseable.NONE;
+        }
+        
+        @Override
+        public T poll() {
+            if (terminate) {
+                return null;
+            }
+
+            S s = state;
+            
+            try {
+                s = generator.apply(s, this);
+            } catch (final Throwable ex) {
+                cleanup(s);
+                throw ex;
+            }
+            
+            Throwable e = generatedError;
+            if (e != null) {
+                cleanup(s);
+                
+                generatedError = null;
+                ExceptionHelper.bubble(e);
+                return null;
+            }
+            
+            if (!hasValue) {
+                cleanup(s);
+                
+                if (!terminate) {
+                    throw new IllegalStateException("The generator didn't call any of the " +
+                        "PublisherGenerateOutput method");
+                }
+                return null;
+            }
+            
+            T v = generatedValue;
+            generatedValue = null;
+            hasValue = false;
+
+            state = s;
+            return v;
+        }
+        
+        @Override
+        public boolean isEmpty() {
+            return terminate;
+        }
+        
+        @Override
+        public int size() {
+            return isEmpty() ? 0 : -1;
+        }
+        
+        @Override
+        public void clear() {
+            generatedError = null;
+            generatedValue = null;
         }
     }
 }

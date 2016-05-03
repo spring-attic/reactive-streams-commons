@@ -1,12 +1,11 @@
 package rsc.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
+
+import rsc.flow.Fuseable;
 import rsc.test.TestSubscriber;
 
 public class PublisherGenerateTest {
@@ -313,4 +312,53 @@ public class PublisherGenerateTest {
           .assertComplete()
           .assertNoError();
     }
+    
+    @Test
+    public void fusion() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+        Px.<Integer, Iterator<Integer>>generate(
+          () -> list.iterator(),
+          (s, o) -> {
+              if (s.hasNext()) {
+                  o.onNext(s.next());
+              } else {
+                  o.onComplete();
+              }
+              return s;
+          }).subscribe(ts);
+        
+        ts.assertFuseableSource()
+        .assertFusionMode(Fuseable.SYNC)
+        .assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        ;
+    }
+
+    @Test
+    public void fusionBoundary() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        ts.requestedFusionMode(Fuseable.ANY | Fuseable.THREAD_BARRIER);
+        
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+        Px.<Integer, Iterator<Integer>>generate(
+          () -> list.iterator(),
+          (s, o) -> {
+              if (s.hasNext()) {
+                  o.onNext(s.next());
+              } else {
+                  o.onComplete();
+              }
+              return s;
+          }).subscribe(ts);
+        
+        ts.assertFuseableSource()
+        .assertFusionMode(Fuseable.NONE)
+        .assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        ;
+    }
+
 }
