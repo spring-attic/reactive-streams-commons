@@ -8,7 +8,6 @@ import java.util.stream.*;
 import org.reactivestreams.*;
 
 import rsc.flow.*;
-import rsc.publisher.PublisherGenerate.PublisherGenerateOutput;
 import rsc.scheduler.*;
 import rsc.state.Introspectable;
 import rsc.subscriber.*;
@@ -907,15 +906,15 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return new PublisherDefer<>(callback);
     }
 
-    public static <T, S> Px<T> generate(BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
+    public static <T, S> Px<T> generate(BiFunction<S, SignalEmitter<T>, S> generator) {
         return new PublisherGenerate<>(generator);
     }
 
-    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator) {
+    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator) {
         return new PublisherGenerate<>(stateSupplier, generator);
     }
 
-    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, PublisherGenerateOutput<T>, S> generator, Consumer<? super S> stateConsumer) {
+    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator, Consumer<? super S> stateConsumer) {
         return new PublisherGenerate<>(stateSupplier, generator, stateConsumer);
     }
     
