@@ -5,7 +5,8 @@ import java.util.Objects;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.SubscriptionHelper;
 
@@ -14,6 +15,8 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.NONE })
 public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
 
     final T value;
@@ -93,6 +96,11 @@ public final class PublisherDefaultIfEmpty<T> extends PublisherSource<T, T> {
         @Override
         public Object connectedInput() {
             return value;
+        }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            return Fuseable.NONE; // prevent fusion because of the upstream
         }
     }
 }

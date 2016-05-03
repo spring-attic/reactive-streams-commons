@@ -6,9 +6,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.reactivestreams.Subscriber;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 
-public final class PublisherFuture<T> extends Px<T> {
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
+public final class PublisherFuture<T> extends Px<T> implements Fuseable {
     
     final Future<? extends T> future;
     

@@ -6,6 +6,7 @@ import java.util.stream.Collector;
 
 import org.reactivestreams.*;
 
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.*;
 
@@ -17,7 +18,9 @@ import rsc.util.*;
  * @param <A> an intermediate value type
  * @param <R> the output value type
  */
-public final class PublisherStreamCollector<T, A, R> extends PublisherSource<T, R> {
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
+public final class PublisherStreamCollector<T, A, R> extends PublisherSource<T, R> implements Fuseable {
     
     final Collector<T, A, R> collector;
 

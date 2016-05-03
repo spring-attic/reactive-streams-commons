@@ -4,7 +4,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.reactivestreams.Subscriber;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 
 /**
@@ -15,9 +16,11 @@ import rsc.subscriber.DeferredScalarSubscriber;
  *
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.ASYNC })
 public final class PublisherCompletableFuture<T> 
 extends Px<T>
-        implements Receiver {
+        implements Receiver, Fuseable {
 
     final CompletableFuture<? extends T> future;
 

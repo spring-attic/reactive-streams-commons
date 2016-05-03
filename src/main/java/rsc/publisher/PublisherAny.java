@@ -6,7 +6,8 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.ExceptionHelper;
 import rsc.util.SubscriptionHelper;
@@ -21,7 +22,9 @@ import rsc.util.UnsignalledExceptions;
  *
  * @param <T> the source value type
  */
-public final class PublisherAny<T> extends PublisherSource<T, Boolean> {
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
+public final class PublisherAny<T> extends PublisherSource<T, Boolean> implements Fuseable {
 
     final Predicate<? super T> predicate;
 

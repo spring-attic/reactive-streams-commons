@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.*;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Fuseable;
+import rsc.flow.*;
 import rsc.publisher.Px;
 import rsc.util.*;
 
@@ -18,6 +18,8 @@ import rsc.util.*;
  *
  * @param <T> the value type
  */
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, Fuseable {
 
     volatile AsyncSubscription<T>[] subscribers;
@@ -86,7 +88,7 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
         s.onSubscribe(as);
         
         if (add(as)) {
-            if (as.cancelled != 0) {
+            if (as.isCancelled()) {
                 remove(as);
             }
         } else {
@@ -157,11 +159,6 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
         
         final AsyncProcessor<T> parent;
         
-        volatile int cancelled;
-        @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<AsyncSubscription> CANCELLED =
-                AtomicIntegerFieldUpdater.newUpdater(AsyncSubscription.class, "cancelled");
-
         volatile int state;
         @SuppressWarnings("rawtypes")
         static final AtomicIntegerFieldUpdater<AsyncSubscription> STATE =
@@ -192,15 +189,14 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
             }
             for (;;) {
                 int s = state;
-                if (s == NO_REQUEST_HAS_VALUE /* || s == HAS_REQUEST_HAS_VALUE */) {
+                if (s == NO_REQUEST_HAS_VALUE || s == HAS_REQUEST_HAS_VALUE) {
                     return;
                 } else
                 if (s == HAS_REQUEST_NO_VALUE) {
                     // since drain is called at most once, no need for CAS to HAS_REQUEST_HAS_VALUE
-                    if (cancelled == 0) {
-                        actual.onNext(value);
-                    }
-                    if (cancelled == 0) {
+                    actual.onNext(value);
+                    
+                    if (state != HAS_REQUEST_HAS_VALUE) {
                         actual.onComplete();
                     }
                     return;
@@ -226,9 +222,7 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
                             if (v != null) {
                                 actual.onNext(v);
                             }
-                            if (cancelled == 0) {
-                                actual.onComplete();
-                            }
+                            actual.onComplete();
                         }
                         return;
                     } else
@@ -241,9 +235,13 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
         
         @Override
         public void cancel() {
-            if (CANCELLED.compareAndSet(this, 0, 1)) {
+            if (STATE.getAndSet(this, HAS_REQUEST_HAS_VALUE) != HAS_REQUEST_HAS_VALUE) {
                 parent.remove(this);
             }
+        }
+        
+        boolean isCancelled() {
+            return state == HAS_REQUEST_HAS_VALUE;
         }
         
         @Override
@@ -270,7 +268,7 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
         
         @Override
         public boolean isEmpty() {
-            return !outputFused;
+            return !outputFused || parent.value == null;
         }
         
         @Override
@@ -280,7 +278,7 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
         
         @Override
         public int size() {
-            return parent.isTerminated() && outputFused && parent.value != null ? 1 : 0;
+            return isEmpty() ? 0 : 1;
         }
     }
 }

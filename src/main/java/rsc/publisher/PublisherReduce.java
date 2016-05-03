@@ -7,7 +7,8 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.EmptySubscription;
 import rsc.util.ExceptionHelper;
@@ -21,7 +22,9 @@ import rsc.util.UnsignalledExceptions;
  * @param <T> the source value type
  * @param <R> the accumulated result type
  */
-public final class PublisherReduce<T, R> extends PublisherSource<T, R> {
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
+public final class PublisherReduce<T, R> extends PublisherSource<T, R> implements Fuseable {
 
     final Supplier<R> initialSupplier;
 

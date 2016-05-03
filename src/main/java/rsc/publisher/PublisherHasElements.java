@@ -3,10 +3,13 @@ package rsc.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.SubscriptionHelper;
 
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class PublisherHasElements<T> extends PublisherSource<T, Boolean> {
 
     public PublisherHasElements(Publisher<? extends T> source) {

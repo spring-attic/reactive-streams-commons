@@ -4,23 +4,21 @@ import java.util.ArrayDeque;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.BooleanSupplier;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.subscriber.DeferredScalarSubscriber;
-import rsc.util.DrainHelper;
-import rsc.util.SubscriptionHelper;
+import org.reactivestreams.*;
+
+import rsc.flow.*;
+import rsc.publisher.PublisherTakeLastOne.PublisherTakeLastOneSubscriber;
+import rsc.state.*;
+import rsc.util.*;
 
 /**
  * Emits the last N values the source emitted before its completion.
  *
  * @param <T> the value type
  */
-public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
+public final class PublisherTakeLast<T> extends PublisherSource<T, T> implements Fuseable {
 
     final int n;
 
@@ -100,60 +98,6 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> {
             s.cancel();
         }
         
-        @Override
-        public Object upstream() {
-            return s;
-        }
-    }
-
-    static final class PublisherTakeLastOneSubscriber<T>
-            extends DeferredScalarSubscriber<T, T>
-            implements Receiver {
-
-        Subscription s;
-
-        public PublisherTakeLastOneSubscriber(Subscriber<? super T> actual) {
-            super(actual);
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = s;
-
-                subscriber.onSubscribe(this);
-
-                s.request(Long.MAX_VALUE);
-            }
-
-        }
-
-        @Override
-        public void onNext(T t) {
-            value = t;
-        }
-
-        @Override
-        public void onComplete() {
-            T v = value;
-            if (v == null) {
-                subscriber.onComplete();
-                return;
-            }
-            complete(v);
-        }
-
-        @Override
-        public void cancel() {
-            super.cancel();
-            s.cancel();
-        }
-
-        @Override
-        public void setValue(T value) {
-            // value is always in a field
-        }
-
         @Override
         public Object upstream() {
             return s;

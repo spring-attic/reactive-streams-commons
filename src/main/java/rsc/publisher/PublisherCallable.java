@@ -17,11 +17,11 @@ import rsc.util.ExceptionHelper;
  *
  * @param <T> the returned value type
  */
-@BackpressureSupport(input = BackpressureMode.NONE, output = BackpressureMode.BOUNDED)
-@FusionSupport(output = { FusionMode.SCALAR })
+@BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE }, output = { FusionMode.SCALAR, FusionMode.ASYNC })
 public final class PublisherCallable<T> 
 extends Px<T>
-        implements Receiver, Callable<T> {
+        implements Receiver, Callable<T>, Fuseable {
 
     final Callable<? extends T> callable;
 

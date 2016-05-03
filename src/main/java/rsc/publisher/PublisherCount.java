@@ -3,7 +3,8 @@ package rsc.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Receiver;
+
+import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.SubscriptionHelper;
 
@@ -12,7 +13,9 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the source value type
  */
-public final class PublisherCount<T> extends PublisherSource<T, Long> {
+@BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
+@FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
+public final class PublisherCount<T> extends PublisherSource<T, Long> implements Fuseable {
 
     public PublisherCount(Publisher<? extends T> source) {
         super(source);

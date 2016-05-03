@@ -371,6 +371,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final Px<T> takeLast(int n) {
+        if (n == 1) {
+            return new PublisherTakeLastOne<>(this);
+        }
         return new PublisherTakeLast<>(this, n);
     }
     
