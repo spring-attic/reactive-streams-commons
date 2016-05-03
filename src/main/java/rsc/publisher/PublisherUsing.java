@@ -184,7 +184,7 @@ extends Px<T>
 
             actual.onError(t);
 
-            if (!eager) {
+            if (!eager && WIP.compareAndSet(this, 0, 1)) {
                 cleanup();
             }
         }
@@ -203,7 +203,7 @@ extends Px<T>
 
             actual.onComplete();
 
-            if (!eager) {
+            if (!eager && WIP.compareAndSet(this, 0, 1)) {
                 cleanup();
             }
         }
@@ -302,7 +302,7 @@ extends Px<T>
 
         @Override
         public void onError(Throwable t) {
-            if (eager) {
+            if (eager && WIP.compareAndSet(this, 0, 1)) {
                 try {
                     resourceCleanup.accept(resource);
                 } catch (Throwable e) {
@@ -315,14 +315,14 @@ extends Px<T>
 
             actual.onError(t);
 
-            if (!eager) {
+            if (!eager && WIP.compareAndSet(this, 0, 1)) {
                 cleanup();
             }
         }
 
         @Override
         public void onComplete() {
-            if (eager) {
+            if (eager && WIP.compareAndSet(this, 0, 1)) {
                 try {
                     resourceCleanup.accept(resource);
                 } catch (Throwable e) {
@@ -334,7 +334,7 @@ extends Px<T>
 
             actual.onComplete();
 
-            if (!eager) {
+            if (!eager && WIP.compareAndSet(this, 0, 1)) {
                 cleanup();
             }
         }
@@ -354,7 +354,9 @@ extends Px<T>
             T v = s.poll();
             
             if (v == null && mode == SYNC) {
-                resourceCleanup.accept(resource);
+                if (WIP.compareAndSet(this, 0, 1)) {
+                    resourceCleanup.accept(resource);
+                }
             }
             return v;
         }
@@ -441,7 +443,7 @@ extends Px<T>
         
         @Override
         public void onError(Throwable t) {
-            if (eager) {
+            if (eager && WIP.compareAndSet(this, 0, 1)) {
                 try {
                     resourceCleanup.accept(resource);
                 } catch (Throwable e) {
@@ -454,14 +456,14 @@ extends Px<T>
 
             actual.onError(t);
 
-            if (!eager) {
+            if (!eager && WIP.compareAndSet(this, 0, 1)) {
                 cleanup();
             }
         }
 
         @Override
         public void onComplete() {
-            if (eager) {
+            if (eager && WIP.compareAndSet(this, 0, 1)) {
                 try {
                     resourceCleanup.accept(resource);
                 } catch (Throwable e) {
@@ -473,7 +475,7 @@ extends Px<T>
 
             actual.onComplete();
 
-            if (!eager) {
+            if (!eager && WIP.compareAndSet(this, 0, 1)) {
                 cleanup();
             }
         }
