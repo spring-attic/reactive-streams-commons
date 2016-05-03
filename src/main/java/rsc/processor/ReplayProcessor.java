@@ -173,6 +173,7 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurab
         } else {
             if(!SubscriptionHelper.validate(subscription, s)) {
                 s.cancel();
+                return;
             }
             subscription = s;
             s.request(Long.MAX_VALUE);
