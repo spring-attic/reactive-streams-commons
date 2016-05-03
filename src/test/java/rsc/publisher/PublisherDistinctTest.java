@@ -3,7 +3,7 @@ package rsc.publisher;
 import java.util.HashSet;
 
 import org.junit.Test;
-import reactor.core.flow.Fuseable;
+import rsc.flow.Fuseable;
 import rsc.processor.ReplayProcessor;
 import rsc.test.TestSubscriber;
 
