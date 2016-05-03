@@ -648,22 +648,22 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return new PublisherWindowBatch<>(this, boundarySupplier, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
     }
 
-    public final ConnectablePublisher<T> multicast(Processor<? super T, ? extends T> processor) {
-        return multicast(() -> processor);
+    public final ConnectablePublisher<T> process(Processor<? super T, ? extends T> processor) {
+        return process(() -> processor);
     }
 
     @SuppressWarnings("unchecked")
-    public final ConnectablePublisher<T> multicast(
+    public final ConnectablePublisher<T> process(
             Supplier<? extends Processor<? super T, ? extends T>> processorSupplier) {
-        return multicast(processorSupplier, IDENTITY_FUNCTION);
+        return process(processorSupplier, IDENTITY_FUNCTION);
     }
 
-    public final <U> ConnectablePublisher<U> multicast(Processor<? super T, ? extends T>
+    public final <U> ConnectablePublisher<U> process(Processor<? super T, ? extends T>
             processor, Function<Px<T>, ? extends Publisher<? extends U>> selector) {
-        return multicast(() -> processor, selector);
+        return process(() -> processor, selector);
     }
 
-    public final <U> ConnectablePublisher<U> multicast(Supplier<? extends Processor<? super T, ? extends T>>
+    public final <U> ConnectablePublisher<U> process(Supplier<? extends Processor<? super T, ? extends T>>
             processorSupplier, Function<Px<T>, ? extends Publisher<? extends U>> selector) {
         return new ConnectablePublisherProcess<>(this, processorSupplier, selector);
     }

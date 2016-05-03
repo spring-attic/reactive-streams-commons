@@ -31,7 +31,7 @@ public class ConnectablePublisherProcessTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         
-        ConnectablePublisher<Integer> p = Px.range(1, 5).multicast(new SimpleProcessor<>());
+        ConnectablePublisher<Integer> p = Px.range(1, 5).process(new SimpleProcessor<>());
         
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -61,7 +61,7 @@ public class ConnectablePublisherProcessTest {
     public void normalProcessorBackpressured() {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>(0);
 
-        ConnectablePublisher<Integer> p = Px.range(1, 5).multicast(new UnicastProcessor<Integer>(new SpscArrayQueue<>(8)));
+        ConnectablePublisher<Integer> p = Px.range(1, 5).process(new UnicastProcessor<Integer>(new SpscArrayQueue<>(8)));
 
         p.subscribe(ts1);
 
@@ -96,7 +96,7 @@ public class ConnectablePublisherProcessTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>(0);
         TestSubscriber<Integer> ts2 = new TestSubscriber<>(0);
 
-        ConnectablePublisher<Integer> p = Px.range(1, 5).multicast(new SimpleProcessor<>());
+        ConnectablePublisher<Integer> p = Px.range(1, 5).process(new SimpleProcessor<>());
 
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -136,7 +136,7 @@ public class ConnectablePublisherProcessTest {
         up.onNext(5);
         up.onComplete();
         
-        ConnectablePublisher<Integer> p = up.multicast(new UnicastProcessor<>(new SpscArrayQueue<>(8)));
+        ConnectablePublisher<Integer> p = up.process(new UnicastProcessor<>(new SpscArrayQueue<>(8)));
         
         p.subscribe(ts1);
 
@@ -166,7 +166,7 @@ public class ConnectablePublisherProcessTest {
         up.onNext(5);
         up.onComplete();
 
-        ConnectablePublisher<Integer> p = up.multicast(new UnicastProcessor<>(new SpscArrayQueue<>(8)));
+        ConnectablePublisher<Integer> p = up.process(new UnicastProcessor<>(new SpscArrayQueue<>(8)));
         
         p.subscribe(ts1);
 
@@ -202,7 +202,7 @@ public class ConnectablePublisherProcessTest {
         
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
         
-        ConnectablePublisher<Integer> p = sp.multicast(new SimpleProcessor<Integer>());
+        ConnectablePublisher<Integer> p = sp.process(new SimpleProcessor<Integer>());
         
         p.subscribe(ts);
         
@@ -228,7 +228,7 @@ public class ConnectablePublisherProcessTest {
 
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
 
-        ConnectablePublisher<Integer> p = sp.multicast(new SimpleProcessor<Integer>());
+        ConnectablePublisher<Integer> p = sp.process(new SimpleProcessor<Integer>());
 
         p.subscribe(ts1);
         p.subscribe(ts2);
@@ -262,7 +262,7 @@ public class ConnectablePublisherProcessTest {
         
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
 
-        ConnectablePublisher<Integer> p = sp.multicast(new SimpleProcessor<Integer>());
+        ConnectablePublisher<Integer> p = sp.process(new SimpleProcessor<Integer>());
         
         p.subscribe(ts);
         
@@ -283,7 +283,7 @@ public class ConnectablePublisherProcessTest {
         
         SimpleProcessor<Integer> sp = new SimpleProcessor<>();
 
-        ConnectablePublisher<Integer> p = sp.multicast(new SimpleProcessor<Integer>());
+        ConnectablePublisher<Integer> p = sp.process(new SimpleProcessor<Integer>());
         
         p.subscribe(ts);
         
@@ -303,7 +303,7 @@ public class ConnectablePublisherProcessTest {
     public void fusedMapInvalid() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        ConnectablePublisher<Integer> p = Px.range(1, 5).map(v -> (Integer)null).multicast(new SimpleProcessor<Integer>());
+        ConnectablePublisher<Integer> p = Px.range(1, 5).map(v -> (Integer)null).process(new SimpleProcessor<Integer>());
         
         p.subscribe(ts);
         
