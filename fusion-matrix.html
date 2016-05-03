@@ -10,7 +10,6 @@
     <td width='100'><b>FlatMap</b></td>
     <td width='100' bgColor='#CCFFCC'><b>FlatMap - inner</b></td>
     <td width='100'><b>FlattenIterable</b></td>
-    <td width='100' bgColor='#CCFFCC'><b>FlattenIterable - inner</b></td>
     <td width='100'><b>Map</b></td>
     <td width='100'><b>MapFuseable</b></td>
     <td width='100' bgColor='#CCFFCC'><b>Merge - inner</b></td>
@@ -42,7 +41,6 @@
 </td>
     <td title='Aggregate -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Aggregate -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Aggregate -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Aggregate -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -84,7 +82,6 @@
 </td>
     <td title='All -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='All -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='All -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='All -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -126,7 +123,6 @@
 </td>
     <td title='Any -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Any -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Any -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Any -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -172,8 +168,6 @@
     <td title='Array -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Array -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
-    <td title='Array -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Array -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -224,7 +218,6 @@
 </td>
     <td title='AsyncProcessor -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='AsyncProcessor -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='AsyncProcessor -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='AsyncProcessor -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -269,7 +262,6 @@
     <td title='Callable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Callable -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Callable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Callable -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -315,7 +307,6 @@
 </td>
     <td title='Collect -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Collect -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Collect -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Collect -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -357,7 +348,6 @@
 </td>
     <td title='CompletableFuture -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='CompletableFuture -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='CompletableFuture -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='CompletableFuture -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -399,7 +389,6 @@
 </td>
     <td title='Count -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Count -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Count -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Count -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -452,8 +441,6 @@
 </td>
     <td title='Distinct -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
-</td>
-    <td title='Distinct -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Distinct -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
@@ -526,8 +513,6 @@
     <td title='DistinctFuseable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='DistinctFuseable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='DistinctFuseable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -585,7 +570,6 @@
     <td title='DistinctUntilChanged -&gt; FlatMap' '>Unfuseable</td>
     <td title='DistinctUntilChanged -&gt; FlatMap - inner' '>Unfuseable</td>
     <td title='DistinctUntilChanged -&gt; FlattenIterable' '>Unfuseable</td>
-    <td title='DistinctUntilChanged -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='DistinctUntilChanged -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='DistinctUntilChanged -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
@@ -625,7 +609,6 @@
 </td>
     <td title='ElementAt -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='ElementAt -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='ElementAt -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ElementAt -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -663,7 +646,6 @@
 </td>
     <td title='Empty -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
 </td>
-    <td title='Empty -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Empty -&gt; Map' '>Unfuseable</td>
     <td title='Empty -&gt; MapFuseable' '>Unfuseable</td>
     <td title='Empty -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
@@ -710,8 +692,6 @@
 </td>
     <td title='Filter -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
-</td>
-    <td title='Filter -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Filter -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
@@ -782,8 +762,6 @@
     <td title='FilterFuseable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='FilterFuseable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='FilterFuseable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -841,8 +819,6 @@
 </td>
     <td title='FlattenIterable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='FlattenIterable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='FlattenIterable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='FlattenIterable -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
@@ -884,7 +860,6 @@
 </td>
     <td title='Future -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Future -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Future -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Future -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -926,7 +901,6 @@
 </td>
     <td title='GroupBy -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='GroupBy -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='GroupBy -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -968,7 +942,6 @@
 </td>
     <td title='GroupBy -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='GroupBy - inner -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='GroupBy -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1010,7 +983,6 @@
 </td>
     <td title='HasElements -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='HasElements -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='HasElements -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='HasElements -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1057,8 +1029,6 @@
 </td>
     <td title='Iterable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='Iterable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='Iterable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
 </td>
@@ -1104,7 +1074,6 @@
 </td>
     <td title='Just -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
 </td>
-    <td title='Just -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Just -&gt; Map' '>Unfuseable</td>
     <td title='Just -&gt; MapFuseable' '>Unfuseable</td>
     <td title='Just -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
@@ -1151,8 +1120,6 @@
 </td>
     <td title='Map -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
-</td>
-    <td title='Map -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Map -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
@@ -1223,8 +1190,6 @@
     <td title='MapFuseable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='MapFuseable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='MapFuseable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -1282,7 +1247,6 @@
 </td>
     <td title='ObserveOn -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='ObserveOn -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='ObserveOn -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ObserveOn -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1322,7 +1286,6 @@
     <td title='Peek -&gt; FlatMap' '>Unfuseable</td>
     <td title='Peek -&gt; FlatMap - inner' '>Unfuseable</td>
     <td title='Peek -&gt; FlattenIterable' '>Unfuseable</td>
-    <td title='Peek -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Peek -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='Peek -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
@@ -1373,8 +1336,6 @@
 </td>
     <td title='PeekFuseable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
-</td>
-    <td title='PeekFuseable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='PeekFuseable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
@@ -1442,8 +1403,6 @@
     <td title='Publish -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='Publish -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='Publish -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -1500,8 +1459,6 @@
 </td>
     <td title='Range -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='Range -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='Range -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
 </td>
@@ -1551,7 +1508,6 @@
 </td>
     <td title='Reduce -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Reduce -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Reduce -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Reduce -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1593,7 +1549,6 @@
 </td>
     <td title='ReplayProcessor -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='ReplayProcessor -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='ReplayProcessor -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ReplayProcessor -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1635,7 +1590,6 @@
 </td>
     <td title='Single -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Single -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Single -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Single -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1675,7 +1629,6 @@
     <td title='SkipWhile -&gt; FlatMap' '>Unfuseable</td>
     <td title='SkipWhile -&gt; FlatMap - inner' '>Unfuseable</td>
     <td title='SkipWhile -&gt; FlattenIterable' '>Unfuseable</td>
-    <td title='SkipWhile -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='SkipWhile -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
     <td title='SkipWhile -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
@@ -1719,8 +1672,6 @@
     <td title='Stream -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Stream -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
-    <td title='Stream -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Stream -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -1771,7 +1722,6 @@
 </td>
     <td title='StreamCollector -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='StreamCollector -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='StreamCollector -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='StreamCollector -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1824,8 +1774,6 @@
 </td>
     <td title='Take -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
-</td>
-    <td title='Take -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Take -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
@@ -1898,8 +1846,6 @@
     <td title='TakeFuseable -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
-    <td title='TakeFuseable -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
-</td>
     <td title='TakeFuseable -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
         <font color='#000000'>Conditional</font><br/>
@@ -1959,7 +1905,6 @@
 </td>
     <td title='TakeLast -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='TakeLast -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='TakeLast -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='TakeLast -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2001,7 +1946,6 @@
 </td>
     <td title='TakeLastOne -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='TakeLastOne -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='TakeLastOne -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='TakeLastOne -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2043,7 +1987,6 @@
 </td>
     <td title='UnicastProcessor -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='UnicastProcessor -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='UnicastProcessor -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='UnicastProcessor -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2096,8 +2039,6 @@
 </td>
     <td title='Using -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
-</td>
-    <td title='Using -&gt; FlattenIterable - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Using -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
@@ -2158,7 +2099,6 @@
 </td>
     <td title='Window -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='Window - inner -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='Window -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Window -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2200,7 +2140,6 @@
 </td>
     <td title='WindowBatch -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
-    <td title='WindowBatch - inner -&gt; FlattenIterable - inner' '>Unfuseable</td>
     <td title='WindowBatch -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='WindowBatch -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>

@@ -16,7 +16,7 @@ import rsc.util.*;
  * @param <R> the value type of the iterables and the result type
  */
 @BackpressureSupport(input = BackpressureMode.BOUNDED, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
-@FusionSupport(input = { FusionMode.SCALAR, FusionMode.SYNC, FusionMode.ASYNC }, innerInput = { FusionMode.SYNC }, output = { FusionMode.SYNC })
+@FusionSupport(input = { FusionMode.SCALAR, FusionMode.SYNC, FusionMode.ASYNC }, output = { FusionMode.SYNC })
 public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> implements Fuseable {
 
     final Function<? super T, ? extends Iterable<? extends R>> mapper;
