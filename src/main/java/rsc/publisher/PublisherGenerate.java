@@ -310,26 +310,27 @@ extends Px<T> {
         
         @Override
         public T poll() {
+            S s = state;
+
             if (terminate) {
+                cleanup(s);
+                
+                Throwable e = generatedError;
+                if (e != null) {
+                    
+                    generatedError = null;
+                    ExceptionHelper.bubble(e);
+                }
+                
                 return null;
             }
 
-            S s = state;
             
             try {
                 s = generator.apply(s, this);
             } catch (final Throwable ex) {
                 cleanup(s);
                 throw ex;
-            }
-            
-            Throwable e = generatedError;
-            if (e != null) {
-                cleanup(s);
-                
-                generatedError = null;
-                ExceptionHelper.bubble(e);
-                return null;
             }
             
             if (!hasValue) {
@@ -339,6 +340,14 @@ extends Px<T> {
                     throw new IllegalStateException("The generator didn't call any of the " +
                         "PublisherGenerateOutput method");
                 }
+                
+                Throwable e = generatedError;
+                if (e != null) {
+                    
+                    generatedError = null;
+                    ExceptionHelper.bubble(e);
+                }
+                
                 return null;
             }
             
