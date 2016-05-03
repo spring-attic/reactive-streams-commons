@@ -171,7 +171,7 @@ extends Px<T>
 
         @Override
         public void onError(Throwable t) {
-            if (eager) {
+            if (eager && WIP.compareAndSet(this, 0, 1)) {
                 try {
                     resourceCleanup.accept(resource);
                 } catch (Throwable e) {
@@ -191,7 +191,7 @@ extends Px<T>
 
         @Override
         public void onComplete() {
-            if (eager) {
+            if (eager && WIP.compareAndSet(this, 0, 1)) {
                 try {
                     resourceCleanup.accept(resource);
                 } catch (Throwable e) {
