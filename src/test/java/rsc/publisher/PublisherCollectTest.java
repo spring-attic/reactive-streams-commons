@@ -2,8 +2,11 @@ package rsc.publisher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Test;
+import org.testng.Assert;
+
 import rsc.test.TestSubscriber;
 
 public class PublisherCollectTest {
@@ -96,4 +99,14 @@ public class PublisherCollectTest {
 
     }
 
+    @Test
+    public void fusionNoPrematureEmission() {
+        Integer i = Px.just(1)
+        .collect(() -> 1, (a, b) -> { })
+        .flatMapIterable(a -> Collections.singletonList(2))
+        .blockingFirst()
+        ;
+        
+        Assert.assertEquals(2, i.intValue());
+    }
 }

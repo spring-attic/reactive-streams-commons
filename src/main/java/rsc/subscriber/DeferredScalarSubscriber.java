@@ -34,7 +34,12 @@ public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, Completabl
     static final AtomicIntegerFieldUpdater<DeferredScalarSubscriber> STATE =
       AtomicIntegerFieldUpdater.newUpdater(DeferredScalarSubscriber.class, "state");
 
-    protected boolean outputFused;
+    protected byte outputFused;
+
+    static final byte OUTPUT_NOT_FUSED = 0;
+    static final byte OUTPUT_NO_VALUE = 1;
+    static final byte OUTPUT_HAS_VALUE = 2;
+    static final byte OUTPUT_COMPLETE = 3;
     
     public DeferredScalarSubscriber(Subscriber<? super O> subscriber) {
         this.subscriber = subscriber;
@@ -130,8 +135,9 @@ public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, Completabl
                 return;
             }
             if (s == SDS_HAS_REQUEST_NO_VALUE) {
-                if (outputFused) {
+                if (outputFused == OUTPUT_NO_VALUE) {
                     setValue(value); // make sure poll sees it
+                    outputFused = OUTPUT_HAS_VALUE;
                 }
                 Subscriber<? super O> a = downstream();
                 a.onNext(value);
@@ -171,7 +177,7 @@ public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, Completabl
     @Override
     public int requestFusion(int requestedMode) {
         if ((requestedMode & Fuseable.ASYNC) != 0) {
-            outputFused = true;
+            outputFused = OUTPUT_NO_VALUE;
             return Fuseable.ASYNC;
         }
         return Fuseable.NONE;
@@ -179,24 +185,21 @@ public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, Completabl
     
     @Override
     public O poll() {
-        if (value != null) {
-            if (outputFused) {
-                // consume parent.value only once
-                outputFused = false;
-                return value;
-            }
+        if (outputFused == OUTPUT_HAS_VALUE) {
+            outputFused = OUTPUT_COMPLETE;
+            return value;
         }
         return null;
     }
     
     @Override
     public boolean isEmpty() {
-        return !outputFused || value == null;
+        return outputFused != OUTPUT_HAS_VALUE;
     }
     
     @Override
     public void clear() {
-        outputFused = false;
+        outputFused = OUTPUT_COMPLETE;
         value = null;
     }
     
