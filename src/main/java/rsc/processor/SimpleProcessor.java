@@ -30,7 +30,7 @@ import rsc.util.SubscriptionHelper;
  * The implementation ignores Subscriptions set via onSubscribe.
  * <p>
  * <p>
- * A terminated TestProcessor will emit the terminal signal to late subscribers.
+ * A terminated SimpleProcessor will emit the terminal signal to late subscribers.
  *
  * @param <T> the input and output value type
  */
