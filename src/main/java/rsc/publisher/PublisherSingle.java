@@ -8,6 +8,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import rsc.documentation.BackpressureMode;
+import rsc.documentation.BackpressureSupport;
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.ExceptionHelper;

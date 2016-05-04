@@ -7,6 +7,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.flow.Fuseable.ConditionalSubscriber;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekConditionalSubscriber;

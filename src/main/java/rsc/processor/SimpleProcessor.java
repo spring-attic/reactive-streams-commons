@@ -10,6 +10,8 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import rsc.documentation.BackpressureMode;
+import rsc.documentation.BackpressureSupport;
 import rsc.flow.*;
 import rsc.publisher.Px;
 import rsc.state.Cancellable;
