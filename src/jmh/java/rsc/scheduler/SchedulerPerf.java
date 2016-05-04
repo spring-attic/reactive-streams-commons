@@ -23,6 +23,7 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 import reactor.core.publisher.Computations;
+import reactor.core.scheduler.Timer;
 import rsc.flow.Cancellation;
 import rsc.scheduler.Scheduler.Worker;
 
@@ -48,6 +49,9 @@ public class SchedulerPerf {
     public enum SchedulerType {
         SINGLE(true),
         PARALLEL,
+
+        SINGLE_REACTOR(true),
+        PARALLEL_REACTOR,
         
         EXECUTOR_SINGLE(true),
         EXECUTOR_SINGLE_TRAMPOLINE,
@@ -68,8 +72,10 @@ public class SchedulerPerf {
         
         TIMED_SINGLE(true),
         
-        TIMED_MANY
-        
+        TIMED_MANY,
+
+        TIMED_REACTOR
+
         ;
         
         final boolean orderedDirect;
@@ -93,8 +99,12 @@ public class SchedulerPerf {
     ScheduledExecutorService scheduledExecutorSingleMany;
 
     Scheduler single;
-    
+
+    Scheduler reactorSingle;
+
     Scheduler parallel;
+
+    Scheduler reactorParallel;
 
     // wrapping an ExecutorService
     
@@ -129,6 +139,8 @@ public class SchedulerPerf {
     
     TimedScheduler timed;
 
+    TimedScheduler reactorTimer;
+
     @Setup
     public void setup() {
         
@@ -144,13 +156,15 @@ public class SchedulerPerf {
 
         // -----------------------------------------------------------------------------------
         
-        //single = new ReactorScheduler(Computations.single());
         single = new ParallelScheduler(1);
 
-        //parallel = new ReactorScheduler(Computations.parallel());
         parallel = new ParallelScheduler();
-        
-        
+
+        reactorSingle = new ReactorScheduler(Computations.single());
+
+        reactorParallel = new ReactorScheduler(Computations.parallel());
+
+
         executorSingle = new ExecutorServiceScheduler(executorServiceSingle, false);
 
         executorTrampolineSingle = new ExecutorServiceScheduler(executorServiceSingle, true);
@@ -183,6 +197,8 @@ public class SchedulerPerf {
         timedSingle = new ExecutorTimedScheduler(scheduledExecutorServiceSingle);
         
         timedMany = new ExecutorTimedScheduler(scheduledExecutorSingleMany);
+
+        reactorTimer = new ReactorTimedScheduler(Timer.create());
         
         // -------------------
         
@@ -190,6 +206,9 @@ public class SchedulerPerf {
         
         schedulers.put(SchedulerType.SINGLE, single);
         schedulers.put(SchedulerType.PARALLEL, parallel);
+
+        schedulers.put(SchedulerType.SINGLE_REACTOR, reactorSingle);
+        schedulers.put(SchedulerType.PARALLEL_REACTOR, reactorParallel);
         
         schedulers.put(SchedulerType.EXECUTOR_SINGLE, executorSingle);
         schedulers.put(SchedulerType.EXECUTOR_SINGLE_TRAMPOLINE, executorTrampolineSingle);
@@ -207,6 +226,7 @@ public class SchedulerPerf {
         schedulers.put(SchedulerType.TIMED, timed);
         schedulers.put(SchedulerType.TIMED_SINGLE, timedSingle);
         schedulers.put(SchedulerType.TIMED_MANY, timedMany);
+        schedulers.put(SchedulerType.TIMED_REACTOR, reactorTimer);
     }
     
     @TearDown
@@ -222,6 +242,10 @@ public class SchedulerPerf {
         single.shutdown();
         
         parallel.shutdown();
+
+        reactorSingle.shutdown();
+
+        reactorParallel.shutdown();
         
         timed.shutdown();
     }
@@ -350,6 +374,87 @@ public class SchedulerPerf {
 
             ReactorWorker(reactor.core.scheduler.Scheduler.Worker w) {
                 this.w = w;
+            }
+
+            @Override
+            public Cancellation schedule(Runnable task) {
+                w.schedule(task);
+                return NOOP;
+            }
+
+            @Override
+            public void shutdown() {
+                w.shutdown();
+            }
+        }
+    }
+
+    static final class ReactorTimedScheduler implements TimedScheduler {
+        static final Cancellation NOOP = () -> {};
+
+        final reactor.core.scheduler.TimedScheduler scheduler;
+
+        ReactorTimedScheduler(reactor.core.scheduler.TimedScheduler scheduler) {
+            this.scheduler = scheduler;
+        }
+
+        @Override
+        public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+            scheduler.schedule(task, delay, unit);
+            return NOOP;
+        }
+
+        @Override
+        public Cancellation schedulePeriodically(Runnable task,
+                long initialDelay,
+                long period,
+                TimeUnit unit) {
+            scheduler.schedulePeriodically(task, initialDelay, period, unit);
+            return NOOP;
+        }
+
+        @Override
+        public Cancellation schedule(Runnable task) {
+            scheduler.schedule(task);
+            return NOOP;
+        }
+
+        @Override
+        public void start() {
+            scheduler.start();
+        }
+
+        @Override
+        public void shutdown() {
+            scheduler.shutdown();
+        }
+
+        @Override
+        public TimedWorker createWorker() {
+            return new ReactorTimedWorker(scheduler.createWorker());
+        }
+
+        static final class ReactorTimedWorker implements TimedWorker {
+
+            final reactor.core.scheduler.TimedScheduler.TimedWorker w;
+
+            ReactorTimedWorker(reactor.core.scheduler.TimedScheduler.TimedWorker w) {
+                this.w = w;
+            }
+
+            @Override
+            public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+                w.schedule(task, delay, unit);
+                return NOOP;
+            }
+
+            @Override
+            public Cancellation schedulePeriodically(Runnable task,
+                    long initialDelay,
+                    long period,
+                    TimeUnit unit) {
+                w.schedulePeriodically(task, initialDelay, period, unit);
+                return NOOP;
             }
 
             @Override
