@@ -3,6 +3,8 @@ A joint research effort for building highly optimized Reactive-Streams compliant
 
 Java 8 required.
 
+<a href='https://travis-ci.org/reactor/reactive-streams-commons/builds'><img src='https://travis-ci.org/reactor/reactive-streams-commons.svg?branch=master'></a>
+
 ## Maven
 
 ```
@@ -11,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    compile 'io.projectreactor:reactive-streams-commons:0.3.0.BUILD-SNAPSHOT'
+    compile 'io.projectreactor:reactive-streams-commons:0.4.0.BUILD-SNAPSHOT'
 }
 ```
 
@@ -131,8 +133,3 @@ I.e., these allow leaving the reactive-streams world.
   - `PublisherBase.blockingFirst` : returns the very first value of the source, blocking if necessary; returns null for an empty sequence.
   - `PublisherBase.blockingLast` : returns the very last value of the source, blocking if necessary; returns null for an empty sequence.
   - `PublisherBase.peekLast` : returns the last value of a synchronous source or likely null for other or empty sequences.
-
-## Travis status
-
-
-<a href='https://travis-ci.org/reactor/reactive-streams-commons/builds'><img src='https://travis-ci.org/reactor/reactive-streams-commons.svg?branch=master'></a>
