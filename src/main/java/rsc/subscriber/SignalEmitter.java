@@ -20,16 +20,22 @@ public interface SignalEmitter<T> extends Backpressurable, Introspectable, Cance
                                           Requestable {
 
     /**
+     * Signal the completion of the sequence.
      * @see Subscriber#onComplete()
      */
     void complete();
 
     /**
+     * Signal the next value in the sequence.
+     * @param t the value to signal, not-null
      * @see Subscriber#onNext(Object)
+     * @return the result of the emission, see {@link Emission} enum.
      */
     Emission emit(T t);
 
     /**
+     * Signal and terminate the sequence with an error.
+     * @param e the Throwable instance, not-null
      * @see Subscriber#onError(Throwable)
      */
     void fail(Throwable e);
@@ -44,7 +50,7 @@ public interface SignalEmitter<T> extends Backpressurable, Introspectable, Cance
 
     /**
      * Try emitting or throw an unchecked exception.
-     *
+     * @param t the value to emit.
      * @see #emit(Object)
      * @throws RuntimeException
      */
@@ -69,7 +75,7 @@ public interface SignalEmitter<T> extends Backpressurable, Introspectable, Cance
 
     /**
      * An acknowledgement signal returned by {@link #emit}.
-     * {@link Emission#isOk()} is the only successful signal, the other define the emission failure cause.
+     * {@link SignalEmitter.Emission#isOk()} is the only successful signal, the other define the emission failure cause.
      *
      */
     enum Emission {
