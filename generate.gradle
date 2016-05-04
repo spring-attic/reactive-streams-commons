@@ -2,8 +2,8 @@
 //Sample tasks used by reactor.
 
 //A complete RS commons coverage minus the lite core
-def excludingCoreScope =  ['detach',
-						   'completablefuture', 'subscribeonother', 'ignoreelements',
+def excludingCoreScope =  [						   'completablefuture',
+													  'subscribeonother',
 						   'blockingfuture', 'windowbatch',
 						   'empty', 'just',
 						   'awaitonsubscribe',
