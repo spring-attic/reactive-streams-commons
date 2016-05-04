@@ -5,6 +5,9 @@ import rsc.state.Backpressurable;
 import rsc.state.Cancellable;
 import rsc.state.Introspectable;
 import rsc.state.Requestable;
+import rsc.util.ExceptionHelper;
+import rsc.util.SubscriptionHelper;
+import rsc.util.UnsignalledExceptions;
 
 /**
  * Interface to receive generated signals from the callback function.
@@ -38,6 +41,31 @@ public interface SignalEmitter<T> extends Backpressurable, Introspectable, Cance
      * Call to this method will also trigger the state consumer.
      */
     void stop();
+
+    /**
+     * Try emitting or throw an unchecked exception.
+     *
+     * @see #emit(Object)
+     * @throws RuntimeException
+     */
+    default void tryEmit(T t) {
+        Emission emission = emit(t);
+        if(emission.isOk()) {
+            return;
+        }
+        if(emission.isBackpressured()){
+            SubscriptionHelper.reportMoreProduced();
+            return;
+        }
+        if(emission.isCancelled()){
+            UnsignalledExceptions.onNextDropped(t);
+            return;
+        }
+        if(getError() != null){
+            throw ExceptionHelper.bubble(getError());
+        }
+        throw new IllegalStateException("Emission has failed");
+    }
 
     /**
      * An acknowledgement signal returned by {@link #emit}.
