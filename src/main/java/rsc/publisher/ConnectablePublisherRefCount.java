@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 
 import org.reactivestreams.*;
 
+import rsc.documentation.Operator;
+import rsc.documentation.OperatorType;
 import rsc.flow.Cancellation;
 import rsc.flow.MultiProducer;
 import rsc.flow.Receiver;
@@ -19,6 +21,7 @@ import rsc.flow.Producer;
  *
  * @param <T> the value type
  */
+@Operator(traits = OperatorType.CONNECTABLE, aliases = {"refCount"})
 public final class ConnectablePublisherRefCount<T> extends Px<T>
         implements Receiver, Loopback {
     

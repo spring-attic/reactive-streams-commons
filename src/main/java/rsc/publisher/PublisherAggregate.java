@@ -11,6 +11,8 @@ import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
+import rsc.documentation.Operator;
+import rsc.documentation.OperatorType;
 import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.ExceptionHelper;
@@ -24,6 +26,7 @@ import rsc.util.UnsignalledExceptions;
  */
 @BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
+@Operator(traits = OperatorType.AGGREGATION, aliases = {"accumulate", "scan"})
 public final class PublisherAggregate<T> extends PublisherSource<T, T> implements Fuseable {
 
     final BiFunction<T, T, T> aggregator;

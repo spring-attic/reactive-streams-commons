@@ -7,6 +7,8 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
+import rsc.documentation.Operator;
+import rsc.documentation.OperatorType;
 import rsc.flow.Cancellation;
 import rsc.flow.Fuseable;
 import rsc.flow.Producer;
@@ -20,6 +22,7 @@ import rsc.util.UnsignalledExceptions;
  * @param <T>
  * @param <U>
  */
+@Operator(traits = OperatorType.CONNECTABLE, aliases = {"process"})
 public final class ConnectablePublisherProcess<T, U> extends ConnectablePublisher<U> implements Receiver, Producer {
 
     final Publisher<T>                                                 source;

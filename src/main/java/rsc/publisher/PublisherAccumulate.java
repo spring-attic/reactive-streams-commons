@@ -6,6 +6,8 @@ import java.util.function.BiFunction;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import rsc.documentation.Operator;
+import rsc.documentation.OperatorType;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
@@ -31,6 +33,7 @@ import rsc.util.UnsignalledExceptions;
  *
  * @param <T> the input and accumulated value type
  */
+@Operator(traits = OperatorType.TRANSFORMATION, aliases = {"accumulate", "scan"})
 public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
 
     final BiFunction<T, ? super T, T> accumulator;

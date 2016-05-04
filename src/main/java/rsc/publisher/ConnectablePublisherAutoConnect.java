@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
 
+import rsc.documentation.Operator;
+import rsc.documentation.OperatorType;
 import rsc.flow.Cancellation;
 import rsc.flow.Receiver;
 
@@ -15,6 +17,7 @@ import rsc.flow.Receiver;
  *
  * @param <T> the value type
  */
+@Operator(traits = OperatorType.CONNECTABLE, aliases = {"autoConnect"})
 public final class ConnectablePublisherAutoConnect<T> extends Px<T>
         implements Receiver {
 

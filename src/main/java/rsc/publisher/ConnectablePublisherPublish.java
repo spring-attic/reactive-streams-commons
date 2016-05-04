@@ -7,6 +7,8 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
+import rsc.documentation.Operator;
+import rsc.documentation.OperatorType;
 import rsc.flow.Cancellation;
 import rsc.flow.Fuseable;
 import rsc.flow.Loopback;
@@ -27,6 +29,7 @@ import rsc.util.UnsignalledExceptions;
  * manner. 
  * @param <T> the value type
  */
+@Operator(traits = OperatorType.CONNECTABLE, aliases = {"publish"})
 public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T>
         implements Receiver, Loopback, Backpressurable {
     /** The source observable. */
