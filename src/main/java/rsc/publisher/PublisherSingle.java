@@ -165,8 +165,7 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> implements F
                     subscriber.onError(new NoSuchElementException("Source was empty"));
                 }
             } else if (c == 1) {
-                subscriber.onNext(value);
-                subscriber.onComplete();
+                complete(value);
             }
         }
 

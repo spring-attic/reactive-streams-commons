@@ -3,6 +3,8 @@ package rsc.publisher;
 import java.util.NoSuchElementException;
 
 import org.junit.Test;
+
+import rsc.flow.Fuseable;
 import rsc.test.TestSubscriber;
 
 public class PublisherSingleTest {
@@ -146,4 +148,18 @@ public class PublisherSingleTest {
           .assertNotComplete();
     }
 
+    @Test
+    public void fused() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        Px.just(1).hide().single().subscribe(ts);
+        
+        ts
+        .assertFuseableSource()
+        .assertFusionMode(Fuseable.ASYNC)
+        .assertResult(1)
+        ;
+        
+    }
 }

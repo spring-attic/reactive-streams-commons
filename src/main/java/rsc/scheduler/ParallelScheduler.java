@@ -48,7 +48,13 @@ public final class ParallelScheduler implements Scheduler {
         this.factory = THREAD_FACTORY;
         init(n);
     }
-    
+
+    public ParallelScheduler(int n) {
+        this.n = n;
+        this.factory = THREAD_FACTORY;
+        init(n);
+    }
+
     public ParallelScheduler(int n, String name) {
         this(n, name, false);
     }
