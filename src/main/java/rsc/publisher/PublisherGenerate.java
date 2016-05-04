@@ -331,7 +331,7 @@ extends Px<T> {
                 if (e != null) {
                     
                     generatedError = null;
-                    ExceptionHelper.bubble(e);
+                    throw ExceptionHelper.bubble(e);
                 }
                 
                 return null;
@@ -344,7 +344,12 @@ extends Px<T> {
             state = s;
             return v;
         }
-        
+
+        @Override
+        public Throwable getError() {
+            return generatedError;
+        }
+
         @Override
         public boolean isEmpty() {
             return terminate;
