@@ -70,7 +70,7 @@ public class ExecutorTimedSchedulerTest {
         
         for (int i = 0; i < n; i++) {
             int j = i;
-            worker.schedule(() -> queue.offer(j), 200, TimeUnit.MILLISECONDS);
+            worker.schedule(() -> queue.offer(j), 100, TimeUnit.MILLISECONDS);
         }
         worker.schedule(cdl::countDown, 250, TimeUnit.MILLISECONDS);
         
