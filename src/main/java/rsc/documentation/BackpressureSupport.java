@@ -1,4 +1,4 @@
-package rsc.flow;
+package rsc.documentation;
 
 import java.lang.annotation.*;
 

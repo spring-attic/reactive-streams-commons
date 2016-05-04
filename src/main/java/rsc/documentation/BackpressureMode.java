@@ -1,4 +1,4 @@
-package rsc.flow;
+package rsc.documentation;
 
 /**
  * Indicates the backpressure mode of an operator.
@@ -26,5 +26,4 @@ public enum BackpressureMode {
      * Has a fixed prefetch behavior or honors the requests of the downstream.
      */
     BOUNDED
-    ;
 }

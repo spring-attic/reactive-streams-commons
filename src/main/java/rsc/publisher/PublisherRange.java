@@ -4,6 +4,10 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 import org.reactivestreams.Subscriber;
 
+import rsc.documentation.BackpressureMode;
+import rsc.documentation.BackpressureSupport;
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.state.Cancellable;
 import rsc.state.Completable;

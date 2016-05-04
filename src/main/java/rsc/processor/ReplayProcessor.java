@@ -11,11 +11,11 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import rsc.flow.BackpressureMode;
-import rsc.flow.BackpressureSupport;
+import rsc.documentation.BackpressureMode;
+import rsc.documentation.BackpressureSupport;
 import rsc.flow.Fuseable;
-import rsc.flow.FusionMode;
-import rsc.flow.FusionSupport;
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;

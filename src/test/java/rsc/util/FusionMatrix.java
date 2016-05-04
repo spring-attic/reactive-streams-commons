@@ -7,7 +7,8 @@ import java.util.*;
 
 import org.reactivestreams.Publisher;
 
-import rsc.flow.*;
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.processor.UnicastProcessor;
 import rsc.publisher.Px;
 

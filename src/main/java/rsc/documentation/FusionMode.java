@@ -1,4 +1,6 @@
-package rsc.flow;
+package rsc.documentation;
+
+import rsc.flow.Fuseable;
 
 /**
  * Indicates the fusion mode supported, the mode is

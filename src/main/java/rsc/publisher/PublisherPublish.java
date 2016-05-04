@@ -13,8 +13,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import rsc.flow.Fuseable;
-import rsc.flow.FusionMode;
-import rsc.flow.FusionSupport;
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.util.BackpressureHelper;
 import rsc.util.EmptySubscription;
 import rsc.util.ExceptionHelper;

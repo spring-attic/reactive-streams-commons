@@ -7,6 +7,8 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.util.*;
 

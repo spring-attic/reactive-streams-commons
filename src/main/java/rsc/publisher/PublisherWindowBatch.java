@@ -11,7 +11,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import rsc.flow.*;
+import rsc.documentation.BackpressureMode;
+import rsc.documentation.BackpressureSupport;
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
 import rsc.util.EmptySubscription;

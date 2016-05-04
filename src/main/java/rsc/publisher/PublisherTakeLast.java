@@ -6,6 +6,10 @@ import java.util.function.BooleanSupplier;
 
 import org.reactivestreams.*;
 
+import rsc.documentation.BackpressureMode;
+import rsc.documentation.BackpressureSupport;
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.publisher.PublisherTakeLastOne.PublisherTakeLastOneSubscriber;
 import rsc.state.*;
