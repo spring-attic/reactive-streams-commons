@@ -111,10 +111,13 @@ public final class ExecutorScheduler implements Scheduler {
         
         final Runnable task;
         final WorkerDelete parent;
+        
+        final boolean callRemoveOnFinish;
 
-        public ExecutorTrackedRunnable(Runnable task, WorkerDelete parent) {
+        public ExecutorTrackedRunnable(Runnable task, WorkerDelete parent, boolean callRemoveOnFinish) {
             this.task = task;
             this.parent = parent;
+            this.callRemoveOnFinish = callRemoveOnFinish;
         }
         
         @Override
@@ -127,7 +130,9 @@ public final class ExecutorScheduler implements Scheduler {
                 ExceptionHelper.throwIfFatal(e);
                 UnsignalledExceptions.onErrorDropped(e);
             } finally {
-                dispose();
+                if (callRemoveOnFinish) {
+                    dispose();
+                }
             }
         }
         
@@ -172,7 +177,7 @@ public final class ExecutorScheduler implements Scheduler {
                 return REJECTED;
             }
             
-            ExecutorTrackedRunnable r = new ExecutorTrackedRunnable(task, this);
+            ExecutorTrackedRunnable r = new ExecutorTrackedRunnable(task, this, true);
             synchronized (this) {
                 if (terminated) {
                     return REJECTED;
@@ -251,7 +256,7 @@ public final class ExecutorScheduler implements Scheduler {
                 return REJECTED;
             }
             
-            ExecutorTrackedRunnable r = new ExecutorTrackedRunnable(task, this);
+            ExecutorTrackedRunnable r = new ExecutorTrackedRunnable(task, this, false);
             synchronized (this) {
                 if (terminated) {
                     return REJECTED;
