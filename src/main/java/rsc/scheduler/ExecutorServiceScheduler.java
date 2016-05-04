@@ -1,12 +1,14 @@
 package rsc.scheduler;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import rsc.flow.Cancellation;
-import rsc.state.Cancellable;
 import rsc.scheduler.ExecutorScheduler.ExecutorSchedulerTrampolineWorker;
+import rsc.state.Cancellable;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -58,11 +60,11 @@ public final class ExecutorServiceScheduler implements Scheduler {
         
         volatile boolean terminated;
         
-        Collection<ScheduledRunnable> tasks;
+        OpenHashSet<ScheduledRunnable> tasks;
         
         public ExecutorServiceWorker(ExecutorService executor) {
             this.executor = executor;
-            this.tasks = new LinkedList<>();
+            this.tasks = new OpenHashSet<>();
         }
         
         @Override
@@ -100,7 +102,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
         @Override
         public void shutdown() {
             if (!terminated) {
-                Collection<ScheduledRunnable> coll;
+                OpenHashSet<ScheduledRunnable> coll;
                 synchronized (this) {
                     if (terminated) {
                         return;
@@ -109,8 +111,11 @@ public final class ExecutorServiceScheduler implements Scheduler {
                     tasks = null;
                     terminated = true;
                 }
-                for (ScheduledRunnable sr : coll) {
-                    sr.cancelFuture();
+                
+                Object[] a = coll.keys;
+                
+                for (Object o : a) {
+                    ((ScheduledRunnable)o).cancelFuture();
                 }
             }
         }

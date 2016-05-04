@@ -1,11 +1,14 @@
 package rsc.scheduler;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import rsc.flow.Cancellation;
-import rsc.scheduler.Scheduler;
 import rsc.state.Cancellable;
 import rsc.util.ExceptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -163,11 +166,11 @@ public final class ExecutorScheduler implements Scheduler {
         
         volatile boolean terminated;
         
-        LinkedList<ExecutorTrackedRunnable> tasks;
+        OpenHashSet<ExecutorTrackedRunnable> tasks;
         
         public ExecutorSchedulerWorker(Executor executor) {
             this.executor = executor;
-            this.tasks = new LinkedList<>();
+            this.tasks = new OpenHashSet<>();
         }
 
         @Override
@@ -190,7 +193,7 @@ public final class ExecutorScheduler implements Scheduler {
             } catch (RejectedExecutionException ex) {
                 synchronized (this) {
                     if (!terminated) {
-                        tasks.removeLastOccurrence(r);
+                        tasks.remove(r);
                     }
                 }
                 return REJECTED;
@@ -204,7 +207,7 @@ public final class ExecutorScheduler implements Scheduler {
             if (terminated) {
                 return;
             }
-            LinkedList<ExecutorTrackedRunnable> list;
+            OpenHashSet<ExecutorTrackedRunnable> list;
             synchronized (this) {
                 if (terminated) {
                     return;
@@ -214,8 +217,9 @@ public final class ExecutorScheduler implements Scheduler {
                 tasks = null;
             }
             
-            for (ExecutorTrackedRunnable r : list) {
-                r.dispose();
+            Object[] a = list.keys;
+            for (Object o : a) {
+                ((ExecutorTrackedRunnable)o).dispose();
             }
         }
         
