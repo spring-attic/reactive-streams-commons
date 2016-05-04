@@ -32,7 +32,7 @@ public class PublisherGenerateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherGenerate<Integer, Void>((s, o) -> {
-            o.onComplete();
+            o.complete();
             return s;
         }).subscribe(ts);
 
@@ -60,8 +60,8 @@ public class PublisherGenerateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherGenerate<Integer, Void>((s, o) -> {
-            o.onNext(1);
-            o.onComplete();
+            o.emit(1);
+            o.complete();
             return s;
         }).subscribe(ts);
 
@@ -75,7 +75,7 @@ public class PublisherGenerateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherGenerate<Integer, Void>((s, o) -> {
-            o.onError(new RuntimeException("forced failure"));
+            o.fail(new RuntimeException("forced failure"));
             return s;
         }).subscribe(ts);
 
@@ -92,8 +92,8 @@ public class PublisherGenerateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
         new PublisherGenerate<Integer, Void>((s, o) -> {
-            o.onNext(1);
-            o.onComplete();
+            o.emit(1);
+            o.complete();
             return s;
         }).subscribe(ts);
 
@@ -114,9 +114,9 @@ public class PublisherGenerateTest {
 
         new PublisherGenerate<Integer, Integer>(() -> 1, (s, o) -> {
             if (s < 11) {
-                o.onNext(s);
+                o.emit(s);
             } else {
-                o.onComplete();
+                o.complete();
             }
             return s + 1;
         }).subscribe(ts);
@@ -132,9 +132,9 @@ public class PublisherGenerateTest {
 
         new PublisherGenerate<Integer, Integer>(() -> 1, (s, o) -> {
             if (s < 11) {
-                o.onNext(s);
+                o.emit(s);
             } else {
-                o.onComplete();
+                o.complete();
             }
             return s + 1;
         }).subscribe(ts);
@@ -164,7 +164,7 @@ public class PublisherGenerateTest {
         new PublisherGenerate<Integer, Integer>(() -> {
             throw new RuntimeException("forced failure");
         }, (s, o) -> {
-            o.onNext(1);
+            o.emit(1);
             return s;
         }).subscribe(ts);
 
@@ -193,8 +193,8 @@ public class PublisherGenerateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherGenerate<Integer, Integer>((s, o) -> {
-            o.onError(new RuntimeException("forced failure"));
-            o.onError(new RuntimeException("forced failure"));
+            o.fail(new RuntimeException("forced failure"));
+            o.fail(new RuntimeException("forced failure"));
             return s;
         }).subscribe(ts);
 
@@ -209,8 +209,8 @@ public class PublisherGenerateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherGenerate<Integer, Integer>((s, o) -> {
-            o.onComplete();
-            o.onComplete();
+            o.complete();
+            o.complete();
             return s;
         }).subscribe(ts);
 
@@ -224,8 +224,8 @@ public class PublisherGenerateTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         new PublisherGenerate<Integer, Integer>((s, o) -> {
-            o.onNext(1);
-            o.onNext(1);
+            o.emit(1);
+            o.emit(1);
             return s;
         }).subscribe(ts);
 
@@ -241,7 +241,7 @@ public class PublisherGenerateTest {
         AtomicInteger stateConsumer = new AtomicInteger();
 
         new PublisherGenerate<Integer, Integer>(() -> 1, (s, o) -> {
-            o.onComplete();
+            o.complete();
             return s;
         }, stateConsumer::set).subscribe(ts);
 
@@ -262,9 +262,9 @@ public class PublisherGenerateTest {
           () -> list.iterator(),
           (s, o) -> {
               if (s.hasNext()) {
-                  o.onNext(s.next());
+                  o.emit(s.next());
               } else {
-                  o.onComplete();
+                  o.complete();
               }
               return s;
           }).subscribe(ts);
@@ -284,9 +284,9 @@ public class PublisherGenerateTest {
           () -> list.iterator(),
           (s, o) -> {
               if (s.hasNext()) {
-                  o.onNext(s.next());
+                  o.emit(s.next());
               } else {
-                  o.onComplete();
+                  o.complete();
               }
               return s;
           }).subscribe(ts);
@@ -324,9 +324,9 @@ public class PublisherGenerateTest {
           () -> list.iterator(),
           (s, o) -> {
               if (s.hasNext()) {
-                  o.onNext(s.next());
+                  o.emit(s.next());
               } else {
-                  o.onComplete();
+                  o.complete();
               }
               return s;
           }).subscribe(ts);
@@ -348,9 +348,9 @@ public class PublisherGenerateTest {
           () -> list.iterator(),
           (s, o) -> {
               if (s.hasNext()) {
-                  o.onNext(s.next());
+                  o.emit(s.next());
               } else {
-                  o.onComplete();
+                  o.complete();
               }
               return s;
           }).subscribe(ts);

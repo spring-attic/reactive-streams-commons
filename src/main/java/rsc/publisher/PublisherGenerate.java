@@ -91,6 +91,16 @@ extends Px<T> {
         static final AtomicLongFieldUpdater<GenerateSubscription> REQUESTED = 
             AtomicLongFieldUpdater.newUpdater(GenerateSubscription.class, "requested");
 
+        @Override
+        public long requestedFromDownstream() {
+            return requested;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
         public GenerateSubscription(Subscriber<? super T> actual, S state,
                                              BiFunction<S, SignalEmitter<T>, S> generator, Consumer<? super
           S> stateConsumer) {
@@ -101,17 +111,17 @@ extends Px<T> {
         }
 
         @Override
-        public void onNext(T t) {
+        public Emission emit(T t) {
             if (terminate) {
-                return;
+                return Emission.CANCELLED;
             }
             if (hasValue) {
-                onError(new IllegalStateException("More than one call to onNext"));
-                return;
+                fail(new IllegalStateException("More than one call to onNext"));
+                return Emission.FAILED;
             }
             if (t == null) {
-                onError(new NullPointerException("The generator produced a null value"));
-                return;
+                fail(new NullPointerException("The generator produced a null value"));
+                return Emission.FAILED;
             }
             hasValue = true;
             if (outputFused) {
@@ -119,10 +129,11 @@ extends Px<T> {
             } else {
                 actual.onNext(t);
             }
+            return Emission.OK;
         }
 
         @Override
-        public void onError(Throwable e) {
+        public void fail(Throwable e) {
             if (terminate) {
                 return;
             }
@@ -135,7 +146,7 @@ extends Px<T> {
         }
 
         @Override
-        public void onComplete() {
+        public void complete() {
             if (terminate) {
                 return;
             }

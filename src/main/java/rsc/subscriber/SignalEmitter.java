@@ -1,21 +1,35 @@
 package rsc.subscriber;
 
+import org.reactivestreams.Subscriber;
+import rsc.state.Backpressurable;
+import rsc.state.Cancellable;
+import rsc.state.Introspectable;
+import rsc.state.Requestable;
+
 /**
  * Interface to receive generated signals from the callback function.
  * <p>
- * Methods of this interface should be called at most once per invocation
- * of the generator function. In addition, at least one of the methods
- * should be called per invocation of the generator function
+ * At least one of the methods should be called per invocation of the generator function
  *
  * @param <T> the output value type
  */
-public interface SignalEmitter<T> {
+public interface SignalEmitter<T> extends Backpressurable, Introspectable, Cancellable,
+                                          Requestable {
 
-    void onNext(T t);
+    /**
+     * @see {@link Subscriber#onComplete()}
+     */
+    void complete();
 
-    void onError(Throwable e);
+    /**
+     * @see {@link Subscriber#onNext(Object)}
+     */
+    Emission emit(T t);
 
-    void onComplete();
+    /**
+     * @see {@link Subscriber#onError(Throwable)}
+     */
+    void fail(Throwable e);
 
     /**
      * Indicate there won't be any further signals delivered by
@@ -24,4 +38,29 @@ public interface SignalEmitter<T> {
      * Call to this method will also trigger the state consumer.
      */
     void stop();
+
+    /**
+     * An acknowledgement signal returned by {@link #emit}.
+     * {@link Emission#isOk()} is the only successful signal, the other define the emission failure cause.
+     *
+     */
+    enum Emission {
+        FAILED, BACKPRESSURED, OK, CANCELLED;
+
+        public boolean isBackpressured(){
+            return this == BACKPRESSURED;
+        }
+
+        public boolean isCancelled(){
+            return this == CANCELLED;
+        }
+
+        public boolean isFailed(){
+            return this == FAILED;
+        }
+
+        public boolean isOk(){
+            return this == OK;
+        }
+    }
 }
