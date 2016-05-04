@@ -22,6 +22,8 @@ import java.util.concurrent.*;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
+import reactor.core.publisher.Computations;
+import rsc.flow.Cancellation;
 import rsc.scheduler.Scheduler.Worker;
 
 /**
@@ -308,5 +310,45 @@ public class SchedulerPerf {
     @Benchmark
     public void worker_ordered(Blackhole bh) {
         runOrderedWorker(bh, count, schedulers.get(type));
+    }
+
+    static final class ReactorScheduler implements Scheduler {
+
+        final reactor.core.scheduler.Scheduler scheduler;
+
+        ReactorScheduler(reactor.core.scheduler.Scheduler scheduler) {
+            this.scheduler = scheduler;
+        }
+
+        @Override
+        public Cancellation schedule(Runnable task) {
+            reactor.core.flow.Cancellation c = scheduler.schedule(task);
+            return c::dispose;
+        }
+
+        @Override
+        public Worker createWorker() {
+            return new ReactorWorker(scheduler.createWorker());
+        }
+
+        static final class ReactorWorker implements Worker {
+
+            final reactor.core.scheduler.Scheduler.Worker w;
+
+            ReactorWorker(reactor.core.scheduler.Scheduler.Worker w) {
+                this.w = w;
+            }
+
+            @Override
+            public Cancellation schedule(Runnable task) {
+                reactor.core.flow.Cancellation c = w.schedule(task);
+                return c::dispose;
+            }
+
+            @Override
+            public void shutdown() {
+                w.shutdown();
+            }
+        }
     }
 }
