@@ -313,6 +313,7 @@ public class SchedulerPerf {
     }
 
     static final class ReactorScheduler implements Scheduler {
+        static final Cancellation NOOP = () -> {};
 
         final reactor.core.scheduler.Scheduler scheduler;
 
@@ -322,8 +323,8 @@ public class SchedulerPerf {
 
         @Override
         public Cancellation schedule(Runnable task) {
-            reactor.core.flow.Cancellation c = scheduler.schedule(task);
-            return c::dispose;
+            scheduler.schedule(task);
+            return NOOP;
         }
 
         @Override
@@ -341,8 +342,8 @@ public class SchedulerPerf {
 
             @Override
             public Cancellation schedule(Runnable task) {
-                reactor.core.flow.Cancellation c = w.schedule(task);
-                return c::dispose;
+                w.schedule(task);
+                return NOOP;
             }
 
             @Override
