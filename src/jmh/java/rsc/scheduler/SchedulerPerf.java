@@ -160,9 +160,9 @@ public class SchedulerPerf {
 
         parallel = new ParallelScheduler();
 
-        reactorSingle = new ReactorScheduler(Computations.single());
+        reactorSingle = new ReactorScheduler(Computations.single("reactor-s"));
 
-        reactorParallel = new ReactorScheduler(Computations.parallel());
+        reactorParallel = new ReactorScheduler(Computations.parallel("reactor-p"));
 
 
         executorSingle = new ExecutorServiceScheduler(executorServiceSingle, false);
@@ -299,11 +299,11 @@ public class SchedulerPerf {
             CountDownLatch cdl = new CountDownLatch(1);
             
             for (int i = 0; i < n; i++) {
-                scheduler.schedule(() -> {
+                w.schedule(() -> {
                     bh.consume(true);
                 });
             }
-            scheduler.schedule(cdl::countDown);
+            w.schedule(cdl::countDown);
             
             if (n <= 1000) {
                 while (cdl.getCount() != 0L) ;
