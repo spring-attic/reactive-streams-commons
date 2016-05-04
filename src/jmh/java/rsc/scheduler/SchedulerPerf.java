@@ -144,8 +144,10 @@ public class SchedulerPerf {
 
         // -----------------------------------------------------------------------------------
         
+        //single = new ReactorScheduler(Computations.single());
         single = new ParallelScheduler(1);
-        
+
+        //parallel = new ReactorScheduler(Computations.parallel());
         parallel = new ParallelScheduler();
         
         
@@ -325,6 +327,16 @@ public class SchedulerPerf {
         public Cancellation schedule(Runnable task) {
             scheduler.schedule(task);
             return NOOP;
+        }
+
+        @Override
+        public void start() {
+            scheduler.start();
+        }
+
+        @Override
+        public void shutdown() {
+            scheduler.shutdown();
         }
 
         @Override
