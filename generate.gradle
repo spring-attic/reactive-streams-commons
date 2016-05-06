@@ -29,7 +29,7 @@ def reactorCommon = ['api-single'           : 'reactor.core.publisher.Mono',
 					 'ObserveOn'            : 'PublishOn',
 					 'UnsignalledExceptions': 'Exceptions',
 					 'tabs'                 : 1,
-					 'DirectProcessor'      : 'reactor.core.publisher.EmitterProcessor',
+					 'DirectProcessor'      : 'reactor.core.publisher.DirectProcessor',
 					 'SerializedSubscriber': 'reactor.core.publisher.SerializedSubscriber',
 					 'UnicastProcessor'     : 'UnicastProcessor']
 
@@ -326,10 +326,6 @@ task generateExtra(type: Copy) {
 	exclude '**/subscriber/SerializedSubscriber.java'
   }
 
-  if (target.SimpleProcessor) {
-	exclude '**/DirectProcessor.java'
-  }
-
   if (target.UnicastProcessor) {
 	exclude '**/UnicastProcessor.java'
   }
@@ -384,8 +380,8 @@ private replaceLine(line, target, license, apiClassName, apiBarrierClass, apiCla
 	if(l.contains("org.reactivestreams")){
 	  return l
 	}
-	if (target.SimpleProcessor) {
-	  l = l.replace("rsc.processor.DirectProcessor", target.SimpleProcessor)
+	if (target.DirectProcessor) {
+	  l = l.replace("rsc.processor.DirectProcessor", target.DirectProcessor)
 	}
 	if (target.UnicastProcessor) {
 	  l = l.replace("rsc.processor.UnicastProcessor", target.UnicastProcessor)
