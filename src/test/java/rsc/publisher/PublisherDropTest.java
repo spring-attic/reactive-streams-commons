@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 
 public class PublisherDropTest {
@@ -51,7 +51,7 @@ public class PublisherDropTest {
 
     @Test
     public void someDrops() {
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 

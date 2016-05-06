@@ -3,7 +3,7 @@ package rsc.publisher;
 import org.junit.*;
 
 import rsc.flow.Cancellation;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
@@ -20,7 +20,7 @@ public class ConnectablePublisherRefCountTest {
     
     @Test
     public void normal() {
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         Px<Integer> p = sp.publish().refCount();
         
@@ -60,7 +60,7 @@ public class ConnectablePublisherRefCountTest {
 
     @Test
     public void normalTwoSubscribers() {
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         Px<Integer> p = sp.publish().refCount(2);
         

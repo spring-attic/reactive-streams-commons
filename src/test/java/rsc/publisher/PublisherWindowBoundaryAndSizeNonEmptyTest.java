@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.junit.*;
 import org.reactivestreams.Publisher;
 
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.*;
 import rsc.scheduler.SingleTimedScheduler;
@@ -55,8 +55,8 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void normal() {
         TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.window(sp2, 10, false).subscribe(ts);
         
@@ -89,8 +89,8 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void normalOverflow() {
         TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.window(sp2, 3, false).subscribe(ts);
 
@@ -145,8 +145,8 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void concurrentWindows() {
         TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
 
         sp1
            .window(sp2.observeOn(ForkJoinPool.commonPool()), 3, false)
@@ -199,7 +199,7 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void normalMaxSize() {
         TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
         
         sp1.window(PublisherNever.instance(), 3, false).subscribe(ts);
 
@@ -224,8 +224,8 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void normalOtherCompletes() {
         TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.window(sp2, 10, false).subscribe(ts);
         
@@ -258,8 +258,8 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void mainError() {
         TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.window(sp2, 10, false).subscribe(ts);
         
@@ -299,8 +299,8 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     public void otherError() {
         TestSubscriber<Px<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.window(sp2, 10, false).subscribe(ts);
         

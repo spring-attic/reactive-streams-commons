@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.junit.*;
 import org.reactivestreams.Publisher;
 
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.scheduler.SingleTimedScheduler;
 
@@ -61,8 +61,8 @@ public class PublisherCombineLatestTest {
     @SuppressWarnings("unchecked")
     @Test
     public void normal() {
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
 
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
 
@@ -117,8 +117,8 @@ public class PublisherCombineLatestTest {
 
     @Test
     public void normalIterable() {
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
 
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
 
@@ -289,8 +289,8 @@ public class PublisherCombineLatestTest {
     public void unpairedKeepsRequesting() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
 
         new PublisherCombineLatest<>(new Publisher[] { sp1, sp2 }, a -> (Integer)a[0] + (Integer)a[1], qs, 16).subscribe(ts);
 

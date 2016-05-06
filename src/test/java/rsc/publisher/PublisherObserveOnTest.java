@@ -13,7 +13,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.processor.UnicastProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
@@ -410,7 +410,7 @@ public class PublisherObserveOnTest {
 
     public void diamond() {
 
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         Px<Integer> fork1 = sp.map(d -> d).observeOn(exec);

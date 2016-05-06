@@ -32,12 +32,12 @@ import rsc.util.SubscriptionHelper;
  * The implementation ignores Subscriptions set via onSubscribe.
  * <p>
  * <p>
- * A terminated SimpleProcessor will emit the terminal signal to late subscribers.
+ * A terminated DirectProcessor will emit the terminal signal to late subscribers.
  *
  * @param <T> the input and output value type
  */
 @BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.ERROR)
-public final class SimpleProcessor<T> 
+public final class DirectProcessor<T>
     extends Px<T>
     implements Processor<T, T>, Receiver, Completable, MultiProducer {
 
@@ -48,10 +48,10 @@ public final class SimpleProcessor<T>
     private static final SimpleProcessorSubscription[] TERMINATED = new SimpleProcessorSubscription[0];
 
     @SuppressWarnings("unchecked")
-    private volatile     SimpleProcessorSubscription<T>[]                                            subscribers = EMPTY;
+    private volatile     SimpleProcessorSubscription<T>[]                                           subscribers = EMPTY;
     @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<SimpleProcessor, SimpleProcessorSubscription[]> SUBSCRIBERS =
-      AtomicReferenceFieldUpdater.newUpdater(SimpleProcessor.class,
+    private static final AtomicReferenceFieldUpdater<DirectProcessor, SimpleProcessorSubscription[]>SUBSCRIBERS =
+      AtomicReferenceFieldUpdater.newUpdater(DirectProcessor.class,
         SimpleProcessorSubscription[].class,
         "subscribers");
 
@@ -228,7 +228,7 @@ public final class SimpleProcessor<T>
 
         final Subscriber<? super T> actual;
 
-        final SimpleProcessor<T> parent;
+        final DirectProcessor<T> parent;
 
         volatile boolean cancelled;
 
@@ -237,7 +237,7 @@ public final class SimpleProcessor<T>
         static final AtomicLongFieldUpdater<SimpleProcessorSubscription> REQUESTED =
           AtomicLongFieldUpdater.newUpdater(SimpleProcessorSubscription.class, "requested");
 
-        public SimpleProcessorSubscription(Subscriber<? super T> actual, SimpleProcessor<T> parent) {
+        public SimpleProcessorSubscription(Subscriber<? super T> actual, DirectProcessor<T> parent) {
             this.actual = actual;
             this.parent = parent;
         }

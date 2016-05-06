@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.subscriber.SerializedSubscriber;
 import rsc.util.DeferredSubscription;
@@ -181,7 +181,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
     implements Subscriber<Object>, Loopback {
         PublisherRetryWhenMainSubscriber<?> main;
 
-        final SimpleProcessor<Throwable> completionSignal = new SimpleProcessor<>();
+        final DirectProcessor<Throwable> completionSignal = new DirectProcessor<>();
 
         @Override
         public void onSubscribe(Subscription s) {

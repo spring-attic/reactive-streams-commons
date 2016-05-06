@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.junit.*;
 
 import rsc.flow.Cancellation;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.processor.UnicastProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.*;
@@ -304,7 +304,7 @@ public class ConnectablePublisherPublishTest {
     public void disconnect() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         ConnectablePublisher<Integer> p = sp.publish();
         
@@ -328,7 +328,7 @@ public class ConnectablePublisherPublishTest {
     public void disconnectBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         ConnectablePublisher<Integer> p = sp.publish();
         
@@ -349,7 +349,7 @@ public class ConnectablePublisherPublishTest {
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         ConnectablePublisher<Integer> p = sp.publish();
         

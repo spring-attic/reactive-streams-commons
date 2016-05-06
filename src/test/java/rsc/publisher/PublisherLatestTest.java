@@ -1,7 +1,7 @@
 package rsc.publisher;
 
 import org.junit.Test;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 
 public class PublisherLatestTest {
@@ -23,7 +23,7 @@ public class PublisherLatestTest {
 
     @Test
     public void backpressured() {
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
@@ -54,7 +54,7 @@ public class PublisherLatestTest {
 
     @Test
     public void error() {
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
@@ -70,7 +70,7 @@ public class PublisherLatestTest {
     
     @Test
     public void backpressureWithDrop() {
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<Integer>(0) {
             @Override

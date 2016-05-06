@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.junit.*;
 import org.reactivestreams.Publisher;
 
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.*;
 import rsc.scheduler.SingleTimedScheduler;
@@ -29,11 +29,11 @@ public class PublisherWindowBatchTest {
     
     @Test(timeout = 2000)
     public void normal() {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        DirectProcessor<Integer> main = new DirectProcessor<>();
 
-        SimpleProcessor<Integer> b1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> b2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> b3 = new SimpleProcessor<>();
+        DirectProcessor<Integer> b1 = new DirectProcessor<>();
+        DirectProcessor<Integer> b2 = new DirectProcessor<>();
+        DirectProcessor<Integer> b3 = new DirectProcessor<>();
         
         int[] calls = { 0 };
 
@@ -98,11 +98,11 @@ public class PublisherWindowBatchTest {
 
     @Test(timeout = 2000)
     public void normalSameLast() {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        DirectProcessor<Integer> main = new DirectProcessor<>();
 
-        SimpleProcessor<Integer> b1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> b2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> b3 = new SimpleProcessor<>();
+        DirectProcessor<Integer> b1 = new DirectProcessor<>();
+        DirectProcessor<Integer> b2 = new DirectProcessor<>();
+        DirectProcessor<Integer> b3 = new DirectProcessor<>();
         
         int[] calls = { 0 };
 

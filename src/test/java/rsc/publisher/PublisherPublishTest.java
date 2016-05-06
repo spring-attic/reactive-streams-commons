@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import rsc.flow.Fuseable;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.processor.UnicastProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.SpscArrayQueue;
@@ -60,7 +60,7 @@ public class PublisherPublishTest {
     public void cancelComposes() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         sp.publish(o -> Px.<Integer>never()).subscribe(ts);
         
@@ -75,7 +75,7 @@ public class PublisherPublishTest {
     public void cancelComposes2() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         sp.publish(o -> Px.<Integer>empty()).subscribe(ts);
         

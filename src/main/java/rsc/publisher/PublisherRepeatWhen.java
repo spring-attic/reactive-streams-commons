@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.subscriber.SerializedSubscriber;
 import rsc.util.DeferredSubscription;
@@ -185,7 +185,7 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
     implements Subscriber<Object>, Loopback {
         PublisherRepeatWhenMainSubscriber<?> main;
 
-        final SimpleProcessor<Long> completionSignal = new SimpleProcessor<>();
+        final DirectProcessor<Long> completionSignal = new DirectProcessor<>();
 
         @Override
         public void onSubscribe(Subscription s) {

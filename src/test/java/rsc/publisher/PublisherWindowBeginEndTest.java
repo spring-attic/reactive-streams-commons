@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
@@ -46,8 +46,8 @@ public class PublisherWindowBeginEndTest {
             }
         };
 
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp3 = new DirectProcessor<>();
         
         new PublisherRange(1, 10).window2(new PublisherRange(1, 3), v -> v == 1 ? sp2 : sp3).subscribe(ts1);
 
@@ -139,9 +139,9 @@ public class PublisherWindowBeginEndTest {
     public void empty() {
         TestSubscriber<Px<Integer>> ts1 = new TestSubscriber<>(0);
                 
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp3 = new DirectProcessor<>();
         
         PublisherEmpty.<Integer>instance().window2(sp1, v -> v == 1 ? sp2 : sp3).subscribe(ts1);
         

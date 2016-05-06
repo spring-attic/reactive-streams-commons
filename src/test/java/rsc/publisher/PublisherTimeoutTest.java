@@ -6,7 +6,7 @@ import java.util.function.Function;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
@@ -86,9 +86,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutHasNoEffect() {
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        DirectProcessor<Integer> source = new DirectProcessor<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -110,9 +110,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutCompleteHasNoEffect() {
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        DirectProcessor<Integer> source = new DirectProcessor<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -134,9 +134,9 @@ public class PublisherTimeoutTest {
 
     @Test
     public void oldTimeoutErrorHasNoEffect() {
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        DirectProcessor<Integer> source = new DirectProcessor<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -211,9 +211,9 @@ public class PublisherTimeoutTest {
     public void timeoutRequested() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> source = new SimpleProcessor<>();
+        DirectProcessor<Integer> source = new DirectProcessor<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
         
         source.timeout(tp, v -> tp).subscribe(ts);
         

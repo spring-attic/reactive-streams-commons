@@ -6,7 +6,7 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.reactivestreams.Publisher;
 
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.util.PerfSubscriber;
 
 
@@ -24,7 +24,7 @@ import rsc.util.PerfSubscriber;
 public class HotMapScanPerf {
     @Benchmark
     public void bench(Blackhole bh) {
-        SimpleProcessor<Integer> processor = new SimpleProcessor<>();
+        DirectProcessor<Integer> processor = new DirectProcessor<>();
         Publisher<Integer> source = processor.map(v -> v + 1).scan(0, (a, b) -> a + b);
         
         source.subscribe(new PerfSubscriber(bh));

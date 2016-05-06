@@ -8,7 +8,7 @@ import java.util.function.*;
 import org.junit.*;
 import org.reactivestreams.Publisher;
 
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.processor.UnicastProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
@@ -498,8 +498,8 @@ public class PublisherFlatMapTest {
         
         Px<Integer> source = Px.range(1, 2).doOnNext(v -> emission.getAndIncrement());
         
-        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> source1 = new DirectProcessor<>();
+        DirectProcessor<Integer> source2 = new DirectProcessor<>();
         
         source.flatMap(v -> v == 1 ? source1 : source2, false, 1).subscribe(ts);
         
@@ -533,8 +533,8 @@ public class PublisherFlatMapTest {
         
         Px<Integer> source = Px.range(1, 1000).doOnNext(v -> emission.getAndIncrement());
         
-        SimpleProcessor<Integer> source1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> source2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> source1 = new DirectProcessor<>();
+        DirectProcessor<Integer> source2 = new DirectProcessor<>();
         
         source.flatMap(v -> v == 1 ? source1 : source2).subscribe(ts);
         

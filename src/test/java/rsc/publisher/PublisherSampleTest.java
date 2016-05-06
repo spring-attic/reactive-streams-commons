@@ -2,7 +2,7 @@ package rsc.publisher;
 
 import org.junit.Assert;
 import org.junit.Test;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 
 public class PublisherSampleTest {
@@ -18,9 +18,9 @@ public class PublisherSampleTest {
     }
 
     void sample(boolean complete, boolean which) {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        DirectProcessor<Integer> main = new DirectProcessor<>();
 
-        SimpleProcessor<String> other = new SimpleProcessor<>();
+        DirectProcessor<String> other = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -60,7 +60,7 @@ public class PublisherSampleTest {
           .assertNoError()
           .assertNotComplete();
 
-        SimpleProcessor<?> p = which ? main : other;
+        DirectProcessor<?> p = which ? main : other;
 
         if (complete) {
             p.onComplete();
@@ -103,9 +103,9 @@ public class PublisherSampleTest {
 
     @Test
     public void subscriberCancels() {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        DirectProcessor<Integer> main = new DirectProcessor<>();
 
-        SimpleProcessor<String> other = new SimpleProcessor<>();
+        DirectProcessor<String> other = new DirectProcessor<>();
 
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
@@ -125,9 +125,9 @@ public class PublisherSampleTest {
     }
 
     public void completeImmediately(boolean which) {
-        SimpleProcessor<Integer> main = new SimpleProcessor<>();
+        DirectProcessor<Integer> main = new DirectProcessor<>();
 
-        SimpleProcessor<String> other = new SimpleProcessor<>();
+        DirectProcessor<String> other = new DirectProcessor<>();
 
         if (which) {
             main.onComplete();

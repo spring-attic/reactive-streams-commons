@@ -6,33 +6,33 @@ import org.reactivestreams.Subscriber;
 
 import rsc.test.TestSubscriber;
 
-public class SimpleProcessorTest {
+public class DirectProcessorTest {
 
     @Test(expected = NullPointerException.class)
     public void onNextNull() {
-        new SimpleProcessor<Integer>().onNext(null);
+        new DirectProcessor<Integer>().onNext(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void onErrorNull() {
-        new SimpleProcessor<Integer>().onError(null);
+        new DirectProcessor<Integer>().onError(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void onSubscribeNull() {
-        new SimpleProcessor<Integer>().onSubscribe(null);
+        new DirectProcessor<Integer>().onSubscribe(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void subscribeNull() {
-        new SimpleProcessor<Integer>().subscribe((Subscriber<Object>)null);
+        new DirectProcessor<Integer>().subscribe((Subscriber<Object>)null);
     }
 
     @Test
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         tp.subscribe(ts);
 
@@ -70,7 +70,7 @@ public class SimpleProcessorTest {
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         tp.subscribe(ts);
 
@@ -104,7 +104,7 @@ public class SimpleProcessorTest {
 
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         tp.subscribe(ts);
 
@@ -132,7 +132,7 @@ public class SimpleProcessorTest {
     public void error() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         tp.subscribe(ts);
 
@@ -174,7 +174,7 @@ public class SimpleProcessorTest {
     public void terminatedWithError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
         tp.onError(new RuntimeException("forced failure"));
 
         tp.subscribe(ts);
@@ -198,7 +198,7 @@ public class SimpleProcessorTest {
     public void terminatedNormally() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
         tp.onComplete();
 
         tp.subscribe(ts);
@@ -218,7 +218,7 @@ public class SimpleProcessorTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         ts.cancel();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         tp.subscribe(ts);
 
@@ -236,7 +236,7 @@ public class SimpleProcessorTest {
     public void subscriberCancels() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         tp.subscribe(ts);
 

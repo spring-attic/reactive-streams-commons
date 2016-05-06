@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
@@ -29,8 +29,8 @@ public class PublisherSwitchMapTest {
     public void noswitch() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.switchMap(v -> sp2).subscribe(ts);
         
@@ -58,8 +58,8 @@ public class PublisherSwitchMapTest {
     public void noswitchBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.switchMap(v -> sp2).subscribe(ts);
         
@@ -99,9 +99,9 @@ public class PublisherSwitchMapTest {
     public void doswitch() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp3 = new DirectProcessor<>();
         
         sp1.switchMap(v -> v == 1 ? sp2 : sp3).subscribe(ts);
         
@@ -136,8 +136,8 @@ public class PublisherSwitchMapTest {
     public void mainCompletesBefore() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.switchMap(v -> sp2).subscribe(ts);
         
@@ -165,8 +165,8 @@ public class PublisherSwitchMapTest {
     public void mainError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.switchMap(v -> sp2).subscribe(ts);
         
@@ -189,8 +189,8 @@ public class PublisherSwitchMapTest {
     public void innerError() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.switchMap(v -> sp2).subscribe(ts);
         
@@ -215,7 +215,7 @@ public class PublisherSwitchMapTest {
     public void mapperThrows() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
         
         sp1.switchMap(v -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
         
@@ -231,7 +231,7 @@ public class PublisherSwitchMapTest {
     public void mapperReturnsNull() {
         TestSubscriber<Object> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
         
         sp1.switchMap(v -> null).subscribe(ts);
         

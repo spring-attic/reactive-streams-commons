@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
@@ -29,8 +29,8 @@ public class PublisherBufferBoundaryTest {
     public void normal() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.buffer(sp2).subscribe(ts);
         
@@ -80,8 +80,8 @@ public class PublisherBufferBoundaryTest {
     public void mainError() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.buffer(sp2).subscribe(ts);
         
@@ -125,8 +125,8 @@ public class PublisherBufferBoundaryTest {
     public void otherError() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.buffer(sp2).subscribe(ts);
         
@@ -170,8 +170,8 @@ public class PublisherBufferBoundaryTest {
     public void bufferSupplierThrows() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.buffer(sp2, (Supplier<List<Integer>>)() -> { throw new RuntimeException("forced failure"); }).subscribe(ts);
         
@@ -188,8 +188,8 @@ public class PublisherBufferBoundaryTest {
     public void bufferSupplierThrowsLater() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         int count[] = { 1 };
         
@@ -219,8 +219,8 @@ public class PublisherBufferBoundaryTest {
     public void bufferSupplierReturnsNUll() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
         
         sp1.buffer(sp2, (Supplier<List<Integer>>)() -> null).subscribe(ts);
         

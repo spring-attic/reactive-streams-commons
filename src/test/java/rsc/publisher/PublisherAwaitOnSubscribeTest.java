@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.*;
 import org.junit.*;
 import org.reactivestreams.*;
 
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 
 public class PublisherAwaitOnSubscribeTest {
 
@@ -50,7 +50,7 @@ public class PublisherAwaitOnSubscribeTest {
         AtomicBoolean state2 = new AtomicBoolean();
         AtomicReference<Throwable> e = new AtomicReference<>();
         
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         sp.awaitOnSubscribe()
         .doOnCancel(() -> state2.set(state1.get()))

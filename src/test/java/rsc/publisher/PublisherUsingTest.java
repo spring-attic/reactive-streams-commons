@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 
 public class PublisherUsingTest {
@@ -190,7 +190,7 @@ public class PublisherUsingTest {
 
         AtomicInteger cleanup = new AtomicInteger();
 
-        SimpleProcessor<Integer> tp = new SimpleProcessor<>();
+        DirectProcessor<Integer> tp = new DirectProcessor<>();
 
         new PublisherUsing<>(() -> 1, r -> tp, cleanup::set, true).subscribe(ts);
 

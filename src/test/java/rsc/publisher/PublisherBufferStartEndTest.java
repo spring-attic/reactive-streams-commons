@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
@@ -34,10 +34,10 @@ public class PublisherBufferStartEndTest {
     public void normal() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp4 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp3 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp4 = new DirectProcessor<>();
         
         sp1.buffer(sp2, v -> v == 1 ? sp3 : sp4).subscribe(ts);
         
@@ -90,9 +90,9 @@ public class PublisherBufferStartEndTest {
     public void startCompletes() {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
-        SimpleProcessor<Integer> sp1 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp2 = new SimpleProcessor<>();
-        SimpleProcessor<Integer> sp3 = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp2 = new DirectProcessor<>();
+        DirectProcessor<Integer> sp3 = new DirectProcessor<>();
         
         sp1.buffer(sp2, v -> sp3).subscribe(ts);
         

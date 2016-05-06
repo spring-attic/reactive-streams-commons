@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import org.junit.*;
 
 import rsc.flow.Cancellation;
-import rsc.processor.SimpleProcessor;
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
@@ -25,7 +25,7 @@ public class ConnectablePublisherAutoConnectTest {
     
     @Test
     public void connectImmediately() {
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         AtomicReference<Cancellation> cancel = new AtomicReference<>();
         
@@ -40,7 +40,7 @@ public class ConnectablePublisherAutoConnectTest {
 
     @Test
     public void connectAfterMany() {
-        SimpleProcessor<Integer> sp = new SimpleProcessor<>();
+        DirectProcessor<Integer> sp = new DirectProcessor<>();
         
         AtomicReference<Cancellation> cancel = new AtomicReference<>();
         
