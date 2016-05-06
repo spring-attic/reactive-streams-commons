@@ -42,17 +42,17 @@ public final class DirectProcessor<T>
     implements Processor<T, T>, Receiver, Completable, MultiProducer {
 
     @SuppressWarnings("rawtypes")
-    private static final SimpleProcessorSubscription[] EMPTY = new SimpleProcessorSubscription[0];
+    private static final DirectProcessorSubscription[] EMPTY = new DirectProcessorSubscription[0];
 
     @SuppressWarnings("rawtypes")
-    private static final SimpleProcessorSubscription[] TERMINATED = new SimpleProcessorSubscription[0];
+    private static final DirectProcessorSubscription[] TERMINATED = new DirectProcessorSubscription[0];
 
     @SuppressWarnings("unchecked")
-    private volatile     SimpleProcessorSubscription<T>[]                                           subscribers = EMPTY;
+    private volatile     DirectProcessorSubscription<T>[]                                           subscribers = EMPTY;
     @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<DirectProcessor, SimpleProcessorSubscription[]>SUBSCRIBERS =
+    private static final AtomicReferenceFieldUpdater<DirectProcessor, DirectProcessorSubscription[]>SUBSCRIBERS =
       AtomicReferenceFieldUpdater.newUpdater(DirectProcessor.class,
-        SimpleProcessorSubscription[].class,
+        DirectProcessorSubscription[].class,
         "subscribers");
 
     private Throwable error;
@@ -71,7 +71,7 @@ public final class DirectProcessor<T>
     public void onNext(T t) {
         Objects.requireNonNull(t, "t");
 
-        for (SimpleProcessorSubscription<T> s : subscribers) {
+        for (DirectProcessorSubscription<T> s : subscribers) {
             s.onNext(t);
         }
     }
@@ -81,14 +81,14 @@ public final class DirectProcessor<T>
         Objects.requireNonNull(t, "t");
 
         error = t;
-        for (SimpleProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
+        for (DirectProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
             s.onError(t);
         }
     }
 
     @Override
     public void onComplete() {
-        for (SimpleProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
+        for (DirectProcessorSubscription<?> s : SUBSCRIBERS.getAndSet(this, TERMINATED)) {
             s.onComplete();
         }
     }
@@ -97,7 +97,7 @@ public final class DirectProcessor<T>
     public void subscribe(Subscriber<? super T> s) {
         Objects.requireNonNull(s, "s");
 
-        SimpleProcessorSubscription<T> p = new SimpleProcessorSubscription<>(s, this);
+        DirectProcessorSubscription<T> p = new DirectProcessorSubscription<>(s, this);
         s.onSubscribe(p);
 
         if (add(p)) {
@@ -134,8 +134,8 @@ public final class DirectProcessor<T>
         return subscribers.length;
     }
 
-    boolean add(SimpleProcessorSubscription<T> s) {
-        SimpleProcessorSubscription<T>[] a = subscribers;
+    boolean add(DirectProcessorSubscription<T> s) {
+        DirectProcessorSubscription<T>[] a = subscribers;
         if (a == TERMINATED) {
             return false;
         }
@@ -147,7 +147,7 @@ public final class DirectProcessor<T>
             }
             int len = a.length;
 
-            @SuppressWarnings("unchecked") SimpleProcessorSubscription<T>[] b = new SimpleProcessorSubscription[len + 1];
+            @SuppressWarnings("unchecked") DirectProcessorSubscription<T>[] b = new DirectProcessorSubscription[len + 1];
             System.arraycopy(a, 0, b, 0, len);
             b[len] = s;
 
@@ -158,8 +158,8 @@ public final class DirectProcessor<T>
     }
 
     @SuppressWarnings("unchecked")
-    void remove(SimpleProcessorSubscription<T> s) {
-        SimpleProcessorSubscription<T>[] a = subscribers;
+    void remove(DirectProcessorSubscription<T> s) {
+        DirectProcessorSubscription<T>[] a = subscribers;
         if (a == TERMINATED || a == EMPTY) {
             return;
         }
@@ -187,7 +187,7 @@ public final class DirectProcessor<T>
                 return;
             }
 
-            SimpleProcessorSubscription<T>[] b = new SimpleProcessorSubscription[len - 1];
+            DirectProcessorSubscription<T>[] b = new DirectProcessorSubscription[len - 1];
             System.arraycopy(a, 0, b, 0, j);
             System.arraycopy(a, j + 1, b, j, len - j - 1);
 
@@ -197,7 +197,7 @@ public final class DirectProcessor<T>
 
     @Override
     public boolean hasDownstreams() {
-        SimpleProcessorSubscription<T>[] s = subscribers;
+        DirectProcessorSubscription<T>[] s = subscribers;
         return s != EMPTY && s != TERMINATED;
     }
 
@@ -223,7 +223,7 @@ public final class DirectProcessor<T>
         return null;
     }
 
-    static final class SimpleProcessorSubscription<T> implements Subscription, Introspectable, Completable, Requestable,
+    static final class DirectProcessorSubscription<T> implements Subscription, Introspectable, Completable, Requestable,
                                                                  Receiver, Producer, Cancellable {
 
         final Subscriber<? super T> actual;
@@ -234,10 +234,10 @@ public final class DirectProcessor<T>
 
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<SimpleProcessorSubscription> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(SimpleProcessorSubscription.class, "requested");
+        static final AtomicLongFieldUpdater<DirectProcessorSubscription> REQUESTED =
+          AtomicLongFieldUpdater.newUpdater(DirectProcessorSubscription.class, "requested");
 
-        public SimpleProcessorSubscription(Subscriber<? super T> actual, DirectProcessor<T> parent) {
+        public DirectProcessorSubscription(Subscriber<? super T> actual, DirectProcessor<T> parent) {
             this.actual = actual;
             this.parent = parent;
         }
