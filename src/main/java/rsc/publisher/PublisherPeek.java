@@ -35,6 +35,8 @@ implements PublisherPeekHelper<T> {
 
     final Consumer<? super T> onNextCall;
 
+    final Consumer<? super T> onAfterNextCall;
+
     final Consumer<? super Throwable> onErrorCall;
 
     final Runnable onCompleteCall;
@@ -46,11 +48,13 @@ implements PublisherPeekHelper<T> {
     final Runnable onCancelCall;
 
     public PublisherPeek(Publisher<? extends T> source, Consumer<? super Subscription> onSubscribeCall,
-                         Consumer<? super T> onNextCall, Consumer<? super Throwable> onErrorCall, Runnable
+                         Consumer<? super T> onNextCall, Consumer<? super T> onAfterNextCall,
+            Consumer<? super Throwable> onErrorCall, Runnable
                            onCompleteCall,
                          Runnable onAfterTerminateCall, LongConsumer onRequestCall, Runnable onCancelCall) {
         super(source);
         this.onSubscribeCall = onSubscribeCall;
+        this.onAfterNextCall = onAfterNextCall;
         this.onNextCall = onNextCall;
         this.onErrorCall = onErrorCall;
         this.onCompleteCall = onCompleteCall;
@@ -148,6 +152,25 @@ implements PublisherPeekHelper<T> {
                     return;
                 }
             }
+
+            if(parent.onAfterNextCall() != null){
+                try{
+                    actual.onNext(t);
+                    return;
+                }
+                finally {
+                    try {
+                        parent.onAfterNextCall().accept(t);
+                    }
+                    catch (Throwable e) {
+                        cancel();
+                        ExceptionHelper.throwIfFatal(e);
+                        onError(ExceptionHelper.unwrap(e));
+                    }
+                }
+            }
+
+
             actual.onNext(t);
         }
 
@@ -262,5 +285,10 @@ implements PublisherPeekHelper<T> {
     @Override
     public Runnable onCancelCall() {
         return onCancelCall;
+    }
+
+    @Override
+    public Consumer<? super T> onAfterNextCall() {
+        return onAfterNextCall;
     }
 }

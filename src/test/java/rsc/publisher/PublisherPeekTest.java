@@ -15,7 +15,7 @@ import rsc.util.SpscArrayQueue;
 public class PublisherPeekTest {
     @Test(expected = NullPointerException.class)
     public void nullSource() {
-        new PublisherPeek<>(null, null, null, null, null, null, null, null);
+        new PublisherPeek<>(null, null, null, null, null, null, null, null, null);
     }
 
     @Test
@@ -24,6 +24,7 @@ public class PublisherPeekTest {
 
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
+        AtomicReference<Integer> onAfterNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
         AtomicBoolean onComplete = new AtomicBoolean();
         AtomicLong onRequest = new AtomicLong();
@@ -33,6 +34,7 @@ public class PublisherPeekTest {
         new PublisherPeek<>(new PublisherJust<>(1),
           onSubscribe::set,
           onNext::set,
+          onAfterNext::set,
           onError::set,
           () -> onComplete.set(true),
           () -> onAfterComplete.set(true),
@@ -42,6 +44,7 @@ public class PublisherPeekTest {
 
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertEquals((Integer) 1, onNext.get());
+        Assert.assertEquals((Integer) 1, onAfterNext.get());
         Assert.assertNull(onError.get());
         Assert.assertTrue(onComplete.get());
         Assert.assertTrue(onAfterComplete.get());
@@ -55,6 +58,7 @@ public class PublisherPeekTest {
 
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
+        AtomicReference<Integer> onAfterNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
         AtomicBoolean onComplete = new AtomicBoolean();
         AtomicLong onRequest = new AtomicLong();
@@ -64,6 +68,7 @@ public class PublisherPeekTest {
         new PublisherPeek<>(new PublisherError<Integer>(new RuntimeException("forced failure")),
           onSubscribe::set,
           onNext::set,
+                onAfterNext::set,
           onError::set,
           () -> onComplete.set(true),
           () -> onAfterComplete.set(true),
@@ -73,6 +78,7 @@ public class PublisherPeekTest {
 
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
+        Assert.assertNull(onAfterNext.get());
         Assert.assertTrue(onError.get() instanceof RuntimeException);
         Assert.assertFalse(onComplete.get());
         Assert.assertTrue(onAfterComplete.get());
@@ -86,6 +92,7 @@ public class PublisherPeekTest {
 
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
+        AtomicReference<Integer> onAfterNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
         AtomicBoolean onComplete = new AtomicBoolean();
         AtomicLong onRequest = new AtomicLong();
@@ -95,6 +102,7 @@ public class PublisherPeekTest {
         new PublisherPeek<>(PublisherEmpty.instance(),
           onSubscribe::set,
           onNext::set,
+                onAfterNext::set,
           onError::set,
           () -> onComplete.set(true),
           () -> onAfterComplete.set(true),
@@ -104,6 +112,7 @@ public class PublisherPeekTest {
 
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
+        Assert.assertNull(onAfterNext.get());
         Assert.assertNull(onError.get());
         Assert.assertTrue(onComplete.get());
         Assert.assertTrue(onAfterComplete.get());
@@ -117,6 +126,7 @@ public class PublisherPeekTest {
 
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
+        AtomicReference<Integer> onAfterNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
         AtomicBoolean onComplete = new AtomicBoolean();
         AtomicLong onRequest = new AtomicLong();
@@ -126,6 +136,7 @@ public class PublisherPeekTest {
         new PublisherPeek<>(PublisherNever.instance(),
           onSubscribe::set,
           onNext::set,
+                onAfterNext::set,
           onError::set,
           () -> onComplete.set(true),
           () -> onAfterComplete.set(true),
@@ -135,6 +146,7 @@ public class PublisherPeekTest {
 
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
+        Assert.assertNull(onAfterNext.get());
         Assert.assertNull(onError.get());
         Assert.assertFalse(onComplete.get());
         Assert.assertFalse(onAfterComplete.get());
@@ -148,6 +160,7 @@ public class PublisherPeekTest {
 
         AtomicReference<Subscription> onSubscribe = new AtomicReference<>();
         AtomicReference<Integer> onNext = new AtomicReference<>();
+        AtomicReference<Integer> onAfterNext = new AtomicReference<>();
         AtomicReference<Throwable> onError = new AtomicReference<>();
         AtomicBoolean onComplete = new AtomicBoolean();
         AtomicLong onRequest = new AtomicLong();
@@ -157,6 +170,7 @@ public class PublisherPeekTest {
         new PublisherPeek<>(PublisherNever.instance(),
           onSubscribe::set,
           onNext::set,
+                onAfterNext::set,
           onError::set,
           () -> onComplete.set(true),
           () -> onAfterComplete.set(true),
@@ -166,6 +180,7 @@ public class PublisherPeekTest {
 
         Assert.assertNotNull(onSubscribe.get());
         Assert.assertNull(onNext.get());
+        Assert.assertNull(onAfterNext.get());
         Assert.assertNull(onError.get());
         Assert.assertFalse(onComplete.get());
         Assert.assertFalse(onAfterComplete.get());
@@ -190,6 +205,7 @@ public class PublisherPeekTest {
                 null,
                 null,
                 null,
+                null,
                 null
         ).subscribe(ts);
 
@@ -202,6 +218,7 @@ public class PublisherPeekTest {
             new PublisherPeek<>(new PublisherJust<>(1),
                     null,
                     d -> ExceptionHelper.failUpstream(err),
+                    null,
                     null,
                     null,
                     null,

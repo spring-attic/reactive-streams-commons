@@ -239,51 +239,61 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final Px<T> doOnSubscribe(Consumer<? super Subscription> onSubscribe) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, onSubscribe, null, null, null, null, null, null);
+            return new PublisherPeekFuseable<>(this, onSubscribe, null, null, null, null, null, null, null);
         }
-        return new PublisherPeek<>(this, onSubscribe, null, null, null, null, null, null);
+        return new PublisherPeek<>(this, onSubscribe, null, null, null, null, null, null,
+                null);
     }
     
     public final Px<T> doOnNext(Consumer<? super T> onNext) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, onNext, null, null, null, null, null);
+            return new PublisherPeekFuseable<>(this, null, onNext, null, null, null, null, null, null);
         }
-        return new PublisherPeek<>(this, null, onNext, null, null, null, null, null);
+        return new PublisherPeek<>(this, null, onNext, null, null, null, null, null, null);
+    }
+
+    public final Px<T> doAfterNext(Consumer<? super T> onAfterNext) {
+        if (this instanceof Fuseable) {
+            return new PublisherPeekFuseable<>(this, null, null, onAfterNext, null,
+                    null, null, null, null);
+        }
+        return new PublisherPeek<>(this, null, null, onAfterNext, null, null, null, null,
+                null);
     }
 
     public final Px<T> doOnError(Consumer<? super Throwable> onError) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, onError, null, null, null, null);
+            return new PublisherPeekFuseable<>(this, null, null, null, onError, null, null, null, null);
         }
-        return new PublisherPeek<>(this, null, null, onError, null, null, null, null);
+        return new PublisherPeek<>(this, null, null, null, onError, null, null, null, null);
     }
 
     public final Px<T> doOnComplete(Runnable onComplete) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, onComplete, null, null, null);
+            return new PublisherPeekFuseable<>(this, null, null, null, null, onComplete, null, null, null);
         }
-        return new PublisherPeek<>(this, null, null, null, onComplete, null, null, null);
+        return new PublisherPeek<>(this, null, null, null, null, onComplete, null, null, null);
     }
     
     public final Px<T> doAfterTerminate(Runnable onAfterTerminate) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, null, onAfterTerminate, null, null);
+            return new PublisherPeekFuseable<>(this, null, null, null, null, null, onAfterTerminate, null, null);
         }
-        return new PublisherPeek<>(this, null, null, null, null, onAfterTerminate, null, null);
+        return new PublisherPeek<>(this, null, null, null, null, null, onAfterTerminate, null, null);
     }
 
     public final Px<T> doOnRequest(LongConsumer onRequest) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, null, null, onRequest, null);
+            return new PublisherPeekFuseable<>(this, null, null, null, null, null, null, onRequest, null);
         }
-        return new PublisherPeek<>(this, null, null, null, null, null, onRequest, null);
+        return new PublisherPeek<>(this, null, null, null, null, null, null, onRequest, null);
     }
     
     public final Px<T> doOnCancel(Runnable onCancel) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, null, null, null, onCancel);
+            return new PublisherPeekFuseable<>(this, null, null, null, null, null, null, null, onCancel);
         }
-        return new PublisherPeek<>(this, null, null, null, null, null, null, onCancel);
+        return new PublisherPeek<>(this, null, null, null, null, null, null, null, onCancel);
     }
 
     public final <R> Px<R> reduce(Supplier<R> initialValue, BiFunction<R, ? super T, R> accumulator) {

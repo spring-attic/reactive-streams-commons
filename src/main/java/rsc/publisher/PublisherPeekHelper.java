@@ -15,6 +15,8 @@ interface PublisherPeekHelper<T> {
 
     Consumer<? super T> onNextCall();
 
+    Consumer<? super T> onAfterNextCall();
+
     Consumer<? super Throwable> onErrorCall();
 
     Runnable onCompleteCall();
