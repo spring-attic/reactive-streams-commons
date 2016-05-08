@@ -78,10 +78,10 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurab
         if (add(rp)) {
             if (rp.cancelled) {
                 remove(rp);
+                return;
             }
-        } else {
-            buffer.drain(rp);
         }
+        buffer.drain(rp);
     }
 
     @Override
