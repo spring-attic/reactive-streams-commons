@@ -1,13 +1,9 @@
 package rsc.publisher;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.*;
 
-import rsc.documentation.BackpressureMode;
-import rsc.documentation.BackpressureSupport;
-import rsc.documentation.FusionMode;
-import rsc.documentation.FusionSupport;
-import rsc.flow.*;
+import rsc.documentation.*;
+import rsc.flow.Fuseable;
 import rsc.state.Completable;
 import rsc.util.EmptySubscription;
 
@@ -31,8 +27,7 @@ implements Fuseable.ScalarCallable<Object>, Completable {
 
     @Override
     public void subscribe(Subscriber<? super Object> s) {
-        s.onSubscribe(EmptySubscription.INSTANCE);
-        s.onComplete();
+        EmptySubscription.complete(s);
     }
 
     /**

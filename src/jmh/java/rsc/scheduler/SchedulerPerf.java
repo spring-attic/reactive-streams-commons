@@ -22,9 +22,6 @@ import java.util.concurrent.*;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import reactor.core.publisher.Computations;
-import reactor.core.scheduler.Timer;
-import rsc.flow.Cancellation;
 import rsc.scheduler.Scheduler.Worker;
 
 /**
@@ -160,9 +157,9 @@ public class SchedulerPerf {
 
         parallel = new ParallelScheduler();
 
-        reactorSingle = new ReactorScheduler(Computations.single("reactor-s"));
-
-        reactorParallel = new ReactorScheduler(Computations.parallel("reactor-p"));
+//        reactorSingle = new ReactorScheduler(Computations.single("reactor-s"));
+//
+//        reactorParallel = new ReactorScheduler(Computations.parallel("reactor-p"));
 
 
         executorSingle = new ExecutorServiceScheduler(executorServiceSingle, false);
@@ -198,7 +195,7 @@ public class SchedulerPerf {
         
         timedMany = new ExecutorTimedScheduler(scheduledExecutorSingleMany);
 
-        reactorTimer = new ReactorTimedScheduler(Timer.create());
+//        reactorTimer = new ReactorTimedScheduler(Timer.create());
         
         // -------------------
         
@@ -338,6 +335,7 @@ public class SchedulerPerf {
         runOrderedWorker(bh, count, schedulers.get(type));
     }
 
+    /*
     static final class ReactorScheduler implements Scheduler {
         static final Cancellation NOOP = () -> {};
 
@@ -469,4 +467,5 @@ public class SchedulerPerf {
             }
         }
     }
+    */
 }

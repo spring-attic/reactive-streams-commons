@@ -18,10 +18,10 @@ import rsc.util.ScalarSubscription;
  * @param <T> the value type
  */
 @BackpressureSupport(input = BackpressureMode.NONE, output = BackpressureMode.BOUNDED)
-@FusionSupport(output = { FusionMode.SCALAR })
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE}, output = { FusionMode.SCALAR, FusionMode.SYNC })
 public final class PublisherJust<T> 
 extends Px<T>
-implements Fuseable.ScalarCallable<T>, Receiver, Backpressurable {
+implements Fuseable.ScalarCallable<T>, Receiver, Backpressurable, Fuseable {
 
     final T value;
 

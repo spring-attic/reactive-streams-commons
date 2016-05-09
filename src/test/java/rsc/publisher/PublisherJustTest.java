@@ -1,7 +1,8 @@
 package rsc.publisher;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
+
+import rsc.flow.Fuseable;
 import rsc.test.TestSubscriber;
 
 public class PublisherJustTest {
@@ -20,7 +21,7 @@ public class PublisherJustTest {
     public void normal() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        new PublisherJust<>(1).subscribe(ts);
+        Px.just(1).subscribe(ts);
 
         ts.assertValue(1)
           .assertComplete()
@@ -31,7 +32,7 @@ public class PublisherJustTest {
     public void normalBackpressured() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
 
-        new PublisherJust<>(1).subscribe(ts);
+        Px.just(1).subscribe(ts);
 
         ts.assertNoValues()
           .assertNotComplete()
@@ -44,4 +45,15 @@ public class PublisherJustTest {
           .assertNoError();
     }
 
+    @Test
+    public void fused() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        Px.just(1).subscribe(ts);
+        
+        ts.assertFuseableSource()
+        .assertFusionMode(Fuseable.SYNC)
+        .assertResult(1);
+    }
 }

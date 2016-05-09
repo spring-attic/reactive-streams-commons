@@ -4,11 +4,11 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
 
-public final class ScalarSubscription<T> implements Subscription, Producer, Receiver {
+import rsc.flow.*;
+import rsc.flow.Fuseable.*;
+
+public final class ScalarSubscription<T> implements QueueSubscription<T>, Producer, Receiver {
 
     final Subscriber<? super T> actual;
 
@@ -48,5 +48,37 @@ public final class ScalarSubscription<T> implements Subscription, Producer, Rece
     @Override
     public Object upstream() {
         return value;
+    }
+    
+    @Override
+    public int requestFusion(int requestedMode) {
+        if ((requestedMode & Fuseable.SYNC) != 0) {
+            return Fuseable.SYNC;
+        }
+        return 0;
+    }
+    
+    @Override
+    public T poll() {
+        if (once == 0) {
+            ONCE.lazySet(this, 1);
+            return value;
+        }
+        return null;
+    }
+    
+    @Override
+    public boolean isEmpty() {
+        return once != 0;
+    }
+    
+    @Override
+    public int size() {
+        return isEmpty() ? 0 : 1;
+    }
+    
+    @Override
+    public void clear() {
+        ONCE.lazySet(this, 1);
     }
 }
