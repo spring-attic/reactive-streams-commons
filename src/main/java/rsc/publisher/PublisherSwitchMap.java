@@ -48,6 +48,11 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
     
     @Override
     public void subscribe(Subscriber<? super R> s) {
+        
+        if (PublisherFlatMap.trySubscribeScalarMap(source, s, mapper, false)) {
+            return;
+        }
+        
         Queue<Object> q;
         
         try {

@@ -13,6 +13,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.state.*;
+import rsc.subscriber.SuppressFuseableSubscriber;
 import rsc.util.*;
 
 /**
@@ -58,7 +59,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     @Override
     public void subscribe(Subscriber<? super R> s) {
         
-        if (trySubscribeScalarMap(source, s, mapper)) {
+        if (trySubscribeScalarMap(source, s, mapper, false)) {
             return;
         }
         
@@ -72,13 +73,16 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
      * @param source the source publisher
      * @param s the end consumer
      * @param mapper the mapper function
+     * @param fuseableExpected if true, the parent class was marked Fuseable thus the mapping
+     * output has to signal onSubscribe with a QueueSubscription
      * @return true if the optimization worked
      */
     @SuppressWarnings("unchecked")
     static <T, R> boolean trySubscribeScalarMap(
             Publisher<? extends T> source,
             Subscriber<? super R> s,
-            Function<? super T, ? extends Publisher<? extends R>> mapper) {
+            Function<? super T, ? extends Publisher<? extends R>> mapper,
+            boolean fuseableExpected) {
         if (source instanceof Callable) {
             T t;
 
@@ -127,7 +131,11 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     EmptySubscription.complete(s);
                 }
             } else {
-                p.subscribe(s);
+                if (!fuseableExpected || p instanceof Fuseable) {
+                    p.subscribe(s);
+                } else {
+                    p.subscribe(new SuppressFuseableSubscriber<>(s));
+                }
             }
 
             return true;
