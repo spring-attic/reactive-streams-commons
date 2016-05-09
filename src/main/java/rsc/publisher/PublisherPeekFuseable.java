@@ -31,8 +31,6 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
     final Consumer<? super T> onNextCall;
 
-    final Consumer<? super T> onAfterNextCall;
-
     final Consumer<? super Throwable> onErrorCall;
 
     final Runnable onCompleteCall;
@@ -44,8 +42,8 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
     final Runnable onCancelCall;
 
     public PublisherPeekFuseable(Publisher<? extends T> source, Consumer<? super Subscription> onSubscribeCall,
-                         Consumer<? super T> onNextCall, Consumer<? super T>
-            onAfterNextCall, Consumer<? super Throwable> onErrorCall, Runnable
+                         Consumer<? super T> onNextCall, Consumer<? super Throwable>
+            onErrorCall, Runnable
                            onCompleteCall,
                          Runnable onAfterTerminateCall, LongConsumer onRequestCall, Runnable onCancelCall) {
         super(source);
@@ -54,7 +52,6 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
         }
         
         this.onSubscribeCall = onSubscribeCall;
-        this.onAfterNextCall = onAfterNextCall;
         this.onNextCall = onNextCall;
         this.onErrorCall = onErrorCall;
         this.onCompleteCall = onCompleteCall;
@@ -149,22 +146,6 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
                         ExceptionHelper.throwIfFatal(e);
                         onError(ExceptionHelper.unwrap(e));
                         return;
-                    }
-                }
-                if(parent.onAfterNextCall() != null){
-                    try{
-                        actual.onNext(t);
-                        return;
-                    }
-                    finally {
-                        try {
-                            parent.onAfterNextCall().accept(t);
-                        }
-                        catch (Throwable e) {
-                            cancel();
-                            ExceptionHelper.throwIfFatal(e);
-                            onError(ExceptionHelper.unwrap(e));
-                        }
                     }
                 }
                 actual.onNext(t);
@@ -369,22 +350,6 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
                         return;
                     }
                 }
-                if(parent.onAfterNextCall() != null){
-                    try{
-                        actual.onNext(t);
-                        return;
-                    }
-                    finally {
-                        try {
-                            parent.onAfterNextCall().accept(t);
-                        }
-                        catch (Throwable e) {
-                            cancel();
-                            ExceptionHelper.throwIfFatal(e);
-                            onError(ExceptionHelper.unwrap(e));
-                        }
-                    }
-                }
                 actual.onNext(t);
             } else 
             if (sourceMode == ASYNC) {
@@ -404,22 +369,6 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
                         ExceptionHelper.throwIfFatal(e);
                         onError(ExceptionHelper.unwrap(e));
                         return true;
-                    }
-                }
-
-                if(parent.onAfterNextCall() != null){
-                    try{
-                        return actual.tryOnNext(t);
-                    }
-                    finally {
-                        try {
-                            parent.onAfterNextCall().accept(t);
-                        }
-                        catch (Throwable e) {
-                            cancel();
-                            ExceptionHelper.throwIfFatal(e);
-                            onError(ExceptionHelper.unwrap(e));
-                        }
                     }
                 }
                 return actual.tryOnNext(t);
@@ -562,11 +511,6 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
     @Override
     public LongConsumer onRequestCall() {
         return onRequestCall;
-    }
-
-    @Override
-    public Consumer<? super T> onAfterNextCall() {
-        return onAfterNextCall;
     }
 
     @Override
