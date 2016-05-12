@@ -1102,34 +1102,51 @@
 </td>
 </tr>
 <tr><td><b>Just</b></td>
-    <td title='Just -&gt; ConcatMap' '>Unfuseable</td>
-    <td title='Just -&gt; Distinct' '>Unfuseable</td>
-    <td title='Just -&gt; DistinctFuseable' '>Unfuseable</td>
+    <td title='Just -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; DistinctFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
     <td title='Just -&gt; DistinctUntilChanged' '>Unfuseable</td>
-    <td title='Just -&gt; Filter' '>Unfuseable</td>
-    <td title='Just -&gt; FilterFuseable' '>Unfuseable</td>
+    <td title='Just -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
     <td title='Just -&gt; FlatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
 </td>
-    <td title='Just -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+    <td title='Just -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font><br/>
+        <font color='#000000'>Sync</font><br/>
 </td>
-    <td title='Just -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+    <td title='Just -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font><br/>
+        <font color='#000000'>Sync</font><br/>
 </td>
-    <td title='Just -&gt; Map' '>Unfuseable</td>
-    <td title='Just -&gt; MapFuseable' '>Unfuseable</td>
-    <td title='Just -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+    <td title='Just -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
-    <td title='Just -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+    <td title='Just -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font><br/>
+        <font color='#000000'>Sync</font><br/>
+</td>
+    <td title='Just -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font><br/>
+        <font color='#000000'>Sync</font><br/>
 </td>
     <td title='Just -&gt; Peek' '>Unfuseable</td>
-    <td title='Just -&gt; PeekFuseable' '>Unfuseable</td>
-    <td title='Just -&gt; Publish' '>Unfuseable</td>
+    <td title='Just -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; Publish' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
     <td title='Just -&gt; SkipWhile' '>Unfuseable</td>
     <td title='Just -&gt; SubscribeOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
 </td>
-    <td title='Just -&gt; Take' '>Unfuseable</td>
-    <td title='Just -&gt; TakeFuseable' '>Unfuseable</td>
-    <td title='Just -&gt; Using - inner' '>Unfuseable</td>
-    <td title='Just -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+    <td title='Just -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; TakeFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
+</td>
+    <td title='Just -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font><br/>
+        <font color='#000000'>Sync</font><br/>
 </td>
 </tr>
 <tr><td><b>Map</b></td>
