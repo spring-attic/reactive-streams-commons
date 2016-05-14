@@ -656,19 +656,11 @@ public class PublisherFlatMapTest {
     public void slowDrain() {
         TestSubscriber<Integer> ts = new TestSubscriber<>(0);
         
-        long t = System.nanoTime();
-        
         Px.range(1, 100_000).flatMap(v -> Px.range(1, 10)).subscribe(ts);
-        
-        long t1 = System.nanoTime();
-        System.out.printf("%,d%n", t1 - t);
         
         while (ts.values().size() < 1_000_000) {
             ts.request(96);
         }
-        
-        long t2 = System.nanoTime();
-        System.out.printf("%,d%n", t2 - t1);
         
         ts.assertValueCount(1_000_000);
         ts.assertComplete();

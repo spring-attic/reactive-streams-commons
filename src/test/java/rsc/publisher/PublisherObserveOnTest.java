@@ -455,9 +455,6 @@ public class PublisherObserveOnTest {
     @Test
     public void boundedQueueLoop() {
         for (int i = 0; i < 1000; i++) {
-//            if (i % 100 == 0) {
-//                System.out.println("-- " + i);
-//            }
             boundedQueue();
         }
     }
@@ -482,9 +479,6 @@ public class PublisherObserveOnTest {
     @Test
     public void boundedQueueFilterLoop() {
         for (int i = 0; i < 1000; i++) {
-//            if (i % 100 == 0) {
-//                System.out.println("-- " + i);
-//            }
             boundedQueueFilter();
         }
     }
@@ -509,9 +503,6 @@ public class PublisherObserveOnTest {
     @Test
     public void withFlatMapLoop() {
         for (int i = 0; i < 200; i++) {
-//            if (i % 100 == 0) {
-//                System.out.println("-- " + i);
-//            }
             withFlatMap();
         }
     }
@@ -715,7 +706,6 @@ public class PublisherObserveOnTest {
     @Test
     public void crossRangeMaxHiddenLoop() {
         for (int i = 0; i < 50; i++) {
-//            System.out.println("crossRangeMaxHidden >> " + i);
             crossRangeMaxHidden();
         }
     }
@@ -742,7 +732,6 @@ public class PublisherObserveOnTest {
     @Test
     public void crossRangeMaxLoop() {
         for (int i = 0; i < 50; i++) {
-//            System.out.println("crossRangeMaxLoop >> " + i);
             crossRangeMax();
         }
     }
@@ -769,7 +758,6 @@ public class PublisherObserveOnTest {
 //    @Test
     public void crossRangeMaxUnboundedLoop() {
         for (int i = 0; i < 50; i++) {
-//            System.out.println("crossRangeMaxUnbounded >> " + i);
             crossRangeMaxUnbounded();
         }
     }
@@ -835,7 +823,6 @@ public class PublisherObserveOnTest {
     public void crossRangePerfDefaultLoop() {
         for (int i = 0; i < 100000; i++) {
             if (i % 2000 == 0)
-//            System.out.println("crossRangePerfDefault >> " + i);
             crossRangePerfDefault();
         }
     }
@@ -868,13 +855,10 @@ public class PublisherObserveOnTest {
         int count = 1000;
 
         for (int j = 1; j < 256; j *= 2) {
-//            System.out.println("crossRangePerfDefaultLoop2 >>>> " + j);
             
             Px<Integer> source = Px.range(1, count).flatMap(v -> Px.range(v, 2), false, j).observeOn(scheduler);
     
             for (int i = 0; i < 10000; i++) {
-//                if (i % 2000 == 0)
-//                System.out.println("crossRangePerfDefault >> " + i);
                 TestSubscriber<Integer> ts = new TestSubscriber<>();
         
                 source.subscribe(ts);

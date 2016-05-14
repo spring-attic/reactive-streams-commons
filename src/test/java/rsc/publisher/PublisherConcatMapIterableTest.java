@@ -33,7 +33,6 @@ public class PublisherConcatMapIterableTest {
         Px.range(1, 5).concatMapIterable(v -> Arrays.asList(v, v + 1))
           .subscribe(ts);
         
-        System.out.println(ts.values());
         ts.assertValues(1, 2, 2, 3, 3, 4, 4, 5, 5, 6)
         .assertNoError()
         .assertComplete();
@@ -151,7 +150,6 @@ public class PublisherConcatMapIterableTest {
         Px.just(1).concatMapIterable(v -> Arrays.asList(v, v + 1))
         .subscribe(ts);
         
-        System.out.println(ts.values());
         ts.assertValues(1, 2)
         .assertNoError()
         .assertComplete();
@@ -164,7 +162,6 @@ public class PublisherConcatMapIterableTest {
         Px.<Integer>empty().concatMapIterable(v -> Arrays.asList(v, v + 1))
         .subscribe(ts);
         
-        System.out.println(ts.values());
         ts.assertNoValues()
         .assertNoError()
         .assertComplete();

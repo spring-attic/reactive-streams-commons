@@ -1,15 +1,14 @@
 package rsc.publisher;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 
+import rsc.flow.Fuseable;
+import rsc.scheduler.*;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
-import rsc.scheduler.ExecutorServiceScheduler;
 
 public class PublisherSubscribeOnTest {
     
@@ -145,4 +144,118 @@ public class PublisherSubscribeOnTest {
         }
         
         Assert.assertEquals(1, count.get());
-    }}
+    }
+
+    @Test
+    public void callableEmitsOnScheduler() {
+        Scheduler s = new SingleTimedScheduler("pxsingle-");
+        
+        try {
+            TestSubscriber<String> ts = new TestSubscriber<>();
+            
+            String main = Thread.currentThread().getName();
+            
+            Px.fromCallable(() -> Thread.currentThread().getName()).subscribeOn(s).subscribe(ts);
+            
+            ts.assertTerminated(5, TimeUnit.SECONDS);
+            
+            ts.assertValueCount(1)
+            .assertNoError();
+            
+            Assert.assertNotEquals(main, ts.values().get(0));
+        } finally {
+            s.shutdown();
+        }
+    }
+
+    @Test
+    public void callableLateRequestEmitsOnScheduler() throws InterruptedException {
+        Scheduler s = new SingleTimedScheduler("pxsingle-");
+        
+        try {
+            TestSubscriber<String> ts = new TestSubscriber<>(0);
+            
+            String main = Thread.currentThread().getName();
+            
+            Px.fromCallable(() -> Thread.currentThread().getName()).subscribeOn(s).subscribe(ts);
+            
+            Thread.sleep(500);
+            
+            ts.request(1);
+            
+            ts.assertTerminated(5, TimeUnit.SECONDS);
+            
+            ts.assertValueCount(1)
+            .assertNoError();
+            
+            Assert.assertNotEquals(main, ts.values().get(0));
+        } finally {
+            s.shutdown();
+        }
+    }
+
+    @Test
+    public void callableAsyncFuseable() {
+        Scheduler s = new SingleTimedScheduler("pxsingle-");
+        
+        try {
+            TestSubscriber<String> ts = new TestSubscriber<>();
+            ts.requestedFusionMode(Fuseable.ANY);
+            
+            String main = Thread.currentThread().getName();
+            
+            Px.fromCallable(() -> Thread.currentThread().getName()).subscribeOn(s).subscribe(ts);
+            
+            ts
+            .assertFusionMode(Fuseable.ASYNC)
+            .assertTerminated(5, TimeUnit.SECONDS)
+            .assertValueCount(1)
+            .assertNoError();
+            
+            Assert.assertNotEquals(main, ts.values().get(0));
+        } finally {
+            s.shutdown();
+        }
+    }
+
+    @Test
+    public void scalarAsyncFuseable() {
+        Scheduler s = new SingleTimedScheduler("pxsingle-");
+        
+        try {
+            TestSubscriber<Integer> ts = new TestSubscriber<>();
+            ts.requestedFusionMode(Fuseable.ANY);
+            
+            Px.just(1).subscribeOn(s).subscribe(ts);
+            
+            ts
+            .assertFusionMode(Fuseable.ASYNC)
+            .assertTerminated(5, TimeUnit.SECONDS)
+            .assertValue(1)
+            .assertNoError();
+        } finally {
+            s.shutdown();
+        }
+    }
+
+    @Test
+    public void emptyAsyncFuseable() {
+        Scheduler s = new SingleTimedScheduler("pxsingle-");
+        
+        try {
+            TestSubscriber<Integer> ts = new TestSubscriber<>();
+            ts.requestedFusionMode(Fuseable.ANY);
+            
+            Px.<Integer>empty().subscribeOn(s).subscribe(ts);
+            
+            ts
+            .assertFusionMode(Fuseable.ASYNC)
+            .assertTerminated(5, TimeUnit.SECONDS)
+            .assertNoValues()
+            .assertNoError();
+        } finally {
+            s.shutdown();
+        }
+    }
+
+}

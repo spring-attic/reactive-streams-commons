@@ -554,19 +554,18 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final Px<T> subscribeOn(ExecutorService executor) {
-        if (this instanceof Fuseable.ScalarCallable) {
-            @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarCallable<T>)this).call();
-            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor));
-        }
-        return new PublisherSubscribeOn<>(this, fromExecutor(executor));
+        Scheduler fromExecutor = fromExecutor(executor);
+        return subscribeOn(fromExecutor);
     }
 
+    @SuppressWarnings("unchecked")
     public final Px<T> subscribeOn(Scheduler scheduler) {
-        if (this instanceof Fuseable.ScalarCallable) {
-            @SuppressWarnings("unchecked")
-            T value = ((Fuseable.ScalarCallable<T>)this).call();
-            return new PublisherSubscribeOnValue<>(value, scheduler);
+        if (this instanceof Callable) {
+            if (this instanceof Fuseable.ScalarCallable) {
+                T value = ((Fuseable.ScalarCallable<T>)this).call();
+                return new PublisherSubscribeOnValue<>(value, scheduler);
+            }
+            return new PublisherCallableSubscribeOn<>((Callable<T>)this, scheduler);
         }
         return new PublisherSubscribeOn<>(this, scheduler);
     }

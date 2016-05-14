@@ -339,7 +339,6 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
     @Test(timeout = 60000)
     public void asyncConsumers() {
         for (int maxSize = 1; maxSize < 12; maxSize++) {
-//            System.out.println("asyncConsumers >> " + maxSize);
             SingleTimedScheduler exec = new SingleTimedScheduler();
 
             try {

@@ -1,24 +1,15 @@
 package rsc.publisher;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.concurrent.atomic.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
 
-import rsc.documentation.FusionMode;
-import rsc.documentation.FusionSupport;
+import rsc.documentation.*;
 import rsc.flow.*;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
-import rsc.util.BackpressureHelper;
-import rsc.util.DeferredSubscription;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.util.*;
 
 /**
  * Subscribes to the source Publisher asynchronously through a scheduler function or
@@ -26,8 +17,8 @@ import rsc.util.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-@FusionSupport(input = { FusionMode.SCALAR })
-public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> implements Loopback {
+@FusionSupport(input = { FusionMode.SCALAR }, output = { FusionMode.ASYNC })
+public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> implements Loopback, Fuseable {
 
     final Scheduler scheduler;
     
@@ -38,26 +29,10 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
     }
 
-    public static <T> void scalarScheduleOn(Publisher<? extends T> source, Subscriber<? super T> s, Scheduler scheduler) {
-        @SuppressWarnings("unchecked")
-        Fuseable.ScalarCallable<T> supplier = (Fuseable.ScalarCallable<T>) source;
-        
-        T v = supplier.call();
-        
-        if (v == null) {
-            ScheduledEmpty parent = new ScheduledEmpty(s);
-            s.onSubscribe(parent);
-            Cancellation f = scheduler.schedule(parent);
-            parent.setFuture(f);
-        } else {
-            s.onSubscribe(new ScheduledScalar<>(s, v, scheduler));
-        }
-    }
-    
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (source instanceof Fuseable.ScalarCallable) {
-            scalarScheduleOn(source, s, scheduler);
+            PublisherSubscribeOnValue.singleScheduleOn(source, s, scheduler);
             return;
         }
         
@@ -93,7 +68,7 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
     }
 
     static final class PublisherSubscribeOnClassic<T>
-            extends DeferredSubscription implements Subscriber<T>, Producer, Loopback {
+            extends DeferredSubscription implements Subscriber<T>, Producer, Loopback, QueueSubscription<T> {
         final Subscriber<? super T> actual;
 
         final Worker worker;
@@ -162,10 +137,35 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         public Object connectedInput() {
             return null;
         }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            return Fuseable.NONE;
+        }
+        
+        @Override
+        public T poll() {
+            return null;
+        }
+        
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+        
+        @Override
+        public int size() {
+            return 0;
+        }
+        
+        @Override
+        public void clear() {
+            
+        }
     }
 
     static final class PublisherSubscribeOnPipeline<T>
-            extends DeferredSubscription implements Subscriber<T>, Producer, Loopback, Runnable {
+            extends DeferredSubscription implements Subscriber<T>, Producer, Loopback, Runnable, QueueSubscription<T> {
         final Subscriber<? super T> actual;
 
         final Worker worker;
@@ -267,6 +267,31 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         public Object connectedInput() {
             return null;
         }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            return Fuseable.NONE;
+        }
+        
+        @Override
+        public T poll() {
+            return null;
+        }
+        
+        @Override
+        public void clear() {
+            
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+        
+        @Override
+        public int size() {
+            return 0;
+        }
     }
 
     static final class RequestTask implements Runnable {
@@ -285,146 +310,6 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
         }
     }
     
-    static final class ScheduledScalar<T>
-            implements Subscription, Runnable, Producer, Loopback {
-
-        final Subscriber<? super T> actual;
-        
-        final T value;
-        
-        final Scheduler scheduler;
-
-        volatile int once;
-        @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<ScheduledScalar> ONCE =
-                AtomicIntegerFieldUpdater.newUpdater(ScheduledScalar.class, "once");
-        
-        volatile Cancellation future;
-        @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<ScheduledScalar, Cancellation> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(ScheduledScalar.class, Cancellation.class, "future");
-        
-        static final Cancellation CANCELLED = () -> { };
-
-        static final Cancellation FINISHED = () -> { };
-
-        public ScheduledScalar(Subscriber<? super T> actual, T value, Scheduler scheduler) {
-            this.actual = actual;
-            this.value = value;
-            this.scheduler = scheduler;
-        }
-        
-        @Override
-        public void request(long n) {
-            if (SubscriptionHelper.validate(n)) {
-                if (ONCE.compareAndSet(this, 0, 1)) {
-                    Cancellation f = scheduler.schedule(this);
-                    if (!FUTURE.compareAndSet(this, null, f)) {
-                        if (future != FINISHED && future != CANCELLED) {
-                            f.dispose();
-                        }
-                    }
-                }
-            }
-        }
-        
-        @Override
-        public void cancel() {
-            ONCE.lazySet(this, 1);
-            Cancellation f = future;
-            if (f != CANCELLED && future != FINISHED) {
-                f = FUTURE.getAndSet(this, CANCELLED);
-                if (f != null && f != CANCELLED && f != FINISHED) {
-                    f.dispose();
-                }
-            }
-        }
-        
-        @Override
-        public void run() {
-            try {
-                actual.onNext(value);
-                actual.onComplete();
-            } finally {
-                FUTURE.lazySet(this, FINISHED);
-            }
-        }
-
-        @Override
-        public Object downstream() {
-            return actual;
-        }
-
-        @Override
-        public Object connectedInput() {
-            return scheduler;
-        }
-
-        @Override
-        public Object connectedOutput() {
-            return value;
-        }
-    }
-
-    static final class ScheduledEmpty implements Subscription, Runnable, Producer, Loopback {
-        final Subscriber<?> actual;
-
-        volatile Cancellation future;
-        static final AtomicReferenceFieldUpdater<ScheduledEmpty, Cancellation> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(ScheduledEmpty.class, Cancellation.class, "future");
-        
-        static final Cancellation CANCELLED = () -> { };
-        
-        static final Cancellation FINISHED = () -> { };
-
-        public ScheduledEmpty(Subscriber<?> actual) {
-            this.actual = actual;
-        }
-
-        @Override
-        public void request(long n) {
-            SubscriptionHelper.validate(n);
-        }
-
-        @Override
-        public void cancel() {
-            Cancellation f = future;
-            if (f != CANCELLED && f != FINISHED) {
-                f = FUTURE.getAndSet(this, CANCELLED);
-                if (f != null && f != CANCELLED && f != FINISHED) {
-                    f.dispose();
-                }
-            }
-        }
-
-        @Override
-        public void run() {
-            try {
-                actual.onComplete();
-            } finally {
-                FUTURE.lazySet(this, FINISHED);
-            }
-        }
-
-        void setFuture(Cancellation f) {
-            if (!FUTURE.compareAndSet(this, null, f)) {
-                Cancellation a = future;
-                if (a != FINISHED && a != CANCELLED) {
-                    f.dispose();
-                }
-            }
-        }
-        
-        @Override
-        public Object connectedInput() {
-            return null; // FIXME value?
-        }
-
-        @Override
-        public Object downstream() {
-            return actual;
-        }
-    }
 
     static final class SourceSubscribeTask<T> implements Runnable {
 
