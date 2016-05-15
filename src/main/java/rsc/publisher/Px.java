@@ -832,7 +832,12 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     public static <T, R> Px<R> zip(Function<? super Object[], ? extends R> zipper, Publisher<? extends T>... sources) {
         return new PublisherZip<>(sources, zipper, defaultQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
-    
+
+    @SafeVarargs
+    public static <T, R> Px<R> zip(Function<? super Object[], ? extends R> zipper, int prefetch, Publisher<? extends T>... sources) {
+        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch);
+    }
+
     public static <T, R> Px<R> zipArray(Publisher<? extends T>[] sources, Function<? super Object[], ? extends R> zipper) {
         return zipArray(sources, zipper, BUFFER_SIZE);
     }

@@ -499,6 +499,8 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         
         volatile boolean cancelled;
         
+        final Object[] current;
+        
         public PublisherZipCoordinator(Subscriber<? super R> actual, 
                 Function<? super Object[], ? extends R> zipper, int n, 
                 Supplier<? extends Queue<T>> queueSupplier, int prefetch) {
@@ -509,6 +511,7 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
             for (int i = 0; i < n; i++) {
                 a[i] = new PublisherZipInner<>(this, prefetch, i, queueSupplier); 
             }
+            this.current = new Object[n];
             this.subscribers = a;
         }
         
@@ -687,30 +690,49 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                         break;
                     }
                     
-                    Object[] values = new Object[n];
+                    Object[] values = current;
 
                     for (int j = 0; j < n; j++) {
                         PublisherZipInner<T> inner = qs[j];
-                        try {
-                            values[j] = inner.queue.poll();
-                        } catch (Throwable ex) {
-                            ExceptionHelper.throwIfFatal(ex);
-                            
-                            cancelAll();
-                            
-                            ExceptionHelper.addThrowable(ERROR, this, ex);
-                            ex = ExceptionHelper.terminate(ERROR, this);
-                            
-                            a.onError(ex);
-                            
-                            return;
+                        if (values[j] == null) {
+                            try {
+                                boolean d = inner.done;
+                                T v = inner.queue.poll();
+                                
+                                empty = v == null;
+                                if (d && empty) {
+                                    cancelAll();
+                                    
+                                    a.onComplete();
+                                    return;
+                                }
+                                if (empty) {
+                                    break;
+                                }
+                                values[j] = v;
+                            } catch (Throwable ex) {
+                                ExceptionHelper.throwIfFatal(ex);
+                                
+                                cancelAll();
+                                
+                                ExceptionHelper.addThrowable(ERROR, this, ex);
+                                ex = ExceptionHelper.terminate(ERROR, this);
+                                
+                                a.onError(ex);
+                                
+                                return;
+                            }
                         }
+                    }
+
+                    if (empty) {
+                        break;
                     }
                     
                     R v;
                     
                     try {
-                        v = zipper.apply(values);
+                        v = zipper.apply(values.clone());
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
                         
@@ -740,6 +762,8 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                     a.onNext(v);
                     
                     e++;
+                    
+                    Arrays.fill(values, null);
                 }
                 
                 if (r == e) {

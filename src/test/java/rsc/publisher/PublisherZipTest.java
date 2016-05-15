@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.*;
 
-import org.junit.Test;
+import org.junit.*;
 import org.reactivestreams.Publisher;
 
 import rsc.processor.UnicastProcessor;
@@ -488,4 +488,23 @@ public class PublisherZipTest {
         .assertNotComplete();
     }
 
+    @Test
+    public void isEmptyFalseButPollFilters() {
+        
+        TestSubscriber<Object[]> ts = new TestSubscriber<>(0);
+        
+        Px<Integer> source = Px.fromArray(1, 2, 3).filter(v -> v == 2);
+        
+        Px.zip(a -> a, 1, source, source).subscribe(ts);
+        
+        ts.request(2);
+        
+        ts.assertValueCount(1)
+        .assertNoError()
+        .assertComplete();
+        
+        Assert.assertArrayEquals(new Object[] { 2, 2 }, ts.values().get(0));
+        
+        
+    }
 }
