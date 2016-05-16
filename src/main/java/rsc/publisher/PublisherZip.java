@@ -616,6 +616,7 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
             final Subscriber<? super R> a = actual;
             final PublisherZipInner<T>[] qs = subscribers;
             final int n = qs.length;
+            Object[] values = current;
             
             int missed = 1;
             
@@ -642,8 +643,6 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                     
                     boolean empty = false;
                     
-                    Object[] values = current;
-
                     for (int j = 0; j < n; j++) {
                         PublisherZipInner<T> inner = qs[j];
                         if (values[j] == null) {
@@ -735,8 +734,6 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                         return;
                     }
                     
-                    Object[] values = current;
-
                     for (int j = 0; j < n; j++) {
                         PublisherZipInner<T> inner = qs[j];
                         if (values[j] == null) {
