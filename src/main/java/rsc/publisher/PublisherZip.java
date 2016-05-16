@@ -640,55 +640,7 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                         return;
                     }
                     
-                    boolean done = false;
                     boolean empty = false;
-                    
-                    for (int j = 0; j < n; j++) {
-                        PublisherZipInner<T> inner = qs[j];
-
-                        boolean d = inner.done;
-                        Queue<T> q = inner.queue;
-                        boolean f;
-                        
-                        if (q != null) {
-                            try {
-                                f = q.isEmpty();
-                            } catch (Throwable ex) {
-                                ExceptionHelper.throwIfFatal(ex);
-                                
-                                cancelAll();
-                                
-                                ExceptionHelper.addThrowable(ERROR, this, ex);
-                                ex = ExceptionHelper.terminate(ERROR, this);
-                                
-                                a.onError(ex);
-                                
-                                return;
-                            }
-                        } else {
-                            f = true;
-                        }
-
-                        if (d && f) {
-                            done = true;
-                            break;
-                        }
-                        if (f) {
-                            empty = true;
-                            break;
-                        }
-                    }
-                    
-                    if (done) {
-                        cancelAll();
-                        
-                        a.onComplete();
-                        return;
-                    }
-                    
-                    if (empty) {
-                        break;
-                    }
                     
                     Object[] values = current;
 
@@ -697,7 +649,9 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                         if (values[j] == null) {
                             try {
                                 boolean d = inner.done;
-                                T v = inner.queue.poll();
+                                Queue<T> q = inner.queue;
+                                
+                                T v = q != null ? q.poll() : null;
                                 
                                 empty = v == null;
                                 if (d && empty) {
@@ -781,18 +735,26 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                         return;
                     }
                     
-                    boolean done = false;
-                    
+                    Object[] values = current;
+
                     for (int j = 0; j < n; j++) {
                         PublisherZipInner<T> inner = qs[j];
-
-                        boolean d = inner.done;
-                        Queue<T> q = inner.queue;
-                        boolean f;
-                        
-                        if (q != null) {
+                        if (values[j] == null) {
                             try {
-                                f = q.isEmpty();
+                                boolean d = inner.done;
+                                Queue<T> q = inner.queue;
+                                T v = q != null ? q.poll() : null;
+                                
+                                boolean empty = v == null;
+                                if (d && empty) {
+                                    cancelAll();
+                                    
+                                    a.onComplete();
+                                    return;
+                                }
+                                if (!empty) {
+                                    values[j] = v;
+                                }
                             } catch (Throwable ex) {
                                 ExceptionHelper.throwIfFatal(ex);
                                 
@@ -805,24 +767,12 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                                 
                                 return;
                             }
-                        } else {
-                            f = true;
-                        }
-                        if (d && f) {
-                            done = true;
-                            break;
                         }
                     }
                     
-                    if (done) {
-                        cancelAll();
-                        
-                        a.onComplete();
-                        return;
-                    }
                 }
                 
-                if (e != 0) {
+                if (e != 0L) {
                     
                     for (int j = 0; j < n; j++) {
                         PublisherZipInner<T> inner = qs[j];

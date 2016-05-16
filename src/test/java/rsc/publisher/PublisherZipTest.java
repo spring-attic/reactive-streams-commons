@@ -497,7 +497,7 @@ public class PublisherZipTest {
         
         Px.zip(a -> a, 1, source, source).subscribe(ts);
         
-        ts.request(2);
+        ts.request(1);
         
         ts.assertValueCount(1)
         .assertNoError()
