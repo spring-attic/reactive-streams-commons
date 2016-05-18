@@ -45,6 +45,7 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
     /**
      * If the source is Callable or ScalarCallable, optimized paths are used instead of the
      * general path.
+     * @param <T> the value type
      * @param source the source Publisher
      * @param s the subscriber
      * @param scheduler the scheduler
