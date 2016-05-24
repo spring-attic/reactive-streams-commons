@@ -120,7 +120,7 @@ public final class ParallelScheduler implements Scheduler {
             if (b == null) {
                 b = new ExecutorService[n];
                 for (int i = 0; i < n; i++) {
-                    b[i] = Executors.newSingleThreadExecutor();
+                    b[i] = Executors.newSingleThreadExecutor(factory);
                 }
             }
             
