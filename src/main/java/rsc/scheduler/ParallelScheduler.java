@@ -90,7 +90,7 @@ public final class ParallelScheduler implements Scheduler {
     private void init(int n) {
         ExecutorService[] a = new ExecutorService[n];
         for (int i = 0; i < n; i++) {
-            a[i] = Executors.newSingleThreadExecutor();
+            a[i] = Executors.newSingleThreadExecutor(factory);
         }
         EXECUTORS.lazySet(this, a);
     }
