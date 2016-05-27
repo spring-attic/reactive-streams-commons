@@ -37,8 +37,18 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
     
     final int prefetch;
 
+    @SuppressWarnings("unchecked")
+    public <U> PublisherZip(Publisher<? extends T> p1, Publisher<? extends U> p2, 
+            BiFunction<? super T, ? super U, ? extends R> zipper2, 
+            Supplier<? extends Queue<T>> queueSupplier, int prefetch) {
+        this(new Publisher[] { Objects.requireNonNull(p1, "p1"), Objects.requireNonNull(p2, "p2") }, 
+                new PairwiseZipper<R>(new BiFunction[] { Objects.requireNonNull(zipper2, "zipper2") }), 
+                queueSupplier, prefetch);
+    }
+    
     public PublisherZip(Publisher<? extends T>[] sources,
-            Function<? super Object[], ? extends R> zipper, Supplier<? extends Queue<T>> queueSupplier, int prefetch) {
+            Function<? super Object[], ? extends R> zipper, 
+            Supplier<? extends Queue<T>> queueSupplier, int prefetch) {
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
         }
@@ -61,6 +71,21 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         this.prefetch = prefetch;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public <U> PublisherZip<T, R> zipAdditionalSource(Publisher source, BiFunction zipper) {
+        Publisher[] oldSources = sources;
+        if (oldSources != null && this.zipper instanceof PairwiseZipper) {
+            int oldLen = oldSources.length;
+            Publisher<? extends T>[] newSources = new Publisher[oldLen + 1];
+            System.arraycopy(oldSources, 0, newSources, 0, oldLen);
+            newSources[oldLen] = source;
+            
+            Function<Object[], R> z = ((PairwiseZipper<R>)this.zipper).then(zipper);
+            
+            return new PublisherZip<>(newSources, z, queueSupplier, prefetch);
+        }
+        return null;
+    }
 
     @Override
     public void subscribe(Subscriber<? super R> s) {
@@ -956,6 +981,34 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                     produced = p;
                 }
             }
+        }
+    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    static final class PairwiseZipper<R> implements Function<Object[], R> {
+        final BiFunction[] zippers;
+        
+        public PairwiseZipper(BiFunction[] zippers) {
+            this.zippers = zippers;
+        }
+        
+        @Override
+        public R apply(Object[] args) {
+            Object o = zippers[0].apply(args[0], args[1]);
+            for (int i = 1; i < zippers.length; i++) {
+                o = zippers[i].apply(o, args[i + 1]);
+            }
+            return (R)o;
+        }
+        
+        public PairwiseZipper then(BiFunction zipper) {
+            BiFunction[] zippers = this.zippers;
+            int n = zippers.length;
+            BiFunction[] newZippers = new BiFunction[n + 1];
+            System.arraycopy(zippers, 0, newZippers, 0, n);
+            newZippers[n] = zipper;
+            
+            return new PairwiseZipper(newZippers);
         }
     }
 }

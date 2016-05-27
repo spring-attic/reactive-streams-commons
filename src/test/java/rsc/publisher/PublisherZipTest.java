@@ -10,7 +10,6 @@ import org.reactivestreams.Publisher;
 import rsc.processor.UnicastProcessor;
 import rsc.test.TestSubscriber;
 import rsc.util.*;
-import rsc.util.SpscArrayQueue;
 
 public class PublisherZipTest {
 
@@ -19,10 +18,13 @@ public class PublisherZipTest {
         ConstructorTestBuilder ctb = new ConstructorTestBuilder(PublisherZip.class);
         
         ctb.addRef("sources", new Publisher[0]);
+        ctb.addRef("p1", Px.never());
+        ctb.addRef("p2", Px.never());
         ctb.addRef("sourcesIterable", Collections.emptyList());
         ctb.addRef("queueSupplier", (Supplier<Queue<Object>>)() -> new ConcurrentLinkedQueue<>());
         ctb.addInt("prefetch", 1, Integer.MAX_VALUE);
         ctb.addRef("zipper", (Function<Object[], Object>)v -> v);
+        ctb.addRef("zipper2", (BiFunction<Object, Object, Object>)(v1, v2) -> v1);
         
         ctb.test();
     }
@@ -506,5 +508,27 @@ public class PublisherZipTest {
         Assert.assertArrayEquals(new Object[] { 2, 2 }, ts.values().get(0));
         
         
+    }
+    
+    @Test
+    public void zipWithNoStackoverflow() {
+        int n = 5000;
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        BiFunction<Integer, Integer, Integer> f = (a, b) -> a + b;
+        
+        Px<Integer> source = Px.just(1);
+        Px<Integer> result = source;
+        
+        for (int i = 0; i < n; i++) {
+            result = result.zipWith(source, f);
+        }
+        
+        result.subscribe(ts);
+        
+        ts.assertValue(n + 1)
+        .assertNoError()
+        .assertComplete();
     }
 }

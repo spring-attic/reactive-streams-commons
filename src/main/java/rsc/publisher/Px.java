@@ -490,9 +490,14 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     @SuppressWarnings("unchecked")
     public final <U, R> Px<R> zipWith(Publisher<? extends U> other, BiFunction<? super T, ? super U, ? extends R> zipper) {
-        return zipArray(new Publisher[] { this, other }, a -> {
-            return zipper.apply((T)a[0], (U)a[1]);
-        });
+        if (this instanceof PublisherZip) {
+            PublisherZip<T, R> o = (PublisherZip<T, R>) this;
+            Px<R> result = o.zipAdditionalSource(other, zipper);
+            if (result != null) {
+                return result;
+            }
+        }
+        return new PublisherZip<>(this, other, zipper, defaultQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
     }
     
     /**
