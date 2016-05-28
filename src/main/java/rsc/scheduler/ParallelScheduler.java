@@ -15,12 +15,12 @@ public final class ParallelScheduler implements Scheduler {
     static final AtomicLong COUNTER = new AtomicLong();
 
     static final ThreadFactory THREAD_FACTORY = r -> {
-        Thread t = new Thread(r, "ParallelScheduler-" + COUNTER.incrementAndGet());
+        Thread t = new Thread(r, "parallel-" + COUNTER.incrementAndGet());
         return t;
     };
 
     static final ThreadFactory THREAD_FACTORY_DAEMON = r -> {
-        Thread t = new Thread(r, "ParallelScheduler-" + COUNTER.incrementAndGet());
+        Thread t = new Thread(r, "parallel-" + COUNTER.incrementAndGet());
         t.setDaemon(true);
         return t;
     };

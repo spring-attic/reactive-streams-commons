@@ -157,9 +157,9 @@ public class SchedulerPerf {
 
         parallel = new ParallelScheduler();
 
-//        reactorSingle = new ReactorScheduler(Computations.single("reactor-s"));
+//        reactorSingle = new ReactorScheduler(Schedulers.newSingle("reactor-s"));
 //
-//        reactorParallel = new ReactorScheduler(Computations.parallel("reactor-p"));
+//        reactorParallel = new ReactorScheduler(Schedulers.newParallel("reactor-p"));
 
 
         executorSingle = new ExecutorServiceScheduler(executorServiceSingle, false);
