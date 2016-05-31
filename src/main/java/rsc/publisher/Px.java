@@ -127,6 +127,14 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return new PublisherBufferStartEnd<>(this, start, end, bufferSupplier, defaultQueueSupplier(Integer.MAX_VALUE));
     }
 
+    public final Px<Px<T>> window(int size) {
+        return new PublisherWindow<>(this, size, defaultUnboundedQueueSupplier(BUFFER_SIZE));
+    }
+
+    public final Px<Px<T>> window(int size, int skip) {
+        return new PublisherWindow<>(this, size, skip, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE));
+    }
+
     public final <U> Px<Px<T>> window(Publisher<U> other) {
         return new PublisherWindowBoundary<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE));
     }
