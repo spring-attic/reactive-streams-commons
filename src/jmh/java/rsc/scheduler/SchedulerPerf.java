@@ -195,7 +195,7 @@ public class SchedulerPerf {
         
         timedMany = new ExecutorTimedScheduler(scheduledExecutorSingleMany);
 
-//        reactorTimer = new ReactorTimedScheduler(Timer.create());
+//        reactorTimer = new ReactorTimedScheduler(Schedulers.newTimer("testTimer"));
         
         // -------------------
         
