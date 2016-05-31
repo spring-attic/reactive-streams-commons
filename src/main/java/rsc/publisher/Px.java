@@ -37,7 +37,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     };
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    static <T> Supplier<Queue<T>> defaultQueueSupplier(final int capacity) {
+    public static <T> Supplier<Queue<T>> defaultQueueSupplier(final int capacity) {
         if (capacity == Integer.MAX_VALUE) {
             return (Supplier)QUEUE_SUPPLIER;
         }
@@ -50,7 +50,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    static <T> Supplier<Queue<T>> defaultUnboundedQueueSupplier(final int capacity) {
+    public static <T> Supplier<Queue<T>> defaultUnboundedQueueSupplier(final int capacity) {
         if (capacity == Integer.MAX_VALUE) {
             return (Supplier)QUEUE_SUPPLIER;
         }
@@ -60,6 +60,10 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
                 return new SpscLinkedArrayQueue<>(capacity);
             }
         };
+    }
+    
+    public static int bufferSize() {
+        return BUFFER_SIZE;
     }
 
     public final <R> Px<R> map(Function<? super T, ? extends R> mapper) {
