@@ -170,6 +170,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
     @Override
     public void onNext(T t) {
         if (done || cancelled) {
+            UnsignalledExceptions.onNextDropped(t);
             return;
         }
         
@@ -199,6 +200,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
     @Override
     public void onError(Throwable t) {
         if (done || cancelled) {
+            UnsignalledExceptions.onErrorDropped(t);
             return;
         }
         
