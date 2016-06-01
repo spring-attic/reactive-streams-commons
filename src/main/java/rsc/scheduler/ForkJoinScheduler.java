@@ -7,31 +7,16 @@ import rsc.flow.Cancellation;
 import rsc.util.*;
 
 /**
- * Scheduler that hosts a fixed pool of single-threaded ExecutorService-based workers
+ * Scheduler that hosts a fixed pool of single-threaded ForkJoinPool-based workers
  * and is suited for parallel work.
  */
-public final class ParallelScheduler implements Scheduler {
-
-    static final AtomicLong COUNTER = new AtomicLong();
-
-    static final ThreadFactory THREAD_FACTORY = r -> {
-        Thread t = new Thread(r, "parallel-" + COUNTER.incrementAndGet());
-        return t;
-    };
-
-    static final ThreadFactory THREAD_FACTORY_DAEMON = r -> {
-        Thread t = new Thread(r, "parallel-" + COUNTER.incrementAndGet());
-        t.setDaemon(true);
-        return t;
-    };
+public final class ForkJoinScheduler implements Scheduler {
 
     final int n;
     
-    final ThreadFactory factory;
-
     volatile ExecutorService[] executors;
-    static final AtomicReferenceFieldUpdater<ParallelScheduler, ExecutorService[]> EXECUTORS =
-            AtomicReferenceFieldUpdater.newUpdater(ParallelScheduler.class, ExecutorService[].class, "executors");
+    static final AtomicReferenceFieldUpdater<ForkJoinScheduler, ExecutorService[]> EXECUTORS =
+            AtomicReferenceFieldUpdater.newUpdater(ForkJoinScheduler.class, ExecutorService[].class, "executors");
 
     static final ExecutorService[] SHUTDOWN = new ExecutorService[0];
     
@@ -43,54 +28,20 @@ public final class ParallelScheduler implements Scheduler {
     
     int roundRobin;
     
-    public ParallelScheduler() {
+    public ForkJoinScheduler() {
         this.n = Runtime.getRuntime().availableProcessors();
-        this.factory = THREAD_FACTORY;
         init(n);
     }
 
-    public ParallelScheduler(int n) {
+    public ForkJoinScheduler(int n) {
         this.n = n;
-        this.factory = THREAD_FACTORY;
         init(n);
     }
 
-    public ParallelScheduler(int n, String name) {
-        this(n, name, false);
-    }
-
-    public ParallelScheduler(int n, String name, boolean daemon) {
-        if (n <= 0) {
-            throw new IllegalArgumentException("n > 0 required but it was " + n);
-        }
-        this.n = n;
-        this.factory = r -> {
-            Thread t = new Thread(r, name + COUNTER.incrementAndGet());
-            t.setDaemon(daemon);
-            return t;
-        };
-        init(n);
-    }
-
-    public ParallelScheduler(ThreadFactory factory) {
-        this.n = Runtime.getRuntime().availableProcessors();
-        this.factory = factory;
-        init(n);
-    }
-    
-    public ParallelScheduler(int n, ThreadFactory factory) {
-        if (n <= 0) {
-            throw new IllegalArgumentException("n > 0 required but it was " + n);
-        }
-        this.n = n;
-        this.factory = factory;
-        init(n);
-    }
-    
     private void init(int n) {
         ExecutorService[] a = new ExecutorService[n];
         for (int i = 0; i < n; i++) {
-            a[i] = Executors.newSingleThreadExecutor(factory);
+            a[i] = new ForkJoinPool(1, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, false);
         }
         EXECUTORS.lazySet(this, a);
     }
@@ -120,7 +71,7 @@ public final class ParallelScheduler implements Scheduler {
             if (b == null) {
                 b = new ExecutorService[n];
                 for (int i = 0; i < n; i++) {
-                    b[i] = Executors.newSingleThreadExecutor(factory);
+                    b[i] = new ForkJoinPool(1, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, false);
                 }
             }
             

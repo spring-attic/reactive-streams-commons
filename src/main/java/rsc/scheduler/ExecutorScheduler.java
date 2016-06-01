@@ -217,10 +217,12 @@ public final class ExecutorScheduler implements Scheduler {
                 tasks = null;
             }
             
-            Object[] a = list.keys;
-            for (Object o : a) {
-                if (o != null) {
-                    ((ExecutorTrackedRunnable)o).dispose();
+            if (!list.isEmpty()) {
+                Object[] a = list.keys;
+                for (Object o : a) {
+                    if (o != null) {
+                        ((ExecutorTrackedRunnable)o).dispose();
+                    }
                 }
             }
         }

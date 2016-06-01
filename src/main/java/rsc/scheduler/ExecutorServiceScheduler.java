@@ -112,10 +112,13 @@ public final class ExecutorServiceScheduler implements Scheduler {
                     terminated = true;
                 }
                 
-                Object[] a = coll.keys;
-                
-                for (Object o : a) {
-                    ((ScheduledRunnable)o).cancelFuture();
+                if (!coll.isEmpty()) {
+                    Object[] a = coll.keys;
+                    for (Object o : a) {
+                        if (o != null) {
+                            ((ScheduledRunnable)o).cancelFuture();
+                        }
+                    }
                 }
             }
         }

@@ -99,7 +99,7 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
                     tasks = null;
                 }
                 
-                if (set != null) {
+                if (set != null && !set.isEmpty()) {
                     Object[] keys = set.keys;
                     for (Object o : keys) {
                         if (o != null) {

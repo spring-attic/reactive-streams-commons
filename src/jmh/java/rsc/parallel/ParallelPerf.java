@@ -1,5 +1,8 @@
 package rsc.parallel;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -17,6 +20,8 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 import rsc.publisher.Px;
+import rsc.scheduler.ExecutorServiceScheduler;
+import rsc.scheduler.ForkJoinScheduler;
 import rsc.scheduler.ParallelScheduler;
 import rsc.scheduler.Scheduler;
 import rsc.util.PerfAsyncSubscriber;
@@ -46,14 +51,34 @@ public class ParallelPerf {
     
     Scheduler scheduler;
     
+    Scheduler fjScheduler;
+    
+    Scheduler executor;
+    
+    ExecutorService exec;
+    
     Px<Integer> parallel;
+
+    Px<Integer> parallelFj;
+
+    Px<Integer> parallelExec;
+
+    Px<Integer> parallelCp;
 
     Px<Integer> sequential;
 
     @Setup
     public void setup() {
         
+        exec = Executors.newFixedThreadPool(parallelism);
+        
         scheduler = new ParallelScheduler(parallelism);
+        
+        fjScheduler = new ForkJoinScheduler(parallelism);
+        
+        executor = new ExecutorServiceScheduler(exec, false);
+        
+        Scheduler cpScheduler = new ExecutorServiceScheduler(ForkJoinPool.commonPool(), false);
         
         Integer[] values = new Integer[count];
         for (int i = 0; i < values.length; i++) {
@@ -64,12 +89,36 @@ public class ParallelPerf {
         
         this.parallel = ParallelPublisher.fork(source, false, parallelism)
                 .runOn(scheduler)
-//                .runOn(ImmediateScheduler.instance())
                 .map(v -> {
                     Blackhole.consumeCPU(compute);
                     return v;
                 })
                 .join();
+
+        this.parallelFj = ParallelPublisher.fork(source, false, parallelism)
+                .runOn(fjScheduler)
+                .map(v -> {
+                    Blackhole.consumeCPU(compute);
+                    return v;
+                })
+                .join();
+
+        this.parallelExec = ParallelPublisher.fork(source, false, parallelism)
+                .runOn(executor)
+                .map(v -> {
+                    Blackhole.consumeCPU(compute);
+                    return v;
+                })
+                .join();
+
+        this.parallelCp = ParallelPublisher.fork(source, false, parallelism)
+                .runOn(cpScheduler)
+                .map(v -> {
+                    Blackhole.consumeCPU(compute);
+                    return v;
+                })
+                .join();
+
         
         this.sequential = ParallelPublisher.fork(source, false, parallelism)
                 .map(v -> {
@@ -82,6 +131,12 @@ public class ParallelPerf {
     @TearDown
     public void shutdown() {
         scheduler.shutdown();
+        
+        fjScheduler.shutdown();
+        
+        executor.shutdown();
+        
+        exec.shutdown();
     }
 
     @Benchmark
@@ -91,24 +146,29 @@ public class ParallelPerf {
         s.await(10000);
     }
 
-    @Benchmark
+//    @Benchmark
     public void sequential(Blackhole bh) {
         sequential.subscribe(new PerfSubscriber(bh));
     }
-    
-    public static void main(String[] args) {
-        ParallelPerf p = new ParallelPerf();
-        p.compute = 1;
-        p.count = 10000;
-        p.parallelism = 1;
-        
-        p.setup();
-        
-        for (int i = 0; i < 10000; i++) {
-            p.parallel.blockingLast();
-        }
-        
-        p.shutdown();
+
+    @Benchmark
+    public void parallelFj(Blackhole bh) {
+        PerfAsyncSubscriber s = new PerfAsyncSubscriber(bh);
+        parallelFj.subscribe(s);
+        s.await(10000);
     }
 
+    @Benchmark
+    public void parallelExec(Blackhole bh) {
+        PerfAsyncSubscriber s = new PerfAsyncSubscriber(bh);
+        parallelExec.subscribe(s);
+        s.await(10000);
+    }
+
+    @Benchmark
+    public void parallelCp(Blackhole bh) {
+        PerfAsyncSubscriber s = new PerfAsyncSubscriber(bh);
+        parallelCp.subscribe(s);
+        s.await(10000);
+    }
 }

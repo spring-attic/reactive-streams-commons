@@ -244,10 +244,12 @@ public final class SingleTimedScheduler implements TimedScheduler {
                 tasks = null;
             }
             
-            Object[] keys = set.keys;
-            for (Object c : keys) {
-                if (c != null) {
-                    ((CancelFuture)c).cancelFuture();
+            if (!set.isEmpty()) {
+                Object[] keys = set.keys;
+                for (Object c : keys) {
+                    if (c != null) {
+                        ((CancelFuture)c).cancelFuture();
+                    }
                 }
             }
         }
