@@ -36,7 +36,8 @@ public class ParallelPublisherTest {
     @Test
     public void parallelMode() {
         Px<Integer> source = Px.range(1, 1_000_000);
-        for (int i = 1; i < Runtime.getRuntime().availableProcessors() + 1; i++) {
+        int ncpu = Math.max(4, Runtime.getRuntime().availableProcessors());
+        for (int i = 1; i < ncpu + 1; i++) {
             
             Scheduler scheduler = new ParallelScheduler(i);
             
