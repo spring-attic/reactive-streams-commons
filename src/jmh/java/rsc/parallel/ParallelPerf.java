@@ -24,7 +24,7 @@ import org.openjdk.jmh.infra.Blackhole;
 
 import rsc.publisher.Px;
 import rsc.scheduler.*;
-import rsc.util.PerfSubscriber;
+import rsc.util.*;
 
 /**
  * Benchmark ParallelPublisher.
@@ -55,7 +55,7 @@ public class ParallelPerf {
     Px<Integer> sequential;
 
     @Setup
-    public void setup(Blackhole bh) {
+    public void setup() {
         
         scheduler = new ParallelScheduler(parallelism);
         
@@ -66,6 +66,7 @@ public class ParallelPerf {
         
         this.parallel = ParallelPublisher.fork(source, false, parallelism)
                 .runOn(scheduler)
+//                .runOn(ImmediateScheduler.instance())
                 .map(v -> {
                     Blackhole.consumeCPU(compute);
                     return v;
@@ -87,12 +88,29 @@ public class ParallelPerf {
 
     @Benchmark
     public void parallel(Blackhole bh) {
-        parallel.subscribe(new PerfSubscriber(bh));
+        PerfAsyncSubscriber s = new PerfAsyncSubscriber(bh);
+        parallel.subscribe(s);
+        s.await(10000);
     }
 
     @Benchmark
     public void sequential(Blackhole bh) {
         sequential.subscribe(new PerfSubscriber(bh));
+    }
+    
+    public static void main(String[] args) {
+        ParallelPerf p = new ParallelPerf();
+        p.compute = 1;
+        p.count = 10000;
+        p.parallelism = 1;
+        
+        p.setup();
+        
+        for (int i = 0; i < 10000; i++) {
+            p.parallel.blockingLast();
+        }
+        
+        p.shutdown();
     }
 
 }

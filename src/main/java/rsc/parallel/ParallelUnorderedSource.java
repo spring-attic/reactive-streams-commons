@@ -177,7 +177,7 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                 
                 for (;;) {
                     if (cancelled) {
-                        queue.clear();
+                        q.clear();
                         return;
                     }
                     
@@ -185,7 +185,7 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                     if (d) {
                         Throwable ex = error;
                         if (ex != null) {
-                            queue.clear();
+                            q.clear();
                             for (Subscriber<? super T> s : a) {
                                 s.onError(ex);
                             }
@@ -195,7 +195,7 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
 
                     boolean empty = q.isEmpty();
                     
-                    if (done && empty) {
+                    if (d && empty) {
                         for (Subscriber<? super T> s : a) {
                             s.onComplete();
                         }
@@ -206,14 +206,20 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                         break;
                     }
                     
-                    if (r.get(idx) != e[idx]) {
+                    long ridx = r.get(idx);
+                    long eidx = e[idx];
+                    if (ridx != eidx) {
+
                         T v = q.poll();
                         
                         // FIXME fused queues may return null even if isEmpty is false
+                        if (v == null) {
+                            System.out.println("??? " + d + " " + empty + " " + ridx + " " + eidx);
+                        }
                         
                         a[idx].onNext(v);
                         
-                        e[idx]++;
+                        e[idx] = eidx + 1;
                         
                         int c = ++consumed;
                         if (c == limit) {
