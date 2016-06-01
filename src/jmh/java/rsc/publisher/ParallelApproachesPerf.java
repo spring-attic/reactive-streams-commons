@@ -1,8 +1,12 @@
 package rsc.publisher;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -53,9 +57,12 @@ public class ParallelApproachesPerf {
 
     Scheduler scheduler;
     
+    Supplier<Stream<Integer>> stream;
+    
+    ForkJoinPool fj;
+    
     @Setup
     public void setup(Blackhole bh) {
-        
         scheduler = new ParallelScheduler(parallelism);
         
         Integer[] values = new Integer[count];
@@ -81,6 +88,27 @@ public class ParallelApproachesPerf {
         flatMap = source.flatMap(v -> Px.just(v).observeOn(scheduler).map(work), false, Px.BUFFER_SIZE);
 
         flatMapLimit = source.flatMap(v -> Px.just(v).observeOn(scheduler).map(work), false, parallelism);
+        
+        List<Integer> list = Arrays.asList(values);
+        
+        fj = new ForkJoinPool(parallelism);
+        
+        stream = () -> {
+            return list.parallelStream().unordered().map(work);
+        };
+    }
+
+    @Benchmark
+    public void stream(Blackhole bh) {
+        stream.get().iterator().forEachRemaining(bh::consume);
+    }
+
+    @Benchmark
+    public void streamCustom(Blackhole bh) throws Exception {
+        fj.submit(() -> {
+            stream.get().iterator().forEachRemaining(bh::consume);
+            return null;
+        }).get();
     }
 
     @Benchmark
