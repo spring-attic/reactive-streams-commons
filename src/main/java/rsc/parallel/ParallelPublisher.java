@@ -88,20 +88,29 @@ public abstract class ParallelPublisher<T> {
             throw new UnsupportedOperationException("ordered not supported yet");
         }
         Objects.requireNonNull(predicate, "predicate");
-        throw new UnsupportedOperationException();
+        return new ParallelUnorderedFilter<>(this, predicate);
     }
     
     public final ParallelPublisher<T> runOn(Scheduler scheduler) {
         return runOn(scheduler, false);
-        
     }
 
     public final ParallelPublisher<T> runOn(Scheduler scheduler, boolean workStealing) {
+        return runOn(scheduler, workStealing, Px.bufferSize());
+    }
+
+    public final ParallelPublisher<T> runOn(Scheduler scheduler, boolean workStealing, int prefetch) {
         if (ordered()) {
             throw new UnsupportedOperationException("ordered not supported yet");
         }
+        if (workStealing) {
+            throw new UnsupportedOperationException("workStealing not supported yet");
+        }
+        if (prefetch <= 0) {
+            throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
+        }
         Objects.requireNonNull(scheduler, "scheduler");
-        throw new UnsupportedOperationException();
+        return new ParallelUnorderedRunOn<>(this, scheduler, prefetch, Px.defaultQueueSupplier(prefetch));
     }
 
     public final Publisher<T> reduce(BiFunction<T, T, T> reducer) {
