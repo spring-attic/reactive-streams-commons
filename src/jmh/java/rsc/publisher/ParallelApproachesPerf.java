@@ -90,11 +90,11 @@ public class ParallelApproachesPerf {
         
         Function<Integer, Integer> work = v -> { Blackhole.consumeCPU(compute); return v; };
         
-        groupBy = source.groupBy(gf).flatMap(g -> g.observeOn(scheduler).map(work), false, 256);
+        groupBy = source.groupBy(gf).flatMap(g -> g.observeOn(scheduler).map(work), false, Px.BUFFER_SIZE);
         
-        window = source.window(Px.BUFFER_SIZE).flatMap(w -> w.observeOn(scheduler).map(work), false, 256);
+        window = source.window(Px.BUFFER_SIZE).flatMap(w -> w.subscribeOn(scheduler).map(work), false, Px.BUFFER_SIZE);
         
-        flatMap = source.flatMap(v -> Px.just(v).observeOn(scheduler).map(work), false, 256);
+        flatMap = source.flatMap(v -> Px.just(v).observeOn(scheduler).map(work), false, Px.BUFFER_SIZE);
 
         flatMapLimit = source.flatMap(v -> Px.just(v).observeOn(scheduler).map(work), false, parallelism);
     }
