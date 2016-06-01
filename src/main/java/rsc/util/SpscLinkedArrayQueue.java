@@ -56,12 +56,12 @@ public final class SpscLinkedArrayQueue<T> extends AbstractQueue<T> {
             producerArray = b;
             b.lazySet(offset, e);
             a.lazySet(m + 1, b);
-            PRODUCER_INDEX.lazySet(this, pi + 1);
             a.lazySet(offset, NEXT);
+            PRODUCER_INDEX.lazySet(this, pi + 1);
         } else {
             int offset = (int)pi & m;
-            PRODUCER_INDEX.lazySet(this, pi + 1);
             a.lazySet(offset, e);
+            PRODUCER_INDEX.lazySet(this, pi + 1);
         }
         
         return true;
@@ -88,8 +88,8 @@ public final class SpscLinkedArrayQueue<T> extends AbstractQueue<T> {
             a = b;
             consumerArray = b;
         }
-        CONSUMER_INDEX.lazySet(this, ci + 1);
         a.lazySet(offset, null);
+        CONSUMER_INDEX.lazySet(this, ci + 1);
         
         return (T)o;
     }

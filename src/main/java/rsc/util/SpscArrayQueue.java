@@ -34,8 +34,8 @@ public final class SpscArrayQueue<T> extends SpscArrayQueueP3<T> implements Queu
         if (get(offset) != null) {
             return false;
         }
-        PRODUCER_INDEX.lazySet(this, pi + 1);
         lazySet(offset, e);
+        PRODUCER_INDEX.lazySet(this, pi + 1);
         return true;
     }
     
@@ -46,8 +46,8 @@ public final class SpscArrayQueue<T> extends SpscArrayQueueP3<T> implements Queu
         
         T v = get(offset);
         if (v != null) {
-            CONSUMER_INDEX.lazySet(this, ci + 1);
             lazySet(offset, null);
+            CONSUMER_INDEX.lazySet(this, ci + 1);
         }
         return v;
     }

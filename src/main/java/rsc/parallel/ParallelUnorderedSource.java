@@ -1,12 +1,16 @@
 package rsc.parallel;
 
 import java.util.Queue;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.function.Supplier;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
-import rsc.util.*;
+import rsc.util.BackpressureHelper;
+import rsc.util.SubscriptionHelper;
 
 /**
  * Dispatches the values from upstream in a round robin fashion to subscribers which are
@@ -63,7 +67,7 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
         
         Subscription s;
         
-        Queue<T> queue;
+        final Queue<T> queue;
         
         Throwable error;
         
@@ -153,8 +157,17 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
         }
         
         void cancel() {
-            this.s.cancel();
+            if (!cancelled) {
+                cancelled = true;
+                this.s.cancel();
+                
+                if (WIP.getAndIncrement(this) == 0) {
+                    queue.clear();
+                }
+            }
         }
+        
+        T last;
         
         void drain() {
             if (WIP.getAndIncrement(this) != 0) {
@@ -214,8 +227,15 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                         
                         // FIXME fused queues may return null even if isEmpty is false
                         if (v == null) {
-                            System.out.println("??? " + d + " " + empty + " " + ridx + " " + eidx);
+                            System.out.println("??? " + d + " " + empty + " " + ridx + " " + eidx + "; " + last);
+                            try {
+                                Thread.sleep(50000);
+                            } catch (InterruptedException e1) {
+                                e1.printStackTrace();
+                            }
                         }
+                        
+                        last = v;
                         
                         a[idx].onNext(v);
                         
@@ -241,17 +261,17 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                     }
                 }
                 
-                int w = wip;
-                if (w == missed) {
+//                int w = wip;
+//                if (w == missed) {
                     index = idx;
                     produced = consumed;
                     missed = WIP.addAndGet(this, -missed);
                     if (missed == 0) {
                         break;
                     }
-                } else {
-                    missed = w;
-                }
+//                } else {
+//                    missed = w;
+//                }
             }
         }
     }
