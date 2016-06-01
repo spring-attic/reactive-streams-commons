@@ -38,7 +38,7 @@ public class ParallelPerf {
     @Param({"10000"})
     public int count;
     
-    @Param({"1", "10", "100", "10000"})
+    @Param({"1", "10", "100", "1000", "10000"})
     public int compute;
     
     @Param({"1", "2", "3", "4"})

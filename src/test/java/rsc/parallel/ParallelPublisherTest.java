@@ -40,24 +40,28 @@ public class ParallelPublisherTest {
             
             Scheduler scheduler = new ParallelScheduler(i);
             
-            Px<Integer> result = ParallelPublisher.fork(source, false, i)
-            .runOn(scheduler)
-            .map(v -> v + 1)
-            .join()
-            ;
-            
-            TestSubscriber<Integer> ts = new TestSubscriber<>();
-            
-            result.subscribe(ts);
-
-            ts.assertTerminated(5, TimeUnit.SECONDS);
-            
-            ts
-            .assertSubscribed()
-            .assertValueCount(1_000_000)
-            .assertComplete()
-            .assertNoError()
-            ;
+            try {
+                Px<Integer> result = ParallelPublisher.fork(source, false, i)
+                .runOn(scheduler)
+                .map(v -> v + 1)
+                .join()
+                ;
+                
+                TestSubscriber<Integer> ts = new TestSubscriber<>();
+                
+                result.subscribe(ts);
+    
+                ts.assertTerminated(10, TimeUnit.SECONDS);
+                
+                ts
+                .assertSubscribed()
+                .assertValueCount(1_000_000)
+                .assertComplete()
+                .assertNoError()
+                ;
+            } finally {
+                scheduler.shutdown();
+            }
         }
         
     }
