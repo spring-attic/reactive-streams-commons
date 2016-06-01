@@ -9,7 +9,9 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import rsc.flow.Fuseable;
 import rsc.util.BackpressureHelper;
+import rsc.util.ExceptionHelper;
 import rsc.util.SubscriptionHelper;
 
 /**
@@ -64,10 +66,12 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
         final int prefetch;
         
         final int limit;
-        
+
+        final Supplier<Queue<T>> queueSupplier;
+
         Subscription s;
         
-        final Queue<T> queue;
+        Queue<T> queue;
         
         Throwable error;
         
@@ -84,10 +88,12 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
         
         int produced;
         
+        int sourceMode;
+
         public ParallelDispatcher(Subscriber<? super T>[] subscribers, int prefetch, Supplier<Queue<T>> queueSupplier) {
             this.subscribers = subscribers;
-            this.queue = queueSupplier.get();
             this.prefetch = prefetch;
+            this.queueSupplier = queueSupplier;
             this.limit = prefetch - (prefetch >> 2);
             this.requests = new AtomicLongArray(subscribers.length);
             this.emissions = new long[subscribers.length];
@@ -97,39 +103,71 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
         public void onSubscribe(Subscription s) {
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
-                
-                int n = subscribers.length;
-                
-                for (int i = 0; i < n; i++) {
-                    int j = i;
+
+                if (s instanceof Fuseable.QueueSubscription) {
+                    @SuppressWarnings("unchecked")
+                    Fuseable.QueueSubscription<T> qs = (Fuseable.QueueSubscription<T>) s;
                     
-                    subscribers[i].onSubscribe(new Subscription() {
-                        @Override
-                        public void request(long n) {
-                            if (SubscriptionHelper.validate(n)) {
-                                AtomicLongArray ra = requests;
-                                for (;;) {
-                                    long r = ra.get(j);
-                                    if (r == Long.MAX_VALUE) {
-                                        return;
-                                    }
-                                    long u = BackpressureHelper.addCap(r, n);
-                                    if (ra.compareAndSet(j, r, u)) {
-                                        break;
-                                    }
-                                }
-                                drain();
-                            }
-                        }
+                    int m = qs.requestFusion(Fuseable.ANY);
+                    
+                    if (m == Fuseable.SYNC) {
+                        sourceMode = m;
+                        queue = qs;
+                        done = true;
+                        setupSubscribers();
+                        drain();
+                        return;
+                    } else
+                    if (m == Fuseable.ASYNC) {
+                        sourceMode = m;
+                        queue = qs;
                         
-                        @Override
-                        public void cancel() {
-                            ParallelDispatcher.this.cancel();
-                        }
-                    });
+                        setupSubscribers();
+                        
+                        s.request(prefetch);
+                        
+                        return;
+                    }
                 }
                 
+                queue = queueSupplier.get();
+                
+                setupSubscribers();
+                
                 s.request(prefetch);
+            }
+        }
+        
+        void setupSubscribers() {
+            int n = subscribers.length;
+            
+            for (int i = 0; i < n; i++) {
+                int j = i;
+                
+                subscribers[i].onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        if (SubscriptionHelper.validate(n)) {
+                            AtomicLongArray ra = requests;
+                            for (;;) {
+                                long r = ra.get(j);
+                                if (r == Long.MAX_VALUE) {
+                                    return;
+                                }
+                                long u = BackpressureHelper.addCap(r, n);
+                                if (ra.compareAndSet(j, r, u)) {
+                                    break;
+                                }
+                            }
+                            drain();
+                        }
+                    }
+                    
+                    @Override
+                    public void cancel() {
+                        ParallelDispatcher.this.cancel();
+                    }
+                });
             }
         }
 
@@ -167,13 +205,7 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
             }
         }
         
-        T last;
-        
-        void drain() {
-            if (WIP.getAndIncrement(this) != 0) {
-                return;
-            }
-            
+        void drainAsync() {
             int missed = 1;
             
             Queue<T> q = queue;
@@ -225,18 +257,6 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
 
                         T v = q.poll();
                         
-                        // FIXME fused queues may return null even if isEmpty is false
-                        if (v == null) {
-                            System.out.println("??? " + d + " " + empty + " " + ridx + " " + eidx + "; " + last);
-                            try {
-                                Thread.sleep(50000);
-                            } catch (InterruptedException e1) {
-                                e1.printStackTrace();
-                            }
-                        }
-                        
-                        last = v;
-                        
                         a[idx].onNext(v);
                         
                         e[idx] = eidx + 1;
@@ -261,17 +281,117 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                     }
                 }
                 
-//                int w = wip;
-//                if (w == missed) {
+                int w = wip;
+                if (w == missed) {
                     index = idx;
                     produced = consumed;
                     missed = WIP.addAndGet(this, -missed);
                     if (missed == 0) {
                         break;
                     }
-//                } else {
-//                    missed = w;
-//                }
+                } else {
+                    missed = w;
+                }
+            }
+        }
+        
+        void drainSync() {
+            int missed = 1;
+            
+            Queue<T> q = queue;
+            Subscriber<? super T>[] a = this.subscribers;
+            AtomicLongArray r = this.requests;
+            long[] e = this.emissions;
+            int n = e.length;
+            int idx = index;
+            
+            for (;;) {
+
+                int notReady = 0;
+                
+                for (;;) {
+                    if (cancelled) {
+                        return;
+                    }
+                    
+                    boolean empty;
+                    
+                    try {
+                        empty = q.isEmpty();
+                    } catch (Throwable ex) {
+                        ExceptionHelper.throwIfFatal(ex);
+                        s.cancel();
+                        for (Subscriber<? super T> s : a) {
+                            s.onError(ex);
+                        }
+                        return;
+                    }
+                    
+                    if (empty) {
+                        for (Subscriber<? super T> s : a) {
+                            s.onComplete();
+                        }
+                        return;
+                    }
+
+                    long ridx = r.get(idx);
+                    long eidx = e[idx];
+                    if (ridx != eidx) {
+
+                        T v;
+                        
+                        try {
+                            v = q.poll();
+                        } catch (Throwable ex) {
+                            ExceptionHelper.throwIfFatal(ex);
+                            s.cancel();
+                            for (Subscriber<? super T> s : a) {
+                                s.onError(ex);
+                            }
+                            return;
+                        }
+                        
+                        a[idx].onNext(v);
+                        
+                        e[idx] = eidx + 1;
+                        
+                        notReady = 0;
+                    } else {
+                        notReady++;
+                    }
+                    
+                    idx++;
+                    if (idx == n) {
+                        idx = 0;
+                    }
+                    
+                    if (notReady == n) {
+                        break;
+                    }
+                }
+                
+                int w = wip;
+                if (w == missed) {
+                    index = idx;
+                    missed = WIP.addAndGet(this, -missed);
+                    if (missed == 0) {
+                        break;
+                    }
+                } else {
+                    missed = w;
+                }
+            }
+        }
+        
+        void drain() {
+            if (WIP.getAndIncrement(this) != 0) {
+                return;
+            }
+            
+            if (sourceMode == Fuseable.SYNC) {
+                drainSync();
+            } else {
+                drainAsync();
             }
         }
     }
