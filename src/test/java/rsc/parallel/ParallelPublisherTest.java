@@ -124,4 +124,49 @@ public class ParallelPublisherTest {
         
     }
 
+    @Test
+    public void reduceFull() {
+        for (int i = 1; i <= Runtime.getRuntime().availableProcessors() * 2; i++) {
+            TestSubscriber<Integer> ts = new TestSubscriber<>();
+            
+            Px.range(1, 10)
+            .parallel(i)
+            .reduce((a, b) -> a + b)
+            .subscribe(ts);
+            
+            ts.assertResult(55);
+        }
+    }
+    
+    @Test
+    public void parallelReduceFull() {
+        int m = 100_000;
+        for (int n = 1; n <= m; n *= 10) {
+//            System.out.println(n);
+            for (int i = 1; i <= Runtime.getRuntime().availableProcessors(); i++) {
+//                System.out.println("  " + i);
+                
+                ParallelScheduler scheduler = new ParallelScheduler(i);
+                
+                try {
+                    TestSubscriber<Long> ts = new TestSubscriber<>();
+                    
+                    Px.range(1, n)
+                    .map(v -> (long)v)
+                    .parallel(i)
+                    .runOn(scheduler)
+                    .reduce((a, b) -> a + b)
+                    .subscribe(ts);
+        
+                    ts.assertTerminated(500, TimeUnit.SECONDS);
+                    
+                    long e = ((long)n) * (1 + n) / 2;
+                    
+                    ts.assertResult(e);
+                } finally {
+                    scheduler.shutdown();
+                }
+            }
+        }
+    }
 }

@@ -86,6 +86,15 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
         static final AtomicIntegerFieldUpdater<ParallelDispatcher> WIP =
                 AtomicIntegerFieldUpdater.newUpdater(ParallelDispatcher.class, "wip");
         
+        /** 
+         * Counts how many subscribers were setup to delay triggering the
+         * drain of upstream until all of them have been setup.
+         */
+        volatile int subscriberCount;
+        @SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<ParallelDispatcher> SUBSCRIBER_COUNT =
+                AtomicIntegerFieldUpdater.newUpdater(ParallelDispatcher.class, "subscriberCount");
+        
         int produced;
         
         int sourceMode;
@@ -139,10 +148,15 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
         }
         
         void setupSubscribers() {
-            int n = subscribers.length;
+            int m = subscribers.length;
             
-            for (int i = 0; i < n; i++) {
+            for (int i = 0; i < m; i++) {
+                if (cancelled) {
+                    return;
+                }
                 int j = i;
+
+                SUBSCRIBER_COUNT.lazySet(this, i + 1);
                 
                 subscribers[i].onSubscribe(new Subscription() {
                     @Override
@@ -159,7 +173,9 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                                     break;
                                 }
                             }
-                            drain();
+                            if (subscriberCount == m) {
+                                drain();
+                            }
                         }
                     }
                     
@@ -173,10 +189,12 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
 
         @Override
         public void onNext(T t) {
-            if (!queue.offer(t)) {
-                cancel();
-                onError(new IllegalStateException("Queue is full?"));
-                return;
+            if (sourceMode == Fuseable.NONE) {
+                if (!queue.offer(t)) {
+                    cancel();
+                    onError(new IllegalStateException("Queue is full?"));
+                    return;
+                }
             }
             drain();
         }

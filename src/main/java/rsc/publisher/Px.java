@@ -8,6 +8,7 @@ import java.util.stream.*;
 import org.reactivestreams.*;
 
 import rsc.flow.*;
+import rsc.parallel.ParallelPublisher;
 import rsc.scheduler.*;
 import rsc.state.Introspectable;
 import rsc.subscriber.*;
@@ -730,7 +731,23 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     public final <R> Px<R> publish(Function<? super Px<T>, ? extends Publisher<? extends R>> transform, int prefetch) {
         return new PublisherPublish<>(this, transform, prefetch, defaultQueueSupplier(prefetch));
     }
-    
+
+    public final ParallelPublisher<T> parallel() {
+        return ParallelPublisher.fork(this);
+    }
+
+    public final ParallelPublisher<T> parallel(boolean ordered) {
+        return ParallelPublisher.fork(this, ordered);
+    }
+
+    public final ParallelPublisher<T> parallel(int parallelism) {
+        return ParallelPublisher.fork(this, false, parallelism);
+    }
+
+    public final ParallelPublisher<T> parallel(boolean ordered, int parallelism) {
+        return ParallelPublisher.fork(this, ordered, parallelism);
+    }
+
     // ---------------------------------------------------------------------------------------
     
     static final class PxWrapper<T> extends PublisherSource<T, T> {
