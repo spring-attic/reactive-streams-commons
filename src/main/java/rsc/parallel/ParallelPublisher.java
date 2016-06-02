@@ -1,11 +1,25 @@
 package rsc.parallel;
 
-import java.util.*;
-import java.util.function.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
+import rsc.publisher.GroupedPublisher;
 import rsc.publisher.Px;
 import rsc.scheduler.Scheduler;
 import rsc.util.EmptySubscription;
@@ -42,6 +56,24 @@ public abstract class ParallelPublisher<T> {
      */
     public abstract boolean ordered();
     
+    /**
+     * Validates the number of subscribers and returns true if their number
+     * matches the parallelism level of this ParallelPublisher.
+     * 
+     * @param subscribers the array of Subscribers
+     * @return true if the number of subscribers equals to the parallelism level
+     */
+    protected final boolean validate(Subscriber<? super T>[] subscribers) {
+        int p = parallelism();
+        if (subscribers.length != p) {
+            for (Subscriber<?> s : subscribers) {
+                EmptySubscription.error(s, new IllegalArgumentException("parallelism = " + p + ", subscribers = " + subscribers.length));
+            }
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Take a Publisher and prepare to consume it on multiple 'rails' (number of CPUs) in a round-robin fashion.
      * @param <T> the value type
@@ -604,22 +636,16 @@ public abstract class ParallelPublisher<T> {
     public final <A, R> ParallelPublisher<R> collect(Collector<T, A, R> collector) {
         return new ParallelUnorderedStreamCollect<>(this, collector);
     }
-
+    
     /**
-     * Validates the number of subscribers and returns true if their number
-     * matches the parallelism level of this ParallelPublisher.
+     * Exposes the 'rails' as individual GroupedPublisher instances, keyed by the rail index (zero based).
+     * <p>
+     * Each group can be consumed only once; requests and cancellation compose through. Note
+     * that cancelling only one rail may result in undefined behavior.
      * 
-     * @param subscribers the array of Subscribers
-     * @return true if the number of subscribers equals to the parallelism level
+     * @return the new Px instance
      */
-    protected final boolean validate(Subscriber<? super T>[] subscribers) {
-        int p = parallelism();
-        if (subscribers.length != p) {
-            for (Subscriber<?> s : subscribers) {
-                EmptySubscription.error(s, new IllegalArgumentException("parallelism = " + p + ", subscribers = " + subscribers.length));
-            }
-            return false;
-        }
-        return true;
+    public final Px<GroupedPublisher<Integer, T>> groups() {
+        return new ParallelUnorderedGroup<>(this);
     }
 }

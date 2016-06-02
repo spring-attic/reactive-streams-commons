@@ -229,11 +229,27 @@ public class ParallelPublisherTest {
     @Test
     public void streamCollect() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
+
         Px.range(1, 10)
         .parallel()
         .collect(Collectors.toList())
         .sequential()
         .flatMapIterable(v -> v)
+        .subscribe(ts);
+        
+        ts.assertValueSet(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)))
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void groupMerge() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        Px.range(1, 10)
+        .parallel()
+        .groups()
+        .flatMap(v -> v)
         .subscribe(ts);
         
         ts.assertValueSet(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)))
