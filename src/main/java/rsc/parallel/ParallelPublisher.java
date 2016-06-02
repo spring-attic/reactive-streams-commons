@@ -1,13 +1,10 @@
 package rsc.parallel;
 
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
+import java.util.stream.Collector;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.*;
 
 import rsc.publisher.Px;
 import rsc.scheduler.Scheduler;
@@ -325,6 +322,287 @@ public abstract class ParallelPublisher<T> {
      */
     public final Px<T> sequential(int prefetch) {
         return join(prefetch);
+    }
+
+    /**
+     * Sorts the 'rails' of this ParallelPublisher and returns a Publisher that sequentially
+     * picks the smallest next value from the rails.
+     * <p>
+     * This operator requires a finite source ParallelPublisher.
+     * 
+     * @param comparator the comparator to use
+     * @return the new Px instance
+     */
+    public final Px<T> sorted(Comparator<? super T> comparator) {
+        return sorted(comparator, 16);
+    }
+
+    /**
+     * Sorts the 'rails' of this ParallelPublisher and returns a Publisher that sequentially
+     * picks the smallest next value from the rails.
+     * <p>
+     * This operator requires a finite source ParallelPublisher.
+     * 
+     * @param comparator the comparator to use
+     * @param capacityHint the expected number of total elements
+     * @return the new Px instance
+     */
+    public final Px<T> sorted(Comparator<? super T> comparator, int capacityHint) {
+        int ch = capacityHint / parallelism() + 1;
+        ParallelPublisher<List<T>> railReduced = reduce(() -> new ArrayList<>(ch), (a, b) -> { a.add(b); return a; });
+        ParallelPublisher<List<T>> railSorted = railReduced.map(list -> { list.sort(comparator); return list; });
+        
+        Px<T> merged = new ParallelSortedJoin<>(railSorted, comparator);
+        
+        return merged;
+    }
+    
+    /**
+     * Sorts the 'rails' according to the comparator and returns a full sorted list as a Publisher.
+     * <p>
+     * This operator requires a finite source ParallelPublisher.
+     * 
+     * @param comparator the comparator to compare elements
+     * @return the new Px instannce
+     */
+    public final Px<List<T>> toSortedList(Comparator<? super T> comparator) {
+        return toSortedList(comparator, 16);
+    }
+    /**
+     * Sorts the 'rails' according to the comparator and returns a full sorted list as a Publisher.
+     * <p>
+     * This operator requires a finite source ParallelPublisher.
+     * 
+     * @param comparator the comparator to compare elements
+     * @param capacityHint the expected number of total elements
+     * @return the new Px instannce
+     */
+    public final Px<List<T>> toSortedList(Comparator<? super T> comparator, int capacityHint) {
+        int ch = capacityHint / parallelism() + 1;
+        ParallelPublisher<List<T>> railReduced = reduce(() -> new ArrayList<>(ch), (a, b) -> { a.add(b); return a; });
+        ParallelPublisher<List<T>> railSorted = railReduced.map(list -> { list.sort(comparator); return list; });
+
+        Px<List<T>> merged = railSorted.reduce((a, b) -> {
+            int n = a.size() + b.size();
+            if (n == 0) {
+                return new ArrayList<>();
+            }
+            List<T> both = new ArrayList<>(n);
+            
+            Iterator<T> at = a.iterator();
+            Iterator<T> bt = b.iterator();
+            
+            T s1 = at.hasNext() ? at.next() : null;
+            T s2 = bt.hasNext() ? bt.next() : null;
+            
+            while (s1 != null && s2 != null) {
+                if (comparator.compare(s1, s2) < 0) { // s1 comes before s2
+                    both.add(s1);
+                    s1 = at.hasNext() ? at.next() : null;
+                } else {
+                    both.add(s2);
+                    s2 = bt.hasNext() ? bt.next() : null;
+                }
+            }
+
+            if (s1 != null) {
+                both.add(s1);
+                while (at.hasNext()) {
+                    both.add(at.next());
+                }
+            } else 
+            if (s2 != null) {
+                both.add(s2);
+                while (bt.hasNext()) {
+                    both.add(bt.next());
+                }
+            }
+            
+            return both;
+        });
+        
+        return merged;
+    }
+
+    /**
+     * Call the specified consumer with the current element passing through any 'rail'.
+     * 
+     * @param onNext the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doOnNext(Consumer<? super T> onNext) {
+        return new ParallelUnorderedPeek<>(this,
+                onNext,
+                v -> { },
+                e -> { },
+                () -> { },
+                () -> { },
+                s -> { },
+                r -> { },
+                () -> { }
+                );
+    }
+
+    /**
+     * Call the specified consumer with the current element passing through any 'rail'
+     * after it has been delivered to downstream within the rail.
+     * 
+     * @param onAfterNext the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doAfterNext(Consumer<? super T> onAfterNext) {
+        return new ParallelUnorderedPeek<>(this,
+                v -> { },
+                onAfterNext,
+                e -> { },
+                () -> { },
+                () -> { },
+                s -> { },
+                r -> { },
+                () -> { }
+                );
+    }
+
+    /**
+     * Call the specified consumer with the exception passing through any 'rail'.
+     * 
+     * @param onError the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doOnError(Consumer<Throwable> onError) {
+        return new ParallelUnorderedPeek<>(this,
+                v -> { },
+                v -> { },
+                onError,
+                () -> { },
+                () -> { },
+                s -> { },
+                r -> { },
+                () -> { }
+                );
+    }
+
+    /**
+     * Run the specified runnable when a 'rail' completes.
+     * 
+     * @param onComplete the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doOnComplete(Runnable onComplete) {
+        return new ParallelUnorderedPeek<>(this,
+                v -> { },
+                v -> { },
+                e -> { },
+                onComplete,
+                () -> { },
+                s -> { },
+                r -> { },
+                () -> { }
+                );
+    }
+
+    /**
+     * Run the specified runnable when a 'rail' completes or signals an error.
+     * 
+     * @param onAfterTerminate the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doAfterTerminated(Runnable onAfterTerminate) {
+        return new ParallelUnorderedPeek<>(this,
+                v -> { },
+                v -> { },
+                e -> { },
+                () -> { },
+                onAfterTerminate,
+                s -> { },
+                r -> { },
+                () -> { }
+                );
+    }
+
+    /**
+     * Call the specified callback when a 'rail' receives a Subscription from its upstream.
+     * 
+     * @param onSubscribe the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doOnCancel(Consumer<? super Subscription> onSubscribe) {
+        return new ParallelUnorderedPeek<>(this,
+                v -> { },
+                v -> { },
+                e -> { },
+                () -> { },
+                () -> { },
+                onSubscribe,
+                r -> { },
+                () -> { }
+                );
+    }
+    
+    /**
+     * Call the specified consumer with the request amount if any rail receives a request.
+     * 
+     * @param onRequest the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doOnRequest(LongConsumer onRequest) {
+        return new ParallelUnorderedPeek<>(this,
+                v -> { },
+                v -> { },
+                e -> { },
+                () -> { },
+                () -> { },
+                s -> { },
+                onRequest,
+                () -> { }
+                );
+    }
+    
+    /**
+     * Run the specified runnable when a 'rail' receives a cancellation.
+     * 
+     * @param onCancel the callback
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> doOnCancel(Runnable onCancel) {
+        return new ParallelUnorderedPeek<>(this,
+                v -> { },
+                v -> { },
+                e -> { },
+                () -> { },
+                () -> { },
+                s -> { },
+                r -> { },
+                onCancel
+                );
+    }
+    
+    /**
+     * Collect the elements in each rail into a collection supplied via a collectionSupplier
+     * and collected into with a collector action, emitting the collection at the end.
+     * 
+     * @param <C> the collection type
+     * @param collectionSupplier the supplier of the collection in each rail
+     * @param collector the collector, taking the per-rali collection and the current item
+     * @return the new ParallelPublisher instance
+     */
+    public final <C> ParallelPublisher<C> collect(Supplier<C> collectionSupplier, BiConsumer<C, T> collector) {
+        return new ParallelUnorderedCollect<>(this, collectionSupplier, collector);
+    }
+
+    /**
+     * Collect the elements in each rail into a Stream-based Collector instance supplying
+     * the initial collection, the collector action and the terminal transform, emitting this
+     * latter value.
+     * 
+     * @param <A> the accumulated intermedate type
+     * @param <R> the result type
+     * @param collector the collector instance supplying the initial collection, the collector
+     * action and the terminal transform.
+     * @return the new ParallelPublisher instance
+     */
+    public final <A, R> ParallelPublisher<R> collect(Collector<T, A, R> collector) {
+        return new ParallelUnorderedStreamCollect<>(this, collector);
     }
 
     /**

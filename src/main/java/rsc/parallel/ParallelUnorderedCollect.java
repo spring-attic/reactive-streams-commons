@@ -11,24 +11,25 @@ import rsc.util.*;
  * Reduce the sequence of values in each 'rail' to a single value.
  *
  * @param <T> the input value type
- * @param <R> the result value type
+ * @param <C> the collection type
  */
-public final class ParallelUnorderedReduce<T, R> extends ParallelPublisher<R> {
+public final class ParallelUnorderedCollect<T, C> extends ParallelPublisher<C> {
     
     final ParallelPublisher<? extends T> source;
     
-    final Supplier<R> initialSupplier;
+    final Supplier<C> initialCollection;
     
-    final BiFunction<R, T, R> reducer;
+    final BiConsumer<C, T> collector;
     
-    public ParallelUnorderedReduce(ParallelPublisher<? extends T> source, Supplier<R> initialSupplier, BiFunction<R, T, R> reducer) {
+    public ParallelUnorderedCollect(ParallelPublisher<? extends T> source, 
+            Supplier<C> initialCollection, BiConsumer<C, T> collector) {
         this.source = source;
-        this.initialSupplier = initialSupplier;
-        this.reducer = reducer;
+        this.initialCollection = initialCollection;
+        this.collector = collector;
     }
 
     @Override
-    public void subscribe(Subscriber<? super R>[] subscribers) {
+    public void subscribe(Subscriber<? super C>[] subscribers) {
         if (!validate(subscribers)) {
             return;
         }
@@ -39,10 +40,10 @@ public final class ParallelUnorderedReduce<T, R> extends ParallelPublisher<R> {
         
         for (int i = 0; i < n; i++) {
             
-            R initialValue;
+            C initialValue;
             
             try {
-                initialValue = initialSupplier.get();
+                initialValue = initialCollection.get();
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
                 reportError(subscribers, ex);
@@ -54,7 +55,7 @@ public final class ParallelUnorderedReduce<T, R> extends ParallelPublisher<R> {
                 return;
             }
             
-            parents[i] = new ParallelReduceSubscriber<>(subscribers[i], initialValue, reducer);
+            parents[i] = new ParallelCollectSubscriber<>(subscribers[i], initialValue, collector);
         }
         
         source.subscribe(parents);
@@ -76,20 +77,21 @@ public final class ParallelUnorderedReduce<T, R> extends ParallelPublisher<R> {
         return source.ordered();
     }
 
-    static final class ParallelReduceSubscriber<T, R> extends DeferredScalarSubscriber<T, R> {
+    static final class ParallelCollectSubscriber<T, C> extends DeferredScalarSubscriber<T, C> {
 
-        final BiFunction<R, T, R> reducer;
+        final BiConsumer<C, T> collector;
 
-        R accumulator;
+        C collection;
         
         Subscription s;
 
         boolean done;
         
-        public ParallelReduceSubscriber(Subscriber<? super R> subscriber, R initialValue, BiFunction<R, T, R> reducer) {
+        public ParallelCollectSubscriber(Subscriber<? super C> subscriber, 
+                C initialValue, BiConsumer<C, T> collector) {
             super(subscriber);
-            this.accumulator = initialValue;
-            this.reducer = reducer;
+            this.collection = initialValue;
+            this.collector = collector;
         }
         
         @Override
@@ -109,24 +111,14 @@ public final class ParallelUnorderedReduce<T, R> extends ParallelPublisher<R> {
                 return;
             }
             
-            R v;
-            
             try {
-                v = reducer.apply(accumulator, t);
+                collector.accept(collection, t);
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
                 cancel();
                 onError(ex);
                 return;
             }
-            
-            if (v == null) {
-                cancel();
-                onError(new NullPointerException("The reducer returned a null value"));
-                return;
-            }
-            
-            accumulator = v;
         }
         
         @Override
@@ -136,7 +128,7 @@ public final class ParallelUnorderedReduce<T, R> extends ParallelPublisher<R> {
                 return;
             }
             done = true;
-            accumulator = null;
+            collection = null;
             subscriber.onError(t);
         }
         
@@ -146,10 +138,9 @@ public final class ParallelUnorderedReduce<T, R> extends ParallelPublisher<R> {
                 return;
             }
             done = true;
-            
-            R a = accumulator;
-            accumulator = null;
-            complete(a);
+            C c = collection;
+            collection = null;
+            complete(c);
         }
         
         @Override

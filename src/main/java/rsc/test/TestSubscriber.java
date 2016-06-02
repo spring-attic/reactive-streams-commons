@@ -190,7 +190,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
      * @param cause   the optional Throwable cause
      * @throws AssertionError as expected
      */
-    final void assertionError(String message, Throwable cause) {
+    final void assertionError(String message) {
         StringBuilder b = new StringBuilder();
 
         if (cdl.getCount() != 0) {
@@ -204,7 +204,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
               .append(err.size())
               .append(" errors)");
         }
-        AssertionError e = new AssertionError(b.toString(), cause);
+        AssertionError e = new AssertionError(b.toString());
 
         for (Throwable t : err) {
             e.addSuppressed(t);
@@ -215,7 +215,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
     public final TestSubscriber<T> assertNoValues() {
         if (!values.isEmpty()) {
-            assertionError("No values expected but received: [length = " + values.size() + "] " + values, null);
+            assertionError("No values expected but received: [length = " + values.size() + "] " + values);
         }
         return this;
     }
@@ -223,7 +223,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertValueCount(int n) {
         int s = values.size();
         if (s != n) {
-            assertionError("Different value count: expected = " + n + ", actual = " + s, null);
+            assertionError("Different value count: expected = " + n + ", actual = " + s);
         }
         return this;
     }
@@ -239,18 +239,17 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertValue(T value) {
         int s = values.size();
         if (s == 0) {
-            assertionError("No values received", null);
+            assertionError("No values received");
         }
         if (s == 1) {
             if (!Objects.equals(value, values.get(0))) {
                 assertionError("Values differ: expected = " + valueAndClass(value) + ", actual = " + valueAndClass(
-                  values.get(0)), null);
+                  values.get(0)));
             }
         }
         if (s > 1) {
             assertionError("More values received: expected = " + valueAndClass(value) + ", actual = " + "[" + s + "] " +
-              "" + values,
-              null);
+              "" + values);
         }
         return this;
     }
@@ -261,7 +260,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
         if (s != values.length) {
             assertionError("Different value count: expected = [length = " + values.length + "] " + Arrays.toString(
-              values) + ", actual = [length = " + s + "] " + this.values, null);
+              values) + ", actual = [length = " + s + "] " + this.values);
         }
         for (int i = 0; i < s; i++) {
             T t1 = values[i];
@@ -270,7 +269,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
             if (!Objects.equals(t1, t2)) {
                 assertionError("Values at " + i + " differ: expected = " + valueAndClass(t1) + ", actual = " +
                   valueAndClass(
-                  t2), null);
+                  t2));
             }
         }
 
@@ -330,14 +329,14 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
                 if (!Objects.equals(t1, t2)) {
                     assertionError("The " + i + " th elements differ: expected = " + valueAndClass(t2) + ", actual ="
                       + valueAndClass(
-                      t1), null);
+                      t1));
                 }
                 i++;
             } else if (n1 && !n2) {
-                assertionError("Actual contains more elements" + values, null);
+                assertionError("Actual contains more elements" + values);
                 break;
             } else if (!n1 && n2) {
-                assertionError("Actual contains fewer elements: " + values, null);
+                assertionError("Actual contains fewer elements: " + values);
                 break;
             } else {
                 break;
@@ -351,10 +350,10 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertComplete() {
         int c = completions;
         if (c == 0) {
-            assertionError("Not completed", null);
+            assertionError("Not completed");
         }
         if (c > 1) {
-            assertionError("Multiple completions: " + c, null);
+            assertionError("Multiple completions: " + c);
         }
 
         return this;
@@ -363,11 +362,11 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertNotComplete() {
         int c = completions;
         if (c == 1) {
-            assertionError("Completed", null);
+            assertionError("Completed");
         }
 
         if (c > 1) {
-            assertionError("Multiple completions: " + c, null);
+            assertionError("Multiple completions: " + c);
         }
 
         return this;
@@ -375,14 +374,14 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
 
     public final TestSubscriber<T> assertTerminated() {
         if (cdl.getCount() != 0) {
-            assertionError("Not terminated", null);
+            assertionError("Not terminated");
         }
         return this;
     }
 
     public final TestSubscriber<T> assertNotTerminated() {
         if (cdl.getCount() == 0) {
-            assertionError("Terminated", null);
+            assertionError("Terminated");
         }
         return this;
     }
@@ -390,10 +389,10 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertNoError() {
         int s = errors.size();
         if (s == 1) {
-            assertionError("Error present: " + valueAndClass(errors.get(0)), null);
+            assertionError("Error present: " + valueAndClass(errors.get(0)));
         }
         if (s > 1) {
-            assertionError("Multiple errors: " + s, null);
+            assertionError("Multiple errors: " + s);
         }
         return this;
     }
@@ -401,17 +400,17 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertError(Throwable e) {
         int s = errors.size();
         if (s == 0) {
-            assertionError("No error", null);
+            assertionError("No error");
         }
         if (s == 1) {
             if (!Objects.equals(e, errors.get(0))) {
                 assertionError("Errors differ: expected = " + valueAndClass(e) + ", actual = " + valueAndClass(errors
                   .get(
-                  0)), null);
+                  0)));
             }
         }
         if (s > 1) {
-            assertionError("Multiple errors: " + s, null);
+            assertionError("Multiple errors: " + s);
         }
 
         return this;
@@ -420,18 +419,18 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertError(Class<? extends Throwable> clazz) {
         int s = errors.size();
         if (s == 0) {
-            assertionError("No error", null);
+            assertionError("No error");
         }
         if (s == 1) {
             Throwable e = errors.get(0);
             if (!clazz.isInstance(e)) {
                 assertionError("Error class incompatible: expected = " + clazz.getSimpleName() + ", actual = " +
                   valueAndClass(
-                  e), null);
+                  e));
             }
         }
         if (s > 1) {
-            assertionError("Multiple errors: " + s, null);
+            assertionError("Multiple errors: " + s);
         }
 
         return this;
@@ -440,19 +439,18 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertErrorMessage(String message) {
         int s = errors.size();
         if (s == 0) {
-            assertionError("No error", null);
+            assertionError("No error");
         }
         if (s == 1) {
             if (!Objects.equals(message,
               errors.get(0)
                 .getMessage())) {
                 assertionError("Error class incompatible: expected = \"" + message + "\", actual = \"" + errors.get(0)
-                    .getMessage() + "\"",
-                  null);
+                    .getMessage() + "\"");
             }
         }
         if (s > 1) {
-            assertionError("Multiple errors: " + s, null);
+            assertionError("Multiple errors: " + s);
         }
 
         return this;
@@ -461,18 +459,17 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertErrorCause(Throwable e) {
         int s = errors.size();
         if (s == 0) {
-            assertionError("No error", null);
+            assertionError("No error");
         }
         if (s == 1) {
             Throwable cause = errors.get(0)
               .getCause();
             if (!Objects.equals(e, cause)) {
-                assertionError("Errors differ: expected = " + valueAndClass(e) + ", actual = " + valueAndClass(cause),
-                  null);
+                assertionError("Errors differ: expected = " + valueAndClass(e) + ", actual = " + valueAndClass(cause));
             }
         }
         if (s > 1) {
-            assertionError("Multiple errors: " + s, null);
+            assertionError("Multiple errors: " + s);
         }
 
         return this;
@@ -481,17 +478,17 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertErrorCause(Class<? extends Throwable> clazz) {
         int s = errors.size();
         if (s == 0) {
-            assertionError("No error", null);
+            assertionError("No error");
         }
         if (s == 1) {
             Throwable cause = errors.get(0).getCause();
             if (!clazz.isInstance(cause)) {
                 assertionError("Error class incompatible: expected = " + clazz.getSimpleName() + ", actual = " + valueAndClass(
-                  cause), null);
+                  cause));
             }
         }
         if (s > 1) {
-            assertionError("Multiple errors: " + s, null);
+            assertionError("Multiple errors: " + s);
         }
 
         return this;
@@ -500,19 +497,19 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertErrorCauseMessage(String message) {
         int s = errors.size();
         if (s == 0) {
-            assertionError("No error", null);
+            assertionError("No error");
         }
         if (s == 1) {
             Throwable cause = errors.get(0).getCause();
             if (cause == null) {
-                assertionError("No cause to " + errors.get(0), errors.get(0));
+                assertionError("No cause to " + errors.get(0));
             } else
             if (!Objects.equals(message, cause.getMessage())) {
-                assertionError("Error messages differ: expected = " + message + ", actual = " + cause.getMessage(), cause);
+                assertionError("Error messages differ: expected = " + message + ", actual = " + cause.getMessage());
             }
         }
         if (s > 1) {
-            assertionError("Multiple errors: " + s, null);
+            assertionError("Multiple errors: " + s);
         }
 
         return this;
@@ -522,10 +519,10 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         int s = subscriptions;
 
         if (s == 0) {
-            assertionError("OnSubscribe not called", null);
+            assertionError("OnSubscribe not called");
         }
         if (s > 1) {
-            assertionError("OnSubscribe called multiple times: " + s, null);
+            assertionError("OnSubscribe called multiple times: " + s);
         }
 
         return this;
@@ -535,10 +532,10 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         int s = subscriptions;
 
         if (s == 1) {
-            assertionError("OnSubscribe called once", null);
+            assertionError("OnSubscribe called once");
         }
         if (s > 1) {
-            assertionError("OnSubscribe called multiple times: " + s, null);
+            assertionError("OnSubscribe called multiple times: " + s);
         }
 
         return this;
@@ -551,7 +548,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         try {
             cdl.await();
         } catch (InterruptedException ex) {
-            assertionError("Wait interrupted", ex);
+            assertionError("Wait interrupted");
         }
     }
 
@@ -562,7 +559,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         try {
             return cdl.await(timeout, unit);
         } catch (InterruptedException ex) {
-            assertionError("Wait interrupted", ex);
+            assertionError("Wait interrupted");
             return false;
         }
     }
@@ -577,7 +574,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         long delta = System.currentTimeMillis() + defaultTimeout;
         for(;;){
             if (isCancelled()) {
-                assertionError("Cancelled while waiting for " + n + " values", new CancellationException());
+                assertionError("Cancelled while waiting for " + n + " values");
                 return this;
             }
             int size = volatileSize;
@@ -585,7 +582,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
                 return this;
             }
             if (System.currentTimeMillis() > delta) {
-                assertionError("Timeout while waiting for "+n+" values, current: " + size, new TimeoutException());
+                assertionError("Timeout while waiting for "+n+" values, current: " + size);
                 return this;
             }
             LockSupport.parkNanos(1_000L);
@@ -647,7 +644,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     
     public final TestSubscriber<T> assertFusionMode(int expectedMode) {
         if (establishedFusionMode != expectedMode) {
-            throw new AssertionError("Wrong fusion mode: expected: "
+            assertionError("Wrong fusion mode: expected: "
                     + fusionModeName(expectedMode) + ", actual: " 
                     + fusionModeName(establishedFusionMode));
         }
@@ -661,7 +658,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertFusionEnabled() {
         if (establishedFusionMode != Fuseable.SYNC
                 && establishedFusionMode != Fuseable.ASYNC) {
-            throw new AssertionError("Fusion was not enabled");
+            assertionError("Fusion was not enabled");
         }
         return this;
     }
@@ -672,7 +669,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
      */
     public final TestSubscriber<T> assertFusionRejected() {
         if (establishedFusionMode != Fuseable.NONE) {
-            throw new AssertionError("Fusion was granted");
+            assertionError("Fusion was granted");
         }
         return this;
     }
@@ -683,7 +680,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
      */
     public final TestSubscriber<T> assertFuseableSource() {
         if (qs == null) {
-            throw new AssertionError("Upstream was not Fuseable");
+            assertionError("Upstream was not Fuseable");
         }
         return this;
     }
@@ -694,7 +691,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
      */
     public final TestSubscriber<T> assertNonFuseableSource() {
         if (qs != null) {
-            throw new AssertionError("Upstream was Fuseable");
+            assertionError("Upstream was Fuseable");
         }
         return this;
     }
@@ -711,7 +708,23 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         long ts = System.currentTimeMillis();
         if (!await(timeout, unit)) {
             cancel();
-            throw new AssertionError("TestSubscriber timed out. Received: " + volatileSize + ", last event: " + (ts - lastEvent) + " ms ago");
+            assertionError("TestSubscriber timed out. Received: " + volatileSize + ", last event: " + (ts - lastEvent) + " ms ago");
+        }
+        return this;
+    }
+    
+    /**
+     * Assert that all the values of this TestSubscriber are in the provided set.
+     * @param set the set to use for checking all the values are in there
+     * @return this
+     */
+    public final TestSubscriber<T> assertValueSet(Set<T> set) {
+        int i = 0;
+        for (T t : values) {
+            if (!set.contains(t)) {
+                assertionError("The value " + valueAndClass(t) + " at index " + i + " is not in the set");
+            }
+            i++;
         }
         return this;
     }

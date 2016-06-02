@@ -142,6 +142,7 @@ public final class ParallelUnorderedReduceFull<T> extends Px<T> implements Fusea
             
             if (REMAINING.decrementAndGet(this) == 0) {
                 SlotPair<T> sp = current;
+                CURRENT.lazySet(this, null);
                 
                 if (sp != null) {
                     complete(sp.first);

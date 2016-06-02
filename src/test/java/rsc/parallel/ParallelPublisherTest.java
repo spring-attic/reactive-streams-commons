@@ -1,6 +1,9 @@
 package rsc.parallel;
 
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -168,5 +171,73 @@ public class ParallelPublisherTest {
                 }
             }
         }
+    }
+    
+    @Test
+    public void toSortedList() {
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        Px.fromArray(10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+        .parallel()
+        .toSortedList(Comparator.naturalOrder())
+        .subscribe(ts);
+        
+        ts.assertResult(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+    }
+    
+    @Test
+    public void sorted() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>(0);
+        
+        Px.fromArray(10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+        .parallel()
+        .sorted(Comparator.naturalOrder())
+        .subscribe(ts);
+        
+        ts.assertNoValues();
+        
+        ts.request(2);
+        
+        ts.assertValues(1, 2);
+        
+        ts.request(5);
+        
+        ts.assertValues(1, 2, 3, 4, 5, 6, 7);
+        
+        ts.request(3);
+
+        ts.assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    }
+    
+    @Test
+    public void collect() {
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        Px.range(1, 10)
+        .parallel()
+        .collect(as, (a, b) -> a.add(b))
+        .sequential()
+        .flatMapIterable(v -> v)
+        .subscribe(ts);
+        
+        ts.assertValueSet(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)))
+        .assertNoError()
+        .assertComplete();
+    }
+    
+    @Test
+    public void streamCollect() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        Px.range(1, 10)
+        .parallel()
+        .collect(Collectors.toList())
+        .sequential()
+        .flatMapIterable(v -> v)
+        .subscribe(ts);
+        
+        ts.assertValueSet(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)))
+        .assertNoError()
+        .assertComplete();
     }
 }
