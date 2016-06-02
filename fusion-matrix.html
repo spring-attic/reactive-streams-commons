@@ -290,6 +290,46 @@
         <font color='#000000'>Async</font><br/>
 </td>
 </tr>
+<tr><td><b>CallableSubscribeOn</b></td>
+    <td title='CallableSubscribeOn -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; DistinctFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; DistinctUntilChanged' '>Unfuseable</td>
+    <td title='CallableSubscribeOn -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; FlatMap' '>Unfuseable</td>
+    <td title='CallableSubscribeOn -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; ObserveOn' '>Unfuseable</td>
+    <td title='CallableSubscribeOn -&gt; Peek' '>Unfuseable</td>
+    <td title='CallableSubscribeOn -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; Publish' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='CallableSubscribeOn -&gt; SubscribeOn' '>Unfuseable</td>
+    <td title='CallableSubscribeOn -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; TakeFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CallableSubscribeOn -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+</tr>
 <tr><td><b>Collect</b></td>
     <td title='Collect -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
@@ -1801,6 +1841,88 @@
     <td title='StreamCollector -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='StreamCollector -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+</tr>
+<tr><td><b>SubscribeOn</b></td>
+    <td title='SubscribeOn -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; DistinctFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; DistinctUntilChanged' '>Unfuseable</td>
+    <td title='SubscribeOn -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; FlatMap' '>Unfuseable</td>
+    <td title='SubscribeOn -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; Peek' '>Unfuseable</td>
+    <td title='SubscribeOn -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; Publish' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='SubscribeOn -&gt; SubscribeOn' '>Unfuseable</td>
+    <td title='SubscribeOn -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; TakeFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOn -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+</tr>
+<tr><td><b>SubscribeOnValue</b></td>
+    <td title='SubscribeOnValue -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; DistinctFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; DistinctUntilChanged' '>Unfuseable</td>
+    <td title='SubscribeOnValue -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; FlatMap' '>Unfuseable</td>
+    <td title='SubscribeOnValue -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; Peek' '>Unfuseable</td>
+    <td title='SubscribeOnValue -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; Publish' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='SubscribeOnValue -&gt; SubscribeOn' '>Unfuseable</td>
+    <td title='SubscribeOnValue -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; TakeFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='SubscribeOnValue -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
 </tr>
 <tr><td><b>Take</b></td>

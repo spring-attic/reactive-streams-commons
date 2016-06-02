@@ -2,13 +2,19 @@ package rsc.util;
 
 import java.io.File;
 import java.net.URL;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
 
 import org.reactivestreams.Publisher;
 
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
+import rsc.parallel.ParallelPublisher;
 import rsc.processor.UnicastProcessor;
 import rsc.publisher.Px;
 
@@ -121,7 +127,13 @@ public final class FusionMatrix {
             File f = new File(u.toURI()).getParentFile();
             scanFiles(classes, f, "rsc.processor");
         }
-        
+
+        {
+            URL u = ParallelPublisher.class.getResource("ParallelPublisher.class");
+            File f = new File(u.toURI()).getParentFile();
+            scanFiles(classes, f, "rsc.parallel");
+        }
+
         Collections.sort(classes, (a, c) -> trim(a.getSimpleName()).compareToIgnoreCase(trim(c.getSimpleName())));
         
         b.append("<html><head><title>Reactive-Streams-Commons Fusion Matrix</title></head>\r\n")

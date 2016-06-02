@@ -190,32 +190,7 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> runOn(Scheduler scheduler) {
-        return runOn(scheduler, false);
-    }
-
-    /**
-     * Specifies where each 'rail' will observe its incoming values with
-     * possibly work-stealing and default prefetch amount.
-     * <p>
-     * This operator uses the default prefetch size returned by {@code Px.bufferSize()}.
-     * <p>
-     * The operator will call {@code Scheduler.createWorker()} as many
-     * times as this ParallelPublisher's parallelism level is.
-     * <p>
-     * No assumptions are made about the Scheduler's parallelism level,
-     * if the Scheduler's parallelism level is lwer than the ParallelPublisher's,
-     * some rails may end up on the same thread/worker.
-     * <p>
-     * This operator doesn't require the Scheduler to be trampolining as it
-     * does its own built-in trampolining logic.
-     * 
-     * @param scheduler the scheduler to use
-     * @param workStealing if true, values traveling on 'rails' may hop to another rail if
-     * that rail's worker has run out of work.
-     * @return the new ParallelPublisher instance
-     */
-    public final ParallelPublisher<T> runOn(Scheduler scheduler, boolean workStealing) {
-        return runOn(scheduler, workStealing, Px.bufferSize());
+        return runOn(scheduler, Px.bufferSize());
     }
 
     /**
@@ -240,12 +215,9 @@ public abstract class ParallelPublisher<T> {
      * @param prefetch the number of values to request on each 'rail' from the source
      * @return the new ParallelPublisher instance
      */
-    public final ParallelPublisher<T> runOn(Scheduler scheduler, boolean workStealing, int prefetch) {
+    public final ParallelPublisher<T> runOn(Scheduler scheduler, int prefetch) {
         if (ordered()) {
             throw new UnsupportedOperationException("ordered not supported yet");
-        }
-        if (workStealing) {
-            throw new UnsupportedOperationException("workStealing not supported yet");
         }
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);

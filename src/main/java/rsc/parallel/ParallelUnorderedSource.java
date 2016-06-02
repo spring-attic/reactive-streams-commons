@@ -9,6 +9,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import rsc.documentation.FusionMode;
+import rsc.documentation.FusionSupport;
 import rsc.flow.Fuseable;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
@@ -20,6 +22,7 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
+@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC })
 public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
     final Publisher<? extends T> source;
     
