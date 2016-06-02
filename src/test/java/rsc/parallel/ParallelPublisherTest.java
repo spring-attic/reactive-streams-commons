@@ -270,4 +270,29 @@ public class ParallelPublisherTest {
         .assertComplete();
     }
 
+    @Test
+    public void orderedSourceMapJoin() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        Px.range(1, 10)
+        .parallel(true)
+        .map(v -> v + 1)
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertResult(2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    }
+    
+    @Test
+    public void orderedSourceFilterJoin() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        Px.range(1, 10)
+        .parallel(true)
+        .filter(v -> (v & 1) != 0)
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertResult(1, 3, 5, 7, 9);
+    }
 }

@@ -63,7 +63,7 @@ public abstract class ParallelPublisher<T> {
      * @param subscribers the array of Subscribers
      * @return true if the number of subscribers equals to the parallelism level
      */
-    protected final boolean validate(Subscriber<? super T>[] subscribers) {
+    protected final boolean validate(Subscriber<?>[] subscribers) {
         int p = parallelism();
         if (subscribers.length != p) {
             for (Subscriber<?> s : subscribers) {
@@ -123,9 +123,6 @@ public abstract class ParallelPublisher<T> {
      */
     public static <T> ParallelPublisher<T> fork(Publisher<? extends T> source, boolean ordered, 
             int parallelism, int prefetch, Supplier<Queue<T>> queueSupplier) {
-        if (ordered) {
-            throw new UnsupportedOperationException("ordered not supported yet");
-        }
         if (parallelism <= 0) {
             throw new IllegalArgumentException("parallelism > 0 required but it was " + parallelism);
         }
@@ -135,6 +132,10 @@ public abstract class ParallelPublisher<T> {
         
         Objects.requireNonNull(queueSupplier, "queueSupplier");
         Objects.requireNonNull(source, "queueSupplier");
+
+        if (ordered) {
+            return new ParallelOrderedSource<>(source, parallelism, prefetch, queueSupplier);
+        }
         
         return new ParallelUnorderedSource<>(source, parallelism, prefetch, queueSupplier);
     }
@@ -148,10 +149,10 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final <U> ParallelPublisher<U> map(Function<? super T, ? extends U> mapper) {
-        if (ordered()) {
-            throw new UnsupportedOperationException("ordered not supported yet");
-        }
         Objects.requireNonNull(mapper, "mapper");
+        if (ordered()) {
+            return new ParallelOrderedMap<>((ParallelOrderedBase<T>)this, mapper);
+        }
         return new ParallelUnorderedMap<>(this, mapper);
     }
     
@@ -163,10 +164,10 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> filter(Predicate<? super T> predicate) {
-        if (ordered()) {
-            throw new UnsupportedOperationException("ordered not supported yet");
-        }
         Objects.requireNonNull(predicate, "predicate");
+        if (ordered()) {
+            return new ParallelOrderedFilter<>((ParallelOrderedBase<T>)this, predicate);
+        }
         return new ParallelUnorderedFilter<>(this, predicate);
     }
     
@@ -288,11 +289,11 @@ public abstract class ParallelPublisher<T> {
      * @see ParallelPublisher#sequential(int)
      */
     public final Px<T> join(int prefetch) {
-        if (ordered()) {
-            throw new UnsupportedOperationException("ordered not supported yet");
-        }
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
+        }
+        if (ordered()) {
+            return new ParallelOrderedJoin<>((ParallelOrderedBase<T>)this, prefetch, Px.defaultQueueSupplier(prefetch));
         }
         return new ParallelUnorderedJoin<>(this, prefetch, Px.defaultQueueSupplier(prefetch));
     }
