@@ -620,4 +620,20 @@ public abstract class ParallelPublisher<T> {
     public final Px<GroupedPublisher<Integer, T>> groups() {
         return new ParallelUnorderedGroup<>(this);
     }
+    
+    /**
+     * Wraps multiple Publishers into a ParallelPublisher which runs them
+     * in parallel and unordered.
+     * 
+     * @param <T> the value type
+     * @param publishers the array of publishers
+     * @return the new ParallelPublisher instance
+     */
+    @SafeVarargs
+    public static <T> ParallelPublisher<T> from(Publisher<T>... publishers) {
+        if (publishers.length == 0) {
+            throw new IllegalArgumentException("Zero publishers not supported");
+        }
+        return new ParallelUnorderedFrom<>(publishers);
+    }
 }

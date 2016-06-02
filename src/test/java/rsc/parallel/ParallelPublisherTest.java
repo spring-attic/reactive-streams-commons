@@ -256,4 +256,18 @@ public class ParallelPublisherTest {
         .assertNoError()
         .assertComplete();
     }
+
+    @Test
+    public void from() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+        ParallelPublisher.from(Px.range(1, 5), Px.range(6, 5))
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertValueSet(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)))
+        .assertNoError()
+        .assertComplete();
+    }
+
 }
