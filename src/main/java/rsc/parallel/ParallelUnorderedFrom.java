@@ -17,7 +17,7 @@ public final class ParallelUnorderedFrom<T> extends ParallelPublisher<T> {
     }
     
     @Override
-    public boolean ordered() {
+    public boolean isOrdered() {
         return false;
     }
     

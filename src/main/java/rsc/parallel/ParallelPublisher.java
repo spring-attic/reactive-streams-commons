@@ -1,26 +1,12 @@
 package rsc.parallel;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.LongConsumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.function.*;
 import java.util.stream.Collector;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
+import org.reactivestreams.*;
 
-import rsc.publisher.GroupedPublisher;
-import rsc.publisher.Px;
+import rsc.publisher.*;
 import rsc.scheduler.Scheduler;
 import rsc.util.EmptySubscription;
 
@@ -54,7 +40,7 @@ public abstract class ParallelPublisher<T> {
      * Returns true if the parallel sequence has to be ordered when joining back.
      * @return true if the parallel sequence has to be ordered when joining back
      */
-    public abstract boolean ordered();
+    public abstract boolean isOrdered();
     
     /**
      * Validates the number of subscribers and returns true if their number
@@ -150,7 +136,7 @@ public abstract class ParallelPublisher<T> {
      */
     public final <U> ParallelPublisher<U> map(Function<? super T, ? extends U> mapper) {
         Objects.requireNonNull(mapper, "mapper");
-        if (ordered()) {
+        if (isOrdered()) {
             return new ParallelOrderedMap<>((ParallelOrderedBase<T>)this, mapper);
         }
         return new ParallelUnorderedMap<>(this, mapper);
@@ -165,7 +151,7 @@ public abstract class ParallelPublisher<T> {
      */
     public final ParallelPublisher<T> filter(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate, "predicate");
-        if (ordered()) {
+        if (isOrdered()) {
             return new ParallelOrderedFilter<>((ParallelOrderedBase<T>)this, predicate);
         }
         return new ParallelUnorderedFilter<>(this, predicate);
@@ -211,19 +197,18 @@ public abstract class ParallelPublisher<T> {
      * does its own built-in trampolining logic.
      * 
      * @param scheduler the scheduler to use
-     * @param workStealing if true, values traveling on 'rails' may hop to another rail if
      * that rail's worker has run out of work.
      * @param prefetch the number of values to request on each 'rail' from the source
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> runOn(Scheduler scheduler, int prefetch) {
-        if (ordered()) {
-            throw new UnsupportedOperationException("ordered not supported yet");
-        }
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
         }
         Objects.requireNonNull(scheduler, "scheduler");
+        if (isOrdered()) {
+            return new ParallelOrderedRunOn<>((ParallelOrderedBase<T>)this, scheduler, prefetch, Px.defaultQueueSupplier(prefetch));
+        }
         return new ParallelUnorderedRunOn<>(this, scheduler, prefetch, Px.defaultQueueSupplier(prefetch));
     }
 
@@ -237,10 +222,8 @@ public abstract class ParallelPublisher<T> {
      */
     public final Px<T> reduce(BiFunction<T, T, T> reducer) {
         Objects.requireNonNull(reducer, "reducer");
-        if (ordered()) {
-            throw new UnsupportedOperationException("ordered not supported yet");
-        }
-        return new ParallelUnorderedReduceFull<>(this, reducer);
+        // FIXME is there a reasonable ordered output of this?
+        return new ParallelReduceFull<>(this, reducer);
     }
     
     /**
@@ -255,12 +238,10 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final <R> ParallelPublisher<R> reduce(Supplier<R> initialSupplier, BiFunction<R, T, R> reducer) {
-        if (ordered()) {
-            throw new UnsupportedOperationException("ordered not supported yet");
-        }
         Objects.requireNonNull(initialSupplier, "initialSupplier");
         Objects.requireNonNull(reducer, "reducer");
-        return new ParallelUnorderedReduce<>(this, initialSupplier, reducer);
+        // FIXME is there a reasonable ordered output of this?
+        return new ParallelReduce<>(this, initialSupplier, reducer);
     }
     
     /**
@@ -292,7 +273,7 @@ public abstract class ParallelPublisher<T> {
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
         }
-        if (ordered()) {
+        if (isOrdered()) {
             return new ParallelOrderedJoin<>((ParallelOrderedBase<T>)this, prefetch, Px.defaultQueueSupplier(prefetch));
         }
         return new ParallelUnorderedJoin<>(this, prefetch, Px.defaultQueueSupplier(prefetch));
@@ -436,6 +417,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doOnNext(Consumer<? super T> onNext) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    onNext,
+                    v -> { },
+                    e -> { },
+                    () -> { },
+                    () -> { },
+                    s -> { },
+                    r -> { },
+                    () -> { }
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 onNext,
                 v -> { },
@@ -456,6 +449,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doAfterNext(Consumer<? super T> onAfterNext) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    v -> { },
+                    onAfterNext,
+                    e -> { },
+                    () -> { },
+                    () -> { },
+                    s -> { },
+                    r -> { },
+                    () -> { }
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 v -> { },
                 onAfterNext,
@@ -475,6 +480,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doOnError(Consumer<Throwable> onError) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    v -> { },
+                    v -> { },
+                    onError,
+                    () -> { },
+                    () -> { },
+                    s -> { },
+                    r -> { },
+                    () -> { }
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 v -> { },
                 v -> { },
@@ -494,6 +511,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doOnComplete(Runnable onComplete) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    v -> { },
+                    v -> { },
+                    e -> { },
+                    onComplete,
+                    () -> { },
+                    s -> { },
+                    r -> { },
+                    () -> { }
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 v -> { },
                 v -> { },
@@ -513,6 +542,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doAfterTerminated(Runnable onAfterTerminate) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    v -> { },
+                    v -> { },
+                    e -> { },
+                    () -> { },
+                    onAfterTerminate,
+                    s -> { },
+                    r -> { },
+                    () -> { }
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 v -> { },
                 v -> { },
@@ -532,6 +573,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doOnCancel(Consumer<? super Subscription> onSubscribe) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    v -> { },
+                    v -> { },
+                    e -> { },
+                    () -> { },
+                    () -> { },
+                    onSubscribe,
+                    r -> { },
+                    () -> { }
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 v -> { },
                 v -> { },
@@ -551,6 +604,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doOnRequest(LongConsumer onRequest) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    v -> { },
+                    v -> { },
+                    e -> { },
+                    () -> { },
+                    () -> { },
+                    s -> { },
+                    onRequest,
+                    () -> { }
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 v -> { },
                 v -> { },
@@ -570,6 +635,18 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final ParallelPublisher<T> doOnCancel(Runnable onCancel) {
+        if (isOrdered()) {
+            return new ParallelOrderedPeek<>((ParallelOrderedBase<T>)this,
+                    v -> { },
+                    v -> { },
+                    e -> { },
+                    () -> { },
+                    () -> { },
+                    s -> { },
+                    r -> { },
+                    onCancel
+                    );
+        }
         return new ParallelUnorderedPeek<>(this,
                 v -> { },
                 v -> { },
@@ -592,7 +669,7 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final <C> ParallelPublisher<C> collect(Supplier<C> collectionSupplier, BiConsumer<C, T> collector) {
-        return new ParallelUnorderedCollect<>(this, collectionSupplier, collector);
+        return new ParallelCollect<>(this, collectionSupplier, collector);
     }
 
     /**
@@ -607,7 +684,7 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     public final <A, R> ParallelPublisher<R> collect(Collector<T, A, R> collector) {
-        return new ParallelUnorderedStreamCollect<>(this, collector);
+        return new ParallelStreamCollect<>(this, collector);
     }
     
     /**
@@ -619,7 +696,7 @@ public abstract class ParallelPublisher<T> {
      * @return the new Px instance
      */
     public final Px<GroupedPublisher<Integer, T>> groups() {
-        return new ParallelUnorderedGroup<>(this);
+        return new ParallelGroup<>(this);
     }
     
     /**
@@ -636,5 +713,65 @@ public abstract class ParallelPublisher<T> {
             throw new IllegalArgumentException("Zero publishers not supported");
         }
         return new ParallelUnorderedFrom<>(publishers);
+    }
+
+    /**
+     * Turns this Parallel sequence into an ordered sequence via local indexing,
+     * if not already ordered.
+     * 
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> ordered() {
+        return ordered(false);
+    }
+
+    /**
+     * Turns this Parallel sequence into an ordered sequence,
+     * if not already ordered.
+     * 
+     * @param global should the indexing locak (per rail) or globar FIFO?
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> ordered(boolean global) {
+        if (isOrdered()) {
+            return this;
+        }
+        return new ParallelToOrdered<>(this, global);
+    }
+    
+    /**
+     * Removes any ordering information from this Parallel sequence,
+     * if not already unordered.
+     * @return the new ParallelPublisher instance
+     */
+    public final ParallelPublisher<T> unordered() {
+        if (!isOrdered()) {
+            return this;
+        }
+        return new ParallelToUnordered<>((ParallelOrderedBase<T>)this);
+    }
+    
+    /**
+     * Perform a fluent transformation to a value via a converter function which
+     * receives this ParallelPublisher.
+     * 
+     * @param <U> the output value type
+     * @param converter the converter function from ParallelPublisher to some type
+     * @return the value returned by the converter function
+     */
+    public final <U> U as(Function<? super ParallelPublisher<T>, U> converter) {
+        return converter.apply(this);
+    }
+    
+    /**
+     * Allows composing operators, in assembly time, on top of this ParallelPublisher
+     * and returns another ParallelPublisher with composed features.
+     * 
+     * @param <U> the output value type
+     * @param composer the composer function from ParallelPublisher (this) to another ParallelPublisher
+     * @return the ParallelPublisher returned by the function
+     */
+    public final <U> ParallelPublisher<U> compose(Function<? super ParallelPublisher<T>, ParallelPublisher<U>> composer) {
+        return as(composer);
     }
 }

@@ -23,11 +23,11 @@ import rsc.util.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public final class ParallelUnorderedGroup<T> extends Px<GroupedPublisher<Integer, T>> implements Fuseable {
+public final class ParallelGroup<T> extends Px<GroupedPublisher<Integer, T>> implements Fuseable {
 
     final ParallelPublisher<? extends T> source;
 
-    public ParallelUnorderedGroup(ParallelPublisher<? extends T> source) {
+    public ParallelGroup(ParallelPublisher<? extends T> source) {
         this.source = source;
     }
     
@@ -36,10 +36,10 @@ public final class ParallelUnorderedGroup<T> extends Px<GroupedPublisher<Integer
         int n = source.parallelism();
         
         @SuppressWarnings("unchecked")
-        ParallelGroup<T>[] groups = new ParallelGroup[n];
+        ParallelInnerGroup<T>[] groups = new ParallelInnerGroup[n];
         
         for (int i = 0; i < n; i++) {
-            groups[i] = new ParallelGroup<>(i);
+            groups[i] = new ParallelInnerGroup<>(i);
         }
         
         PublisherArray.subscribe(s, groups);
@@ -47,28 +47,28 @@ public final class ParallelUnorderedGroup<T> extends Px<GroupedPublisher<Integer
         source.subscribe(groups);
     }
     
-    static final class ParallelGroup<T> extends GroupedPublisher<Integer, T> 
+    static final class ParallelInnerGroup<T> extends GroupedPublisher<Integer, T> 
     implements Subscriber<T>, Subscription {
         final int key;
         
         volatile int once;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<ParallelGroup> ONCE =
-                AtomicIntegerFieldUpdater.newUpdater(ParallelGroup.class, "once");
+        static final AtomicIntegerFieldUpdater<ParallelInnerGroup> ONCE =
+                AtomicIntegerFieldUpdater.newUpdater(ParallelInnerGroup.class, "once");
         
         volatile Subscription s;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<ParallelGroup, Subscription> S =
-                AtomicReferenceFieldUpdater.newUpdater(ParallelGroup.class, Subscription.class, "s");
+        static final AtomicReferenceFieldUpdater<ParallelInnerGroup, Subscription> S =
+                AtomicReferenceFieldUpdater.newUpdater(ParallelInnerGroup.class, Subscription.class, "s");
         
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<ParallelGroup> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(ParallelGroup.class, "requested");
+        static final AtomicLongFieldUpdater<ParallelInnerGroup> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(ParallelInnerGroup.class, "requested");
         
         Subscriber<? super T> actual;
         
-        public ParallelGroup(int key) {
+        public ParallelInnerGroup(int key) {
             this.key = key;
         }
         

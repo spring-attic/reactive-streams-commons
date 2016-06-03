@@ -23,4 +23,14 @@ public interface OrderedItem<T> extends Comparable<OrderedItem<T>> {
      * @return the primary index
      */
     long index();
+    
+    /**
+     * Creates a new OrderedItem instance with a new value but
+     * the same indexes as this instance.
+     * 
+     * @param <U> the new value type
+     * @param u the new value
+     * @return the new OrderedItem instance
+     */
+    <U> OrderedItem<U> copy(U u);
 }

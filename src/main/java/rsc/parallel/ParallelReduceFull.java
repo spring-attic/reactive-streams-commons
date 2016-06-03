@@ -16,13 +16,13 @@ import rsc.util.*;
  *
  * @param <T> the value type
  */
-public final class ParallelUnorderedReduceFull<T> extends Px<T> implements Fuseable {
+public final class ParallelReduceFull<T> extends Px<T> implements Fuseable {
 
     final ParallelPublisher<? extends T> source;
     
     final BiFunction<T, T, T> reducer;
     
-    public ParallelUnorderedReduceFull(ParallelPublisher<? extends T> source, BiFunction<T, T, T> reducer) {
+    public ParallelReduceFull(ParallelPublisher<? extends T> source, BiFunction<T, T, T> reducer) {
         this.source = source;
         this.reducer = reducer;
     }

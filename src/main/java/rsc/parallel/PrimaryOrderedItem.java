@@ -46,4 +46,9 @@ public final class PrimaryOrderedItem<T> implements OrderedItem<T> {
     public static <T> OrderedItem<T> of(T value, long index) {
         return new PrimaryOrderedItem<>(value, index);
     }
+    
+    @Override
+    public <U> OrderedItem<U> copy(U u) {
+        return of(u, index);
+    }
 }

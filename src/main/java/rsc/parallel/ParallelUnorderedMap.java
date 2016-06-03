@@ -46,7 +46,7 @@ public final class ParallelUnorderedMap<T, R> extends ParallelPublisher<R> {
     }
 
     @Override
-    public boolean ordered() {
+    public boolean isOrdered() {
         return false;
     }
     

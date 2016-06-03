@@ -12,9 +12,9 @@ import rsc.util.*;
  *
  * @param <T> the value type
  */
-public final class ParallelUnorderedPeek<T> extends ParallelPublisher<T> {
+public final class ParallelOrderedPeek<T> extends ParallelOrderedBase<T> {
 
-    final ParallelPublisher<T> source;
+    final ParallelOrderedBase<T> source;
     
     final Consumer<? super T> onNext;
     final Consumer<? super T> onAfterNext;
@@ -25,7 +25,7 @@ public final class ParallelUnorderedPeek<T> extends ParallelPublisher<T> {
     final LongConsumer onRequest;
     final Runnable onCancel;
     
-    public ParallelUnorderedPeek(ParallelPublisher<T> source, 
+    public ParallelOrderedPeek(ParallelOrderedBase<T> source, 
             Consumer<? super T> onNext,
             Consumer<? super T> onAfterNext,
             Consumer<Throwable> onError,
@@ -48,20 +48,20 @@ public final class ParallelUnorderedPeek<T> extends ParallelPublisher<T> {
     }
 
     @Override
-    public void subscribe(Subscriber<? super T>[] subscribers) {
+    public void subscribeOrdered(Subscriber<? super OrderedItem<T>>[] subscribers) {
         if (!validate(subscribers)) {
             return;
         }
         
         int n = subscribers.length;
         @SuppressWarnings("unchecked")
-        Subscriber<? super T>[] parents = new Subscriber[n];
+        Subscriber<? super OrderedItem<T>>[] parents = new Subscriber[n];
         
         for (int i = 0; i < n; i++) {
             parents[i] = new ParallelPeekSubscriber<>(subscribers[i], this);
         }
         
-        source.subscribe(parents);
+        source.subscribeOrdered(parents);
     }
 
     @Override
@@ -69,22 +69,17 @@ public final class ParallelUnorderedPeek<T> extends ParallelPublisher<T> {
         return source.parallelism();
     }
 
-    @Override
-    public boolean isOrdered() {
-        return false;
-    }
-    
-    static final class ParallelPeekSubscriber<T, R> implements Subscriber<T>, Subscription {
+    static final class ParallelPeekSubscriber<T, R> implements Subscriber<OrderedItem<T>>, Subscription {
 
-        final Subscriber<? super T> actual;
+        final Subscriber<? super OrderedItem<T>> actual;
         
-        final ParallelUnorderedPeek<T> parent;
+        final ParallelOrderedPeek<T> parent;
         
         Subscription s;
         
         boolean done;
         
-        public ParallelPeekSubscriber(Subscriber<? super T> actual, ParallelUnorderedPeek<T> parent) {
+        public ParallelPeekSubscriber(Subscriber<? super OrderedItem<T>> actual, ParallelOrderedPeek<T> parent) {
             this.actual = actual;
             this.parent = parent;
         }
@@ -131,13 +126,13 @@ public final class ParallelUnorderedPeek<T> extends ParallelPublisher<T> {
         }
 
         @Override
-        public void onNext(T t) {
+        public void onNext(OrderedItem<T> t) {
             if (done) {
                 return;
             }
             
             try {
-                parent.onNext.accept(t);
+                parent.onNext.accept(t.get());
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
                 onError(ex);
@@ -147,7 +142,7 @@ public final class ParallelUnorderedPeek<T> extends ParallelPublisher<T> {
             actual.onNext(t);
             
             try {
-                parent.onAfterNext.accept(t);
+                parent.onAfterNext.accept(t.get());
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
                 onError(ex);

@@ -15,17 +15,17 @@ import rsc.util.*;
  *
  * @param <T> the value type
  */
-public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
-    final ParallelPublisher<? extends T> source;
+public final class ParallelOrderedRunOn<T> extends ParallelOrderedBase<T> {
+    final ParallelOrderedBase<T> source;
     
     final Scheduler scheduler;
 
     final int prefetch;
 
-    final Supplier<Queue<T>> queueSupplier;
+    final Supplier<Queue<OrderedItem<T>>> queueSupplier;
     
-    public ParallelUnorderedRunOn(ParallelPublisher<? extends T> parent, 
-            Scheduler scheduler, int prefetch, Supplier<Queue<T>> queueSupplier) {
+    public ParallelOrderedRunOn(ParallelOrderedBase<T> parent, 
+            Scheduler scheduler, int prefetch, Supplier<Queue<OrderedItem<T>>> queueSupplier) {
         this.source = parent;
         this.scheduler = scheduler;
         this.prefetch = prefetch;
@@ -33,7 +33,7 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
     }
     
     @Override
-    public void subscribe(Subscriber<? super T>[] subscribers) {
+    public void subscribeOrdered(Subscriber<? super OrderedItem<T>>[] subscribers) {
         if (!validate(subscribers)) {
             return;
         }
@@ -41,19 +41,19 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
         int n = subscribers.length;
         
         @SuppressWarnings("unchecked")
-        Subscriber<T>[] parents = new Subscriber[n];
+        Subscriber<OrderedItem<T>>[] parents = new Subscriber[n];
         
         for (int i = 0; i < n; i++) {
-            Subscriber<? super T> a = subscribers[i];
+            Subscriber<? super OrderedItem<T>> a = subscribers[i];
             
             Worker w = scheduler.createWorker();
-            Queue<T> q = queueSupplier.get();
+            Queue<OrderedItem<T>> q = queueSupplier.get();
             
             RunOnSubscriber<T> parent = new RunOnSubscriber<>(a, prefetch, q, w);
             parents[i] = parent;
         }
         
-        source.subscribe(parents);
+        source.subscribeOrdered(parents);
     }
 
 
@@ -62,20 +62,15 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
         return source.parallelism();
     }
 
-    @Override
-    public boolean isOrdered() {
-        return source.isOrdered();
-    }
-
-    static final class RunOnSubscriber<T> implements Subscriber<T>, Subscription, Runnable {
+    static final class RunOnSubscriber<T> implements Subscriber<OrderedItem<T>>, Subscription, Runnable {
         
-        final Subscriber<? super T> actual;
+        final Subscriber<? super OrderedItem<T>> actual;
         
         final int prefetch;
         
         final int limit;
         
-        final Queue<T> queue;
+        final Queue<OrderedItem<T>> queue;
         
         final Worker worker;
         
@@ -99,7 +94,7 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
         
         int consumed;
 
-        public RunOnSubscriber(Subscriber<? super T> actual, int prefetch, Queue<T> queue, Worker worker) {
+        public RunOnSubscriber(Subscriber<? super OrderedItem<T>> actual, int prefetch, Queue<OrderedItem<T>> queue, Worker worker) {
             this.actual = actual;
             this.prefetch = prefetch;
             this.queue = queue;
@@ -119,7 +114,7 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
         }
         
         @Override
-        public void onNext(T t) {
+        public void onNext(OrderedItem<T> t) {
             if (done) {
                 return;
             }
@@ -181,8 +176,8 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
         public void run() {
             int missed = 1;
             int c = consumed;
-            Queue<T> q = queue;
-            Subscriber<? super T> a = actual;
+            Queue<OrderedItem<T>> q = queue;
+            Subscriber<? super OrderedItem<T>> a = actual;
             int lim = limit;
             
             for (;;) {
@@ -210,7 +205,7 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
                         }
                     }
                     
-                    T v = q.poll();
+                    OrderedItem<T> v = q.poll();
                     
                     boolean empty = v == null;
                     

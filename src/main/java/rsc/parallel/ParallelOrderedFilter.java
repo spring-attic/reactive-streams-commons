@@ -13,7 +13,6 @@ import rsc.util.UnsignalledExceptions;
  * Maps each 'rail' of the source ParallelPublisher with a mapper function.
  *
  * @param <T> the input value type
- * @param <R> the output value type
  */
 public final class ParallelOrderedFilter<T> extends ParallelOrderedBase<T> {
 

@@ -1,7 +1,6 @@
 package rsc.parallel;
 
 import java.util.function.*;
-import java.util.stream.Collector;
 
 import org.reactivestreams.*;
 
@@ -12,23 +11,25 @@ import rsc.util.*;
  * Reduce the sequence of values in each 'rail' to a single value.
  *
  * @param <T> the input value type
- * @param <A> the accumulated intermedate type
- * @param <R> the result type
+ * @param <C> the collection type
  */
-public final class ParallelUnorderedStreamCollect<T, A, R> extends ParallelPublisher<R> {
+public final class ParallelCollect<T, C> extends ParallelPublisher<C> {
     
     final ParallelPublisher<? extends T> source;
     
-    final Collector<T, A, R> collector;
+    final Supplier<C> initialCollection;
     
-    public ParallelUnorderedStreamCollect(ParallelPublisher<? extends T> source, 
-            Collector<T, A, R> collector) {
+    final BiConsumer<C, T> collector;
+    
+    public ParallelCollect(ParallelPublisher<? extends T> source, 
+            Supplier<C> initialCollection, BiConsumer<C, T> collector) {
         this.source = source;
+        this.initialCollection = initialCollection;
         this.collector = collector;
     }
 
     @Override
-    public void subscribe(Subscriber<? super R>[] subscribers) {
+    public void subscribe(Subscriber<? super C>[] subscribers) {
         if (!validate(subscribers)) {
             return;
         }
@@ -39,30 +40,10 @@ public final class ParallelUnorderedStreamCollect<T, A, R> extends ParallelPubli
         
         for (int i = 0; i < n; i++) {
             
-            Supplier<A> initial;
-            
-            BiConsumer<A, T> coll;
-            
-            Function<A, R> finisher;
+            C initialValue;
             
             try {
-                initial = collector.supplier();
-                
-                coll = collector.accumulator();
-                
-                finisher = collector.finisher();
-            } catch (Throwable ex) {
-                ExceptionHelper.throwIfFatal(ex);
-                for (Subscriber<?> s : subscribers) {
-                    EmptySubscription.error(s, ex);
-                }
-                return;
-            }
-            
-            A initialValue;
-            
-            try {
-                initialValue = initial.get();
+                initialValue = initialCollection.get();
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
                 reportError(subscribers, ex);
@@ -74,7 +55,7 @@ public final class ParallelUnorderedStreamCollect<T, A, R> extends ParallelPubli
                 return;
             }
             
-            parents[i] = new ParallelStreamCollectSubscriber<>(subscribers[i], initialValue, coll, finisher);
+            parents[i] = new ParallelCollectSubscriber<>(subscribers[i], initialValue, collector);
         }
         
         source.subscribe(parents);
@@ -92,28 +73,25 @@ public final class ParallelUnorderedStreamCollect<T, A, R> extends ParallelPubli
     }
 
     @Override
-    public boolean ordered() {
-        return source.ordered();
+    public boolean isOrdered() {
+        return false;
     }
 
-    static final class ParallelStreamCollectSubscriber<T, A, R> extends DeferredScalarSubscriber<T, R> {
+    static final class ParallelCollectSubscriber<T, C> extends DeferredScalarSubscriber<T, C> {
 
-        final BiConsumer<A, T> collector;
-        
-        final Function<A, R> finisher;
+        final BiConsumer<C, T> collector;
 
-        A collection;
+        C collection;
         
         Subscription s;
 
         boolean done;
         
-        public ParallelStreamCollectSubscriber(Subscriber<? super R> subscriber, 
-                A initialValue, BiConsumer<A, T> collector, Function<A, R> finisher) {
+        public ParallelCollectSubscriber(Subscriber<? super C> subscriber, 
+                C initialValue, BiConsumer<C, T> collector) {
             super(subscriber);
             this.collection = initialValue;
             this.collector = collector;
-            this.finisher = finisher;
         }
         
         @Override
@@ -160,24 +138,9 @@ public final class ParallelUnorderedStreamCollect<T, A, R> extends ParallelPubli
                 return;
             }
             done = true;
-            A a = collection;
+            C c = collection;
             collection = null;
-            
-            R r;
-            
-            try {
-                r = finisher.apply(a);
-            } catch (Throwable ex) {
-                ExceptionHelper.throwIfFatal(ex);
-                subscriber.onError(ex);
-                return;
-            }
-            
-            if (r == null) {
-                subscriber.onError(new NullPointerException("The finisher returned a null value"));
-            } else {
-                complete(r);
-            }
+            complete(c);
         }
         
         @Override

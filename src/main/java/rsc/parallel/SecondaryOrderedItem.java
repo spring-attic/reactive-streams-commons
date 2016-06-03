@@ -60,4 +60,9 @@ public final class SecondaryOrderedItem<T> implements OrderedItem<T> {
     public static <T> OrderedItem<T> of(T value, long index, long subIndex) {
         return new SecondaryOrderedItem<>(value, index, subIndex);
     }
+    
+    @Override
+    public <U> OrderedItem<U> copy(U u) {
+        return of(u, index, subIndex);
+    }
 }
