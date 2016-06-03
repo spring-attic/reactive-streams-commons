@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
+import rsc.processor.DirectProcessor;
 import rsc.publisher.Px;
 import rsc.scheduler.*;
 import rsc.test.TestSubscriber;
@@ -294,5 +295,59 @@ public class ParallelPublisherTest {
         .subscribe(ts);
         
         ts.assertResult(1, 3, 5, 7, 9);
+    }
+    
+    @Test
+    public void concatMapOrdered() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        DirectProcessor<Integer> dp = new DirectProcessor<>();
+        
+        dp
+        .parallel(true)
+        .concatMap(v -> Px.range(v * 10 + 1, 3))
+        .sequential()
+        .subscribe(ts);
+        
+        dp.onNext(1);
+        dp.onNext(2);
+        dp.onNext(3);
+        dp.onNext(4);
+        dp.onNext(5);
+        dp.onComplete();
+        
+        ts.assertResult(11, 12, 13, 21, 22, 23, 31, 32, 33, 41, 42, 43, 51, 52, 53);
+    }
+    
+    @Test
+    public void concatMapUnordered() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        Px.range(1, 5)
+        .parallel()
+        .concatMap(v -> Px.range(v * 10 + 1, 3))
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertValueSet(new HashSet<>(Arrays.asList(11, 12, 13, 21, 22, 23, 31, 32, 33, 41, 42, 43, 51, 52, 53)))
+        .assertNoError()
+        .assertComplete();
+        
+    }
+    
+    @Test
+    public void flatMapUnordered() {
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        
+        Px.range(1, 5)
+        .parallel()
+        .flatMap(v -> Px.range(v * 10 + 1, 3))
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertValueSet(new HashSet<>(Arrays.asList(11, 12, 13, 21, 22, 23, 31, 32, 33, 41, 42, 43, 51, 52, 53)))
+        .assertNoError()
+        .assertComplete();
+        
     }
 }

@@ -1,4 +1,4 @@
-package rsc.publisher;
+package rsc.parallel;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -7,111 +7,85 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
-import rsc.documentation.BackpressureMode;
-import rsc.documentation.BackpressureSupport;
-import rsc.documentation.FusionMode;
-import rsc.documentation.FusionSupport;
-import rsc.flow.*;
+import rsc.flow.Fuseable;
+import rsc.publisher.PublisherConcatMap.ErrorMode;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.util.*;
 
 /**
- * Maps each upstream value into a Publisher and concatenates them into one
- * sequence of items.
- * 
- * @param <T> the source value type
+ * Concatenates the generated Publishers on each rail.
+ *
+ * @param <T> the input value type
  * @param <R> the output value type
  */
-@BackpressureSupport(input = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
-@FusionSupport(input = { FusionMode.SYNC, FusionMode.ASYNC } /* TODO output = { FusionMode.CONDITIONAL } */)
-public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
+public final class ParallelOrderedConcatMap<T, R> extends ParallelOrderedBase<R> {
+
+    final ParallelOrderedBase<T> source;
     
     final Function<? super T, ? extends Publisher<? extends R>> mapper;
     
-    final Supplier<? extends Queue<T>> queueSupplier;
+    final Supplier<? extends Queue<OrderedItem<T>>> queueSupplier;
     
     final int prefetch;
     
     final ErrorMode errorMode;
-    
-    /**
-     * Indicates when an error from the main source should be reported.
-     */
-    public enum ErrorMode {
-        /** Report the error immediately, cancelling the active inner source. */
-        IMMEDIATE,
-        /** Report error after an inner source terminated. */
-        BOUNDARY,
-        /** Report the error after all sources terminated. */
-        END
-    }
 
-    public PublisherConcatMap(Publisher<? extends T> source,
+    public ParallelOrderedConcatMap(
+            ParallelOrderedBase<T> source, 
             Function<? super T, ? extends Publisher<? extends R>> mapper, 
-            Supplier<? extends Queue<T>> queueSupplier,
-            int prefetch, ErrorMode errorMode) {
-        super(source);
-        if (prefetch <= 0) {
-            throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
-        }
+                    Supplier<? extends Queue<OrderedItem<T>>> queueSupplier,
+                    int prefetch, ErrorMode errorMode) {
+        this.source = source;
         this.mapper = Objects.requireNonNull(mapper, "mapper");
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
         this.prefetch = prefetch;
         this.errorMode = Objects.requireNonNull(errorMode, "errorMode");
     }
     
-    public static <T, R> Subscriber<T> subscribe(Subscriber<? super R> s, Function<? super T, ? extends Publisher<? extends R>> mapper, 
-            Supplier<? extends Queue<T>> queueSupplier,
-            int prefetch, ErrorMode errorMode) {
-        Subscriber<T> parent = null;
-        switch (errorMode) {
-        case BOUNDARY:
-            parent = new PublisherConcatMapDelayed<>(s, mapper, queueSupplier, prefetch, false);
-            break;
-        case END:
-            parent = new PublisherConcatMapDelayed<>(s, mapper, queueSupplier, prefetch, true);
-            break;
-        default:
-            parent = new PublisherConcatMapImmediate<>(s, mapper, queueSupplier, prefetch);
-        }
-        return parent;
+    @Override
+    public int parallelism() {
+        return source.parallelism();
     }
     
     @Override
-    public void subscribe(Subscriber<? super R> s) {
-        
-        if (PublisherFlatMap.trySubscribeScalarMap(source, s, mapper, false)) {
+    public void subscribeOrdered(Subscriber<? super OrderedItem<R>>[] subscribers) {
+        if (!validate(subscribers)) {
             return;
         }
         
-        Subscriber<T> parent = null;
-        switch (errorMode) {
-        case BOUNDARY:
-            parent = new PublisherConcatMapDelayed<>(s, mapper, queueSupplier, prefetch, false);
-            break;
-        case END:
-            parent = new PublisherConcatMapDelayed<>(s, mapper, queueSupplier, prefetch, true);
-            break;
-        default:
-            parent = new PublisherConcatMapImmediate<>(s, mapper, queueSupplier, prefetch);
+        int n = subscribers.length;
+        
+        @SuppressWarnings("unchecked")
+        Subscriber<OrderedItem<T>>[] parents = new Subscriber[n];
+        
+        for (int i = 0; i < n; i++) {
+            Subscriber<? super OrderedItem<R>> s = subscribers[i];
+            Subscriber<OrderedItem<T>> parent = null;
+            switch (errorMode) {
+            case BOUNDARY:
+                parent = new ParallelConcatMapDelayed<>(s, mapper, queueSupplier, prefetch, false);
+                break;
+            case END:
+                parent = new ParallelConcatMapDelayed<>(s, mapper, queueSupplier, prefetch, true);
+                break;
+            default:
+                parent = new ParallelConcatMapImmediate<>(s, mapper, queueSupplier, prefetch);
+            }
+            parents[i] = parent;
         }
-        source.subscribe(parent);
-    }
-
-    @Override
-    public long getCapacity() {
-        return prefetch;
+        
+        source.subscribeOrdered(parents);
     }
     
-    static final class PublisherConcatMapImmediate<T, R> implements Subscriber<T>, PublisherConcatMapSupport<R>, Subscription {
+    static final class ParallelConcatMapImmediate<T, R> implements Subscriber<OrderedItem<T>>, ParallelConcatMapSupport<R>, Subscription {
 
-        final Subscriber<? super R> actual;
+        final Subscriber<? super OrderedItem<R>> actual;
         
-        final PublisherConcatMapInner<R> inner;
+        final ParallelConcatMapInner<R> inner;
         
         final Function<? super T, ? extends Publisher<? extends R>> mapper;
         
-        final Supplier<? extends Queue<T>> queueSupplier;
+        final Supplier<? extends Queue<OrderedItem<T>>> queueSupplier;
         
         final int prefetch;
 
@@ -121,7 +95,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
 
         int consumed;
         
-        volatile Queue<T> queue;
+        volatile Queue<OrderedItem<T>> queue;
         
         volatile boolean done;
         
@@ -129,35 +103,35 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         
         volatile Throwable error;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherConcatMapImmediate, Throwable> ERROR =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherConcatMapImmediate.class, Throwable.class, "error");
+        static final AtomicReferenceFieldUpdater<ParallelConcatMapImmediate, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(ParallelConcatMapImmediate.class, Throwable.class, "error");
         
         volatile boolean active;
         
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherConcatMapImmediate> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherConcatMapImmediate.class, "wip");
+        static final AtomicIntegerFieldUpdater<ParallelConcatMapImmediate> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(ParallelConcatMapImmediate.class, "wip");
 
         volatile int guard;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherConcatMapImmediate> GUARD =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherConcatMapImmediate.class, "guard");
+        static final AtomicIntegerFieldUpdater<ParallelConcatMapImmediate> GUARD =
+                AtomicIntegerFieldUpdater.newUpdater(ParallelConcatMapImmediate.class, "guard");
 
         int sourceMode;
         
         static final int SYNC = 1;
         static final int ASYNC = 2;
         
-        public PublisherConcatMapImmediate(Subscriber<? super R> actual,
+        public ParallelConcatMapImmediate(Subscriber<? super OrderedItem<R>> actual,
                 Function<? super T, ? extends Publisher<? extends R>> mapper,
-                Supplier<? extends Queue<T>> queueSupplier, int prefetch) {
+                Supplier<? extends Queue<OrderedItem<T>>> queueSupplier, int prefetch) {
             this.actual = actual;
             this.mapper = mapper;
             this.queueSupplier = queueSupplier;
             this.prefetch = prefetch;
             this.limit = prefetch - (prefetch >> 2);
-            this.inner = new PublisherConcatMapInner<>(this);
+            this.inner = new ParallelConcatMapInner<>(this);
         }
 
         @Override
@@ -166,7 +140,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                 this.s = s;
 
                 if (s instanceof Fuseable.QueueSubscription) {
-                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<OrderedItem<T>> f = (Fuseable.QueueSubscription<OrderedItem<T>>)s;
                     int m = f.requestFusion(Fuseable.ANY);
                     if (m == Fuseable.SYNC){
                         sourceMode = SYNC;
@@ -209,7 +183,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         }
         
         @Override
-        public void onNext(T t) {
+        public void onNext(OrderedItem<T> t) {
             if (sourceMode == ASYNC) {
                 drain();
             } else
@@ -244,9 +218,9 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         }
         
         @Override
-        public void innerNext(R value) {
+        public void innerNext(R value, long parentIndex) {
             if (guard == 0 && GUARD.compareAndSet(this, 0, 1)) {
-                actual.onNext(value);
+                actual.onNext(PrimaryOrderedItem.of(value, parentIndex));
                 if (GUARD.compareAndSet(this, 1, 0)) {
                     return;
                 }
@@ -304,7 +278,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                     if (!active) {
                         boolean d = done;
                         
-                        T v;
+                        OrderedItem<T> v;
                         
                         try {
                             v = queue.poll();
@@ -326,7 +300,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                             Publisher<? extends R> p;
                             
                             try {
-                                p = mapper.apply(v);
+                                p = mapper.apply(v.get());
                             } catch (Throwable e) {
                                 ExceptionHelper.throwIfFatal(e);
                                 
@@ -374,7 +348,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 
                                 if (inner.isUnbounded()) {
                                     if (guard == 0 && GUARD.compareAndSet(this, 0, 1)) {
-                                        actual.onNext(vr);
+                                        actual.onNext(v.change(vr));
                                         if (!GUARD.compareAndSet(this, 1, 0)) {
                                             Throwable e = ExceptionHelper.terminate(ERROR, this);
                                             if (e != ExceptionHelper.TERMINATED) {
@@ -385,11 +359,13 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                     }
                                     continue;
                                 } else {
+                                    inner.parentIndex = v.index();
                                     active = true;
                                     inner.set(new WeakScalarSubscription<>(vr, inner));
                                 }
                                 
                             } else {
+                                inner.parentIndex = v.index();
                                 active = true;
                                 p.subscribe(inner);
                             }
@@ -429,15 +405,15 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         }
     }
 
-    static final class PublisherConcatMapDelayed<T, R> implements Subscriber<T>, PublisherConcatMapSupport<R>, Subscription {
+    static final class ParallelConcatMapDelayed<T, R> implements Subscriber<OrderedItem<T>>, ParallelConcatMapSupport<R>, Subscription {
 
-        final Subscriber<? super R> actual;
+        final Subscriber<? super OrderedItem<R>> actual;
         
-        final PublisherConcatMapInner<R> inner;
+        final ParallelConcatMapInner<R> inner;
         
         final Function<? super T, ? extends Publisher<? extends R>> mapper;
         
-        final Supplier<? extends Queue<T>> queueSupplier;
+        final Supplier<? extends Queue<OrderedItem<T>>> queueSupplier;
         
         final int prefetch;
 
@@ -449,7 +425,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
 
         int consumed;
         
-        volatile Queue<T> queue;
+        volatile Queue<OrderedItem<T>> queue;
         
         volatile boolean done;
         
@@ -457,31 +433,31 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         
         volatile Throwable error;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherConcatMapDelayed, Throwable> ERROR =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherConcatMapDelayed.class, Throwable.class, "error");
+        static final AtomicReferenceFieldUpdater<ParallelConcatMapDelayed, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(ParallelConcatMapDelayed.class, Throwable.class, "error");
         
         volatile boolean active;
         
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherConcatMapDelayed> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherConcatMapDelayed.class, "wip");
+        static final AtomicIntegerFieldUpdater<ParallelConcatMapDelayed> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(ParallelConcatMapDelayed.class, "wip");
 
         int sourceMode;
         
         static final int SYNC = 1;
         static final int ASYNC = 2;
         
-        public PublisherConcatMapDelayed(Subscriber<? super R> actual,
+        public ParallelConcatMapDelayed(Subscriber<? super OrderedItem<R>> actual,
                 Function<? super T, ? extends Publisher<? extends R>> mapper,
-                Supplier<? extends Queue<T>> queueSupplier, int prefetch, boolean veryEnd) {
+                Supplier<? extends Queue<OrderedItem<T>>> queueSupplier, int prefetch, boolean veryEnd) {
             this.actual = actual;
             this.mapper = mapper;
             this.queueSupplier = queueSupplier;
             this.prefetch = prefetch;
             this.limit = prefetch - (prefetch >> 2);
             this.veryEnd = veryEnd;
-            this.inner = new PublisherConcatMapInner<>(this);
+            this.inner = new ParallelConcatMapInner<>(this);
         }
 
         @Override
@@ -490,7 +466,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                 this.s = s;
 
                 if (s instanceof Fuseable.QueueSubscription) {
-                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<T> f = (Fuseable.QueueSubscription<T>)s;
+                    @SuppressWarnings("unchecked") Fuseable.QueueSubscription<OrderedItem<T>> f = (Fuseable.QueueSubscription<OrderedItem<T>>)s;
                     
                     int m = f.requestFusion(Fuseable.ANY);
                     
@@ -535,7 +511,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         }
         
         @Override
-        public void onNext(T t) {
+        public void onNext(OrderedItem<T> t) {
             if (sourceMode == ASYNC) {
                 drain();
             } else
@@ -564,8 +540,8 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         }
         
         @Override
-        public void innerNext(R value) {
-            actual.onNext(value);
+        public void innerNext(R value, long parentIndex) {
+            actual.onNext(PrimaryOrderedItem.of(value, parentIndex));
         }
         
         @Override
@@ -626,7 +602,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                             }
                         }
                         
-                        T v;
+                        OrderedItem<T> v;
                         
                         try {
                             v = queue.poll();
@@ -653,7 +629,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                             Publisher<? extends R> p;
                             
                             try {
-                                p = mapper.apply(v);
+                                p = mapper.apply(v.get());
                             } catch (Throwable e) {
                                 ExceptionHelper.throwIfFatal(e);
                                 
@@ -698,13 +674,15 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                                 }
                                 
                                 if (inner.isUnbounded()) {
-                                    actual.onNext(vr);
+                                    actual.onNext(v.change(vr));
                                     continue;
                                 } else {
+                                    inner.parentIndex = v.index();
                                     active = true;
                                     inner.set(new WeakScalarSubscription<>(vr, inner));
                                 }
                             } else {
+                                inner.parentIndex = v.index();
                                 active = true;
                                 p.subscribe(inner);
                             }
@@ -717,24 +695,26 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
             }
         }
     }
-
-    interface PublisherConcatMapSupport<T> {
+    
+    interface ParallelConcatMapSupport<T> {
         
-        void innerNext(T value);
+        void innerNext(T value, long parentIndex);
         
         void innerComplete();
         
         void innerError(Throwable e);
     }
     
-    static final class PublisherConcatMapInner<R>
+    static final class ParallelConcatMapInner<R>
             extends MultiSubscriptionSubscriber<R, R> {
         
-        final PublisherConcatMapSupport<R> parent;
+        final ParallelConcatMapSupport<R> parent;
+        
+        long parentIndex;
         
         long produced;
         
-        public PublisherConcatMapInner(PublisherConcatMapSupport<R> parent) {
+        public ParallelConcatMapInner(ParallelConcatMapSupport<R> parent) {
             super(null);
             this.parent = parent;
         }
@@ -748,7 +728,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         public void onNext(R t) {
             produced++;
             
-            parent.innerNext(t);
+            parent.innerNext(t, parentIndex);
         }
         
         @Override

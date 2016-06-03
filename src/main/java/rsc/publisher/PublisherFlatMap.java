@@ -56,6 +56,28 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         this.innerQueueSupplier = Objects.requireNonNull(innerQueueSupplier, "innerQueueSupplier");
     }
 
+    /**
+     * Return a Subscriber that handles the merging operation with the given parameters.
+     * @param <T> the input value type
+     * @param <R> the output value type
+     * @param s the downstream Subscriber
+     * @param mapper the mapper from Ts to a Publisher of Rs
+     * @param delayError delay the errors?
+     * @param maxConcurrency maximum number of simultaneous subscriptions to the generated sources
+     * @param mainQueueSupplier the supplier for the main queue
+     * @param prefetch the prefetch amount for the inner sources
+     * @param innerQueueSupplier the queue supplier for the inner sources
+     * @return the Subscriber
+     */
+    public static <T, R> Subscriber<T> subscribe(
+            Subscriber<? super R> s, 
+            Function<? super T, ? extends Publisher<? extends R>> mapper,
+            boolean delayError, 
+            int maxConcurrency, Supplier<? extends Queue<R>> mainQueueSupplier, 
+            int prefetch, Supplier<? extends Queue<R>> innerQueueSupplier) {
+        return new PublisherFlatMapMain<>(s, mapper, delayError, maxConcurrency, mainQueueSupplier, prefetch, innerQueueSupplier);
+    }
+    
     @Override
     public void subscribe(Subscriber<? super R> s) {
         

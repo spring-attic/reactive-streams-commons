@@ -51,4 +51,11 @@ public final class PrimaryOrderedItem<T> implements OrderedItem<T> {
     public <U> OrderedItem<U> copy(U u) {
         return of(u, index);
     }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <U> OrderedItem<U> change(U u) {
+        ((PrimaryOrderedItem<U>)this).value = u;
+        return (OrderedItem<U>)this;
+    }
 }

@@ -7,6 +7,7 @@ import java.util.stream.Collector;
 import org.reactivestreams.*;
 
 import rsc.publisher.*;
+import rsc.publisher.PublisherConcatMap.ErrorMode;
 import rsc.scheduler.Scheduler;
 import rsc.util.EmptySubscription;
 
@@ -773,5 +774,134 @@ public abstract class ParallelPublisher<T> {
      */
     public final <U> ParallelPublisher<U> compose(Function<? super ParallelPublisher<T>, ParallelPublisher<U>> composer) {
         return as(composer);
+    }
+    
+    /**
+     * Generates and flattens Publishers on each 'rail'.
+     * <p>
+     * Errors are not delayed and uses unbounded concurrency along with default inner prefetch.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
+        return flatMap(mapper, false, Integer.MAX_VALUE, Px.bufferSize());
+    }
+
+    /**
+     * Generates and flattens Publishers on each 'rail', optionally delaying errors.
+     * <p>
+     * It uses unbounded concurrency along with default inner prefetch.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * @param delayError should the errors from the main and the inner sources delayed till everybody terminates?
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> flatMap(
+            Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError) {
+        return flatMap(mapper, delayError, Integer.MAX_VALUE, Px.bufferSize());
+    }
+
+    /**
+     * Generates and flattens Publishers on each 'rail', optionally delaying errors 
+     * and having a total number of simultaneous subscriptions to the inner Publishers.
+     * <p>
+     * It uses a default inner prefetch.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * @param delayError should the errors from the main and the inner sources delayed till everybody terminates?
+     * @param maxConcurrency the maximum number of simultaneous subscriptions to the generated inner Publishers
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> flatMap(
+            Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency) {
+        return flatMap(mapper, delayError, maxConcurrency, Px.bufferSize());
+    }
+
+    /**
+     * Generates and flattens Publishers on each 'rail', optionally delaying errors, 
+     * having a total number of simultaneous subscriptions to the inner Publishers
+     * and using the given prefetch amount for the inner Publishers.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * @param delayError should the errors from the main and the inner sources delayed till everybody terminates?
+     * @param maxConcurrency the maximum number of simultaneous subscriptions to the generated inner Publishers
+     * @param prefetch the number of items to prefetch from each inner Publisher
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> flatMap(
+            Function<? super T, ? extends Publisher<? extends R>> mapper,
+            boolean delayError, int maxConcurrency, int prefetch) {
+        return new ParallelFlatMap<>(this, mapper, delayError, maxConcurrency, Px.defaultQueueSupplier(maxConcurrency), prefetch, Px.defaultQueueSupplier(prefetch));
+    }
+
+    /**
+     * Generates and concatenates Publishers on each 'rail', signalling errors immediately 
+     * and generating 2 publishers upfront.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * source and the inner Publishers (immediate, boundary, end)
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> concatMap(
+            Function<? super T, ? extends Publisher<? extends R>> mapper) {
+        return concatMap(mapper, 2, ErrorMode.IMMEDIATE);
+    }
+
+    /**
+     * Generates and concatenates Publishers on each 'rail', signalling errors immediately 
+     * and using the given prefetch amount for generating Publishers upfront.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * @param prefetch the number of items to prefetch from each inner Publisher
+     * source and the inner Publishers (immediate, boundary, end)
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> concatMap(
+            Function<? super T, ? extends Publisher<? extends R>> mapper,
+                    int prefetch) {
+        return concatMap(mapper, prefetch, ErrorMode.IMMEDIATE);
+    }
+
+    /**
+     * Generates and concatenates Publishers on each 'rail', optionally delaying errors 
+     * and generating 2 publishers upfront.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * @param errorMode the error handling, i.e., when to report errors from the main
+     * source and the inner Publishers (immediate, boundary, end)
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> concatMap(
+            Function<? super T, ? extends Publisher<? extends R>> mapper,
+                    ErrorMode errorMode) {
+        return concatMap(mapper, 2, errorMode);
+    }
+
+    /**
+     * Generates and concatenates Publishers on each 'rail', optionally delaying errors 
+     * and using the given prefetch amount for generating Publishers upfront.
+     * 
+     * @param <R> the result type
+     * @param mapper the function to map each rail's value into a Publisher
+     * @param prefetch the number of items to prefetch from each inner Publisher
+     * @param errorMode the error handling, i.e., when to report errors from the main
+     * source and the inner Publishers (immediate, boundary, end)
+     * @return the new ParallelPublisher instance
+     */
+    public final <R> ParallelPublisher<R> concatMap(
+            Function<? super T, ? extends Publisher<? extends R>> mapper,
+                    int prefetch, ErrorMode errorMode) {
+        if (isOrdered()) {
+            return new ParallelOrderedConcatMap<>((ParallelOrderedBase<T>)this, mapper, Px.defaultQueueSupplier(prefetch), prefetch, errorMode);
+        }
+        return new ParallelUnorderedConcatMap<>(this, mapper, Px.defaultQueueSupplier(prefetch), prefetch, errorMode);
     }
 }

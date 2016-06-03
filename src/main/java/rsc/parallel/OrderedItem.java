@@ -33,4 +33,12 @@ public interface OrderedItem<T> extends Comparable<OrderedItem<T>> {
      * @return the new OrderedItem instance
      */
     <U> OrderedItem<U> copy(U u);
+    
+    /**
+     * Force a differently typed value into this container.
+     * @param <U> the new value type
+     * @param u the new value
+     * @return this
+     */
+    <U> OrderedItem<U> change(U u);
 }
