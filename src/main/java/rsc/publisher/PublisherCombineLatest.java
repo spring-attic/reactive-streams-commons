@@ -1,31 +1,15 @@
 package rsc.publisher;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import rsc.flow.MultiReceiver;
-import rsc.flow.Producer;
-import rsc.flow.Receiver;
-import rsc.state.Cancellable;
-import rsc.state.Introspectable;
-import rsc.state.Prefetchable;
-import rsc.state.Requestable;
-import rsc.util.BackpressureHelper;
-import rsc.util.CancelledSubscription;
-import rsc.util.EmptySubscription;
-import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
-import rsc.util.UnsignalledExceptions;
+import org.reactivestreams.*;
+
+import rsc.documentation.*;
+import rsc.flow.*;
+import rsc.state.*;
+import rsc.util.*;
 
 /**
  * Combines the latest values from multiple sources through a function.
@@ -33,9 +17,10 @@ import rsc.util.UnsignalledExceptions;
  * @param <T> the value type of the sources
  * @param <R> the result type
  */
+@FusionSupport(input = { FusionMode.NOT_APPLICABLE}, innerInput = { FusionMode.SCALAR }, output = { FusionMode.ASYNC })
 public final class PublisherCombineLatest<T, R> 
 extends Px<R>
-        implements MultiReceiver {
+        implements MultiReceiver, Fuseable {
 
     final Publisher<? extends T>[] array;
 
@@ -186,7 +171,8 @@ extends Px<R>
         coordinator.subscribe(a, n);
     }
     
-    static final class PublisherCombineLatestCoordinator<T, R> implements Subscription, MultiReceiver, Cancellable {
+    static final class PublisherCombineLatestCoordinator<T, R> 
+    implements QueueSubscription<R>, MultiReceiver, Cancellable {
 
         final Subscriber<? super R> actual;
         
@@ -197,6 +183,8 @@ extends Px<R>
         final Queue<SourceAndArray> queue;
         
         final Object[] latest;
+        
+        boolean outputFused;
 
         int nonEmptySources;
         
@@ -340,11 +328,48 @@ extends Px<R>
             }
         }
         
-        void drain() {
-            if (WIP.getAndIncrement(this) != 0) {
-                return;
-            }
+        void drainOutput() {
+            final Subscriber<? super R> a = actual;
+            final Queue<SourceAndArray> q = queue;
             
+            int missed = 1;
+            
+            for (;;) {
+                
+                if (cancelled) {
+                    q.clear();
+                    return;
+                }
+                
+                Throwable ex = error;
+                if (ex != null) {
+                    q.clear();
+                    
+                    a.onError(ex);
+                    return;
+                }
+                
+                boolean d = done;
+                
+                boolean empty = q.isEmpty();
+                
+                if (!empty) {
+                    a.onNext(null);
+                }
+                
+                if (d && empty) {
+                    a.onComplete();
+                    return;
+                }
+                
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+        
+        void drainAsync() {
             final Subscriber<? super R> a = actual;
             final Queue<SourceAndArray> q = queue;
             
@@ -409,6 +434,18 @@ extends Px<R>
             }
         }
         
+        void drain() {
+            if (WIP.getAndIncrement(this) != 0) {
+                return;
+            }
+            
+            if (outputFused) {
+                drainOutput();
+            } else {
+                drainAsync();
+            }
+        }
+        
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a, Queue<?> q) {
             if (cancelled) {
                 cancelAll();
@@ -440,6 +477,42 @@ extends Px<R>
                 inner.cancel();
             }
         }
+        
+        @Override
+        public int requestFusion(int requestedMode) {
+            if ((requestedMode & THREAD_BARRIER) != 0) {
+                return NONE;
+            }
+            int m = requestedMode & ASYNC;
+            outputFused = m != 0;
+            return m;
+        }
+        
+        @Override
+        public R poll() {
+            SourceAndArray e = queue.poll();
+            if (e == null) {
+                return null;
+            }
+            R r = combiner.apply(e.array);
+            e.source.requestOne();
+            return r;
+        }
+        
+        @Override
+        public void clear() {
+            queue.clear();
+        }
+        
+        @Override
+        public boolean isEmpty() {
+            return queue.isEmpty();
+        }
+        
+        @Override
+        public int size() {
+            return queue.size();
+        }
     }
     
     static final class PublisherCombineLatestInner<T>
@@ -448,6 +521,8 @@ extends Px<R>
         final PublisherCombineLatestCoordinator<T, ?> parent;
 
         final int index;
+
+        final int prefetch;
         
         final int limit;
         
@@ -456,52 +531,20 @@ extends Px<R>
         static final AtomicReferenceFieldUpdater<PublisherCombineLatestInner, Subscription> S =
           AtomicReferenceFieldUpdater.newUpdater(PublisherCombineLatestInner.class, Subscription.class, "s");
 
-        volatile long requested;
-        @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherCombineLatestInner> REQUESTED =
-          AtomicLongFieldUpdater.newUpdater(PublisherCombineLatestInner.class, "requested");
-
         int produced;
         
         
-        public PublisherCombineLatestInner(PublisherCombineLatestCoordinator<T, ?> parent, int index, int bufferSize) {
+        public PublisherCombineLatestInner(PublisherCombineLatestCoordinator<T, ?> parent, int index, int prefetch) {
             this.parent = parent;
             this.index = index;
-            this.requested = bufferSize;
-            this.limit = bufferSize - (bufferSize >> 2);
+            this.prefetch = prefetch;
+            this.limit = prefetch - (prefetch >> 2);
         }
 
         @Override
         public void onSubscribe(Subscription s) {
-            Objects.requireNonNull(s, "s");
-            Subscription a = this.s;
-            if (a == CancelledSubscription.INSTANCE) {
-                s.cancel();
-                return;
-            }
-            if (a != null) {
-                s.cancel();
-                SubscriptionHelper.reportSubscriptionSet();
-                return;
-            }
-
-            if (S.compareAndSet(this, null, s)) {
-
-                long r = REQUESTED.getAndSet(this, 0L);
-
-                if (r != 0L) {
-                    s.request(r);
-                }
-
-                return;
-            }
-
-            a = this.s;
-
-            if (a != CancelledSubscription.INSTANCE) {
-                s.cancel();
-            } else {
-                SubscriptionHelper.reportSubscriptionSet();
+            if (SubscriptionHelper.setOnce(S, this, s)) {
+                s.request(prefetch);
             }
         }
 
@@ -521,13 +564,7 @@ extends Px<R>
         }
         
         public void cancel() {
-            Subscription a = s;
-            if (a != CancelledSubscription.INSTANCE) {
-                a = S.getAndSet(this, CancelledSubscription.INSTANCE);
-                if (a != null && a != CancelledSubscription.INSTANCE) {
-                    a.cancel();
-                }
-            }
+            SubscriptionHelper.terminate(S, this);
         }
         
         public void requestOne() {
@@ -535,22 +572,7 @@ extends Px<R>
             int p = produced + 1;
             if (p == limit) {
                 produced = 0;
-                Subscription a = s;
-                if (a != null) {
-                    a.request(p);
-                } else {
-                    BackpressureHelper.getAndAddCap(REQUESTED, this, p);
-
-                    a = s;
-
-                    if (a != null) {
-                        long r = REQUESTED.getAndSet(this, 0L);
-
-                        if (r != 0L) {
-                            a.request(r);
-                        }
-                    }
-                }
+                s.request(p);
             } else {
                 produced = p;
             }
@@ -564,7 +586,7 @@ extends Px<R>
 
         @Override
         public long requestedFromDownstream() {
-            return requested;
+            return produced;
         }
 
         @Override

@@ -1,6 +1,7 @@
 <html><head><title>Reactive-Streams-Commons Fusion Matrix</title></head>
 <body><center><h1><a href='https://github.com/reactor/reactive-streams-commons'>Reactive-Streams-Commons</a> Fusion Matrix</h1></center>
 <table border='1' style='border-collapse:collapse;'><thead><td><b>First \ Second</b></td>
+    <td width='100' bgColor='#CCFFCC'><b>CombineLatest - inner</b></td>
     <td width='100'><b>ConcatMap</b></td>
     <td width='100'><b>Distinct</b></td>
     <td width='100'><b>DistinctFuseable</b></td>
@@ -25,6 +26,7 @@
     <td width='100' bgColor='#CCFFCC'><b>Zip - inner</b></td>
 </thead><tbody>
 <tr><td><b>Aggregate</b></td>
+    <td title='Aggregate -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Aggregate -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Aggregate -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -66,6 +68,7 @@
 </td>
 </tr>
 <tr><td><b>All</b></td>
+    <td title='All -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='All -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='All -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -107,6 +110,7 @@
 </td>
 </tr>
 <tr><td><b>Any</b></td>
+    <td title='Any -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Any -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Any -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -148,6 +152,7 @@
 </td>
 </tr>
 <tr><td><b>Array</b></td>
+    <td title='Array -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Array -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Array -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
@@ -202,6 +207,7 @@
 </td>
 </tr>
 <tr><td><b>AsyncProcessor</b></td>
+    <td title='AsyncProcessor -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='AsyncProcessor -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='AsyncProcessor -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -243,6 +249,8 @@
 </td>
 </tr>
 <tr><td><b>Callable</b></td>
+    <td title='Callable -&gt; CombineLatest - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Callable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Callable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -291,6 +299,7 @@
 </td>
 </tr>
 <tr><td><b>CallableSubscribeOn</b></td>
+    <td title='CallableSubscribeOn -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='CallableSubscribeOn -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='CallableSubscribeOn -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -331,6 +340,7 @@
 </td>
 </tr>
 <tr><td><b>Collect</b></td>
+    <td title='Collect -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Collect -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Collect -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -371,7 +381,50 @@
     <td title='Collect -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
 </tr>
+<tr><td><b>CombineLatest</b></td>
+    <td title='CombineLatest -&gt; CombineLatest - inner' '>Unfuseable</td>
+    <td title='CombineLatest -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; DistinctFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; DistinctUntilChanged' '>Unfuseable</td>
+    <td title='CombineLatest -&gt; Filter' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; FilterFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; FlatMap' '>Unfuseable</td>
+    <td title='CombineLatest -&gt; FlatMap - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; FlattenIterable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; Map' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; MapFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; Merge - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; ObserveOn' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; Peek' '>Unfuseable</td>
+    <td title='CombineLatest -&gt; PeekFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; Publish' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; SkipWhile' '>Unfuseable</td>
+    <td title='CombineLatest -&gt; SubscribeOn' '>Unfuseable</td>
+    <td title='CombineLatest -&gt; Take' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; TakeFuseable' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; Using - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+    <td title='CombineLatest -&gt; Zip - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
+</td>
+</tr>
 <tr><td><b>CompletableFuture</b></td>
+    <td title='CompletableFuture -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='CompletableFuture -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='CompletableFuture -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -413,6 +466,7 @@
 </td>
 </tr>
 <tr><td><b>Count</b></td>
+    <td title='Count -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Count -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Count -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -454,6 +508,7 @@
 </td>
 </tr>
 <tr><td><b>Distinct</b></td>
+    <td title='Distinct -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Distinct -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -525,6 +580,7 @@
 </td>
 </tr>
 <tr><td><b>DistinctFuseable</b></td>
+    <td title='DistinctFuseable -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='DistinctFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -596,6 +652,7 @@
 </td>
 </tr>
 <tr><td><b>DistinctUntilChanged</b></td>
+    <td title='DistinctUntilChanged -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='DistinctUntilChanged -&gt; ConcatMap' '>Unfuseable</td>
     <td title='DistinctUntilChanged -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -633,6 +690,7 @@
     <td title='DistinctUntilChanged -&gt; Zip - inner' '>Unfuseable</td>
 </tr>
 <tr><td><b>ElementAt</b></td>
+    <td title='ElementAt -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='ElementAt -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ElementAt -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -674,6 +732,8 @@
 </td>
 </tr>
 <tr><td><b>Empty</b></td>
+    <td title='Empty -&gt; CombineLatest - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Empty -&gt; ConcatMap' '>Unfuseable</td>
     <td title='Empty -&gt; Distinct' '>Unfuseable</td>
     <td title='Empty -&gt; DistinctFuseable' '>Unfuseable</td>
@@ -705,6 +765,7 @@
 </td>
 </tr>
 <tr><td><b>Filter</b></td>
+    <td title='Filter -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Filter -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -774,6 +835,7 @@
 </td>
 </tr>
 <tr><td><b>FilterFuseable</b></td>
+    <td title='FilterFuseable -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='FilterFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -843,6 +905,7 @@
 </td>
 </tr>
 <tr><td><b>FlattenIterable</b></td>
+    <td title='FlattenIterable -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='FlattenIterable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='FlattenIterable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
@@ -884,6 +947,7 @@
 </td>
 </tr>
 <tr><td><b>Future</b></td>
+    <td title='Future -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Future -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Future -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -925,6 +989,7 @@
 </td>
 </tr>
 <tr><td><b>Generate</b></td>
+    <td title='Generate -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Generate -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Generate -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
@@ -965,6 +1030,7 @@
 </td>
 </tr>
 <tr><td><b>GroupBy</b></td>
+    <td title='GroupBy -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='GroupBy -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1006,6 +1072,7 @@
 </td>
 </tr>
 <tr><td bgColor='#CCFFCC'><b>GroupBy - inner</td></td>
+    <td title='GroupBy - inner -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='GroupBy -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='GroupBy -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1047,6 +1114,7 @@
 </td>
 </tr
 <tr><td><b>HasElements</b></td>
+    <td title='HasElements -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='HasElements -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='HasElements -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1088,6 +1156,7 @@
 </td>
 </tr>
 <tr><td><b>Iterable</b></td>
+    <td title='Iterable -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Iterable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Iterable -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
@@ -1142,6 +1211,8 @@
 </td>
 </tr>
 <tr><td><b>Just</b></td>
+    <td title='Just -&gt; CombineLatest - inner' ' bgcolor='#FFCC80'>        <font color='#000000'>Scalar</font>
+</td>
     <td title='Just -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Just -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
@@ -1190,6 +1261,7 @@
 </td>
 </tr>
 <tr><td><b>Map</b></td>
+    <td title='Map -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Map -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -1259,6 +1331,7 @@
 </td>
 </tr>
 <tr><td><b>MapFuseable</b></td>
+    <td title='MapFuseable -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='MapFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -1328,6 +1401,7 @@
 </td>
 </tr>
 <tr><td><b>ObserveOn</b></td>
+    <td title='ObserveOn -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='ObserveOn -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ObserveOn -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1369,6 +1443,7 @@
 </td>
 </tr>
 <tr><td><b>Peek</b></td>
+    <td title='Peek -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Peek -&gt; ConcatMap' '>Unfuseable</td>
     <td title='Peek -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -1406,6 +1481,7 @@
     <td title='Peek -&gt; Zip - inner' '>Unfuseable</td>
 </tr>
 <tr><td><b>PeekFuseable</b></td>
+    <td title='PeekFuseable -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='PeekFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -1477,6 +1553,7 @@
 </td>
 </tr>
 <tr><td><b>Publish</b></td>
+    <td title='Publish -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Publish -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -1535,6 +1612,7 @@
 </td>
 </tr>
 <tr><td><b>Range</b></td>
+    <td title='Range -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Range -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Range -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
@@ -1589,6 +1667,7 @@
 </td>
 </tr>
 <tr><td><b>Reduce</b></td>
+    <td title='Reduce -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Reduce -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Reduce -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1630,6 +1709,7 @@
 </td>
 </tr>
 <tr><td><b>ReplayProcessor</b></td>
+    <td title='ReplayProcessor -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='ReplayProcessor -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='ReplayProcessor -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1671,6 +1751,7 @@
 </td>
 </tr>
 <tr><td><b>Single</b></td>
+    <td title='Single -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Single -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Single -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1712,6 +1793,7 @@
 </td>
 </tr>
 <tr><td><b>SkipWhile</b></td>
+    <td title='SkipWhile -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='SkipWhile -&gt; ConcatMap' '>Unfuseable</td>
     <td title='SkipWhile -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Conditional</font>
 </td>
@@ -1749,6 +1831,7 @@
     <td title='SkipWhile -&gt; Zip - inner' '>Unfuseable</td>
 </tr>
 <tr><td><b>Stream</b></td>
+    <td title='Stream -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Stream -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font>
 </td>
     <td title='Stream -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
@@ -1803,6 +1886,7 @@
 </td>
 </tr>
 <tr><td><b>StreamCollector</b></td>
+    <td title='StreamCollector -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='StreamCollector -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='StreamCollector -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1844,6 +1928,7 @@
 </td>
 </tr>
 <tr><td><b>SubscribeOn</b></td>
+    <td title='SubscribeOn -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='SubscribeOn -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='SubscribeOn -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1885,6 +1970,7 @@
 </td>
 </tr>
 <tr><td><b>SubscribeOnValue</b></td>
+    <td title='SubscribeOnValue -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='SubscribeOnValue -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='SubscribeOnValue -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -1926,6 +2012,7 @@
 </td>
 </tr>
 <tr><td><b>Take</b></td>
+    <td title='Take -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Take -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -1997,6 +2084,7 @@
 </td>
 </tr>
 <tr><td><b>TakeFuseable</b></td>
+    <td title='TakeFuseable -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='TakeFuseable -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -2068,6 +2156,7 @@
 </td>
 </tr>
 <tr><td><b>TakeLast</b></td>
+    <td title='TakeLast -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='TakeLast -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='TakeLast -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2109,6 +2198,7 @@
 </td>
 </tr>
 <tr><td><b>TakeLastOne</b></td>
+    <td title='TakeLastOne -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='TakeLastOne -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='TakeLastOne -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2150,6 +2240,7 @@
 </td>
 </tr>
 <tr><td><b>UnicastProcessor</b></td>
+    <td title='UnicastProcessor -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='UnicastProcessor -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='UnicastProcessor -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2191,6 +2282,7 @@
 </td>
 </tr>
 <tr><td><b>Using</b></td>
+    <td title='Using -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Using -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Sync</font><br/>
         <font color='#000000'>Async</font><br/>
 </td>
@@ -2262,6 +2354,7 @@
 </td>
 </tr>
 <tr><td bgColor='#CCFFCC'><b>Window - inner</td></td>
+    <td title='Window - inner -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='Window -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='Window -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
@@ -2303,6 +2396,7 @@
 </td>
 </tr
 <tr><td bgColor='#CCFFCC'><b>WindowBatch - inner</td></td>
+    <td title='WindowBatch - inner -&gt; CombineLatest - inner' '>Unfuseable</td>
     <td title='WindowBatch -&gt; ConcatMap' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>
 </td>
     <td title='WindowBatch -&gt; Distinct' ' bgcolor='#FFCC80'>        <font color='#000000'>Async</font>

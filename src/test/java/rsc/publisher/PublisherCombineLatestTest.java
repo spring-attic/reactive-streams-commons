@@ -7,9 +7,10 @@ import java.util.function.Supplier;
 import org.junit.*;
 import org.reactivestreams.Publisher;
 
+import rsc.flow.Fuseable;
 import rsc.processor.DirectProcessor;
-import rsc.test.TestSubscriber;
 import rsc.scheduler.SingleTimedScheduler;
+import rsc.test.TestSubscriber;
 
 public class PublisherCombineLatestTest {
 
@@ -410,4 +411,31 @@ public class PublisherCombineLatestTest {
         }
     }
 
+    @Test
+    public void fused() {
+        DirectProcessor<Integer> dp1 = new DirectProcessor<>();
+        DirectProcessor<Integer> dp2 = new DirectProcessor<>();
+        
+        TestSubscriber<Integer> ts = new TestSubscriber<>();
+        ts.requestedFusionMode(Fuseable.ANY);
+        
+        Px.combineLatest(dp1, dp2, (a, b) -> a + b)
+        .subscribe(ts);
+        
+        dp1.onNext(1);
+        dp1.onNext(2);
+        
+        dp2.onNext(10);
+        dp2.onNext(20);
+        dp2.onNext(30);
+
+        dp1.onNext(3);
+
+        dp1.onComplete();
+        dp2.onComplete();
+        
+        ts.assertFuseableSource()
+        .assertFusionMode(Fuseable.ASYNC)
+        .assertResult(12, 22, 32, 33);
+    }
 }
