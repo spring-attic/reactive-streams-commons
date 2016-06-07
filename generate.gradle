@@ -87,7 +87,7 @@ task generateTargetAPI(type: Sync) {
   def target = targets[project.hasProperty('library') ? library : defaultTarget] ?: defaultTarget
 
 
-  def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
+  def license = "\n/**\n * @see <a href=\"https://github.com/reactor/reactive-streams-commons\">https://github.com/reactor/reactive-streams-commons</a>\n * $target.header\n */"
   def apiBarrierClass = target['api-operator']
   def apiClass = target['api']
   def splitted = apiClass.split('\\.')
@@ -149,7 +149,7 @@ task generateTestCoverage(type: Sync) {
   def target = targets[project.hasProperty('library') ? library : defaultTarget] ?: defaultTarget
 
 
-  def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
+  def license = "\n/**\n * @see <a href=\"https://github.com/reactor/reactive-streams-commons\">Reactive-Streams-Commons</a>\n * $target.header\n */"
   def apiBarrierClass = target['api-operator']
   def apiClass = target['api']
   def splitted = apiClass.split('\\.')
@@ -214,7 +214,7 @@ task generateTargetSingleAPI(type: Copy) {
   def splitted = apiSingleClass.split('\\.')
   def apiSingleClassName = splitted[splitted.length - 1]
 
-  def license = "\n/**\n * {@see https://github.com/reactor/reactive-streams-commons}\n * $target.header\n */"
+  def license = "\n/**\n * @see <a href=\"https://github.com/reactor/reactive-streams-commons\">Reactive-Streams-Commons</a>\n * $target.header\n */"
 
   from 'src/main/java/rsc/publisher'
   into "build/generated_api/${target['api-package'].replaceAll('\\.', '/')}"
@@ -263,7 +263,7 @@ task generateSingleTestCoverage(type: Copy) {
   def splitted = apiSingleClass.split('\\.')
   def apiSingleClassName = splitted[splitted.length - 1]
 
-  def license = "\n/**\n * {@see https://github.com/reactor/reactive-streams-commons}\n * $target.header\n */"
+  def license = "\n/**\n * @see <a href=\"https://github.com/reactor/reactive-streams-commons\">Reactive-Streams-Commons</a>\n * $target.header\n */"
 
   from 'src/test/java/rsc/publisher'
   into "build/generated_api/test/${target['api-package'].replaceAll('\\.', '/')}"
@@ -307,7 +307,7 @@ task generateExtra(type: Copy) {
   def target = targets[project.hasProperty('library') ? library : defaultTarget] ?: defaultTarget
   includeEmptyDirs = false
 
-  def license = "\n/**\n * {@see <a href='https://github.com/reactor/reactive-streams-commons'>https://github.com/reactor/reactive-streams-commons</a>}\n * $target.header\n */"
+  def license = "\n/**\n * @see <a href=\"https://github.com/reactor/reactive-streams-commons\">Reactive-Streams-Commons</a>\n * $target.header\n */"
   def apiBarrierClass = target['api-operator']
   def apiClass = target['api']
   def splitted = apiClass.split('\\.')
