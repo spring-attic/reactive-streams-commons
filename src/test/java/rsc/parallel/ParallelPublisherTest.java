@@ -408,4 +408,118 @@ public class ParallelPublisherTest {
         
         Assert.assertEquals(100_000, list.get(0).size() + list.get(1).size() + list.get(2).size());
     }
+
+
+    @Test
+    public void collectAsync2() {
+        Scheduler s = new ParallelScheduler(3);
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        Px.range(1, 100000).hide()
+        .observeOn(s)
+        .parallel(3)
+        .runOn(s)
+        .collect(as, (a, b) -> a.add(b))
+        .doOnNext(v -> System.out.println(v.size()))
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertTerminated(5, TimeUnit.SECONDS);
+        ts.assertValueCount(3)
+        .assertNoError()
+        .assertComplete()
+        ;
+        
+        List<List<Integer>> list = ts.values();
+        
+        Assert.assertEquals(100_000, list.get(0).size() + list.get(1).size() + list.get(2).size());
+    }
+    
+    @Test
+    public void collectAsync3() {
+        Scheduler s = new ParallelScheduler(3);
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        Px.range(1, 100000).hide()
+        .observeOn(s)
+        .parallel(3)
+        .runOn(s)
+        .collect(as, (a, b) -> a.add(b))
+        .doOnNext(v -> System.out.println(v.size()))
+        .groups()
+        .flatMap(v -> v)
+        .subscribe(ts);
+        
+        ts.assertTerminated(5, TimeUnit.SECONDS);
+        ts.assertValueCount(3)
+        .assertNoError()
+        .assertComplete()
+        ;
+        
+        List<List<Integer>> list = ts.values();
+        
+        Assert.assertEquals(100_000, list.get(0).size() + list.get(1).size() + list.get(2).size());
+    }
+
+
+    @Test
+    public void collectAsync3Fused() {
+        Scheduler s = new ParallelScheduler(3);
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        Px.range(1, 100000)
+        .observeOn(s)
+        .parallel(3)
+        .runOn(s)
+        .collect(as, (a, b) -> a.add(b))
+        .doOnNext(v -> System.out.println(v.size()))
+        .groups()
+        .flatMap(v -> v)
+        .subscribe(ts);
+        
+        ts.assertTerminated(5, TimeUnit.SECONDS);
+        ts.assertValueCount(3)
+        .assertNoError()
+        .assertComplete()
+        ;
+        
+        List<List<Integer>> list = ts.values();
+        
+        Assert.assertEquals(100_000, list.get(0).size() + list.get(1).size() + list.get(2).size());
+    }
+    
+    @Test
+    public void collectAsync3Take() {
+        Scheduler s = new ParallelScheduler(4);
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        Px.range(1, 100000)
+        .take(1000)
+        .observeOn(s)
+        .parallel(3)
+        .runOn(s)
+        .collect(as, (a, b) -> a.add(b))
+        .doOnNext(v -> System.out.println(v.size()))
+        .groups()
+        .flatMap(v -> v)
+        .subscribe(ts);
+        
+        ts.assertTerminated(5, TimeUnit.SECONDS);
+        ts.assertValueCount(3)
+        .assertNoError()
+        .assertComplete()
+        ;
+        
+        List<List<Integer>> list = ts.values();
+        
+        Assert.assertEquals(1000, list.get(0).size() + list.get(1).size() + list.get(2).size());
+    }
 }
