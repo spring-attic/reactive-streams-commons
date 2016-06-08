@@ -32,10 +32,10 @@ extends Px<T>
 
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        subscribe(s, array);
+        subscribeWithArray(s, array);
     }
     
-    public static <T> void subscribe(Subscriber<? super T> s, T[] array) {
+    public static <T> void subscribeWithArray(Subscriber<? super T> s, T[] array) {
         if (array.length == 0) {
             EmptySubscription.complete(s);
             return;

@@ -42,7 +42,7 @@ public final class ParallelGroup<T> extends Px<GroupedPublisher<Integer, T>> imp
             groups[i] = new ParallelInnerGroup<>(i);
         }
         
-        PublisherArray.subscribe(s, groups);
+        PublisherArray.subscribeWithArray(s, groups);
         
         source.subscribe(groups);
     }
