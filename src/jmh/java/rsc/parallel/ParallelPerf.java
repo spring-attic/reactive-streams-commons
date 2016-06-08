@@ -87,45 +87,45 @@ public class ParallelPerf {
         
         Px<Integer> source = Px.fromArray(values);
         
-        this.parallel = ParallelPublisher.fork(source, false, parallelism)
+        this.parallel = ParallelPublisher.from(source, false, parallelism)
                 .runOn(scheduler)
                 .map(v -> {
                     Blackhole.consumeCPU(compute);
                     return v;
                 })
-                .join();
+                .sequential();
 
-        this.parallelFj = ParallelPublisher.fork(source, false, parallelism)
+        this.parallelFj = ParallelPublisher.from(source, false, parallelism)
                 .runOn(fjScheduler)
                 .map(v -> {
                     Blackhole.consumeCPU(compute);
                     return v;
                 })
-                .join();
+                .sequential();
 
-        this.parallelExec = ParallelPublisher.fork(source, false, parallelism)
+        this.parallelExec = ParallelPublisher.from(source, false, parallelism)
                 .runOn(executor)
                 .map(v -> {
                     Blackhole.consumeCPU(compute);
                     return v;
                 })
-                .join();
+                .sequential();
 
-        this.parallelCp = ParallelPublisher.fork(source, false, parallelism)
+        this.parallelCp = ParallelPublisher.from(source, false, parallelism)
                 .runOn(cpScheduler)
                 .map(v -> {
                     Blackhole.consumeCPU(compute);
                     return v;
                 })
-                .join();
+                .sequential();
 
         
-        this.sequential = ParallelPublisher.fork(source, false, parallelism)
+        this.sequential = ParallelPublisher.from(source, false, parallelism)
                 .map(v -> {
                     Blackhole.consumeCPU(compute);
                     return v;
                 })
-                .join();
+                .sequential();
     }
     
     @TearDown

@@ -67,8 +67,8 @@ public abstract class ParallelPublisher<T> {
      * @param source the source Publisher
      * @return the ParallelPublisher instance
      */
-    public static <T> ParallelPublisher<T> fork(Publisher<? extends T> source) {
-        return fork(source, false, Runtime.getRuntime().availableProcessors(), Px.bufferSize(), Px.defaultQueueSupplier(Px.bufferSize()));
+    public static <T> ParallelPublisher<T> from(Publisher<? extends T> source) {
+        return from(source, false, Runtime.getRuntime().availableProcessors(), Px.bufferSize(), Px.defaultQueueSupplier(Px.bufferSize()));
     }
 
     /**
@@ -78,8 +78,8 @@ public abstract class ParallelPublisher<T> {
      * @param ordered if converted back to a Publisher, should the end result be ordered?
      * @return the ParallelPublisher instance
      */
-    public static <T> ParallelPublisher<T> fork(Publisher<? extends T> source, boolean ordered) {
-        return fork(source, ordered, Runtime.getRuntime().availableProcessors(), Px.bufferSize(), Px.defaultQueueSupplier(Px.bufferSize()));
+    public static <T> ParallelPublisher<T> from(Publisher<? extends T> source, boolean ordered) {
+        return from(source, ordered, Runtime.getRuntime().availableProcessors(), Px.bufferSize(), Px.defaultQueueSupplier(Px.bufferSize()));
     }
 
     /**
@@ -91,8 +91,8 @@ public abstract class ParallelPublisher<T> {
      * @param parallelism the number of parallel rails
      * @return the new ParallelPublisher instance
      */
-    public static <T> ParallelPublisher<T> fork(Publisher<? extends T> source, boolean ordered, int parallelism) {
-        return fork(source, ordered, parallelism, Px.bufferSize(), Px.defaultQueueSupplier(Px.bufferSize()));
+    public static <T> ParallelPublisher<T> from(Publisher<? extends T> source, boolean ordered, int parallelism) {
+        return from(source, ordered, parallelism, Px.bufferSize(), Px.defaultQueueSupplier(Px.bufferSize()));
     }
 
     /**
@@ -108,7 +108,7 @@ public abstract class ParallelPublisher<T> {
      * the source until there is a rail ready to process it.
      * @return the new ParallelPublisher instance
      */
-    public static <T> ParallelPublisher<T> fork(Publisher<? extends T> source, boolean ordered, 
+    public static <T> ParallelPublisher<T> from(Publisher<? extends T> source, boolean ordered, 
             int parallelism, int prefetch, Supplier<Queue<T>> queueSupplier) {
         if (parallelism <= 0) {
             throw new IllegalArgumentException("parallelism > 0 required but it was " + parallelism);
@@ -252,12 +252,10 @@ public abstract class ParallelPublisher<T> {
      * <p>
      * This operator uses the default prefetch size returned by {@code Px.bufferSize()}.
      * @return the new Px instance
-     * @see ParallelPublisher#join(int)
-     * @see ParallelPublisher#sequential()
      * @see ParallelPublisher#sequential(int)
      */
-    public final Px<T> join() {
-        return join(Px.bufferSize());
+    public final Px<T> sequential() {
+        return sequential(Px.bufferSize());
     }
 
     /**
@@ -266,11 +264,9 @@ public abstract class ParallelPublisher<T> {
      * for the rails.
      * @param prefetch the prefetch amount to use for each rail
      * @return the new Px instance
-     * @see ParallelPublisher#join()
      * @see ParallelPublisher#sequential()
-     * @see ParallelPublisher#sequential(int)
      */
-    public final Px<T> join(int prefetch) {
+    public final Px<T> sequential(int prefetch) {
         if (prefetch <= 0) {
             throw new IllegalArgumentException("prefetch > 0 required but it was " + prefetch);
         }
@@ -280,37 +276,6 @@ public abstract class ParallelPublisher<T> {
         return new ParallelUnorderedJoin<>(this, prefetch, Px.defaultQueueSupplier(prefetch));
     }
     
-    /**
-     * Turns this ParallelPublisher back into a sequential Publisher by merging
-     * the values from each 'rail' in a round-robin or same-order fashion and
-     * exposes it as a regular Publisher sequence, running with a give prefetch value
-     * for the rails.
-     * <p>
-     * This operator uses the default prefetch size returned by {@code Px.bufferSize()}.
-     * @return the new Px instance
-     * @see ParallelPublisher#join()
-     * @see ParallelPublisher#sequential()
-     * @see ParallelPublisher#sequential(int)
-     */
-    public final Px<T> sequential() {
-        return join();
-    }
-    
-    /**
-     * Turns this ParallelPublisher back into a sequential Publisher by merging
-     * the values from each 'rail' in a round-robin or same-order fashion and
-     * exposes it as a regular Publisher sequence, running with a default prefetch value
-     * for the rails.
-     * @param prefetch the prefetch amount to use for each rail
-     * @return the new Px instance
-     * @see ParallelPublisher#join()
-     * @see ParallelPublisher#sequential()
-     * @see ParallelPublisher#sequential(int)
-     */
-    public final Px<T> sequential(int prefetch) {
-        return join(prefetch);
-    }
-
     /**
      * Sorts the 'rails' of this ParallelPublisher and returns a Publisher that sequentially
      * picks the smallest next value from the rails.
@@ -709,7 +674,7 @@ public abstract class ParallelPublisher<T> {
      * @return the new ParallelPublisher instance
      */
     @SafeVarargs
-    public static <T> ParallelPublisher<T> from(Publisher<T>... publishers) {
+    public static <T> ParallelPublisher<T> fromArray(Publisher<T>... publishers) {
         if (publishers.length == 0) {
             throw new IllegalArgumentException("Zero publishers not supported");
         }

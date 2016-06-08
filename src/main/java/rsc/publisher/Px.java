@@ -733,19 +733,19 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final ParallelPublisher<T> parallel() {
-        return ParallelPublisher.fork(this);
+        return ParallelPublisher.from(this);
     }
 
     public final ParallelPublisher<T> parallel(boolean ordered) {
-        return ParallelPublisher.fork(this, ordered);
+        return ParallelPublisher.from(this, ordered);
     }
 
     public final ParallelPublisher<T> parallel(int parallelism) {
-        return ParallelPublisher.fork(this, false, parallelism);
+        return ParallelPublisher.from(this, false, parallelism);
     }
 
     public final ParallelPublisher<T> parallel(boolean ordered, int parallelism) {
-        return ParallelPublisher.fork(this, ordered, parallelism);
+        return ParallelPublisher.from(this, ordered, parallelism);
     }
 
     // ---------------------------------------------------------------------------------------

@@ -18,9 +18,9 @@ public class ParallelPublisherTest {
     public void sequentialMode() {
         Px<Integer> source = Px.range(1, 1_000_000).hide();
         for (int i = 1; i < 33; i++) {
-            Px<Integer> result = ParallelPublisher.fork(source, false, i)
+            Px<Integer> result = ParallelPublisher.from(source, false, i)
             .map(v -> v + 1)
-            .join()
+            .sequential()
             ;
             
             TestSubscriber<Integer> ts = new TestSubscriber<>();
@@ -41,9 +41,9 @@ public class ParallelPublisherTest {
     public void sequentialModeFused() {
         Px<Integer> source = Px.range(1, 1_000_000);
         for (int i = 1; i < 33; i++) {
-            Px<Integer> result = ParallelPublisher.fork(source, false, i)
+            Px<Integer> result = ParallelPublisher.from(source, false, i)
             .map(v -> v + 1)
-            .join()
+            .sequential()
             ;
             
             TestSubscriber<Integer> ts = new TestSubscriber<>();
@@ -69,10 +69,10 @@ public class ParallelPublisherTest {
             Scheduler scheduler = new ParallelScheduler(i);
             
             try {
-                Px<Integer> result = ParallelPublisher.fork(source, false, i)
+                Px<Integer> result = ParallelPublisher.from(source, false, i)
                 .runOn(scheduler)
                 .map(v -> v + 1)
-                .join()
+                .sequential()
                 ;
                 
                 TestSubscriber<Integer> ts = new TestSubscriber<>();
@@ -103,10 +103,10 @@ public class ParallelPublisherTest {
             Scheduler scheduler = new ParallelScheduler(i);
             
             try {
-                Px<Integer> result = ParallelPublisher.fork(source, false, i)
+                Px<Integer> result = ParallelPublisher.from(source, false, i)
                 .runOn(scheduler)
                 .map(v -> v + 1)
-                .join()
+                .sequential()
                 ;
                 
                 TestSubscriber<Integer> ts = new TestSubscriber<>();
@@ -262,7 +262,7 @@ public class ParallelPublisherTest {
     public void from() {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
-        ParallelPublisher.from(Px.range(1, 5), Px.range(6, 5))
+        ParallelPublisher.fromArray(Px.range(1, 5), Px.range(6, 5))
         .sequential()
         .subscribe(ts);
         
