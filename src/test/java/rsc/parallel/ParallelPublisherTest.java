@@ -13,10 +13,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import rsc.processor.DirectProcessor;
+import rsc.processor.UnicastProcessor;
 import rsc.publisher.Px;
 import rsc.scheduler.ParallelScheduler;
 import rsc.scheduler.Scheduler;
 import rsc.test.TestSubscriber;
+import rsc.util.SpscArrayQueue;
 
 public class ParallelPublisherTest {
 
@@ -502,6 +504,41 @@ public class ParallelPublisherTest {
         TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
         
         Px.range(1, 100000)
+        .take(1000)
+        .observeOn(s)
+        .parallel(3)
+        .runOn(s)
+        .collect(as, (a, b) -> a.add(b))
+        .doOnNext(v -> System.out.println(v.size()))
+        .groups()
+        .flatMap(v -> v)
+        .subscribe(ts);
+        
+        ts.assertTerminated(5, TimeUnit.SECONDS);
+        ts.assertValueCount(3)
+        .assertNoError()
+        .assertComplete()
+        ;
+        
+        List<List<Integer>> list = ts.values();
+        
+        Assert.assertEquals(1000, list.get(0).size() + list.get(1).size() + list.get(2).size());
+    }
+    
+    @Test
+    public void collectAsync4Take() {
+        Scheduler s = new ParallelScheduler(4);
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        UnicastProcessor<Integer> up = new UnicastProcessor<>(new SpscArrayQueue<>(1024));
+        
+        for (int i = 0; i < 1000; i++) {
+            up.onNext(i);
+        }
+        
+        up
         .take(1000)
         .observeOn(s)
         .parallel(3)
