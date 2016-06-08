@@ -1,15 +1,21 @@
 package rsc.parallel;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import rsc.processor.DirectProcessor;
 import rsc.publisher.Px;
-import rsc.scheduler.*;
+import rsc.scheduler.ParallelScheduler;
+import rsc.scheduler.Scheduler;
 import rsc.test.TestSubscriber;
 
 public class ParallelPublisherTest {
@@ -349,5 +355,57 @@ public class ParallelPublisherTest {
         .assertNoError()
         .assertComplete();
         
+    }
+    
+    @Test
+    public void collectAsyncFused() {
+        Scheduler s = new ParallelScheduler(3);
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        Px.range(1, 100000)
+        .parallel(3)
+        .runOn(s)
+        .collect(as, (a, b) -> a.add(b))
+        .doOnNext(v -> System.out.println(v.size()))
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertTerminated(5, TimeUnit.SECONDS);
+        ts.assertValueCount(3)
+        .assertNoError()
+        .assertComplete()
+        ;
+        
+        List<List<Integer>> list = ts.values();
+        
+        Assert.assertEquals(100_000, list.get(0).size() + list.get(1).size() + list.get(2).size());
+    }
+    
+    @Test
+    public void collectAsync() {
+        Scheduler s = new ParallelScheduler(3);
+        Supplier<List<Integer>> as = () -> new ArrayList<>();
+        
+        TestSubscriber<List<Integer>> ts = new TestSubscriber<>();
+        
+        Px.range(1, 100000).hide()
+        .parallel(3)
+        .runOn(s)
+        .collect(as, (a, b) -> a.add(b))
+        .doOnNext(v -> System.out.println(v.size()))
+        .sequential()
+        .subscribe(ts);
+        
+        ts.assertTerminated(5, TimeUnit.SECONDS);
+        ts.assertValueCount(3)
+        .assertNoError()
+        .assertComplete()
+        ;
+        
+        List<List<Integer>> list = ts.values();
+        
+        Assert.assertEquals(100_000, list.get(0).size() + list.get(1).size() + list.get(2).size());
     }
 }
