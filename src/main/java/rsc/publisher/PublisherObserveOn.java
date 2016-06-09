@@ -443,9 +443,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     return;
                 }
                 
+                boolean d = done;
+                
                 actual.onNext(null);
                 
-                if (done) {
+                if (d) {
                     Throwable e = error;
                     if (e != null) {
                         actual.onError(e);
@@ -971,9 +973,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     return;
                 }
                 
+                boolean d = done;
+                
                 actual.onNext(null);
                 
-                if (done) {
+                if (d) {
                     Throwable e = error;
                     if (e != null) {
                         actual.onError(e);

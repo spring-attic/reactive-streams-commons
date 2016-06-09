@@ -139,9 +139,11 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
                 return;
             }
             
+            boolean d = done;
+            
             a.onNext(null);
             
-            if (done) {
+            if (d) {
                 actual = null;
                 
                 Throwable ex = error;

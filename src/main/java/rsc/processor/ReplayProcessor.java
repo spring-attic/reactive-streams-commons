@@ -410,9 +410,11 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurab
                     return;
                 }
                 
+                boolean d = done;
+                
                 a.onNext(null);
                 
-                if (done) {
+                if (d) {
                     Throwable ex = error;
                     if (ex != null) {
                         a.onError(ex);
@@ -631,9 +633,11 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurab
                     return;
                 }
                 
+                boolean d = done;
+                
                 a.onNext(null);
                 
-                if (done) {
+                if (d) {
                     Throwable ex = error;
                     if (ex != null) {
                         a.onError(ex);

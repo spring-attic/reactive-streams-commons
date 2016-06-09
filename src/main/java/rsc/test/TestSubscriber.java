@@ -150,7 +150,6 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     @Override
     public void onError(Throwable t) {
         verifySubscription();
-        lastEvent = System.currentTimeMillis();
         errors.add(t);
         subscriber.onError(t);
         cdl.countDown();
@@ -159,7 +158,6 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     @Override
     public void onComplete() {
         verifySubscription();
-        lastEvent = System.currentTimeMillis();
         completions++;
         subscriber.onComplete();
         cdl.countDown();
