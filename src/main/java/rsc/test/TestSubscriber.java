@@ -79,6 +79,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
         this.values = new ArrayList<>();
         this.errors = new ArrayList<>();
         this.cdl = new CountDownLatch(1);
+        this.lastEvent = System.currentTimeMillis();
     }
 
     @SuppressWarnings("unchecked")
@@ -204,6 +205,9 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
               .append(err.size())
               .append(" errors)");
         }
+        
+        b.append("; values = ").append(volatileSize);
+        
         AssertionError e = new AssertionError(b.toString());
 
         for (Throwable t : err) {

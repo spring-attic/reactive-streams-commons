@@ -80,11 +80,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
         }
     }
     
-    void drain() {
-        if (WIP.getAndIncrement(this) != 0) {
-            return;
-        }
-        
+    void drainRegular() {
         int missed = 1;
         
         final Queue<T> q = queue;
@@ -93,47 +89,91 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
         
         for (;;) {
 
-            if (a != null) {
-                long r = requested;
-                long e = 0L;
+            long r = requested;
+            long e = 0L;
+            
+            while (r != e) {
+                boolean d = done;
                 
-                while (r != e) {
-                    boolean d = done;
-                    
-                    T t = q.poll();
-                    boolean empty = t == null;
-                    
-                    if (checkTerminated(d, empty, a, q)) {
-                        return;
-                    }
-                    
-                    if (empty) {
-                        break;
-                    }
-                    
-                    a.onNext(t);
-                    
-                    e++;
+                T t = q.poll();
+                boolean empty = t == null;
+                
+                if (checkTerminated(d, empty, a, q)) {
+                    return;
                 }
                 
-                if (r == e) {
-                    if (checkTerminated(done, q.isEmpty(), a, q)) {
-                        return;
-                    }
+                if (empty) {
+                    break;
                 }
                 
-                if (e != 0 && r != Long.MAX_VALUE) {
-                    REQUESTED.addAndGet(this, -e);
+                a.onNext(t);
+                
+                e++;
+            }
+            
+            if (r == e) {
+                if (checkTerminated(done, q.isEmpty(), a, q)) {
+                    return;
                 }
+            }
+            
+            if (e != 0 && r != Long.MAX_VALUE) {
+                REQUESTED.addAndGet(this, -e);
             }
             
             missed = WIP.addAndGet(this, -missed);
             if (missed == 0) {
                 break;
             }
+        }
+    }
+    
+    void drainFused() {
+        int missed = 1;
+        
+        final Queue<T> q = queue;
+        Subscriber<? super T> a = actual;
+        
+        
+        for (;;) {
             
-            if (a == null) {
-                a = actual;
+            if (cancelled) {
+                q.clear();
+                actual = null;
+                return;
+            }
+            
+            a.onNext(null);
+            
+            if (done && q.isEmpty()) {
+                actual = null;
+                
+                Throwable ex = error;
+                if (ex != null) {
+                    a.onError(ex);
+                } else {
+                    a.onComplete();
+                }
+                return;
+            }
+            
+            missed = WIP.addAndGet(this, -missed);
+            if (missed == 0) {
+                break;
+            }
+        }
+    }
+    
+    void drain() {
+        if (actual != null) {
+            if (WIP.getAndIncrement(this) != 0) {
+                return;
+            }
+
+            if (enableOperatorFusion) {
+                drainFused();
+            } else {
+                drainRegular();
             }
         }
     }
@@ -174,27 +214,11 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
             return;
         }
         
-        Subscriber<? super T> a = actual;
         if (!queue.offer(t)) {
-            IllegalStateException ex = new IllegalStateException("The queue is full");
-            error = ex;
-            done = true;
-            
-            doTerminate();
-            if (enableOperatorFusion) {
-                a.onError(ex);
-            } else {
-                drain();
-            }
+            onError(new IllegalStateException("The queue is full"));
             return;
         }
-        if (enableOperatorFusion) {
-            if (a != null) {
-                a.onNext(null); // in op-fusion, onNext(null) is the indicator of more data
-            }
-        } else {
-            drain();
-        }
+        drain();
     }
     
     @Override
@@ -209,14 +233,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
 
         doTerminate();
         
-        if (enableOperatorFusion) {
-            Subscriber<? super T> a = actual;
-            if (a != null) {
-                a.onError(t);
-            }
-        } else {
-            drain();
-        }
+        drain();
     }
     
     @Override
@@ -229,14 +246,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
 
         doTerminate();
         
-        if (enableOperatorFusion) {
-            Subscriber<? super T> a = actual;
-            if (a != null) {
-                a.onComplete();
-            }
-        } else {
-            drain();
-        }
+        drain();
     }
     
     @Override
@@ -248,20 +258,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
             if (cancelled) {
                 actual = null;
             } else {
-                if (enableOperatorFusion) {
-                    if (done) {
-                        Throwable e = error;
-                        if (e != null) {
-                            s.onError(e);
-                        } else {
-                            s.onComplete();
-                        }
-                    } else {
-                        s.onNext(null);
-                    }
-                } else {
-                    drain();
-                }
+                drain();
             }
         } else {
             EmptySubscription.error(s, new IllegalStateException("This processor allows only a single Subscriber"));
@@ -276,15 +273,8 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
     @Override
     public void request(long n) {
         if (SubscriptionHelper.validate(n)) {
-            if (enableOperatorFusion) {
-                Subscriber<? super T> a = actual;
-                if (a != null) {
-                    a.onNext(null); // in op-fusion, onNext(null) is the indicator of more data
-                }
-            } else {
-                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
-                drain();
-            }
+            BackpressureHelper.getAndAddCap(REQUESTED, this, n);
+            drain();
         }
     }
     
