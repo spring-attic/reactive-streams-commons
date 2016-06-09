@@ -185,37 +185,17 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
                 ExceptionHelper.throwIfFatal(ex);
                 s.cancel();
                 
-                ExceptionHelper.addThrowable(ERROR, this, ex);
-                done = true;
-                if (enableAsyncFusion) {
-                    signalAsyncError();
-                } else {
-                    drain();
-                }
+                onError(ex);
                 return;
             }
             if (key == null) {
-                NullPointerException ex = new NullPointerException("The keySelector returned a null value");
                 s.cancel();
-                ExceptionHelper.addThrowable(ERROR, this, ex);
-                done = true;
-                if (enableAsyncFusion) {
-                    signalAsyncError();
-                } else {
-                    drain();
-                }
+                onError(new NullPointerException("The keySelector returned a null value"));
                 return;
             }
             if (value == null) {
-                NullPointerException ex = new NullPointerException("The valueSelector returned a null value");
                 s.cancel();
-                ExceptionHelper.addThrowable(ERROR, this, ex);
-                done = true;
-                if (enableAsyncFusion) {
-                    signalAsyncError();
-                } else {
-                    drain();
-                }
+                onError(new NullPointerException("The valueSelector returned a null value"));
                 return;
             }
             
@@ -229,16 +209,8 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
                     try {
                         q = groupQueueSupplier.get();
                     } catch (Throwable ex) {
-                        ExceptionHelper.throwIfFatal(ex);
                         s.cancel();
-                        
-                        ExceptionHelper.addThrowable(ERROR, this, ex);
-                        done = true;
-                        if (enableAsyncFusion) {
-                            signalAsyncError();
-                        } else {
-                            drain();
-                        }
+                        onError(ex);
                         return;
                     }
                     
@@ -248,11 +220,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
                     groupMap.put(key, g);
                     
                     queue.offer(g);
-                    if (enableAsyncFusion) {
-                        actual.onNext(null);
-                    } else {
-                        drain();
-                    }
+                    drain();
                 }
             } else {
                 g.onNext(value);
@@ -277,11 +245,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
             groupMap.clear();
             GROUP_COUNT.decrementAndGet(this);
             done = true;
-            if (enableAsyncFusion) {
-                actual.onComplete();
-            } else {
-                drain();
-            }
+            drain();
         }
 
         @Override
@@ -352,12 +316,8 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (enableAsyncFusion) {
-                    actual.onNext(null);
-                } else {
-                    BackpressureHelper.getAndAddCap(REQUESTED, this, n);
-                    drain();
-                }
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
+                drain();
             }
         }
         
@@ -400,7 +360,46 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
-            drainLoop();
+            
+            if (enableAsyncFusion) {
+                drainFused();
+            } else {
+                drainLoop();
+            }
+        }
+        
+        void drainFused() {
+            int missed = 1;
+            
+            final Subscriber<? super GroupedPublisher<K, V>> a = actual;
+            final Queue<GroupedPublisher<K, V>> q = queue;
+            
+            for (;;) {
+                
+                if (cancelled != 0) {
+                    q.clear();
+                    return;
+                }
+                
+                boolean d = done;
+                
+                a.onNext(null);
+                
+                if (d) {
+                    Throwable ex = error;
+                    if (ex != null) {
+                        signalAsyncError();
+                    } else {
+                        a.onComplete();
+                    }
+                    return;
+                }
+                
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
         }
         
         void drainLoop() {
@@ -568,56 +567,48 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
             }
         }
         
-        void drain() {
-            if (WIP.getAndIncrement(this) != 0) {
-                return;
-            }
-            
+        void drainRegular(Subscriber<? super V> a) {
             int missed = 1;
             
             final Queue<V> q = queue;
-            Subscriber<? super V> a = actual;
-            
             
             for (;;) {
 
-                if (a != null) {
-                    long r = requested;
-                    long e = 0L;
+                long r = requested;
+                long e = 0L;
+                
+                while (r != e) {
+                    boolean d = done;
                     
-                    while (r != e) {
-                        boolean d = done;
-                        
-                        V t = q.poll();
-                        boolean empty = t == null;
-                        
-                        if (checkTerminated(d, empty, a, q)) {
-                            return;
-                        }
-                        
-                        if (empty) {
-                            break;
-                        }
-                        
-                        a.onNext(t);
-                        
-                        e++;
+                    V t = q.poll();
+                    boolean empty = t == null;
+                    
+                    if (checkTerminated(d, empty, a, q)) {
+                        return;
                     }
                     
-                    if (r == e) {
-                        if (checkTerminated(done, q.isEmpty(), a, q)) {
-                            return;
-                        }
+                    if (empty) {
+                        break;
                     }
                     
-                    if (e != 0) {
-                        PublisherGroupByMain<?, K, V> main = parent;
-                        if (main != null) {
-                            main.requestInner(e);
-                        }
-                        if (r != Long.MAX_VALUE) {
-                            REQUESTED.addAndGet(this, -e);
-                        }
+                    a.onNext(t);
+                    
+                    e++;
+                }
+                
+                if (r == e) {
+                    if (checkTerminated(done, q.isEmpty(), a, q)) {
+                        return;
+                    }
+                }
+                
+                if (e != 0) {
+                    PublisherGroupByMain<?, K, V> main = parent;
+                    if (main != null) {
+                        main.requestInner(e);
+                    }
+                    if (r != Long.MAX_VALUE) {
+                        REQUESTED.addAndGet(this, -e);
                     }
                 }
                 
@@ -625,9 +616,56 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
                 if (missed == 0) {
                     break;
                 }
+            }
+        }
+        
+        void drainFused(Subscriber<? super V> a) {
+            int missed = 1;
+            
+            final Queue<V> q = queue;
+            
+            for (;;) {
                 
-                if (a == null) {
-                    a = actual;
+                if (cancelled) {
+                    q.clear();
+                    actual = null;
+                    return;
+                }
+                
+                boolean d = done;
+                
+                a.onNext(null);
+                
+                if (d) {
+                    actual = null;
+                    
+                    Throwable ex = error;
+                    if (ex != null) {
+                        a.onError(ex);
+                    } else {
+                        a.onComplete();
+                    }
+                    return;
+                }
+                
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+        
+        void drain() {
+            Subscriber<? super V> a = actual;
+            if (a != null) {
+                if (WIP.getAndIncrement(this) != 0) {
+                    return;
+                }
+
+                if (enableOperatorFusion) {
+                    drainFused(a);
+                } else {
+                    drainRegular(a);
                 }
             }
         }
@@ -660,17 +698,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
             Subscriber<? super V> a = actual;
 
             if (!queue.offer(t)) {
-                IllegalStateException ex = new IllegalStateException("The queue is full");
-                error = ex;
-                done = true;
-                
-                doTerminate();
-
-                if (enableOperatorFusion) {
-                    a.onError(ex);
-                } else {
-                    drain();
-                }
+                onError(new IllegalStateException("The queue is full"));
                 return;
             }
             if (enableOperatorFusion) {
@@ -692,14 +720,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
 
             doTerminate();
             
-            if (enableOperatorFusion) {
-                Subscriber<? super V> a = actual;
-                if (a != null) {
-                    a.onError(t);
-                }
-            } else {
-                drain();
-            }
+            drain();
         }
         
         public void onComplete() {
@@ -711,14 +732,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
 
             doTerminate();
             
-            if (enableOperatorFusion) {
-                Subscriber<? super V> a = actual;
-                if (a != null) {
-                    a.onComplete();
-                }
-            } else {
-                drain();
-            }
+            drain();
         }
         
         @Override
@@ -730,20 +744,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
                 if (cancelled) {
                     actual = null;
                 } else {
-                    if (enableOperatorFusion) {
-                        if (done) {
-                            Throwable e = error;
-                            if (e != null) {
-                                s.onError(e);
-                            } else {
-                                s.onComplete();
-                            }
-                        } else {
-                            s.onNext(null);
-                        }
-                    } else {
-                        drain();
-                    }
+                    drain();
                 }
             } else {
                 s.onError(new IllegalStateException("This processor allows only a single Subscriber"));
@@ -758,15 +759,8 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
-                if (enableOperatorFusion) {
-                    Subscriber<? super V> a = actual;
-                    if (a != null) {
-                        a.onNext(null); // in op-fusion, onNext(null) is the indicator of more data
-                    }
-                } else {
-                    BackpressureHelper.getAndAddCap(REQUESTED, this, n);
-                    drain();
-                }
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
+                drain();
             }
         }
         
@@ -832,8 +826,6 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
         public boolean isCancelled() {
             return cancelled;
         }
-
-
 
         @Override
         public boolean isStarted() {

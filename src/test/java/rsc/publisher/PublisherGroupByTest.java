@@ -267,7 +267,7 @@ public class PublisherGroupByTest {
         Px.range(1, 1_000_000).groupBy(v -> (v & 1))
         .flatMap(g -> g.hide()).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
         
-        ts.await(5, TimeUnit.SECONDS);
+        ts.assertTerminated(5, TimeUnit.SECONDS);
         
         ts.assertValueCount(1_000_000)
         .assertNoError()
