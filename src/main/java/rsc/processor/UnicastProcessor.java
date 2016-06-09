@@ -80,12 +80,10 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
         }
     }
     
-    void drainRegular() {
+    void drainRegular(Subscriber<? super T> a) {
         int missed = 1;
         
         final Queue<T> q = queue;
-        Subscriber<? super T> a = actual;
-        
         
         for (;;) {
 
@@ -128,12 +126,10 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
         }
     }
     
-    void drainFused() {
+    void drainFused(Subscriber<? super T> a) {
         int missed = 1;
         
         final Queue<T> q = queue;
-        Subscriber<? super T> a = actual;
-        
         
         for (;;) {
             
@@ -145,7 +141,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
             
             a.onNext(null);
             
-            if (done && q.isEmpty()) {
+            if (done) {
                 actual = null;
                 
                 Throwable ex = error;
@@ -165,15 +161,16 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
     }
     
     void drain() {
-        if (actual != null) {
+        Subscriber<? super T> a = actual;
+        if (a != null) {
             if (WIP.getAndIncrement(this) != 0) {
                 return;
             }
 
             if (enableOperatorFusion) {
-                drainFused();
+                drainFused(a);
             } else {
-                drainRegular();
+                drainRegular(a);
             }
         }
     }
