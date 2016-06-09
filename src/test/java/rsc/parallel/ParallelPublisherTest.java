@@ -559,4 +559,15 @@ public class ParallelPublisherTest {
         
         Assert.assertEquals(1000, list.get(0).size() + list.get(1).size() + list.get(2).size());
     }
+    
+    @Test
+    public void emptySourceZeroRequest() {
+        TestSubscriber<Object> ts = new TestSubscriber<>(0);
+        
+        Px.range(1, 3).parallel(3).sequential().subscribe(ts);
+        
+        ts.request(1);
+        
+        ts.assertValue(1);
+    }
 }

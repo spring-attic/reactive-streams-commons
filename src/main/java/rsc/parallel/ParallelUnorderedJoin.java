@@ -168,6 +168,7 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
                 long r = requested;
                 long e = 0;
                 
+                middle:
                 while (e != r) {
                     if (cancelled) {
                         cleanup();
@@ -199,6 +200,9 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
                                 empty &= false;
                                 a.onNext(v);
                                 inner.requestOne();
+                                if (++e == r) {
+                                    break middle;
+                                }
                             }
                         } else {
                             empty &= true;
@@ -237,8 +241,9 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
                         JoinInnerSubscriber<T> inner = s[i];
                         
                         Queue<T> q = inner.queue;
-                        if (q == null || q.isEmpty()) {
-                            empty &= true;
+                        if (q != null && !q.isEmpty()) {
+                            empty = false;
+                            break;
                         }
                     }
                     
