@@ -31,11 +31,6 @@ import rsc.util.SubscriptionHelper;
 public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription, Subscriber<I>, Producer, Cancellable,
                                                                    Requestable, Receiver, Completable {
 
-    static final boolean CANCEL_ON_REPLACE;
-    static {
-        CANCEL_ON_REPLACE = false;
-    }
-    
     protected final Subscriber<? super O> subscriber;
 
     /**
@@ -83,6 +78,15 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
         set(s);
     }
 
+    /**
+     * When setting a new subscription via set(), should
+     * the previous subscription be cancelled?
+     * @return true if cancellation is needed
+     */
+    protected boolean shouldCancelCurrent() {
+        return false;
+    }
+    
     @Override
     public void onError(Throwable t) {
         subscriber.onError(t);
@@ -104,7 +108,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
         if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
             Subscription a = actual;
             
-            if (a != null && CANCEL_ON_REPLACE) {
+            if (a != null && shouldCancelCurrent()) {
                 a.cancel();
             }
             
@@ -125,7 +129,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
         }
 
         Subscription a = MISSED_SUBSCRIPTION.getAndSet(this, s);
-        if (a != null) {
+        if (a != null && shouldCancelCurrent()) {
             a.cancel();
         }
         drain();
@@ -302,7 +306,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
                 }
 
                 if (ms != null) {
-                    if (a != null && CANCEL_ON_REPLACE) {
+                    if (a != null && shouldCancelCurrent()) {
                         a.cancel();
                     }
                     actual = ms;

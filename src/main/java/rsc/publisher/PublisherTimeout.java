@@ -249,6 +249,11 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
                 other.subscribe(new PublisherTimeoutOtherSubscriber<>(subscriber, this));
             }
         }
+        
+        @Override
+        protected boolean shouldCancelCurrent() {
+            return true;
+        }
     }
 
     static final class PublisherTimeoutOtherSubscriber<T> implements Subscriber<T> {
