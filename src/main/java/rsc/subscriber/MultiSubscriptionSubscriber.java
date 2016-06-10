@@ -31,6 +31,11 @@ import rsc.util.SubscriptionHelper;
 public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription, Subscriber<I>, Producer, Cancellable,
                                                                    Requestable, Receiver, Completable {
 
+    static final boolean CANCEL_ON_REPLACE;
+    static {
+        CANCEL_ON_REPLACE = false;
+    }
+    
     protected final Subscriber<? super O> subscriber;
 
     /**
@@ -99,7 +104,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
         if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
             Subscription a = actual;
             
-            if (a != null) {
+            if (a != null && CANCEL_ON_REPLACE) {
                 a.cancel();
             }
             
@@ -297,7 +302,7 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
                 }
 
                 if (ms != null) {
-                    if (a != null) {
+                    if (a != null && CANCEL_ON_REPLACE) {
                         a.cancel();
                     }
                     actual = ms;
