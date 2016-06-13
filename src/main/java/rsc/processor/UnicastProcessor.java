@@ -163,16 +163,26 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
     }
     
     void drain() {
-        Subscriber<? super T> a = actual;
-        if (a != null) {
-            if (WIP.getAndIncrement(this) != 0) {
-                return;
-            }
+        if (WIP.getAndIncrement(this) != 0) {
+            return;
+        }
 
-            if (enableOperatorFusion) {
-                drainFused(a);
-            } else {
-                drainRegular(a);
+        int missed = 1;
+        
+        for (;;) {
+            Subscriber<? super T> a = actual;
+            if (a != null) {
+    
+                if (enableOperatorFusion) {
+                    drainFused(a);
+                } else {
+                    drainRegular(a);
+                }
+            }
+            
+            missed = WIP.addAndGet(this, -missed);
+            if (missed == 0) {
+                break;
             }
         }
     }
