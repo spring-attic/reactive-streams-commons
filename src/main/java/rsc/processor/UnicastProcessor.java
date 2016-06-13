@@ -178,6 +178,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
                 } else {
                     drainRegular(a);
                 }
+                return;
             }
             
             missed = WIP.addAndGet(this, -missed);
