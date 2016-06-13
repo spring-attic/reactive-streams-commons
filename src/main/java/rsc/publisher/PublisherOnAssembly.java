@@ -3,7 +3,7 @@ package rsc.publisher;
 import org.reactivestreams.*;
 
 import rsc.flow.Fuseable;
-import rsc.util.SubscriptionHelper;
+import rsc.util.*;
 
 /**
  * Captures the current stacktrace when this publisher is created and
@@ -183,12 +183,24 @@ public final class PublisherOnAssembly<T> extends PublisherSource<T, T> implemen
         
         @Override
         public boolean isEmpty() {
-            return qs.isEmpty();
+            try {
+                return qs.isEmpty();
+            } catch (final Throwable ex) {
+                ExceptionHelper.throwIfFatal(ex);
+                ex.addSuppressed(new OnAssemblyException(stacktrace));
+                throw ex;
+            }
         }
         
         @Override
         public T poll() {
-            return qs.poll();
+            try {
+                return qs.poll();
+            } catch (final Throwable ex) {
+                ExceptionHelper.throwIfFatal(ex);
+                ex.addSuppressed(new OnAssemblyException(stacktrace));
+                throw ex;
+            }
         }
         
         @Override
@@ -269,12 +281,24 @@ public final class PublisherOnAssembly<T> extends PublisherSource<T, T> implemen
         
         @Override
         public boolean isEmpty() {
-            return qs.isEmpty();
+            try {
+                return qs.isEmpty();
+            } catch (final Throwable ex) {
+                ExceptionHelper.throwIfFatal(ex);
+                ex.addSuppressed(new OnAssemblyException(stacktrace));
+                throw ex;
+            }
         }
         
         @Override
         public T poll() {
-            return qs.poll();
+            try {
+                return qs.poll();
+            } catch (final Throwable ex) {
+                ExceptionHelper.throwIfFatal(ex);
+                ex.addSuppressed(new OnAssemblyException(stacktrace));
+                throw ex;
+            }
         }
         
         @Override
