@@ -49,6 +49,12 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
      */
     static <T> Px<T> onAssembly(Px<T> source) {
         if (trackAssembly) {
+            if (source instanceof ConnectablePublisher) {
+                return new ConnectablePublisherOnAssembly<>((ConnectablePublisher<T>)source);
+            } else
+            if (source instanceof Callable) {
+                return new PublisherCallableOnAssembly<>(source);
+            }
             return new PublisherOnAssembly<>(source);
         }
         return source;
