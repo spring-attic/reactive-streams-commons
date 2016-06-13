@@ -3,7 +3,8 @@ package rsc.publisher;
 import org.reactivestreams.*;
 
 import rsc.flow.Fuseable;
-import rsc.util.*;
+import rsc.subscriber.*;
+import rsc.util.ExceptionHelper;
 
 /**
  * Captures the current stacktrace when this publisher is created and
@@ -121,29 +122,12 @@ public final class PublisherOnAssembly<T> extends PublisherSource<T, T> implemen
         }
     }
     
-    static final class OnAssemblySubscriber<T> implements Subscriber<T>, QueueSubscription<T> {
-        final Subscriber<? super T> actual;
-        
+    static final class OnAssemblySubscriber<T> extends BasicFuseableSubscriber<T, T> {
         final String stacktrace;
         
-        Subscription s;
-        
-        QueueSubscription<T> qs;
-        
         public OnAssemblySubscriber(Subscriber<? super T> actual, String stacktrace) {
-            this.actual = actual;
+            super(actual);
             this.stacktrace = stacktrace;
-        }
-        
-        @Override
-        public void onSubscribe(Subscription s) {
-            if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = s;
-                
-                qs = SubscriptionHelper.as(s);
-
-                actual.onSubscribe(s);
-            }
         }
         
         @Override
@@ -163,22 +147,8 @@ public final class PublisherOnAssembly<T> extends PublisherSource<T, T> implemen
         }
         
         @Override
-        public void request(long n) {
-            s.request(n);
-        }
-        
-        @Override
-        public void cancel() {
-            s.cancel();
-        }
-        
-        @Override
         public int requestFusion(int requestedMode) {
-            QueueSubscription<T> qs = this.qs;
-            if (qs != null) {
-                return qs.requestFusion(requestedMode);
-            }
-            return Fuseable.NONE;
+            return transitiveAnyFusion(requestedMode);
         }
         
         @Override
@@ -202,41 +172,14 @@ public final class PublisherOnAssembly<T> extends PublisherSource<T, T> implemen
                 throw ex;
             }
         }
-        
-        @Override
-        public void clear() {
-            qs.clear();
-        }
-        
-        @Override
-        public int size() {
-            return qs.size();
-        }
     }
     
-    static final class OnAssemblyConditionalSubscriber<T> implements ConditionalSubscriber<T>, QueueSubscription<T> {
-        final ConditionalSubscriber<? super T> actual;
-        
+    static final class OnAssemblyConditionalSubscriber<T> extends BasicFuseableConditionalSubscriber<T, T> {
         final String stacktrace;
         
-        Subscription s;
-        
-        QueueSubscription<T> qs;
-        
         public OnAssemblyConditionalSubscriber(ConditionalSubscriber<? super T> actual, String stacktrace) {
-            this.actual = actual;
+            super(actual);
             this.stacktrace = stacktrace;
-        }
-        
-        @Override
-        public void onSubscribe(Subscription s) {
-            if (SubscriptionHelper.validate(this.s, s)) {
-                this.s = s;
-                
-                qs = SubscriptionHelper.as(s);
-
-                actual.onSubscribe(s);
-            }
         }
         
         @Override
@@ -261,22 +204,8 @@ public final class PublisherOnAssembly<T> extends PublisherSource<T, T> implemen
         }
         
         @Override
-        public void request(long n) {
-            s.request(n);
-        }
-        
-        @Override
-        public void cancel() {
-            s.cancel();
-        }
-        
-        @Override
         public int requestFusion(int requestedMode) {
-            QueueSubscription<T> qs = this.qs;
-            if (qs != null) {
-                return qs.requestFusion(requestedMode);
-            }
-            return Fuseable.NONE;
+            return transitiveAnyFusion(requestedMode);
         }
         
         @Override
@@ -299,16 +228,6 @@ public final class PublisherOnAssembly<T> extends PublisherSource<T, T> implemen
                 ex.addSuppressed(new OnAssemblyException(stacktrace));
                 throw ex;
             }
-        }
-        
-        @Override
-        public void clear() {
-            qs.clear();
-        }
-        
-        @Override
-        public int size() {
-            return qs.size();
         }
     }
 }
