@@ -41,7 +41,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     
     
     /**
-     * Wrap the source into a PublisherOnAssembly if 
+     * Wrap the source into a PublisherOnAssembly or PublisherCallableOnAssembly if 
      * {@code trackAssembly} is set to true.
      * @param <T> the value type
      * @param source the source to wrap
@@ -49,13 +49,24 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
      */
     static <T> Px<T> onAssembly(Px<T> source) {
         if (trackAssembly) {
-            if (source instanceof ConnectablePublisher) {
-                return new ConnectablePublisherOnAssembly<>((ConnectablePublisher<T>)source);
-            } else
             if (source instanceof Callable) {
                 return new PublisherCallableOnAssembly<>(source);
             }
             return new PublisherOnAssembly<>(source);
+        }
+        return source;
+    }
+    
+    /**
+     * Wrap the source into a ConnectablePublisherOnAssembly if 
+     * {@code trackAssembly} is set to true.
+     * @param <T> the value type
+     * @param source the source to wrap
+     * @return the potentially wrapped source
+     */
+    static <T> ConnectablePublisher<T> onAssembly(ConnectablePublisher<T> source) {
+        if (trackAssembly) {
+            return new ConnectablePublisherOnAssembly<>(source);
         }
         return source;
     }
@@ -685,8 +696,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final ConnectablePublisher<T> publish(int prefetch) {
-        // FIXME onAssembly for ConnectablePublisher
-        return new ConnectablePublisherPublish<>(this, prefetch, defaultQueueSupplier(prefetch));
+        return onAssembly(new ConnectablePublisherPublish<>(this, prefetch, defaultQueueSupplier(prefetch)));
     }
 
     public final <K> Px<GroupedPublisher<K, T>> groupBy(Function<? super T, ? extends K> keySelector) {
@@ -718,8 +728,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final <U> ConnectablePublisher<U> process(Supplier<? extends Processor<? super T, ? extends T>>
             processorSupplier, Function<Px<T>, ? extends Publisher<? extends U>> selector) {
-        // FIXME onAssembly ConnectablePublisher
-        return new ConnectablePublisherProcess<>(this, processorSupplier, selector);
+        return onAssembly(new ConnectablePublisherProcess<>(this, processorSupplier, selector));
     }
     
     public final Px<T> onTerminateDetach() {
