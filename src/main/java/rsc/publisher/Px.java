@@ -30,6 +30,30 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     static final int BUFFER_SIZE = 128;
     
+    /**
+     * If set to true, applying operators on this will inject an
+     * intermediate PublisherOnAssembly operator that captures
+     * the current stacktrace. The stacktrace is then
+     * visible as string in debug time and gets appended to
+     * all passing onError signal.
+     */
+    public static volatile boolean trackAssembly;
+    
+    
+    /**
+     * Wrap the source into a PublisherOnAssembly if 
+     * {@code trackAssembly} is set to true.
+     * @param <T> the value type
+     * @param source the source to wrap
+     * @return the potentially wrapped source
+     */
+    static <T> Px<T> onAssembly(Px<T> source) {
+        if (trackAssembly) {
+            return new PublisherOnAssembly<>(source);
+        }
+        return source;
+    }
+    
     static final Supplier<Queue<Object>> QUEUE_SUPPLIER = new Supplier<Queue<Object>>() {
         @Override
         public Queue<Object> get() {
@@ -69,48 +93,48 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final <R> Px<R> map(Function<? super T, ? extends R> mapper) {
         if (this instanceof Fuseable) {
-            return new PublisherMapFuseable<>(this, mapper);
+            return onAssembly(new PublisherMapFuseable<>(this, mapper));
         }
-        return new PublisherMap<>(this, mapper);
+        return onAssembly(new PublisherMap<>(this, mapper));
     }
     
     public final Px<T> filter(Predicate<? super T> predicate) {
         if (this instanceof Fuseable) {
-            return new PublisherFilterFuseable<>(this, predicate);
+            return onAssembly(new PublisherFilterFuseable<>(this, predicate));
         }
-        return new PublisherFilter<>(this, predicate);
+        return onAssembly(new PublisherFilter<>(this, predicate));
     }
     
     public final Px<T> take(long n) {
         if (this instanceof Fuseable) {
-            return new PublisherTakeFuseable<>(this, n);
+            return onAssembly(new PublisherTakeFuseable<>(this, n));
         }
-        return new PublisherTake<>(this, n);
+        return onAssembly(new PublisherTake<>(this, n));
     }
     
     public final Px<T> concatWith(Publisher<? extends T> other) {
-        return new PublisherConcatArray<>(false, this, other);
+        return onAssembly(new PublisherConcatArray<>(false, this, other));
     }
     
     public final Px<T> ambWith(Publisher<? extends T> other) {
-        return new PublisherAmb<>(this, other);
+        return onAssembly(new PublisherAmb<>(this, other));
     }
     
     public final <U, R> Px<R> withLatestFrom(Publisher<? extends U> other, BiFunction<? super T, ? super U, ? extends R> combiner) {
-        return new PublisherWithLatestFrom<>(this, other, combiner);
+        return onAssembly(new PublisherWithLatestFrom<>(this, other, combiner));
     }
     
     public final <R> Px<R> switchMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
-        return new PublisherSwitchMap<>(this, mapper, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE);
+        return onAssembly(new PublisherSwitchMap<>(this, mapper, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE));
     }
     
     public final Px<T> retryWhen(Function<? super Px<Throwable>, ? extends Publisher<? extends Object>> whenFunction) {
-        return new PublisherRetryWhen<>(this, whenFunction);
+        return onAssembly(new PublisherRetryWhen<>(this, whenFunction));
     }
 
     public final Px<T> repeatWhen(Function<? super Px<Long>, ? extends Publisher<? extends
             Object>> whenFunction) {
-        return new PublisherRepeatWhen<>(this, whenFunction);
+        return onAssembly(new PublisherRepeatWhen<>(this, whenFunction));
     }
 
     public final <U> Px<List<T>> buffer(Publisher<U> other) {
@@ -118,7 +142,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U, C extends Collection<? super T>> Px<C> buffer(Publisher<U> other, Supplier<C> bufferSupplier) {
-        return new PublisherBufferBoundary<>(this, other, bufferSupplier);
+        return onAssembly(new PublisherBufferBoundary<>(this, other, bufferSupplier));
     }
 
     public final <U, V> Px<List<T>> buffer(
@@ -129,42 +153,42 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     public final <U, V, C extends Collection<? super T>> Px<C> buffer(
             Publisher<U> start, Function<? super U, ? extends Publisher<V>> end, 
                     Supplier<C> bufferSupplier) {
-        return new PublisherBufferStartEnd<>(this, start, end, bufferSupplier, defaultQueueSupplier(Integer.MAX_VALUE));
+        return onAssembly(new PublisherBufferStartEnd<>(this, start, end, bufferSupplier, defaultQueueSupplier(Integer.MAX_VALUE)));
     }
 
     public final Px<Px<T>> window(int size) {
-        return new PublisherWindow<>(this, size, defaultUnboundedQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherWindow<>(this, size, defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
 
     public final Px<Px<T>> window(int size, int skip) {
-        return new PublisherWindow<>(this, size, skip, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherWindow<>(this, size, skip, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
 
     public final <U> Px<Px<T>> window(Publisher<U> other) {
-        return new PublisherWindowBoundary<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherWindowBoundary<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
 
     public final <U> Px<Px<T>> window(Publisher<U> other, int maxSize) {
-        return new PublisherWindowBoundaryAndSize<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
+        return onAssembly(new PublisherWindowBoundaryAndSize<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize));
     }
 
     public final <U> Px<Px<T>> window(Publisher<U> other, int maxSize, boolean allowEmptyWindows) {
         if (!allowEmptyWindows) {
-            return new PublisherWindowBoundaryAndSizeNonEmpty<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
+            return onAssembly(new PublisherWindowBoundaryAndSizeNonEmpty<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize));
         }
-        return new PublisherWindowBoundaryAndSize<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
+        return onAssembly(new PublisherWindowBoundaryAndSize<>(this, other, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize));
     }
 
     public final Px<T> accumulate(BiFunction<T, ? super T, T> accumulator) {
-        return new PublisherAccumulate<>(this, accumulator);
+        return onAssembly(new PublisherAccumulate<>(this, accumulator));
     }
     
     public final Px<Boolean> all(Predicate<? super T> predicate) {
-        return new PublisherAll<>(this, predicate);
+        return onAssembly(new PublisherAll<>(this, predicate));
     }
     
     public final Px<Boolean> any(Predicate<? super T> predicate) {
-        return new PublisherAny<>(this, predicate);
+        return onAssembly(new PublisherAny<>(this, predicate));
     }
     
     public final Px<Boolean> exists(T value) {
@@ -172,19 +196,19 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final Px<List<T>> buffer(int count) {
-        return new PublisherBuffer<>(this, count, () -> new ArrayList<>());
+        return onAssembly(new PublisherBuffer<>(this, count, () -> new ArrayList<>()));
     }
     
     public final Px<List<T>> buffer(int count, int skip) {
-        return new PublisherBuffer<>(this, count, skip, () -> new ArrayList<>());
+        return onAssembly(new PublisherBuffer<>(this, count, skip, () -> new ArrayList<>()));
     }
     
     public final <C extends Collection<? super T>> Px<C> buffer(int count, int skip, Supplier<C> bufferSupplier) {
-        return new PublisherBuffer<>(this, count, skip, bufferSupplier);
+        return onAssembly(new PublisherBuffer<>(this, count, skip, bufferSupplier));
     }
 
     public final <R> Px<R> collect(Supplier<R> supplier, BiConsumer<R, ? super T> collector) {
-        return new PublisherCollect<>(this, supplier, collector);
+        return onAssembly(new PublisherCollect<>(this, supplier, collector));
     }
     
     public final Px<List<T>> toList() {
@@ -192,15 +216,15 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final Px<Long> count() {
-        return new PublisherCount<>(this);
+        return onAssembly(new PublisherCount<>(this));
     }
     
     public final Px<T> defaultIfEmpty(T value) {
-        return new PublisherDefaultIfEmpty<>(this, value);
+        return onAssembly(new PublisherDefaultIfEmpty<>(this, value));
     }
     
     public final <U> Px<T> delaySubscription(Publisher<U> other) {
-        return new PublisherDelaySubscription<>(this, other);
+        return onAssembly(new PublisherDelaySubscription<>(this, other));
     }
     
     public final Px<T> distinct() {
@@ -209,9 +233,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     
     public final <K> Px<T> distinct(Function<? super T, K> keyExtractor) {
         if (this instanceof Fuseable) {
-            return new PublisherDistinctFuseable<>(this, keyExtractor, () -> new HashSet<>());
+            return onAssembly(new PublisherDistinctFuseable<>(this, keyExtractor, () -> new HashSet<>()));
         }
-        return new PublisherDistinct<>(this, keyExtractor, () -> new HashSet<>());
+        return onAssembly(new PublisherDistinct<>(this, keyExtractor, () -> new HashSet<>()));
     }
     
     public final Px<T> distinctUntilChanged() {
@@ -219,113 +243,113 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final <K> Px<T> distinctUntilChanged(Function<? super T, K> keyExtractor) {
-        return new PublisherDistinctUntilChanged<>(this, keyExtractor);
+        return onAssembly(new PublisherDistinctUntilChanged<>(this, keyExtractor));
     }
     
     public final Px<T> onBackpressureDrop() {
-        return new PublisherDrop<>(this);
+        return onAssembly(new PublisherDrop<>(this));
     }
     
     public final Px<T> elementAt(long index) {
-        return new PublisherElementAt<>(this, index);
+        return onAssembly(new PublisherElementAt<>(this, index));
     }
     
     public final Px<T> elementAt(long index, T defaultValue) {
-        return new PublisherElementAt<>(this, index, () -> defaultValue);
+        return onAssembly(new PublisherElementAt<>(this, index, () -> defaultValue));
     }
     
     public final Px<T> ignoreElements() {
-        return new PublisherIgnoreElements<>(this);
+        return onAssembly(new PublisherIgnoreElements<>(this));
     }
     
     public final Px<T> onBackpressureLatest() {
-        return new PublisherLatest<>(this);
+        return onAssembly(new PublisherLatest<>(this));
     }
     
     public final <R> Px<R> lift(Function<Subscriber<? super R>, Subscriber<? super T>> onLift) {
-        return new PublisherLift<>(this, onLift);
+        return onAssembly(new PublisherLift<>(this, onLift));
     }
     
     public final Px<T> next() {
-        return new PublisherNext<>(this);
+        return onAssembly(new PublisherNext<>(this));
     }
 
     public final Px<T> doOnSubscribe(Consumer<? super Subscription> onSubscribe) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, onSubscribe, null, null, null, null, null, null);
+            return onAssembly(new PublisherPeekFuseable<>(this, onSubscribe, null, null, null, null, null, null));
         }
-        return new PublisherPeek<>(this, onSubscribe, null, null, null, null, null,
-                null);
+        return onAssembly(new PublisherPeek<>(this, onSubscribe, null, null, null, null, null,
+                null));
     }
     
     public final Px<T> doOnNext(Consumer<? super T> onNext) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, onNext, null, null, null, null, null);
+            return onAssembly(new PublisherPeekFuseable<>(this, null, onNext, null, null, null, null, null));
         }
-        return new PublisherPeek<>(this, null, onNext, null, null, null, null, null);
+        return onAssembly(new PublisherPeek<>(this, null, onNext, null, null, null, null, null));
     }
 
     public final Px<T> doOnError(Consumer<? super Throwable> onError) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, onError, null, null, null, null);
+            return onAssembly(new PublisherPeekFuseable<>(this, null, null, onError, null, null, null, null));
         }
-        return new PublisherPeek<>(this, null, null, onError, null, null, null, null);
+        return onAssembly(new PublisherPeek<>(this, null, null, onError, null, null, null, null));
     }
 
     public final Px<T> doOnComplete(Runnable onComplete) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, onComplete, null, null, null);
+            return onAssembly(new PublisherPeekFuseable<>(this, null, null, null, onComplete, null, null, null));
         }
-        return new PublisherPeek<>(this, null, null, null, onComplete, null, null, null);
+        return onAssembly(new PublisherPeek<>(this, null, null, null, onComplete, null, null, null));
     }
     
     public final Px<T> doAfterTerminate(Runnable onAfterTerminate) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, null, onAfterTerminate, null, null);
+            return onAssembly(new PublisherPeekFuseable<>(this, null, null, null, null, onAfterTerminate, null, null));
         }
-        return new PublisherPeek<>(this, null, null, null, null, onAfterTerminate, null, null);
+        return onAssembly(new PublisherPeek<>(this, null, null, null, null, onAfterTerminate, null, null));
     }
 
     public final Px<T> doOnRequest(LongConsumer onRequest) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, null, null, onRequest, null);
+            return onAssembly(new PublisherPeekFuseable<>(this, null, null, null, null, null, onRequest, null));
         }
-        return new PublisherPeek<>(this, null, null, null, null, null, onRequest, null);
+        return onAssembly(new PublisherPeek<>(this, null, null, null, null, null, onRequest, null));
     }
     
     public final Px<T> doOnCancel(Runnable onCancel) {
         if (this instanceof Fuseable) {
-            return new PublisherPeekFuseable<>(this, null, null, null, null, null, null, onCancel);
+            return onAssembly(new PublisherPeekFuseable<>(this, null, null, null, null, null, null, onCancel));
         }
-        return new PublisherPeek<>(this, null, null, null, null, null, null, onCancel);
+        return onAssembly(new PublisherPeek<>(this, null, null, null, null, null, null, onCancel));
     }
 
     public final <R> Px<R> reduce(Supplier<R> initialValue, BiFunction<R, ? super T, R> accumulator) {
-        return new PublisherReduce<>(this, initialValue, accumulator);
+        return onAssembly(new PublisherReduce<>(this, initialValue, accumulator));
     }
     
     public final Px<T> repeat() {
-        return new PublisherRepeat<>(this);
+        return onAssembly(new PublisherRepeat<>(this));
     }
 
     public final Px<T> repeat(long times) {
-        return new PublisherRepeat<>(this, times);
+        return onAssembly(new PublisherRepeat<>(this, times));
     }
 
     public final Px<T> repeat(BooleanSupplier predicate) {
-        return new PublisherRepeatPredicate<>(this, predicate);
+        return onAssembly(new PublisherRepeatPredicate<>(this, predicate));
     }
 
     public final Px<T> retry() {
-        return new PublisherRetry<>(this);
+        return onAssembly(new PublisherRetry<>(this));
     }
 
     public final Px<T> retry(long times) {
-        return new PublisherRetry<>(this, times);
+        return onAssembly(new PublisherRetry<>(this, times));
     }
 
     public final Px<T> retry(Predicate<Throwable> predicate) {
-        return new PublisherRetryPredicate<>(this, predicate);
+        return onAssembly(new PublisherRetryPredicate<>(this, predicate));
     }
     
     public final Px<T> onErrorReturn(T value) {
@@ -337,86 +361,86 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final Px<T> onErrorResumeNext(Function<Throwable, ? extends Publisher<? extends T>> nextFunction) {
-        return new PublisherResume<>(this, nextFunction);
+        return onAssembly(new PublisherResume<>(this, nextFunction));
     }
     
     public final <U> Px<T> sample(Publisher<U> sampler) {
-        return new PublisherSample<>(this, sampler);
+        return onAssembly(new PublisherSample<>(this, sampler));
     }
     
     public final <R> Px<R> scan(R initialValue, BiFunction<R, ? super T, R> accumulator) {
-        return new PublisherScan<>(this, initialValue, accumulator);
+        return onAssembly(new PublisherScan<>(this, initialValue, accumulator));
     }
     
     public final Px<T> single() {
-        return new PublisherSingle<>(this);
+        return onAssembly(new PublisherSingle<>(this));
     }
 
     public final Px<T> single(T defaultValue) {
-        return new PublisherSingle<>(this, () -> defaultValue);
+        return onAssembly(new PublisherSingle<>(this, () -> defaultValue));
     }
 
     public final Px<T> skip(long n) {
-        return new PublisherSkip<>(this, n);
+        return onAssembly(new PublisherSkip<>(this, n));
     }
     
     public final Px<T> skipLast(int n) {
-        return new PublisherSkipLast<>(this, n);
+        return onAssembly(new PublisherSkipLast<>(this, n));
     }
     
     public final Px<T> skipWhile(Predicate<? super T> predicate) {
-        return new PublisherSkipWhile<>(this, predicate);
+        return onAssembly(new PublisherSkipWhile<>(this, predicate));
     }
 
     public final <U> Px<T> skipUntil(Publisher<U> other) {
-        return new PublisherSkipUntil<>(this, other);
+        return onAssembly(new PublisherSkipUntil<>(this, other));
     }
     
     public final Px<T> switchIfEmpty(Publisher<? extends T> other) {
-        return new PublisherSwitchIfEmpty<>(this, other);
+        return onAssembly(new PublisherSwitchIfEmpty<>(this, other));
     }
     
     public final <U, V> Px<Px<T>> window(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
-        return new PublisherWindowStartEnd<>(this, start, end, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherWindowStartEnd<>(this, start, end, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
 
     public final <U, V> Px<Px<T>> window2(Publisher<U> start, Function<? super U, ? extends Publisher<V>> end) {
-        return new PublisherWindowBeginEnd<>(this, start, end, defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        return onAssembly(new PublisherWindowBeginEnd<>(this, start, end, defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE));
     }
 
     public final Px<T> takeLast(int n) {
         if (n == 1) {
-            return new PublisherTakeLastOne<>(this);
+            return onAssembly(new PublisherTakeLastOne<>(this));
         }
-        return new PublisherTakeLast<>(this, n);
+        return onAssembly(new PublisherTakeLast<>(this, n));
     }
     
     public final <U> Px<T> takeUntil(Publisher<U> other) {
-        return new PublisherTakeUntil<>(this, other);
+        return onAssembly(new PublisherTakeUntil<>(this, other));
     }
     
     public final Px<T> takeUntil(Predicate<? super T> predicate) {
-        return new PublisherTakeUntilPredicate<>(this, predicate);
+        return onAssembly(new PublisherTakeUntilPredicate<>(this, predicate));
     }
 
     public final Px<T> takeWhile(Predicate<? super T> predicate) {
-        return new PublisherTakeWhile<>(this, predicate);
+        return onAssembly(new PublisherTakeWhile<>(this, predicate));
     }
     
     public final <U, V> Px<T> timeout(Publisher<U> firstTimeout, Function<? super T, ? extends Publisher<V>> itemTimeout) {
-        return new PublisherTimeout<>(this, firstTimeout, itemTimeout);
+        return onAssembly(new PublisherTimeout<>(this, firstTimeout, itemTimeout));
     }
 
     public final <U, V> Px<T> timeout(Publisher<U> firstTimeout, Function<? super T, ? extends Publisher<V>> itemTimeout, Publisher<? extends T> other) {
-        return new PublisherTimeout<>(this, firstTimeout, itemTimeout, other);
+        return onAssembly(new PublisherTimeout<>(this, firstTimeout, itemTimeout, other));
     }
 
     public final <U, R> Px<R> zipWith(Iterable<U> other, BiFunction<? super T, ? super U, ? extends R> zipper) {
-        return new PublisherZipIterable<>(this, other, zipper);
+        return onAssembly(new PublisherZipIterable<>(this, other, zipper));
     }
     
     public final <U> Px<T> throttleFirst(Function<? super T, ? extends Publisher<U>> throttler) {
-        return new PublisherThrottleFirst<>(this, throttler);
+        return onAssembly(new PublisherThrottleFirst<>(this, throttler));
     }
     
     public final <U> Px<T> throttleLast(Publisher<U> throttler) {
@@ -424,7 +448,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U> Px<T> throttleTimeout(Function<? super T, ? extends Publisher<U>> throttler) {
-        return new PublisherThrottleTimeout<>(this, throttler, defaultUnboundedQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherThrottleTimeout<>(this, throttler, defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
     
     public final Iterable<T> toIterable() {
@@ -468,11 +492,11 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final <U> Px<List<T>> buffer(Publisher<U> other, int maxSize) {
-        return new PublisherBufferBoundaryAndSize<>(this, other, () -> new ArrayList<>(), maxSize, defaultUnboundedQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherBufferBoundaryAndSize<>(this, other, () -> new ArrayList<>(), maxSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
 
     public final <U, C extends Collection<? super T>> Px<C> buffer(Publisher<U> other, int maxSize, Supplier<C> bufferSupplier) {
-        return new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultUnboundedQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
 
     @Override
@@ -498,7 +522,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> Px<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, boolean delayError, int maxConcurrency, int prefetch) {
-        return new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(maxConcurrency), prefetch, defaultQueueSupplier(prefetch));
+        return onAssembly(new PublisherFlatMap<>(this, mapper, delayError, maxConcurrency, defaultQueueSupplier(maxConcurrency), prefetch, defaultQueueSupplier(prefetch)));
     }
 
     @SuppressWarnings("unchecked")
@@ -507,10 +531,11 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
             PublisherZip<T, R> o = (PublisherZip<T, R>) this;
             Px<R> result = o.zipAdditionalSource(other, zipper);
             if (result != null) {
-                return result;
+                return onAssembly(result);
             }
         }
-        return new PublisherZip<>(this, other, zipper, defaultQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        Px<R> result = new PublisherZip<>(this, other, zipper, defaultQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        return onAssembly(result);
     }
     
     /**
@@ -522,7 +547,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
      * @return the new Px hiding this Publisher
      */
     public final Px<T> hide() {
-        return new PublisherHide<>(this);
+        return onAssembly(new PublisherHide<>(this));
     }
     
     public final <R> Px<R> concatMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
@@ -534,7 +559,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> Px<R> concatMap(Function<? super T, ? extends Publisher<? extends R>> mapper, PublisherConcatMap.ErrorMode errorMode, int prefetch) {
-        return new PublisherConcatMap<>(this, mapper, defaultUnboundedQueueSupplier(prefetch), prefetch, errorMode);
+        return onAssembly(new PublisherConcatMap<>(this, mapper, defaultUnboundedQueueSupplier(prefetch), prefetch, errorMode));
     }
 
     public final Px<T> observeOn(ExecutorService executor) {
@@ -549,9 +574,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (this instanceof Fuseable.ScalarCallable) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarCallable<T>)this).call();
-            return new PublisherSubscribeOnValue<>(value, fromExecutor(executor));
+            return onAssembly(new PublisherSubscribeOnValue<>(value, fromExecutor(executor)));
         }
-        return new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier(prefetch));
+        return onAssembly(new PublisherObserveOn<>(this, fromExecutor(executor), delayError, prefetch, defaultQueueSupplier(prefetch)));
     }
 
     public final Px<T> observeOn(Scheduler scheduler) {
@@ -566,9 +591,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (this instanceof Fuseable.ScalarCallable) {
             @SuppressWarnings("unchecked")
             T value = ((Fuseable.ScalarCallable<T>)this).call();
-            return new PublisherSubscribeOnValue<>(value, scheduler);
+            return onAssembly(new PublisherSubscribeOnValue<>(value, scheduler));
         }
-        return new PublisherObserveOn<>(this, scheduler, delayError, prefetch, defaultQueueSupplier(prefetch));
+        return onAssembly(new PublisherObserveOn<>(this, scheduler, delayError, prefetch, defaultQueueSupplier(prefetch)));
     }
 
     public final Px<T> subscribeOn(ExecutorService executor) {
@@ -581,11 +606,11 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (this instanceof Callable) {
             if (this instanceof Fuseable.ScalarCallable) {
                 T value = ((Fuseable.ScalarCallable<T>)this).call();
-                return new PublisherSubscribeOnValue<>(value, scheduler);
+                return onAssembly(new PublisherSubscribeOnValue<>(value, scheduler));
             }
-            return new PublisherCallableSubscribeOn<>((Callable<T>)this, scheduler);
+            return onAssembly(new PublisherCallableSubscribeOn<>((Callable<T>)this, scheduler));
         }
-        return new PublisherSubscribeOn<>(this, scheduler);
+        return onAssembly(new PublisherSubscribeOn<>(this, scheduler));
     }
 
     public final Cancellation subscribe() {
@@ -610,9 +635,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final Px<T> aggregate(BiFunction<T, T, T> aggregator) {
         if (this instanceof Callable) {
-            return this;
+            return onAssembly(this);
         }
-        return new PublisherAggregate<>(this, aggregator);
+        return onAssembly(new PublisherAggregate<>(this, aggregator));
     }
 
     public final Px<T> reduce(BiFunction<T, T, T> aggregator) {
@@ -654,6 +679,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final ConnectablePublisher<T> publish(int prefetch) {
+        // FIXME onAssembly for ConnectablePublisher
         return new ConnectablePublisherPublish<>(this, prefetch, defaultQueueSupplier(prefetch));
     }
 
@@ -662,11 +688,11 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final <K, V> Px<GroupedPublisher<K, V>> groupBy(Function<? super T, ? extends K> keySelector, Function<? super T, ? extends V> valueSelector) {
-        return new PublisherGroupBy<>(this, keySelector, valueSelector, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        return onAssembly(new PublisherGroupBy<>(this, keySelector, valueSelector, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE));
     }
 
     public final <U> Px<Px<T>> windowBatch(int maxSize, Supplier<? extends Publisher<U>> boundarySupplier) {
-        return new PublisherWindowBatch<>(this, boundarySupplier, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize);
+        return onAssembly(new PublisherWindowBatch<>(this, boundarySupplier, defaultUnboundedQueueSupplier(BUFFER_SIZE), defaultUnboundedQueueSupplier(BUFFER_SIZE), maxSize));
     }
 
     public final ConnectablePublisher<T> process(Processor<? super T, ? extends T> processor) {
@@ -686,20 +712,21 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final <U> ConnectablePublisher<U> process(Supplier<? extends Processor<? super T, ? extends T>>
             processorSupplier, Function<Px<T>, ? extends Publisher<? extends U>> selector) {
+        // FIXME onAssembly ConnectablePublisher
         return new ConnectablePublisherProcess<>(this, processorSupplier, selector);
     }
     
     public final Px<T> onTerminateDetach() {
-        return new PublisherDetach<>(this);
+        return onAssembly(new PublisherDetach<>(this));
     }
     
     public final Px<T> awaitOnSubscribe() {
-        return new PublisherAwaitOnSubscribe<>(this);
+        return onAssembly(new PublisherAwaitOnSubscribe<>(this));
     }
     
     public final Px<T> mergeWith(Publisher<? extends T> other) {
         if (this instanceof PublisherMerge) {
-            return ((PublisherMerge<T>)this).mergeAdditionalSource(other, Px::defaultQueueSupplier);
+            return onAssembly(((PublisherMerge<T>)this).mergeAdditionalSource(other, Px::defaultQueueSupplier));
         }
         return mergeArray(this, other);
     }
@@ -709,7 +736,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> Px<R> concatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch) {
-        return new PublisherFlattenIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
+        return onAssembly(new PublisherFlattenIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch)));
     }
 
     public final <R> Px<R> flatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper) {
@@ -717,11 +744,11 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public final <R> Px<R> flatMapIterable(Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch) {
-        return new PublisherFlattenIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch));
+        return onAssembly(new PublisherFlattenIterable<>(this, mapper, prefetch, defaultQueueSupplier(prefetch)));
     }
 
     public final <R, A> Px<R> collect(Collector<T, A, R> collector) {
-        return new PublisherStreamCollector<>(this, collector);
+        return onAssembly(new PublisherStreamCollector<>(this, collector));
     }
 
     public final <R> Px<R> publish(Function<? super Px<T>, ? extends Publisher<? extends R>> transform) {
@@ -729,7 +756,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
     
     public final <R> Px<R> publish(Function<? super Px<T>, ? extends Publisher<? extends R>> transform, int prefetch) {
-        return new PublisherPublish<>(this, transform, prefetch, defaultQueueSupplier(prefetch));
+        return onAssembly(new PublisherPublish<>(this, transform, prefetch, defaultQueueSupplier(prefetch)));
     }
 
     public final ParallelPublisher<T> parallel() {
@@ -750,29 +777,6 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     // ---------------------------------------------------------------------------------------
     
-    static final class PxWrapper<T> extends PublisherSource<T, T> {
-        public PxWrapper(Publisher<? extends T> source) {
-            super(source);
-        }
-        
-        @Override
-        public void subscribe(Subscriber<? super T> s) {
-            source.subscribe(s);
-        }
-    }
-
-    static final class PxFuseableWrapper<T> extends PublisherSource<T, T> 
-    implements Fuseable {
-        public PxFuseableWrapper(Publisher<? extends T> source) {
-            super(source);
-        }
-        
-        @Override
-        public void subscribe(Subscriber<? super T> s) {
-            source.subscribe(s);
-        }
-    }
-
     public static <T> Px<T> from(Publisher<? extends T> source) {
         return wrap(source);
     }
@@ -780,9 +784,9 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     @SuppressWarnings("unchecked")
     public static <T> Px<T> wrap(Publisher<? extends T> source) {
         if (source instanceof Px) {
-            return (Px<T>)source;
+            return onAssembly((Px<T>)source);
         }
-        return new PxWrapper<>(source);
+        return onAssembly(new PxWrapper<>(source));
     }
 
     /**
@@ -797,39 +801,39 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     @SuppressWarnings("unchecked")
     public static <T> Px<T> wrapFuseable(Publisher<? extends T> source) {
         if (source instanceof Px) {
-            return (Px<T>)source;
+            return onAssembly((Px<T>)source);
         }
-        return new PxFuseableWrapper<>(source);
+        return onAssembly(new PxFuseableWrapper<>(source));
     }
 
     // ---------------------------------------------------------------------------------------
     
     public static <T> Px<T> just(T value) {
-        return new PublisherJust<>(value);
+        return onAssembly(new PublisherJust<>(value));
     }
     
     public static <T> Px<T> empty() {
-        return PublisherEmpty.instance();
+        return onAssembly(PublisherEmpty.instance());
     }
 
     public static <T> Px<T> never() {
-        return PublisherNever.instance();
+        return onAssembly(PublisherNever.instance());
     }
     
     public static <T> Px<T> error(Throwable error) {
-        return new PublisherError<>(error);
+        return onAssembly(new PublisherError<>(error));
     }
 
     public static <T> Px<T> error(Throwable error, boolean whenRequested) {
-        return new PublisherError<>(error, whenRequested);
+        return onAssembly(new PublisherError<>(error, whenRequested));
     }
 
     public static <T> Px<T> error(Supplier<? extends Throwable> errorSupplier) {
-        return new PublisherError<>(errorSupplier, false);
+        return onAssembly(new PublisherError<>(errorSupplier, false));
     }
 
     public static <T> Px<T> error(Supplier<? extends Throwable> errorSupplier, boolean whenRequested) {
-        return new PublisherError<>(errorSupplier, whenRequested);
+        return onAssembly(new PublisherError<>(errorSupplier, whenRequested));
     }
 
     public static Px<Integer> range(int start, int count) {
@@ -839,7 +843,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (count == 1) {
             return just(start);
         }
-        return new PublisherRange(start, count);
+        return onAssembly(new PublisherRange(start, count));
     }
     
     @SafeVarargs
@@ -851,25 +855,25 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         if (n == 1) {
             return just(array[0]);
         }
-        return new PublisherArray<>(array);
+        return onAssembly(new PublisherArray<>(array));
     }
 
     public static <T> Px<T> fromIterable(Iterable<? extends T> iterable) {
-        return new PublisherIterable<>(iterable);
+        return onAssembly(new PublisherIterable<>(iterable));
     }
 
     public static <T> Px<T> fromCallable(Callable<? extends T> callable) {
-        return new PublisherCallable<>(callable);
+        return onAssembly(new PublisherCallable<>(callable));
     }
     
     @SafeVarargs
     public static <T, R> Px<R> zip(Function<? super Object[], ? extends R> zipper, Publisher<? extends T>... sources) {
-        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        return onAssembly(new PublisherZip<>(sources, zipper, defaultQueueSupplier(BUFFER_SIZE), BUFFER_SIZE));
     }
 
     @SafeVarargs
     public static <T, R> Px<R> zip(Function<? super Object[], ? extends R> zipper, int prefetch, Publisher<? extends T>... sources) {
-        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch);
+        return onAssembly(new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch));
     }
 
     public static <T, R> Px<R> zipArray(Publisher<? extends T>[] sources, Function<? super Object[], ? extends R> zipper) {
@@ -881,11 +885,11 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public static <T, R> Px<R> zipArray(Publisher<? extends T>[] sources, Function<? super Object[], ? extends R> zipper, int prefetch) {
-        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch);
+        return onAssembly(new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch));
     }
 
     public static <T, R> Px<R> zipIterable(Iterable<? extends Publisher<? extends T>> sources, Function<? super Object[], ? extends R> zipper, int prefetch) {
-        return new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch);
+        return onAssembly(new PublisherZip<>(sources, zipper, defaultQueueSupplier(prefetch), prefetch));
     }
     
     @SafeVarargs
@@ -895,16 +899,16 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     @SafeVarargs
     public static <T> Px<T> concatArray(boolean delayError, Publisher<? extends T>... sources) {
-        return new PublisherConcatArray<>(delayError, sources);
+        return onAssembly(new PublisherConcatArray<>(delayError, sources));
     }
 
     public static <T> Px<T> concatIterable(Iterable<? extends Publisher<? extends T>> sources) {
-        return new PublisherConcatIterable<>(sources);
+        return onAssembly(new PublisherConcatIterable<>(sources));
     }
 
     @SafeVarargs
     public static <T> Px<T> mergeArray(Publisher<? extends T>... sources) {
-        return new PublisherMerge<>(sources, false, Integer.MAX_VALUE, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE, defaultQueueSupplier(BUFFER_SIZE));
+        return onAssembly(new PublisherMerge<>(sources, false, Integer.MAX_VALUE, defaultQueueSupplier(Integer.MAX_VALUE), BUFFER_SIZE, defaultQueueSupplier(BUFFER_SIZE)));
     }
 
     @SuppressWarnings("unchecked")
@@ -913,7 +917,7 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public static Px<Long> timer(long delay, TimeUnit unit, TimedScheduler executor) {
-        return new PublisherTimer(delay, unit, executor);
+        return onAssembly(new PublisherTimer(delay, unit, executor));
     }
 
     public static Px<Long> interval(long period, TimeUnit unit, TimedScheduler executor) {
@@ -921,13 +925,13 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     }
 
     public static Px<Long> interval(long initialDelay,long period, TimeUnit unit, TimedScheduler executor) {
-        return new PublisherInterval(initialDelay, period, unit, executor);
+        return onAssembly(new PublisherInterval(initialDelay, period, unit, executor));
     }
 
     @SuppressWarnings("unchecked")
     public static <T, U, R> Px<R> combineLatest(Publisher<? extends T> p1, Publisher<? extends U> p2, BiFunction<? super T, ? super U, ? extends R> combiner) {
-        return new PublisherCombineLatest<T, R>(new Publisher[] { p1, p2 }, a -> combiner.apply((T)a[0], (U)a[1]),
-                defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE);
+        return onAssembly(new PublisherCombineLatest<T, R>(new Publisher[] { p1, p2 }, a -> combiner.apply((T)a[0], (U)a[1]),
+                defaultUnboundedQueueSupplier(BUFFER_SIZE), BUFFER_SIZE));
     }
     
     public static <T, S> Px<T> using(Callable<S> resourceSupplier, 
@@ -938,23 +942,23 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     public static <T, S> Px<T> using(Callable<S> resourceSupplier, 
             Function<? super S, ? extends Publisher<? extends T>> sourceCreator, Consumer<? super S> disposer,
                     boolean eager) {
-        return new PublisherUsing<>(resourceSupplier, sourceCreator, disposer, eager);
+        return onAssembly(new PublisherUsing<>(resourceSupplier, sourceCreator, disposer, eager));
     }
 
     public static <T> Px<T> defer(Supplier<? extends Px<? extends T>> callback) {
-        return new PublisherDefer<>(callback);
+        return onAssembly(new PublisherDefer<>(callback));
     }
 
     public static <T, S> Px<T> generate(BiFunction<S, SignalEmitter<T>, S> generator) {
-        return new PublisherGenerate<>(generator);
+        return onAssembly(new PublisherGenerate<>(generator));
     }
 
     public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator) {
-        return new PublisherGenerate<>(stateSupplier, generator);
+        return onAssembly(new PublisherGenerate<>(stateSupplier, generator));
     }
 
     public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator, Consumer<? super S> stateConsumer) {
-        return new PublisherGenerate<>(stateSupplier, generator, stateConsumer);
+        return onAssembly(new PublisherGenerate<>(stateSupplier, generator, stateConsumer));
     }
     
     @SuppressWarnings("rawtypes")

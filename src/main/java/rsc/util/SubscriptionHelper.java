@@ -5,6 +5,8 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscription;
 
+import rsc.flow.Fuseable;
+
 /**
  * Utility methods to help working with Subscriptions and their methods.
  */
@@ -125,5 +127,19 @@ public enum SubscriptionHelper {
         s.cancel();
         reportSubscriptionSet();
         return false;
+    }
+    
+    /**
+     * Returns the subscription as QueueSubscription if possible or null.
+     * @param <T> the value type of the QueueSubscription.
+     * @param s the source subscription to try to convert.
+     * @return the QueueSubscription instance or null
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Fuseable.QueueSubscription<T> as(Subscription s) {
+        if (s instanceof Fuseable.QueueSubscription) {
+            return (Fuseable.QueueSubscription<T>)s;
+        }
+        return null;
     }
 }
