@@ -69,8 +69,8 @@ public abstract class BasicFuseableSubscriber<T, R> extends BasicSubscriber<T, R
      * If the upstream is fuseable, negotiates the 
      * fusion mode transitively and sets the
      * fusionMode field accordingly.
-     * @param mode
-     * @return
+     * @param mode the fusion mode requested
+     * @return the established fusion mode
      */
     protected final int transitiveAnyFusion(int mode) {
         QueueSubscription<R> qs = this.qs;
@@ -89,8 +89,8 @@ public abstract class BasicFuseableSubscriber<T, R> extends BasicSubscriber<T, R
      * fusion mode transitively but only if the
      * mode doesn't contain the barrier flag and sets the
      * fusionMode field accordingly.
-     * @param mode
-     * @return
+     * @param mode the fusion mode requested
+     * @return the established fusion moed
      */
     protected final int transitiveAnyBoundaryFusion(int mode) {
         QueueSubscription<R> qs = this.qs;

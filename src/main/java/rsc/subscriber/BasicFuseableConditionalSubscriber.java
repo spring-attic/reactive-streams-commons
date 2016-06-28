@@ -71,8 +71,8 @@ extends BasicConditionalSubscriber<T, R> implements QueueSubscription<R> {
      * If the upstream is fuseable, negotiates the 
      * fusion mode transitively and sets the
      * fusionMode field accordingly.
-     * @param mode
-     * @return
+     * @param mode the fusion mode requested
+     * @return the established fusion mode
      */
     protected final int transitiveAnyFusion(int mode) {
         QueueSubscription<R> qs = this.qs;
@@ -91,8 +91,8 @@ extends BasicConditionalSubscriber<T, R> implements QueueSubscription<R> {
      * fusion mode transitively but only if the
      * mode doesn't contain the barrier flag and sets the
      * fusionMode field accordingly.
-     * @param mode
-     * @return
+     * @param mode the fusion mode requested
+     * @return the established fusion mode
      */
     protected final int transitiveAnyBoundaryFusion(int mode) {
         QueueSubscription<R> qs = this.qs;
