@@ -40,7 +40,7 @@ public class PublisherCombineLatestTest {
     @SuppressWarnings("unchecked")
     @Test(expected = NullPointerException.class)
     public void queueSupplier1Null() {
-        new PublisherCombineLatest<>(new Publisher[] { }, a -> a, null, 128);
+        new PublisherCombineLatest<Object, Object[]>(new Publisher[] { }, a -> a, null, 128);
     }
 
     @Test(expected = NullPointerException.class)
@@ -51,7 +51,7 @@ public class PublisherCombineLatestTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void bufferSize1Invalid() {
-        new PublisherCombineLatest<>(new Publisher[] { }, a -> a, qs, 0);
+        new PublisherCombineLatest<Object, Object[]>(new Publisher[] { }, a -> a, qs, 0);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -67,7 +67,7 @@ public class PublisherCombineLatestTest {
 
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
 
-        new PublisherCombineLatest<>(new Publisher[] { sp1, sp2 }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
+        new PublisherCombineLatest<Object, List<Object>>(new Publisher[] { sp1, sp2 }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
 
         ts.assertNoValues()
         .assertNoError()
@@ -178,7 +178,7 @@ public class PublisherCombineLatestTest {
     public void firstEmpty() {
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
 
-        new PublisherCombineLatest<>(new Publisher[] { PublisherEmpty.instance(), PublisherNever.instance() }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
+        new PublisherCombineLatest<Object, List<Object>>(new Publisher[] { PublisherEmpty.instance(), PublisherNever.instance() }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
 
         ts.assertNoValues()
         .assertNoError()
@@ -191,7 +191,8 @@ public class PublisherCombineLatestTest {
     public void secondEmpty() {
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
 
-        new PublisherCombineLatest<>(new Publisher[] { PublisherNever.instance(), PublisherEmpty.instance() }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
+        new PublisherCombineLatest<Object, List<Object>>(new Publisher[] { PublisherNever.instance(), PublisherEmpty.instance() }, 
+                a -> Arrays.asList(a), qs, 128).subscribe(ts);
 
         ts.assertNoValues()
         .assertNoError()
@@ -204,7 +205,7 @@ public class PublisherCombineLatestTest {
     public void firstError() {
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
 
-        new PublisherCombineLatest<>(new Publisher[] { new PublisherError<>(new RuntimeException("forced failure")), PublisherNever.instance() }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
+        new PublisherCombineLatest<Object, List<Object>>(new Publisher[] { new PublisherError<>(new RuntimeException("forced failure")), PublisherNever.instance() }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
 
         ts.assertNoValues()
         .assertError(RuntimeException.class)
@@ -218,7 +219,7 @@ public class PublisherCombineLatestTest {
     public void secondError() {
         TestSubscriber<List<Object>> ts = new TestSubscriber<>();
 
-        new PublisherCombineLatest<>(new Publisher[] { PublisherNever.instance(), new PublisherError<>(new RuntimeException("forced failure")) }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
+        new PublisherCombineLatest<Object, List<Object>>(new Publisher[] { PublisherNever.instance(), new PublisherError<>(new RuntimeException("forced failure")) }, a -> Arrays.asList(a), qs, 128).subscribe(ts);
 
         ts.assertNoValues()
         .assertError(RuntimeException.class)
@@ -263,7 +264,7 @@ public class PublisherCombineLatestTest {
         SingleTimedScheduler exec2 = new SingleTimedScheduler();
 
         try {
-            new PublisherCombineLatest<>(new Publisher[] {
+            new PublisherCombineLatest<Object, List<Object>>(new Publisher[] {
                     Px.interval(100, TimeUnit.MILLISECONDS, exec1).take(20),
                     Px.interval(100, 50, TimeUnit.MILLISECONDS, exec2).take(20)
             },
@@ -293,7 +294,7 @@ public class PublisherCombineLatestTest {
         DirectProcessor<Integer> sp1 = new DirectProcessor<>();
         DirectProcessor<Integer> sp2 = new DirectProcessor<>();
 
-        new PublisherCombineLatest<>(new Publisher[] { sp1, sp2 }, a -> (Integer)a[0] + (Integer)a[1], qs, 16).subscribe(ts);
+        new PublisherCombineLatest<Integer, Integer>(new Publisher[] { sp1, sp2 }, a -> (Integer)a[0] + (Integer)a[1], qs, 16).subscribe(ts);
 
         for (int i = 0; i < 17; i++) {
             sp1.onNext(i);

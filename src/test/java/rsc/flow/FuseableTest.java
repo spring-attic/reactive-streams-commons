@@ -61,7 +61,7 @@ public class FuseableTest {
         
         ts.requestedFusionMode(Fuseable.ASYNC | Fuseable.THREAD_BARRIER);
         
-        Px.using(() -> 1, v -> Px.range(1, 5).map(u -> u + 1), v -> { })
+        Px.<Integer, Integer>using(() -> 1, v -> Px.range(1, 5).map(u -> u + 1), v -> { })
         .subscribe(ts);
         
         ts
