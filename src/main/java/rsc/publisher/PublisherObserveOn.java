@@ -266,10 +266,10 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             }
             
             cancelled = true;
+            s.cancel();
             worker.shutdown();
             
             if (WIP.getAndIncrement(this) == 0) {
-                s.cancel();
                 queue.clear();
             }
         }
