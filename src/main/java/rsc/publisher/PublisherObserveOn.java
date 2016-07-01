@@ -450,9 +450,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                 if (d) {
                     Throwable e = error;
                     if (e != null) {
-                        actual.onError(e);
+                        doError(actual, e);
                     } else {
-                        actual.onComplete();
+                        doComplete(actual);
                     }
                     return;
                 }
@@ -979,9 +979,9 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                 if (d) {
                     Throwable e = error;
                     if (e != null) {
-                        actual.onError(e);
+                        doError(actual, e);
                     } else {
-                        actual.onComplete();
+                        doComplete(actual);
                     }
                     return;
                 }
