@@ -452,8 +452,14 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
                 parent.onNextCall().accept(v);
             }
             if (v == null && sourceMode == SYNC) {
-                parent.onCompleteCall().run();
-                parent.onAfterTerminateCall().run();
+                Runnable call = parent.onCompleteCall();
+                if (call != null) {
+                    call.run();
+                }
+                call = parent.onAfterTerminateCall();
+                if (call != null) {
+                    call.run();
+                }
             }
             return v;
         }
