@@ -677,17 +677,18 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
                                 
                                 T v = q != null ? q.poll() : null;
                                 
-                                empty = v == null;
-                                if (d && empty) {
+                                boolean sourceEmpty = v == null;
+                                if (d && sourceEmpty) {
                                     cancelAll();
                                     
                                     a.onComplete();
                                     return;
                                 }
-                                if (empty) {
-                                    break;
+                                if (!sourceEmpty) {
+                                    values[j] = v;
+                                } else {
+                                    empty = true;
                                 }
-                                values[j] = v;
                             } catch (Throwable ex) {
                                 ExceptionHelper.throwIfFatal(ex);
                                 
