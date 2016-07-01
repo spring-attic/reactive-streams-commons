@@ -494,7 +494,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
-                s.cancel();
                 queue.clear();
                 return true;
             }
@@ -795,10 +794,10 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             }
             
             cancelled = true;
+            s.cancel();
             worker.shutdown();
             
             if (WIP.getAndIncrement(this) == 0) {
-                s.cancel();
                 queue.clear();
             }
         }
@@ -1089,7 +1088,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
         
         boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a) {
             if (cancelled) {
-                s.cancel();
                 queue.clear();
                 return true;
             }
