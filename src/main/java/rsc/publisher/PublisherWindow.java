@@ -754,6 +754,9 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         @Override
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
+                
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
+                
                 if (firstRequest == 0 && FIRST_REQUEST.compareAndSet(this, 0, 1)) {
                     long u = BackpressureHelper.multiplyCap(skip, n - 1);
                     long v = BackpressureHelper.addCap(size, u);
@@ -763,13 +766,13 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
                     s.request(u);
                 }
                 
-                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
                 drain();
             }
         }
         
         @Override
         public void cancel() {
+            cancelled = true;
             if (ONCE.compareAndSet(this, 0, 1)) {
                 run();
             }
