@@ -276,7 +276,22 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                     long eidx = e[idx];
                     if (ridx != eidx) {
 
-                        T v = q.poll();
+                        T v;
+                        
+                        try {
+                            v = q.poll();
+                        } catch (Throwable ex) {
+                            ExceptionHelper.throwIfFatal(ex);
+                            s.cancel();
+                            for (Subscriber<? super T> s : a) {
+                                s.onError(ex);
+                            }
+                            return;
+                        }
+                        
+                        if (v == null) {
+                            break;
+                        }
                         
                         a[idx].onNext(v);
                         
@@ -332,6 +347,7 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                 
                 for (;;) {
                     if (cancelled) {
+                        q.clear();
                         return;
                     }
                     
@@ -368,6 +384,13 @@ public final class ParallelUnorderedSource<T> extends ParallelPublisher<T> {
                             s.cancel();
                             for (Subscriber<? super T> s : a) {
                                 s.onError(ex);
+                            }
+                            return;
+                        }
+                        
+                        if (v == null) {
+                            for (Subscriber<? super T> s : a) {
+                                s.onComplete();
                             }
                             return;
                         }
