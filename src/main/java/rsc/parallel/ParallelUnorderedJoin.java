@@ -69,7 +69,7 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
             JoinInnerSubscriber<T>[] a = new JoinInnerSubscriber[n];
             
             for (int i = 0; i < n; i++) {
-                a[i] = new JoinInnerSubscriber<>(this, i, prefetch);
+                a[i] = new JoinInnerSubscriber<>(this, prefetch);
             }
             
             this.subscribers = a;
@@ -88,13 +88,18 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
         public void cancel() {
             if (!cancelled) {
                 cancelled = true;
-                for (JoinInnerSubscriber<T> s : subscribers) {
-                    s.cancel();
-                }
+                
+                cancelAll();
                 
                 if (WIP.getAndIncrement(this) == 0) {
                     cleanup();
                 }
+            }
+        }
+        
+        void cancelAll() {
+            for (JoinInnerSubscriber<T> s : subscribers) {
+                s.cancel();
             }
         }
         
@@ -137,13 +142,14 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
         
         void onError(Throwable e) {
             if (ExceptionHelper.addThrowable(ERROR, this, e)) {
+                cancelAll();
                 drain();
             } else {
                 UnsignalledExceptions.onErrorDropped(e);
             }
         }
         
-        void onComplete(int index) {
+        void onComplete() {
             DONE.decrementAndGet(this);
             drain();
         }
@@ -194,18 +200,14 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
                         if (q != null) {
                             T v = q.poll();
                             
-                            if (v == null) {
-                                empty &= true;
-                            } else {
-                                empty &= false;
+                            if (v != null) {
+                                empty = false;
                                 a.onNext(v);
                                 inner.requestOne();
                                 if (++e == r) {
                                     break middle;
                                 }
                             }
-                        } else {
-                            empty &= true;
                         }
                     }
                     
@@ -278,8 +280,6 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
         
         final int limit;
         
-        final int index;
-        
         long produced;
         
         volatile Subscription s;
@@ -291,8 +291,7 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
         
         volatile boolean done;
         
-        public JoinInnerSubscriber(JoinSubscription<T> parent, int index, int prefetch) {
-            this.index = index;
+        public JoinInnerSubscriber(JoinSubscription<T> parent, int prefetch) {
             this.parent = parent;
             this.prefetch = prefetch ;
             this.limit = prefetch - (prefetch >> 2);
@@ -317,7 +316,7 @@ public final class ParallelUnorderedJoin<T> extends Px<T> {
         
         @Override
         public void onComplete() {
-            parent.onComplete(index);
+            parent.onComplete();
         }
         
         public void requestOne() {
