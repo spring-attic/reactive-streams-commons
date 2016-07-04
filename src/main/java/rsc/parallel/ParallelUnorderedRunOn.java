@@ -244,11 +244,22 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
                         return;
                     }
                     
-                    if (done && q.isEmpty()) {
-                        a.onComplete();
-                        
-                        worker.shutdown();
-                        return;
+                    if (done) {
+                        Throwable ex = error;
+                        if (ex != null) {
+                            q.clear();
+                            
+                            a.onError(ex);
+                            
+                            worker.shutdown();
+                            return;
+                        }
+                        if (q.isEmpty()) {
+                            a.onComplete();
+                            
+                            worker.shutdown();
+                            return;
+                        }
                     }
                 }
                 
