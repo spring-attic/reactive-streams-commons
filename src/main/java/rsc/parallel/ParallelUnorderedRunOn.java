@@ -233,8 +233,6 @@ public final class ParallelUnorderedRunOn<T> extends ParallelPublisher<T> {
                     if (p == lim) {
                         c = 0;
                         s.request(p);
-                    } else {
-                        c = p;
                     }
                 }
                 

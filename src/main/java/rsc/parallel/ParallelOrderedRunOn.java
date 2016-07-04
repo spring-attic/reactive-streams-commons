@@ -228,8 +228,6 @@ public final class ParallelOrderedRunOn<T> extends ParallelOrderedBase<T> {
                     if (p == lim) {
                         c = 0;
                         s.request(p);
-                    } else {
-                        c = p;
                     }
                 }
                 
@@ -239,11 +237,22 @@ public final class ParallelOrderedRunOn<T> extends ParallelOrderedBase<T> {
                         return;
                     }
                     
-                    if (done && q.isEmpty()) {
-                        a.onComplete();
-                        
-                        worker.shutdown();
-                        return;
+                    if (done) {
+                        Throwable ex = error;
+                        if (ex != null) {
+                            q.clear();
+                            
+                            a.onError(ex);
+                            
+                            worker.shutdown();
+                            return;
+                        }
+                        if (q.isEmpty()) {
+                            a.onComplete();
+                            
+                            worker.shutdown();
+                            return;
+                        }
                     }
                 }
                 
