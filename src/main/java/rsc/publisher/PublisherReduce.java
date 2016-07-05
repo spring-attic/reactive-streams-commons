@@ -93,10 +93,59 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> implement
             if (SubscriptionHelper.validate(this.s, s)) {
                 this.s = s;
 
+                if (tryScalarFusion(s)) {
+                    return;
+                }
+                
                 subscriber.onSubscribe(this);
 
                 s.request(Long.MAX_VALUE);
             }
+        }
+        
+        boolean tryScalarFusion(Subscription s) {
+            if (s instanceof Fuseable.QueueSubscription) {
+                @SuppressWarnings("unchecked")
+                Fuseable.QueueSubscription<T> qs = (Fuseable.QueueSubscription<T>)s;
+                
+                if (qs.requestFusion(Fuseable.SYNC) == Fuseable.SYNC) {
+
+                    subscriber.onSubscribe(this);
+
+                    BiFunction<R, ? super T, R> f = accumulator;
+                    R acc = value;
+                    
+                    for (;;) {
+                        if (isCancelled()) {
+                            return true;
+                        }
+                        T v;
+                        
+                        try {
+                            v = qs.poll();
+                        } catch (Throwable ex) {
+                            ExceptionHelper.throwIfFatal(ex);
+                            onError(ex);
+                            return true;
+                        }
+                        
+                        if (v == null) {
+                            value = acc;
+                            complete(acc);
+                            return true;
+                        }
+                        
+                        try {
+                            acc = Objects.requireNonNull(f.apply(acc, v), "The function returned a null value");
+                        } catch (Throwable ex) {
+                            ExceptionHelper.throwIfFatal(ex);
+                            onError(ex);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         @Override

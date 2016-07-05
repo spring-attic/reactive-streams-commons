@@ -48,12 +48,12 @@ public class PublisherReducePerf {
         reducedFused = Px.just(1).hide().flatMap(v -> reducedBaseline);
     }
     
-    @Benchmark
+//    @Benchmark
     public void aggregateBaseline(Blackhole bh) {
         aggregatedBaseline.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void aggregateFused(Blackhole bh) {
         aggregatedFused.subscribe(new PerfSubscriber(bh));
     }
@@ -63,7 +63,7 @@ public class PublisherReducePerf {
         reducedBaseline.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void reduceFused(Blackhole bh) {
         reducedFused.subscribe(new PerfSubscriber(bh));
     }

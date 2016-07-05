@@ -96,7 +96,7 @@ public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, Completabl
 
     @Override
     public final boolean isCancelled() {
-        return getState() == SDS_HAS_REQUEST_HAS_VALUE;
+        return state == SDS_HAS_REQUEST_HAS_VALUE;
     }
 
     public final int getState() {
