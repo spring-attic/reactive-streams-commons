@@ -1,32 +1,11 @@
 package rsc.subscriber;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
-import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
-
-public class BlockingLastSubscriber<T> implements Subscriber<T> {
-    
-    final CountDownLatch latch = new CountDownLatch(1);
-    
-    T value;
-    
-    Throwable error;
-    
-    Subscription s;
-    
-    @Override
-    public void onSubscribe(Subscription s) {
-        if (SubscriptionHelper.validate(this.s, s)) {
-            this.s = s;
-            s.request(Long.MAX_VALUE);
-        }
-    }
+/**
+ * Blocks until the upstream signals its last value or completes.
+ *
+ * @param <T> the value type
+ */
+public final class BlockingLastSubscriber<T> extends BlockingSingleSubscriber<T> {
 
     @Override
     public void onNext(T t) {
@@ -37,44 +16,6 @@ public class BlockingLastSubscriber<T> implements Subscriber<T> {
     public void onError(Throwable t) {
         value = null;
         error = t;
-        latch.countDown();
-    }
-
-    @Override
-    public void onComplete() {
-        latch.countDown();
-    }
-
-    public T blockingGet() {
-        if (latch.getCount() != 0) {
-            try {
-                latch.await();
-            } catch (InterruptedException ex) {
-                ExceptionHelper.bubble(ex);
-            }
-        }
-        Throwable e = error;
-        if (e != null) {
-            ExceptionHelper.bubble(e);
-        }
-        return value;
-    }
-
-    public T blockingGet(long timeout, TimeUnit unit) {
-        if (latch.getCount() != 0) {
-            try {
-                if (!latch.await(timeout, unit)) {
-                    ExceptionHelper.bubble(new TimeoutException());
-                }
-            } catch (InterruptedException ex) {
-                ExceptionHelper.bubble(ex);
-            }
-        }
-        
-        Throwable e = error;
-        if (e != null) {
-            ExceptionHelper.bubble(e);
-        }
-        return value;
+        countDown();
     }
 }
