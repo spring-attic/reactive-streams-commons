@@ -12,7 +12,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.publisher.PublisherMapFuseable.PublisherMapFuseableSubscriber;
+import rsc.publisher.PublisherMapFuseable.MapFuseableSubscriber;
 import rsc.state.Completable;
 import rsc.util.*;
 
@@ -47,18 +47,18 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
     @Override
     public void subscribe(Subscriber<? super R> s) {
         if (source instanceof Fuseable) {
-            source.subscribe(new PublisherMapFuseableSubscriber<>(s, mapper));
+            source.subscribe(new MapFuseableSubscriber<>(s, mapper));
             return;
         }
         if (s instanceof Fuseable.ConditionalSubscriber) {
             Fuseable.ConditionalSubscriber<? super R> cs = (Fuseable.ConditionalSubscriber<? super R>) s;
-            source.subscribe(new PublisherMapConditionalSubscriber<>(cs, mapper));
+            source.subscribe(new MapConditionalSubscriber<>(cs, mapper));
             return;
         }
-        source.subscribe(new PublisherMapSubscriber<>(s, mapper));
+        source.subscribe(new MapSubscriber<>(s, mapper));
     }
 
-    static final class PublisherMapSubscriber<T, R> implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+    static final class MapSubscriber<T, R> implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
@@ -66,7 +66,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
 
         Subscription s;
 
-        public PublisherMapSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
+        public MapSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
         }
@@ -166,7 +166,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         }
     }
 
-    static final class PublisherMapConditionalSubscriber<T, R> implements Fuseable.ConditionalSubscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+    static final class MapConditionalSubscriber<T, R> implements Fuseable.ConditionalSubscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
         final Fuseable.ConditionalSubscriber<? super R> actual;
         final Function<? super T, ? extends R> mapper;
 
@@ -174,7 +174,7 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
 
         Subscription s;
 
-        public PublisherMapConditionalSubscriber(Fuseable.ConditionalSubscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
+        public MapConditionalSubscriber(Fuseable.ConditionalSubscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
         }

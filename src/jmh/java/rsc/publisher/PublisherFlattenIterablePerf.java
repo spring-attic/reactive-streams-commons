@@ -19,7 +19,7 @@ import rsc.util.PerfSubscriber;
 @Fork(value = 1)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Thread)
-public class PublisherConcatMapIterablePerf {
+public class PublisherFlattenIterablePerf {
 
     @Param({"1", "10", "100", "1000", "10000", "100000", "1000000"})
     public int count;
@@ -74,27 +74,27 @@ public class PublisherConcatMapIterablePerf {
         chainIterable = xrangeIterable.concatMapIterable(v -> Collections.singleton(v));
     }
     
-    @Benchmark
+//    @Benchmark
     public void justPlain(Blackhole bh) {
         justPlain.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void justIterable(Blackhole bh) {
         justIterable.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void rangePlain(Blackhole bh) {
         rangePlain.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void rangeIterable(Blackhole bh) {
         rangeIterable.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void xrangePlain(Blackhole bh) {
         xrangePlain.subscribe(new PerfSubscriber(bh));
     }
@@ -104,12 +104,12 @@ public class PublisherConcatMapIterablePerf {
         xrangeIterable.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void chainPlain(Blackhole bh) {
         chainPlain.subscribe(new PerfSubscriber(bh));
     }
 
-    @Benchmark
+//    @Benchmark
     public void chainIterable(Blackhole bh) {
         chainIterable.subscribe(new PerfSubscriber(bh));
     }

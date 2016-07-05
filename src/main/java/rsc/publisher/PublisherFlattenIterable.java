@@ -76,10 +76,10 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
             
             return;
         }
-        source.subscribe(new PublisherConcatMapIterableSubscriber<>(s, mapper, prefetch, queueSupplier));
+        source.subscribe(new FlattenIterableSubscriber<>(s, mapper, prefetch, queueSupplier));
     }
     
-    static final class PublisherConcatMapIterableSubscriber<T, R> 
+    static final class FlattenIterableSubscriber<T, R>
     implements Subscriber<T>, Fuseable.QueueSubscription<R> {
         
         final Subscriber<? super R> actual;
@@ -94,13 +94,13 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
 
         volatile int wip;
         @SuppressWarnings("rawtypes")
-        static final AtomicIntegerFieldUpdater<PublisherConcatMapIterableSubscriber> WIP =
-                AtomicIntegerFieldUpdater.newUpdater(PublisherConcatMapIterableSubscriber.class, "wip");
+        static final AtomicIntegerFieldUpdater<FlattenIterableSubscriber> WIP =
+                AtomicIntegerFieldUpdater.newUpdater(FlattenIterableSubscriber.class, "wip");
         
         volatile long requested;
         @SuppressWarnings("rawtypes")
-        static final AtomicLongFieldUpdater<PublisherConcatMapIterableSubscriber> REQUESTED =
-                AtomicLongFieldUpdater.newUpdater(PublisherConcatMapIterableSubscriber.class, "requested");
+        static final AtomicLongFieldUpdater<FlattenIterableSubscriber> REQUESTED =
+                AtomicLongFieldUpdater.newUpdater(FlattenIterableSubscriber.class, "requested");
         
         Subscription s;
         
@@ -112,8 +112,8 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
 
         volatile Throwable error;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<PublisherConcatMapIterableSubscriber, Throwable> ERROR =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherConcatMapIterableSubscriber.class, Throwable.class, "error");
+        static final AtomicReferenceFieldUpdater<FlattenIterableSubscriber, Throwable> ERROR =
+                AtomicReferenceFieldUpdater.newUpdater(FlattenIterableSubscriber.class, Throwable.class, "error");
 
         Iterator<? extends R> current;
         
@@ -121,7 +121,7 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
         
         int fusionMode;
         
-        public PublisherConcatMapIterableSubscriber(Subscriber<? super R> actual,
+        public FlattenIterableSubscriber(Subscriber<? super R> actual,
                 Function<? super T, ? extends Iterable<? extends R>> mapper, int prefetch,
                 Supplier<Queue<T>> queueSupplier) {
             this.actual = actual;
@@ -223,14 +223,9 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
             }
         }
         
-        void drain() {
-            if (WIP.getAndIncrement(this) != 0) {
-                return;
-            }
-            
+        void drainAsync() {
             final Subscriber<? super R> a = actual;
             final Queue<T> q = queue;
-            final boolean replenish = fusionMode != Fuseable.SYNC;
             
             int missed = 1;
             
@@ -239,6 +234,20 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
             for (;;) {
 
                 if (it == null) {
+
+                    if (cancelled) {
+                        q.clear();
+                        return;
+                    }
+                    
+                    Throwable ex = error;
+                    if (ex != null) {
+                        ex = ExceptionHelper.terminate(ERROR, this);
+                        current = null;
+                        q.clear();
+                        a.onError(ex);
+                        return;
+                    }
                     
                     boolean d = done;
                     
@@ -248,11 +257,12 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                     
                     boolean empty = t == null;
                     
-                    if (checkTerminated(d, empty, a, q)) {
+                    if (d && empty) {
+                        a.onComplete();
                         return;
                     }
-
-                    if (t != null) {
+                    
+                    if (!empty) {
                         Iterable<? extends R> iterable;
                         
                         boolean b;
@@ -263,20 +273,24 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                             it = iterable.iterator();
                             
                             b = it.hasNext();
-                        } catch (Throwable ex) {
-                            ExceptionHelper.throwIfFatal(ex);
-                            onError(ex);
+                        } catch (Throwable exc) {
+                            ExceptionHelper.throwIfFatal(exc);
+                            onError(exc);
                             it = null;
                             continue;
                         }
                         
                         if (!b) {
                             it = null;
-                            consumedOne(replenish);
+                            int c = consumed + 1;
+                            if (c == limit) {
+                                consumed = 0;
+                                s.request(c);
+                            } else {
+                                consumed = c;
+                            }
                             continue;
                         }
-                        
-                        current = it;
                     }
                 }
                 
@@ -285,7 +299,18 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                     long e = 0L;
                     
                     while (e != r) {
-                        if (checkTerminated(done, false, a, q)) {
+                        if (cancelled) {
+                            current = null;
+                            q.clear();
+                            return;
+                        }
+                        
+                        Throwable ex = error;
+                        if (ex != null) {
+                            ex = ExceptionHelper.terminate(ERROR, this);
+                            current = null;
+                            q.clear();
+                            a.onError(ex);
                             return;
                         }
 
@@ -293,32 +318,40 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                         
                         try {
                             v = it.next();
-                        } catch (Throwable ex) {
-                            ExceptionHelper.throwIfFatal(ex);
-                            onError(ex);
+                        } catch (Throwable exc) {
+                            ExceptionHelper.throwIfFatal(exc);
+                            onError(exc);
                             continue;
                         }
                         
                         a.onNext(v);
 
-                        if (checkTerminated(done, false, a, q)) {
+                        if (cancelled) {
+                            current = null;
+                            q.clear();
                             return;
                         }
-
+                        
                         e++;
                         
                         boolean b;
                         
                         try {
                             b = it.hasNext();
-                        } catch (Throwable ex) {
-                            ExceptionHelper.throwIfFatal(ex);
-                            onError(ex);
+                        } catch (Throwable exc) {
+                            ExceptionHelper.throwIfFatal(exc);
+                            onError(exc);
                             continue;
                         }
                         
                         if (!b) {
-                            consumedOne(replenish);
+                            int c = consumed + 1;
+                            if (c == limit) {
+                                consumed = 0;
+                                s.request(c);
+                            } else {
+                                consumed = c;
+                            }
                             it = null;
                             current = null;
                             break;
@@ -326,18 +359,27 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                     }
                     
                     if (e == r) {
-                        boolean d = done;
-                        boolean empty;
-                        
-                        try {
-                            empty = q.isEmpty() && it == null;
-                        } catch (Throwable ex) {
-                            ExceptionHelper.throwIfFatal(ex);
-                            onError(ex);
-                            empty = true;
+                        if (cancelled) {
+                            current = null;
+                            q.clear();
+                            return;
+                        }
+
+                        Throwable ex = error;
+                        if (ex != null) {
+                            ex = ExceptionHelper.terminate(ERROR, this);
+                            current = null;
+                            q.clear();
+                            a.onError(ex);
+                            return;
                         }
                         
-                        if (checkTerminated(d, empty, a, q)) {
+                        boolean d = done;
+                        boolean empty = q.isEmpty();
+
+                        if (d && empty) {
+                            current = null;
+                            a.onComplete();
                             return;
                         }
                     }
@@ -353,6 +395,7 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                     }
                 }
                 
+                current = it;
                 missed = WIP.addAndGet(this, -missed);
                 if (missed == 0) {
                     break;
@@ -360,40 +403,156 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
             }
         }
         
-        void consumedOne(boolean enabled) {
-            if (enabled) {
-                int c = consumed + 1;
-                if (c == limit) {
-                    consumed = 0;
-                    s.request(c);
-                } else {
-                    consumed = c;
+        void drainSync() {
+            final Subscriber<? super R> a = actual;
+//            final Queue<T> q = queue;
+            
+            int missed = 1;
+            
+            Iterator<? extends R> it = current;
+
+            for (;;) {
+
+                if (it == null) {
+
+                    if (cancelled) {
+                        queue.clear();
+                        return;
+                    }
+                    
+                    boolean d = done;
+                    
+                    T t;
+                    
+                    t = queue.poll();
+                    
+                    boolean empty = t == null;
+                    
+                    if (d && empty) {
+                        a.onComplete();
+                        return;
+                    }
+                    
+                    if (!empty) {
+                        Iterable<? extends R> iterable;
+                        
+                        boolean b;
+                        
+                        try {
+                            iterable = mapper.apply(t);
+    
+                            it = iterable.iterator();
+                            
+                            b = it.hasNext();
+                        } catch (Throwable exc) {
+                            ExceptionHelper.throwIfFatal(exc);
+                            current = null;
+                            a.onError(exc);
+                            return;
+                        }
+                        
+                        if (!b) {
+                            it = null;
+                            continue;
+                        }
+                    }
+                }
+                
+                if (it != null) {
+                    long r = requested;
+                    long e = 0L;
+                    
+                    while (e != r) {
+                        if (cancelled) {
+                            current = null;
+                            queue.clear();
+                            return;
+                        }
+                        
+                        R v;
+                        
+                        try {
+                            v = it.next();
+                        } catch (Throwable exc) {
+                            ExceptionHelper.throwIfFatal(exc);
+                            current = null;
+                            a.onError(exc);
+                            return;
+                        }
+                        
+                        a.onNext(v);
+
+                        if (cancelled) {
+                            current = null;
+                            queue.clear();
+                            return;
+                        }
+                        
+                        e++;
+                        
+                        boolean b;
+                        
+                        try {
+                            b = it.hasNext();
+                        } catch (Throwable exc) {
+                            ExceptionHelper.throwIfFatal(exc);
+                            onError(exc);
+                            continue;
+                        }
+                        
+                        if (!b) {
+                            it = null;
+                            current = null;
+                            break;
+                        }
+                    }
+                    
+                    if (e == r) {
+                        if (cancelled) {
+                            current = null;
+                            queue.clear();
+                            return;
+                        }
+
+                        boolean d = done;
+                        boolean empty = queue.isEmpty() && it == null;
+
+                        if (d && empty) {
+                            current = null;
+                            a.onComplete();
+                            return;
+                        }
+                    }
+                    
+                    if (e != 0L) {
+                        if (r != Long.MAX_VALUE) {
+                            REQUESTED.addAndGet(this, -e);
+                        }
+                    }
+                    
+                    if (it == null) {
+                        continue;
+                    }
+                }
+                
+                current = it;
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
                 }
             }
         }
         
-        boolean checkTerminated(boolean d, boolean empty, Subscriber<?> a, Queue<?> q) {
-            if (cancelled) {
-                current = null;
-                q.clear();
-                return true;
+        void drain() {
+            if (WIP.getAndIncrement(this) != 0) {
+                return;
             }
-            if (d) {
-                if (error != null) {
-                    Throwable e = ExceptionHelper.terminate(ERROR, this);
-                    
-                    current = null;
-                    q.clear();
-
-                    a.onError(e);
-                    return true;
-                } else
-                if (empty) {
-                    a.onComplete();
-                    return true;
-                }
+            
+            if (fusionMode == SYNC) {
+                drainSync();
+            } else {
+                drainAsync();
             }
-            return false;
         }
         
         @Override

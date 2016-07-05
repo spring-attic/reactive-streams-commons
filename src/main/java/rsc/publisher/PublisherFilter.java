@@ -41,20 +41,20 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
     public void subscribe(Subscriber<? super T> s) {
         if (source instanceof Fuseable) {
             if (s instanceof Fuseable.ConditionalSubscriber) {
-                source.subscribe(new PublisherFilterFuseable.PublisherFilterFuseableConditionalSubscriber<>((Fuseable.ConditionalSubscriber<? super T>)s, predicate));
+                source.subscribe(new PublisherFilterFuseable.FilterFuseableConditionalSubscriber<>((Fuseable.ConditionalSubscriber<? super T>)s, predicate));
                 return;
             }
-            source.subscribe(new PublisherFilterFuseable.PublisherFilterFuseableSubscriber<>(s, predicate));
+            source.subscribe(new PublisherFilterFuseable.FilterFuseableSubscriber<>(s, predicate));
             return;
         }
         if (s instanceof Fuseable.ConditionalSubscriber) {
-            source.subscribe(new PublisherFilterConditionalSubscriber<>((Fuseable.ConditionalSubscriber<? super T>)s, predicate));
+            source.subscribe(new FilterConditionalSubscriber<>((Fuseable.ConditionalSubscriber<? super T>)s, predicate));
             return;
         }
-        source.subscribe(new PublisherFilterSubscriber<>(s, predicate));
+        source.subscribe(new FilterSubscriber<>(s, predicate));
     }
 
-    static final class PublisherFilterSubscriber<T>
+    static final class FilterSubscriber<T>
             implements Receiver, Producer, Loopback, Completable, Subscription, Fuseable.ConditionalSubscriber<T> {
         final Subscriber<? super T> actual;
 
@@ -64,7 +64,7 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
 
         boolean done;
 
-        public PublisherFilterSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
+        public FilterSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
         }
@@ -183,7 +183,7 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherFilterConditionalSubscriber<T> 
+    static final class FilterConditionalSubscriber<T> 
     implements Receiver, Producer, Loopback, Completable, Subscription, Fuseable.ConditionalSubscriber<T> {
         final Fuseable.ConditionalSubscriber<? super T> actual;
 
@@ -193,7 +193,7 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
 
         boolean done;
 
-        public PublisherFilterConditionalSubscriber(Fuseable.ConditionalSubscriber<? super T> actual, Predicate<? super T> predicate) {
+        public FilterConditionalSubscriber(Fuseable.ConditionalSubscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
         }

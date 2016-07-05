@@ -54,13 +54,13 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         if (s instanceof Fuseable.ConditionalSubscriber) {
             
             Fuseable.ConditionalSubscriber<? super R> cs = (Fuseable.ConditionalSubscriber<? super R>) s;
-            source.subscribe(new PublisherMapFuseableConditionalSubscriber<>(cs, mapper));
+            source.subscribe(new MapFuseableConditionalSubscriber<>(cs, mapper));
             return;
         }
-        source.subscribe(new PublisherMapFuseableSubscriber<>(s, mapper));
+        source.subscribe(new MapFuseableSubscriber<>(s, mapper));
     }
 
-    static final class PublisherMapFuseableSubscriber<T, R> 
+    static final class MapFuseableSubscriber<T, R> 
     implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription, SynchronousSubscription<R> {
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
@@ -71,7 +71,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         int sourceMode;
 
-        public PublisherMapFuseableSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
+        public MapFuseableSubscriber(Subscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
         }
@@ -221,7 +221,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
         }
     }
 
-    static final class PublisherMapFuseableConditionalSubscriber<T, R> 
+    static final class MapFuseableConditionalSubscriber<T, R> 
     implements ConditionalSubscriber<T>, Completable, Receiver, Producer, Loopback, SynchronousSubscription<R> {
         final Fuseable.ConditionalSubscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
@@ -232,7 +232,7 @@ public final class PublisherMapFuseable<T, R> extends PublisherSource<T, R>
 
         int sourceMode;
 
-        public PublisherMapFuseableConditionalSubscriber(Fuseable.ConditionalSubscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
+        public MapFuseableConditionalSubscriber(Fuseable.ConditionalSubscriber<? super R> actual, Function<? super T, ? extends R> mapper) {
             this.actual = actual;
             this.mapper = mapper;
         }

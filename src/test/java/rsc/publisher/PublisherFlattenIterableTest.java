@@ -12,7 +12,7 @@ import org.junit.Test;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
 
-public class PublisherConcatMapIterableTest {
+public class PublisherFlattenIterableTest {
 
     @Test
     public void constructors() {

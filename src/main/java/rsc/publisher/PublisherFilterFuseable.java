@@ -44,13 +44,13 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (s instanceof ConditionalSubscriber) {
-            source.subscribe(new PublisherFilterFuseableConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, predicate));
+            source.subscribe(new FilterFuseableConditionalSubscriber<>((ConditionalSubscriber<? super T>)s, predicate));
             return;
         }
-        source.subscribe(new PublisherFilterFuseableSubscriber<>(s, predicate));
+        source.subscribe(new FilterFuseableSubscriber<>(s, predicate));
     }
 
-    static final class PublisherFilterFuseableSubscriber<T> 
+    static final class FilterFuseableSubscriber<T> 
     implements Receiver, Producer, Loopback, Completable, SynchronousSubscription<T>, ConditionalSubscriber<T> {
         final Subscriber<? super T> actual;
 
@@ -62,7 +62,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         
         int sourceMode;
 
-        public PublisherFilterFuseableSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
+        public FilterFuseableSubscriber(Subscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
         }
@@ -253,7 +253,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         }
     }
 
-    static final class PublisherFilterFuseableConditionalSubscriber<T> 
+    static final class FilterFuseableConditionalSubscriber<T> 
     implements Receiver, Producer, Loopback, Completable, ConditionalSubscriber<T>, SynchronousSubscription<T> {
         final ConditionalSubscriber<? super T> actual;
 
@@ -265,7 +265,7 @@ public final class PublisherFilterFuseable<T> extends PublisherSource<T, T>
         
         int sourceMode;
 
-        public PublisherFilterFuseableConditionalSubscriber(ConditionalSubscriber<? super T> actual, Predicate<? super T> predicate) {
+        public FilterFuseableConditionalSubscriber(ConditionalSubscriber<? super T> actual, Predicate<? super T> predicate) {
             this.actual = actual;
             this.predicate = predicate;
         }
