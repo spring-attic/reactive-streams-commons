@@ -774,22 +774,22 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     @SuppressWarnings("unchecked")
     public final Px<Integer> sumInt() {
-        return new PublisherSumInt((Px<Integer>)this);
+        return onAssembly(new PublisherSumInt((Px<Integer>)this));
     }
     
     @SuppressWarnings("unchecked")
     public final Px<Long> sumLong() {
-        return new PublisherSumLong((Px<Long>)this);
+        return onAssembly(new PublisherSumLong((Px<Long>)this));
     }
 
     @SuppressWarnings("unchecked")
     public final Px<Integer> minInt() {
-        return new PublisherMinInt((Px<Integer>)this);
+        return onAssembly(new PublisherMinInt((Px<Integer>)this));
     }
 
     @SuppressWarnings("unchecked")
     public final Px<Integer> maxInt() {
-        return new PublisherMaxInt((Px<Integer>)this);
+        return onAssembly(new PublisherMaxInt((Px<Integer>)this));
     }
     
     // ------------------------------------------------------------------------------------------------
