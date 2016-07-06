@@ -1,18 +1,50 @@
 package rsc.publisher;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Processor;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
-import rsc.flow.*;
+import rsc.flow.Cancellation;
+import rsc.flow.Fuseable;
 import rsc.parallel.ParallelPublisher;
-import rsc.scheduler.*;
+import rsc.scheduler.ExecutorServiceScheduler;
+import rsc.scheduler.Scheduler;
+import rsc.scheduler.TimedScheduler;
 import rsc.state.Introspectable;
-import rsc.subscriber.*;
-import rsc.util.*;
+import rsc.subscriber.BlockingFirstSubscriber;
+import rsc.subscriber.BlockingLastSubscriber;
+import rsc.subscriber.EmptyAsyncSubscriber;
+import rsc.subscriber.LambdaSubscriber;
+import rsc.subscriber.PeekLastSubscriber;
+import rsc.subscriber.SignalEmitter;
+import rsc.test.TestSubscriber;
+import rsc.util.SpscArrayQueue;
+import rsc.util.SpscLinkedArrayQueue;
+import rsc.util.UnsignalledExceptions;
 
 /**
  * Experimental base class with fluent API: (P)ublisher E(x)tensions.
@@ -630,26 +662,6 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return onAssembly(new PublisherSubscribeOn<>(this, scheduler));
     }
 
-    public final Cancellation subscribe() {
-        EmptyAsyncSubscriber<T> s = new EmptyAsyncSubscriber<>();
-        subscribe(s);
-        return s;
-    }
-    
-    public final Cancellation subscribe(Consumer<? super T> onNext) {
-        return subscribe(onNext, DROP_ERROR, EMPTY_RUNNABLE);
-    }
-
-    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError) {
-        return subscribe(onNext, onError, EMPTY_RUNNABLE);
-    }
-
-    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError, Runnable onComplete) {
-        LambdaSubscriber<T> s = new LambdaSubscriber<>(onNext, onError, onComplete);
-        subscribe(s);
-        return s;
-    }
-
     public final Px<T> aggregate(BiFunction<T, T, T> aggregator) {
         if (this instanceof Callable) {
             return onAssembly(this);
@@ -659,36 +671,6 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
 
     public final Px<T> reduce(BiFunction<T, T, T> aggregator) {
         return aggregate(aggregator);
-    }
-    
-    public final T peekLast() {
-        PeekLastSubscriber<T> subscriber = new PeekLastSubscriber<>();
-        subscribe(subscriber);
-        return subscriber.get();
-    }
-    
-    public final T blockingFirst() {
-        BlockingFirstSubscriber<T> subscriber = new BlockingFirstSubscriber<>();
-        subscribe(subscriber);
-        return subscriber.blockingGet();
-    }
-
-    public final T blockingFirst(long timeout, TimeUnit unit) {
-        BlockingFirstSubscriber<T> subscriber = new BlockingFirstSubscriber<>();
-        subscribe(subscriber);
-        return subscriber.blockingGet(timeout, unit);
-    }
-
-    public final T blockingLast() {
-        BlockingLastSubscriber<T> subscriber = new BlockingLastSubscriber<>();
-        subscribe(subscriber);
-        return subscriber.blockingGet();
-    }
-
-    public final T blockingLast(long timeout, TimeUnit unit) {
-        BlockingLastSubscriber<T> subscriber = new BlockingLastSubscriber<>();
-        subscribe(subscriber);
-        return subscriber.blockingGet(timeout, unit);
     }
     
     public final ConnectablePublisher<T> publish() {
@@ -790,6 +772,114 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
         return ParallelPublisher.from(this, ordered, parallelism);
     }
 
+    @SuppressWarnings("unchecked")
+    public final Px<Integer> sumInt() {
+        return new PublisherSumInt((Px<Integer>)this);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public final Px<Long> sumLong() {
+        return new PublisherSumLong((Px<Long>)this);
+    }
+
+    @SuppressWarnings("unchecked")
+    public final Px<Integer> minInt() {
+        return new PublisherMinInt((Px<Integer>)this);
+    }
+
+    @SuppressWarnings("unchecked")
+    public final Px<Integer> maxInt() {
+        return new PublisherMaxInt((Px<Integer>)this);
+    }
+    
+    // ------------------------------------------------------------------------------------------------
+    
+    public final Cancellation subscribe() {
+        EmptyAsyncSubscriber<T> s = new EmptyAsyncSubscriber<>();
+        subscribe(s);
+        return s;
+    }
+    
+    public final Cancellation subscribe(Consumer<? super T> onNext) {
+        return subscribe(onNext, DROP_ERROR, EMPTY_RUNNABLE);
+    }
+
+    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError) {
+        return subscribe(onNext, onError, EMPTY_RUNNABLE);
+    }
+
+    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError, Runnable onComplete) {
+        LambdaSubscriber<T> s = new LambdaSubscriber<>(onNext, onError, onComplete);
+        subscribe(s);
+        return s;
+    }
+
+    public TestSubscriber<T> test() {
+        TestSubscriber<T> ts = new TestSubscriber<>();
+        subscribe(ts);
+        return ts;
+    }
+
+    public TestSubscriber<T> test(long initialRequest) {
+        TestSubscriber<T> ts = new TestSubscriber<>(initialRequest);
+        subscribe(ts);
+        return ts;
+    }
+
+    public TestSubscriber<T> test(long initialRequest, int fusionMode) {
+        TestSubscriber<T> ts = new TestSubscriber<>(initialRequest);
+        ts.requestedFusionMode(fusionMode);
+        subscribe(ts);
+        return ts;
+    }
+
+    public TestSubscriber<T> test(long initialRequest, int fusionMode, boolean cancelled) {
+        TestSubscriber<T> ts = new TestSubscriber<>(initialRequest);
+        ts.requestedFusionMode(fusionMode);
+        if (cancelled) {
+            ts.cancel();
+        }
+        subscribe(ts);
+        return ts;
+    }
+
+    public TestSubscriber<T> testFusion(int fusionMode) {
+        TestSubscriber<T> ts = new TestSubscriber<>();
+        ts.requestedFusionMode(fusionMode);
+        subscribe(ts);
+        return ts;
+    }
+    
+    public final T peekLast() {
+        PeekLastSubscriber<T> subscriber = new PeekLastSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.get();
+    }
+    
+    public final T blockingFirst() {
+        BlockingFirstSubscriber<T> subscriber = new BlockingFirstSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet();
+    }
+
+    public final T blockingFirst(long timeout, TimeUnit unit) {
+        BlockingFirstSubscriber<T> subscriber = new BlockingFirstSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet(timeout, unit);
+    }
+
+    public final T blockingLast() {
+        BlockingLastSubscriber<T> subscriber = new BlockingLastSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet();
+    }
+
+    public final T blockingLast(long timeout, TimeUnit unit) {
+        BlockingLastSubscriber<T> subscriber = new BlockingLastSubscriber<>();
+        subscribe(subscriber);
+        return subscriber.blockingGet(timeout, unit);
+    }
+    
     // ---------------------------------------------------------------------------------------
     
     public static <T> Px<T> from(Publisher<? extends T> source) {
@@ -975,7 +1065,11 @@ public abstract class Px<T> implements Publisher<T>, Introspectable {
     public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator, Consumer<? super S> stateConsumer) {
         return onAssembly(new PublisherGenerate<>(stateSupplier, generator, stateConsumer));
     }
-    
+
+    public static Px<Integer> characters(CharSequence string) {
+        return onAssembly(new PublisherCharSequence(string));
+    }
+
     @SuppressWarnings("rawtypes")
     static final Function IDENTITY_FUNCTION = new Function() {
         @Override
