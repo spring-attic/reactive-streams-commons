@@ -17,16 +17,11 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Prefetchable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Emits events on a different thread specified by a scheduler callback.
@@ -104,10 +99,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     }
 
     static final class PublisherObserveOnSubscriber<T>
-    implements Subscriber<T>, QueueSubscription<T>, Runnable, Producer, Loopback, 
-               Backpressurable, Prefetchable, Receiver, Cancellable,
-               Introspectable,
-               Requestable, Completable {
+    implements Subscriber<T>, QueueSubscription<T>, Runnable, Producer, Loopback, Receiver, SubscriberState,
+               PublisherConfig {
         
         final Subscriber<? super T> actual;
         
@@ -632,7 +625,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
     static final class PublisherObserveOnConditionalSubscriber<T>
     implements Subscriber<T>, QueueSubscription<T>, Runnable,
-               Producer, Loopback, Backpressurable, Prefetchable, Receiver, Cancellable, Introspectable, Completable, Requestable {
+               Producer, Loopback, Receiver,
+               SubscriberState {
         
         final Fuseable.ConditionalSubscriber<? super T> actual;
         

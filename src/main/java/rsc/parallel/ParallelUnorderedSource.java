@@ -14,7 +14,7 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.Fuseable;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Dispatches the values from upstream in a round robin fashion to subscribers which are

@@ -13,7 +13,7 @@ import rsc.flow.*;
 import rsc.flow.Fuseable.ConditionalSubscriber;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekConditionalSubscriber;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekFuseableSubscriber;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
 
 /**

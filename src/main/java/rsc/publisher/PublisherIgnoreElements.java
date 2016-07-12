@@ -5,7 +5,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Ignores normal values and passes only the terminal signals along.

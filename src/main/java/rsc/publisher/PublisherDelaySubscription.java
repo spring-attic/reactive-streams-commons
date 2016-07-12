@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.subscriber.DeferredSubscriptionSubscriber;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**

@@ -9,12 +9,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Runs the source in unbounded mode and emits only the latest value
@@ -35,12 +32,13 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     static final class PublisherLatestSubscriber<T>
-            implements Subscriber<T>, Subscription, Cancellable, Introspectable, Completable, Producer,
-                       Requestable, Receiver {
+            implements Subscriber<T>, Subscription, SubscriberState,
+                       Producer,
+                       Receiver {
 
         final Subscriber<? super T> actual;
 

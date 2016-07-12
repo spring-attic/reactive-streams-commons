@@ -11,7 +11,7 @@ import rsc.documentation.OperatorType;
 import rsc.flow.Cancellation;
 import rsc.flow.MultiProducer;
 import rsc.flow.Receiver;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
 

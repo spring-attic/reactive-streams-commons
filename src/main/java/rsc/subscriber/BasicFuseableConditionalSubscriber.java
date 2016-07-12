@@ -4,7 +4,6 @@ import org.reactivestreams.Subscription;
 
 import rsc.flow.Fuseable;
 import rsc.flow.Fuseable.*;
-import rsc.util.*;
 
 /**
  * Base class for implementing intermediate fuseable operators that

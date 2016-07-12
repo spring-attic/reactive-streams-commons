@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.*;
 
 import rsc.flow.Cancellation;
-import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**

@@ -7,10 +7,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Completable;
-import rsc.state.Prefetchable;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Skips the first N elements from a reactive stream.
@@ -45,8 +43,9 @@ public final class PublisherSkip<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherSkipSubscriber<T> implements Subscriber<T>, Receiver, Producer, Prefetchable,
-                                                             Backpressurable, Completable, Subscription {
+    static final class PublisherSkipSubscriber<T> implements Subscriber<T>, Receiver, Producer,
+                                                             Subscription,
+                                                             SubscriberState {
 
         final Subscriber<? super T> actual;
 

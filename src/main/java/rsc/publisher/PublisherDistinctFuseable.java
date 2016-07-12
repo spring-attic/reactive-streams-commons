@@ -14,7 +14,7 @@ import rsc.flow.Fuseable;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.publisher.PublisherDistinct.PublisherDistinctFuseableSubscriber;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 
 /**
  * For each subscriber, tracks the source values that have been seen and

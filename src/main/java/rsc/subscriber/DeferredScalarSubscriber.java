@@ -6,8 +6,6 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import org.reactivestreams.*;
 
 import rsc.flow.*;
-import rsc.state.*;
-import rsc.util.SubscriptionHelper;
 import rsc.flow.Fuseable.*;
 
 /**
@@ -17,7 +15,8 @@ import rsc.flow.Fuseable.*;
  * @param <I> The upstream sequence type
  * @param <O> The downstream sequence type
  */
-public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, Completable, QueueSubscription<O>, Loopback, Cancellable,
+public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, QueueSubscription<O>, Loopback,
+                                                       SubscriberState,
                                                        Receiver, Producer {
 
     static final int SDS_NO_REQUEST_NO_VALUE   = 0;

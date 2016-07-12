@@ -11,10 +11,8 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.Backpressurable;
-import rsc.state.Completable;
-import rsc.state.Prefetchable;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 import rsc.flow.Fuseable.*;
 
@@ -67,7 +65,8 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeSubscriber<T>
-    implements Subscriber<T>, Subscription, Completable, Receiver, Prefetchable, Backpressurable, Producer {
+    implements Subscriber<T>, Subscription, Receiver, Producer,
+               SubscriberState {
 
         final Subscriber<? super T> actual;
 
@@ -201,7 +200,7 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
     }
     
     static final class PublisherTakeConditionalSubscriber<T>
-    implements ConditionalSubscriber<T>, Subscription, Completable, Receiver, Prefetchable, Backpressurable, Producer {
+    implements ConditionalSubscriber<T>, Subscription, Receiver, Producer, SubscriberState {
 
         final ConditionalSubscriber<? super T> actual;
 
@@ -363,7 +362,8 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherTakeFuseableSubscriber<T>
-    implements Subscriber<T>, QueueSubscription<T>, Completable, Receiver, Prefetchable, Backpressurable, Producer {
+    implements Subscriber<T>, QueueSubscription<T>, Receiver, Producer,
+               SubscriberState {
 
         final Subscriber<? super T> actual;
 

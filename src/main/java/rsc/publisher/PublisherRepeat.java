@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import rsc.subscriber.MultiSubscriptionSubscriber;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 
 /**
  * Repeatedly subscribes to the source and relays its values either
@@ -49,7 +49,7 @@ public final class PublisherRepeat<T> extends PublisherSource<T, T> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     static final class PublisherRepeatSubscriber<T>

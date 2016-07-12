@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import rsc.flow.MultiReceiver;
 import rsc.subscriber.MultiSubscriptionSubscriber;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 
 /**
  * Concatenates a fixed array of Publishers' values.

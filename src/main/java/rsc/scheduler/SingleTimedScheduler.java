@@ -1,10 +1,17 @@
 package rsc.scheduler;
 
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import rsc.flow.Cancellation;
-import rsc.state.Cancellable;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -261,7 +268,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
     
     static final class TimedScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellable, Cancellation, CancelFuture {
+    implements Runnable, Cancellation, CancelFuture {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -335,13 +342,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
                 }
             }
         }
-        
-        @Override
-        public boolean isCancelled() {
-            Future<?> f = get();
-            return f == FINISHED || f == CANCELLED_FUTURE;
-        }
-        
+
         @Override
         public void dispose() {
             for (;;) {
@@ -384,7 +385,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
 
     static final class TimedPeriodicScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellable, Cancellation, CancelFuture {
+    implements Runnable, Cancellation, CancelFuture {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -454,12 +455,6 @@ public final class SingleTimedScheduler implements TimedScheduler {
                     return;
                 }
             }
-        }
-        
-        @Override
-        public boolean isCancelled() {
-            Future<?> f = get();
-            return f == FINISHED || f == CANCELLED_FUTURE;
         }
         
         @Override

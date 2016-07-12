@@ -14,22 +14,19 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
-import rsc.flow.*;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Prefetchable;
-import rsc.state.Requestable;
+import rsc.flow.Fuseable;
+import rsc.flow.MultiProducer;
+import rsc.flow.Producer;
+import rsc.flow.Receiver;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -42,7 +39,7 @@ import rsc.util.UnsignalledExceptions;
 @BackpressureSupport(input = BackpressureMode.BOUNDED, innerOutput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(innerOutput = { FusionMode.ASYNC}, output = { FusionMode.ASYNC })
 public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedPublisher<K, V>>
-        implements Fuseable, Backpressurable {
+        implements Fuseable, SubscriberState {
 
     final Function<? super T, ? extends K> keySelector;
     
@@ -99,8 +96,8 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
     
     static final class PublisherGroupByMain<T, K, V> implements Subscriber<T>,
                                                                 Fuseable.QueueSubscription<GroupedPublisher<K, V>>,
-                                                                MultiProducer, Backpressurable, Producer, Requestable,
-                                                                Introspectable, Cancellable, Completable, Receiver {
+                                                                MultiProducer, Producer,
+                                                                SubscriberState, Receiver {
 
         final Function<? super T, ? extends K> keySelector;
         
@@ -507,7 +504,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
     
     static final class UnicastGroupedPublisher<K, V> extends GroupedPublisher<K, V> 
     implements Fuseable, Fuseable.QueueSubscription<V>,
-               Producer, Receiver, Completable, Prefetchable, Cancellable, Requestable, Backpressurable {
+               Producer, Receiver, SubscriberState {
         final K key;
         
         final int limit;
@@ -749,11 +746,6 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
             } else {
                 s.onError(new IllegalStateException("This processor allows only a single Subscriber"));
             }
-        }
-
-        @Override
-        public int getMode() {
-            return Introspectable.INNER;
         }
 
         @Override

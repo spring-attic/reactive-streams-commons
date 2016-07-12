@@ -18,10 +18,9 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Completable;
-import rsc.util.CancelledSubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.CancelledSubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * An iterable that consumes a Publisher in a blocking fashion.
@@ -31,7 +30,7 @@ import rsc.util.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class BlockingIterable<T> implements Iterable<T>, Receiver, Backpressurable {
+public final class BlockingIterable<T> implements Iterable<T>, Receiver, SubscriberState {
 
     final Publisher<? extends T> source;
     
@@ -125,7 +124,8 @@ public final class BlockingIterable<T> implements Iterable<T>, Receiver, Backpre
         throw new RuntimeException(e);
     }
     
-    static final class SubscriberIterator<T> implements Subscriber<T>, Iterator<T>, Runnable, Receiver, Completable {
+    static final class SubscriberIterator<T> implements Subscriber<T>, Iterator<T>, Runnable, Receiver,
+                                                        SubscriberState {
 
         final Queue<T> queue;
         

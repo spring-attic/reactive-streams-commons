@@ -13,7 +13,7 @@ import org.reactivestreams.Subscription;
 import rsc.publisher.Px;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -102,7 +102,7 @@ public final class ParallelOrderedJoin<T> extends Px<T> {
         
         void cleanup() {
             for (JoinInnerSubscriber<T> s : subscribers) {
-                s.queue.clear();; 
+                s.queue.clear();
             }
         }
         

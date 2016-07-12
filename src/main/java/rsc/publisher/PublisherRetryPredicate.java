@@ -38,7 +38,7 @@ public final class PublisherRetryPredicate<T> extends PublisherSource<T, T> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     static final class PublisherRetryPredicateSubscriber<T>

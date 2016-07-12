@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.util.CancelledSubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.CancelledSubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Creates a Future that consumes a source Publisher and returns the very last value,

@@ -8,10 +8,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.subscriber.SerializedSubscriber;
-import rsc.util.CancelledSubscription;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.CancelledSubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Combines values from a main Publisher with values from another
@@ -41,7 +41,7 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     @Override

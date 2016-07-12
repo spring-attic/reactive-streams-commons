@@ -9,8 +9,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.subscriber.SerializedSubscriber;
 import rsc.util.BackpressureHelper;
-import rsc.util.CancelledSubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.CancelledSubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Samples the main source and emits its latest value whenever the other Publisher

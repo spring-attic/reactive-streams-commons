@@ -6,7 +6,7 @@ import org.reactivestreams.Subscriber;
 
 import rsc.flow.Fuseable;
 import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Streams the characters of a string.

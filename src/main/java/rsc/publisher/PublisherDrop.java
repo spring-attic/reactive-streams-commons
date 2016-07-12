@@ -9,11 +9,10 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
-import rsc.state.Completable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -42,7 +41,7 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     @Override
@@ -51,7 +50,7 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherDropSubscriber<T>
-            implements Subscriber<T>, Subscription, Producer, Completable, Requestable, Loopback {
+            implements Subscriber<T>, Subscription, Producer, Loopback, SubscriberState {
 
         final Subscriber<? super T> actual;
 

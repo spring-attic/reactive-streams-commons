@@ -10,7 +10,7 @@ import org.reactivestreams.Subscription;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
 
 /**

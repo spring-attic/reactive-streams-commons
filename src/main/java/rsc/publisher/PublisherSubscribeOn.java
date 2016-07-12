@@ -9,6 +9,9 @@ import rsc.documentation.*;
 import rsc.flow.*;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
+import rsc.subscriber.DeferredSubscription;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**
@@ -68,7 +71,8 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
     }
 
     static final class PublisherSubscribeOnClassic<T>
-            extends DeferredSubscription implements Subscriber<T>, Producer, Loopback, QueueSubscription<T> {
+            extends DeferredSubscription
+            implements Subscriber<T>, Producer, Loopback, QueueSubscription<T> {
         final Subscriber<? super T> actual;
 
         final Worker worker;

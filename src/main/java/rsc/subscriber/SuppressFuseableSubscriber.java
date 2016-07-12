@@ -4,7 +4,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import rsc.flow.Fuseable;
-import rsc.util.SubscriptionHelper;
 
 /**
  * Wraps a Subscriber and suppresses any QueueSubscription capability the upstream might have.

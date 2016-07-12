@@ -1,12 +1,7 @@
 package rsc.subscriber;
 
 import org.reactivestreams.Subscriber;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Introspectable;
-import rsc.state.Requestable;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -16,8 +11,7 @@ import rsc.util.UnsignalledExceptions;
  *
  * @param <T> the output value type
  */
-public interface SignalEmitter<T> extends Backpressurable, Introspectable, Cancellable,
-                                          Requestable {
+public interface SignalEmitter<T> extends SubscriberState {
 
     /**
      * Signal the completion of the sequence.

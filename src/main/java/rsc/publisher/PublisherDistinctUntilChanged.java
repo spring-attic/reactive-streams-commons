@@ -12,9 +12,9 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.Completable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 import rsc.flow.Fuseable.*;
 
@@ -45,7 +45,8 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
     }
 
     static final class PublisherDistinctUntilChangedSubscriber<T, K>
-            implements ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+            implements ConditionalSubscriber<T>, Receiver, Producer, Loopback,
+                       Subscription, SubscriberState {
         final Subscriber<? super T> actual;
 
         final Function<? super T, K> keyExtractor;
@@ -169,7 +170,8 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
     }
 
     static final class PublisherDistinctUntilChangedConditionalSubscriber<T, K>
-    implements ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+    implements ConditionalSubscriber<T>, Receiver, Producer, Loopback, Subscription,
+               SubscriberState {
         final ConditionalSubscriber<? super T> actual;
 
         final Function<? super T, K> keyExtractor;

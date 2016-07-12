@@ -32,7 +32,7 @@ public final class PublisherRetry<T> extends PublisherSource<T, T> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     @Override

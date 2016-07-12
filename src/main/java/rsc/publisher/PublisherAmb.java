@@ -9,11 +9,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.MultiReceiver;
-import rsc.state.Cancellable;
-import rsc.state.Introspectable;
+import rsc.subscriber.SubscriberState;
 import rsc.subscriber.DeferredSubscriptionSubscriber;
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Given a set of source Publishers the values of that Publisher is forwarded to the
@@ -159,7 +158,7 @@ extends Px<T>
     }
 
     static final class PublisherAmbCoordinator<T>
-      implements Subscription, MultiReceiver, Cancellable {
+      implements Subscription, MultiReceiver, SubscriberState {
 
         final PublisherAmbSubscriber<T>[] subscribers;
 
@@ -270,8 +269,8 @@ extends Px<T>
         }
     }
 
-    static final class PublisherAmbSubscriber<T> extends DeferredSubscriptionSubscriber<T, T>
-            implements Introspectable {
+    static final class PublisherAmbSubscriber<T> extends
+                                                 DeferredSubscriptionSubscriber<T, T> {
         final PublisherAmbCoordinator<T> parent;
 
         final int index;
@@ -312,11 +311,6 @@ extends Px<T>
                 won = true;
                 subscriber.onComplete();
             }
-        }
-
-        @Override
-        public int getMode() {
-            return INNER;
         }
     }
 }

@@ -12,7 +12,11 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.*;
+import rsc.subscriber.CancelledSubscription;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.ScalarSubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.subscriber.SuppressFuseableSubscriber;
 import rsc.util.*;
 
@@ -168,13 +172,13 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     static final class PublisherFlatMapMain<T, R>
             extends SpscFreeListTracker<PublisherFlatMapInner<R>>
-    implements Subscriber<T>, Subscription, Receiver, MultiReceiver, Requestable, Completable, Producer, Cancellable,
-               Backpressurable, Introspectable {
+    implements Subscriber<T>, Subscription, Receiver, MultiReceiver, Producer,
+               SubscriberState {
         
         final Subscriber<? super R> actual;
 
@@ -920,11 +924,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     }
     
     static final class PublisherFlatMapInner<R> 
-    implements Subscriber<R>, Subscription, Producer, Receiver,
-               Backpressurable,
-               Cancellable,
-               Completable, Prefetchable,
-               Introspectable {
+    implements Subscriber<R>, Subscription, Producer, Receiver, SubscriberState  {
 
         final PublisherFlatMapMain<?, R> parent;
         
@@ -1054,16 +1054,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         @Override
         public boolean isTerminated() {
             return done && (queue == null || queue.isEmpty());
-        }
-
-        @Override
-        public int getMode() {
-            return INNER;
-        }
-
-        @Override
-        public String getName() {
-            return PublisherFlatMapInner.class.getSimpleName();
         }
 
         @Override

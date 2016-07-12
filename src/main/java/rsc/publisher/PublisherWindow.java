@@ -20,14 +20,10 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.processor.UnicastProcessor;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Prefetchable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -108,7 +104,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
     }
 
     static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Producer, Receiver,
-                                                           MultiProducer, Completable, Prefetchable {
+                                                           MultiProducer, SubscriberState {
         
         final Subscriber<? super Px<T>> actual;
 
@@ -297,7 +293,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
     }
     
     static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Receiver,
-                                                          MultiProducer, Producer, Backpressurable, Completable {
+                                                          MultiProducer, Producer,
+                                                          SubscriberState {
         
         final Subscriber<? super Px<T>> actual;
 
@@ -505,9 +502,9 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         }
     }
 
-    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Backpressurable,
-                                                             Producer, MultiProducer, Receiver, Prefetchable,
-                                                             Introspectable, Completable, Cancellable {
+    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Runnable,
+                                                             Producer, MultiProducer, Receiver,
+                                                             SubscriberState {
         
         final Subscriber<? super Px<T>> actual;
 

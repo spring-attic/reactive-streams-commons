@@ -34,7 +34,6 @@ import rsc.parallel.ParallelPublisher;
 import rsc.scheduler.ExecutorServiceScheduler;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.TimedScheduler;
-import rsc.state.Introspectable;
 import rsc.subscriber.BlockingFirstSubscriber;
 import rsc.subscriber.BlockingLastSubscriber;
 import rsc.subscriber.EmptyAsyncSubscriber;
@@ -58,7 +57,7 @@ import rsc.util.UnsignalledExceptions;
  * 
  * @param <T> the output value type
  */
-public abstract class Px<T> implements Publisher<T>, Introspectable {
+public abstract class Px<T> implements Publisher<T>, PublisherConfig {
 
     static final int BUFFER_SIZE = 128;
     

@@ -13,7 +13,8 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.publisher.PublisherMapFuseable.MapFuseableSubscriber;
-import rsc.state.Completable;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**
@@ -58,7 +59,8 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         source.subscribe(new MapSubscriber<>(s, mapper));
     }
 
-    static final class MapSubscriber<T, R> implements Subscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+    static final class MapSubscriber<T, R> implements Subscriber<T>, Receiver, Producer, Loopback, Subscription,
+                                                      SubscriberState {
         final Subscriber<? super R>            actual;
         final Function<? super T, ? extends R> mapper;
 
@@ -166,7 +168,9 @@ public final class PublisherMap<T, R> extends PublisherSource<T, R> {
         }
     }
 
-    static final class MapConditionalSubscriber<T, R> implements Fuseable.ConditionalSubscriber<T>, Completable, Receiver, Producer, Loopback, Subscription {
+    static final class MapConditionalSubscriber<T, R> implements Fuseable.ConditionalSubscriber<T>,
+                                                                 Receiver, Producer, Loopback, Subscription,
+                                                                 SubscriberState {
         final Fuseable.ConditionalSubscriber<? super R> actual;
         final Function<? super T, ? extends R> mapper;
 

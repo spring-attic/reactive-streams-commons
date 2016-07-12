@@ -11,10 +11,10 @@ import org.reactivestreams.Subscription;
 import rsc.flow.MultiReceiver;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Completable;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -72,7 +72,9 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         source.subscribe(new PublisherZipSubscriber<>(s, it, zipper));
     }
     
-    static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T>, Producer, MultiReceiver, Completable, Receiver, Subscription {
+    static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T>, Producer, MultiReceiver,
+                                                                  Receiver, Subscription,
+                                                                  SubscriberState {
         
         final Subscriber<? super R> actual;
         

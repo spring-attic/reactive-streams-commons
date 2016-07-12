@@ -9,11 +9,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Requestable;
 import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
 
 /**
  * A subscription implementation that arbitrates request amounts between subsequent Subscriptions, including the
@@ -28,8 +24,9 @@ import rsc.util.SubscriptionHelper;
  * @param <I> the input value type
  * @param <O> the output value type
  */
-public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription, Subscriber<I>, Producer, Cancellable,
-                                                                   Requestable, Receiver, Completable {
+public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription, Subscriber<I>, Producer,
+                                                                   SubscriberState,
+                                                                   Receiver {
 
     protected final Subscriber<? super O> subscriber;
 

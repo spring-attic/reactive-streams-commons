@@ -10,11 +10,10 @@ import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Completable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -51,7 +50,8 @@ public final class PublisherScan<T, R> extends PublisherSource<T, R> {
     }
 
     static final class PublisherScanSubscriber<T, R>
-      implements Subscriber<T>, Subscription, Producer, Receiver, Requestable, Loopback, Completable {
+      implements Subscriber<T>, Subscription, Producer, Receiver, Loopback,
+                 SubscriberState {
 
         final Subscriber<? super R> actual;
 

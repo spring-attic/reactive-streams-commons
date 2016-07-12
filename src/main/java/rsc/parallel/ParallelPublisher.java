@@ -9,7 +9,7 @@ import org.reactivestreams.*;
 import rsc.publisher.*;
 import rsc.publisher.PublisherConcatMap.ErrorMode;
 import rsc.scheduler.Scheduler;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 
 /**
  * Abstract base class for Parallel publishers that take an array of Subscribers.

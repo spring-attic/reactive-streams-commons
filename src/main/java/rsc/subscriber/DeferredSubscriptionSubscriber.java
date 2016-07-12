@@ -5,7 +5,6 @@ import java.util.Objects;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
-import rsc.util.DeferredSubscription;
 
 /**
  * Arbitrates the requests and cancellation for a Subscription that may be set onSubscribe once only.

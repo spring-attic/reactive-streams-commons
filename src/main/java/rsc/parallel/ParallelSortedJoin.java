@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.*;
 import org.reactivestreams.*;
 
 import rsc.publisher.Px;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**

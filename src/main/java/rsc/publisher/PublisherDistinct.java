@@ -11,7 +11,9 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.flow.Fuseable.ConditionalSubscriber;
-import rsc.state.Completable;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 import rsc.flow.Fuseable.*;
 
@@ -65,7 +67,8 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
     }
 
     static final class PublisherDistinctSubscriber<T, K, C extends Collection<? super K>>
-            implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+            implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback,
+                       Subscription, SubscriberState {
         final Subscriber<? super T> actual;
 
         final C collection;
@@ -196,7 +199,8 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
     }
 
     static final class PublisherDistinctConditionalSubscriber<T, K, C extends Collection<? super K>>
-    implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, Subscription {
+    implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback,
+               Subscription, SubscriberState {
         final ConditionalSubscriber<? super T> actual;
 
         final C collection;
@@ -357,7 +361,8 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
 
     
     static final class PublisherDistinctFuseableSubscriber<T, K, C extends Collection<? super K>>
-    implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback, Completable, QueueSubscription<T> {
+    implements Fuseable.ConditionalSubscriber<T>, Receiver, Producer, Loopback,
+               QueueSubscription<T>, SubscriberState {
         final Subscriber<? super T> actual;
 
         final C collection;

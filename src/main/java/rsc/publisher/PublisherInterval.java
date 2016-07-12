@@ -9,7 +9,7 @@ import org.reactivestreams.*;
 import rsc.scheduler.TimedScheduler;
 import rsc.scheduler.TimedScheduler.TimedWorker;
 import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Periodically emits an ever increasing long value either via a ScheduledExecutorService

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.*;
 import org.reactivestreams.*;
 
 import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Intercepts the onSubscribe call and makes sure calls to Subscription methods

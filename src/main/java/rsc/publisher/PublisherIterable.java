@@ -12,12 +12,10 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Emits the contents of an Iterable source.
@@ -88,7 +86,7 @@ extends Px<T>
     }
 
     static final class IterableSubscription<T>
-            implements Producer, Completable, Requestable, Cancellable, SynchronousSubscription<T> {
+            implements Producer, SubscriberState, SynchronousSubscription<T> {
 
         final Subscriber<? super T> actual;
 
@@ -333,7 +331,7 @@ extends Px<T>
     }
 
     static final class IterableSubscriptionConditional<T>
-            implements Producer, Completable, Requestable, Cancellable, Subscription, SynchronousSubscription<T> {
+            implements Producer, SubscriberState, Subscription, SynchronousSubscription<T> {
 
         final ConditionalSubscriber<? super T> actual;
 

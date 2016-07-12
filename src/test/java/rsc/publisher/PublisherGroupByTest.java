@@ -12,7 +12,7 @@ import org.reactivestreams.Subscription;
 import rsc.publisher.PublisherConcatMap.ErrorMode;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 
 public class PublisherGroupByTest {
 

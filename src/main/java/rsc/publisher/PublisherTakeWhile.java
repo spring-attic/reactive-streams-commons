@@ -9,9 +9,9 @@ import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Completable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -38,8 +38,9 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherTakeWhileSubscriber<>(s, predicate));
     }
 
-    static final class PublisherTakeWhileSubscriber<T> implements Subscriber<T>, Producer, Receiver, Completable,
-                                                                  Loopback, Subscription {
+    static final class PublisherTakeWhileSubscriber<T> implements Subscriber<T>, Producer, Receiver,
+                                                                  Loopback, Subscription,
+                                                                  SubscriberState {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;

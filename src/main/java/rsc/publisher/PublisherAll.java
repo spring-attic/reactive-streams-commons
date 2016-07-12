@@ -16,7 +16,7 @@ import rsc.documentation.OperatorType;
 import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**

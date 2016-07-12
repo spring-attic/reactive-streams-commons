@@ -5,7 +5,6 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import rsc.flow.Cancellation;
-import rsc.state.Cancellable;
 import rsc.util.ExceptionHelper;
 
 /**
@@ -54,7 +53,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
     }
     
-    static final class ConsumerFactoryWorker implements Worker, Cancellation, Cancellable {
+    static final class ConsumerFactoryWorker implements Worker, Cancellation {
         final Consumer<Runnable> consumer;
         
         volatile boolean terminated;
@@ -89,11 +88,6 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         @Override
         public void dispose() {
             shutdown();
-        }
-        
-        @Override
-        public boolean isCancelled() {
-            return terminated;
         }
     }
 }

@@ -7,7 +7,7 @@ import java.util.concurrent.locks.LockSupport;
 import org.reactivestreams.*;
 
 import rsc.subscriber.*;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.flow.Fuseable;
 import rsc.flow.Fuseable.*;
 

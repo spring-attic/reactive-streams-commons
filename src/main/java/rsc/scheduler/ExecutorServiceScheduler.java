@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import rsc.flow.Cancellation;
 import rsc.scheduler.ExecutorScheduler.ExecutorSchedulerTrampolineWorker;
-import rsc.state.Cancellable;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -126,7 +125,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
     
     static final class ScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellable, Cancellation {
+    implements Runnable, Cancellation {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -185,13 +184,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
                 }
             }
         }
-        
-        @Override
-        public boolean isCancelled() {
-            Future<?> f = get();
-            return f == FINISHED || f == CANCELLED_FUTURE;
-        }
-        
+
         @Override
         public void dispose() {
             for (;;) {

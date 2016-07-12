@@ -11,8 +11,8 @@ import rsc.flow.Loopback;
 import rsc.processor.DirectProcessor;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.subscriber.SerializedSubscriber;
-import rsc.util.DeferredSubscription;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.DeferredSubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
 
 /**
@@ -36,7 +36,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     @Override

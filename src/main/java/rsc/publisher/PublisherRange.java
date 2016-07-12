@@ -9,13 +9,11 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
-import rsc.util.ScalarSubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.ScalarSubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Emits a range of integer values.
@@ -64,7 +62,7 @@ extends Px<Integer>
     }
 
     static final class RangeSubscription
-            implements Cancellable, Requestable, Completable, Producer, SynchronousSubscription<Integer> {
+            implements SubscriberState, Producer, SynchronousSubscription<Integer>  {
 
         final Subscriber<? super Integer> actual;
 
@@ -219,7 +217,7 @@ extends Px<Integer>
     }
     
     static final class RangeSubscriptionConditional
-    implements Cancellable, Requestable, Completable, Producer, SynchronousSubscription<Integer> {
+            implements SubscriberState, Producer, SynchronousSubscription<Integer> {
 
         final ConditionalSubscriber<? super Integer> actual;
 

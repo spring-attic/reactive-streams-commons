@@ -10,22 +10,18 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
-import rsc.flow.Fuseable;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
+import rsc.flow.Fuseable;
 import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
 import rsc.publisher.Px;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -36,8 +32,7 @@ import rsc.util.UnsignalledExceptions;
 @BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class ReplayProcessor<T> 
-extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurable,
-                         Completable, Receiver {
+extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Receiver, SubscriberState {
 
     final Buffer<T> buffer;
 
@@ -737,8 +732,7 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Backpressurab
     }
     
     static final class ReplaySubscription<T> implements QueueSubscription<T>, Producer,
-                                                        Cancellable, Receiver,
-                                                        Requestable {
+                                                        SubscriberState, Receiver {
         final Subscriber<? super T> actual;
         
         final ReplayProcessor<T> parent;

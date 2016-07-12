@@ -6,9 +6,8 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Emits a constant or generated Throwable instance to Subscribers.
@@ -43,11 +42,6 @@ extends Px<T> {
     public PublisherError(Supplier<? extends Throwable> supplier, boolean whenRequested) {
         this.supplier = Objects.requireNonNull(supplier);
         this.whenRequested = whenRequested;
-    }
-
-    @Override
-    public Throwable getError() {
-        return supplier.get();
     }
 
     @Override

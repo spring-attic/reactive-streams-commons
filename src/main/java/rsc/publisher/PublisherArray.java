@@ -10,7 +10,9 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.*;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**
@@ -48,7 +50,8 @@ extends Px<T>
     }
 
     static final class ArraySubscription<T>
-            implements Producer, Requestable, Cancellable, MultiReceiver, SynchronousSubscription<T> {
+            implements Producer, SubscriberState, MultiReceiver,
+                       SynchronousSubscription<T> {
         final Subscriber<? super T> actual;
 
         final T[] array;
@@ -216,7 +219,7 @@ extends Px<T>
     }
 
     static final class ArrayConditionalSubscription<T>
-    implements Producer, Requestable, Cancellable, MultiReceiver, SynchronousSubscription<T> {
+    implements Producer, SubscriberState, MultiReceiver, SynchronousSubscription<T> {
         final ConditionalSubscriber<? super T> actual;
 
         final T[] array;

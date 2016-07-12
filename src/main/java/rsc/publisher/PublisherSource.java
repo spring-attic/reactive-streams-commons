@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import org.reactivestreams.Publisher;
 import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
+import rsc.subscriber.SubscriberState;
 
 /**
  * Keep reference to the upstream Publisher in order to apply operator Subscribers
@@ -14,7 +14,7 @@ import rsc.state.Backpressurable;
  */
 public abstract class PublisherSource<T, R> 
     extends Px<R>
-        implements Receiver, Backpressurable {
+        implements Receiver, SubscriberState {
 
     final protected Publisher<? extends T> source;
 

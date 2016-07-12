@@ -8,7 +8,9 @@ import org.reactivestreams.*;
 
 import rsc.documentation.*;
 import rsc.flow.*;
-import rsc.state.*;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**
@@ -172,7 +174,7 @@ extends Px<R>
     }
     
     static final class PublisherCombineLatestCoordinator<T, R> 
-    implements QueueSubscription<R>, MultiReceiver, Cancellable {
+    implements QueueSubscription<R>, MultiReceiver, SubscriberState {
 
         final Subscriber<? super R> actual;
         
@@ -516,7 +518,8 @@ extends Px<R>
     }
     
     static final class PublisherCombineLatestInner<T>
-            implements Subscriber<T>, Introspectable, Prefetchable, Requestable, Receiver, Producer {
+            implements Subscriber<T>, Receiver, Producer,
+                       SubscriberState {
 
         final PublisherCombineLatestCoordinator<T, ?> parent;
 
@@ -602,11 +605,6 @@ extends Px<R>
         @Override
         public long expectedFromUpstream() {
             return limit - produced;
-        }
-
-        @Override
-        public int getMode() {
-            return INNER;
         }
     }
     

@@ -9,6 +9,7 @@ import org.reactivestreams.Subscriber;
 import rsc.documentation.*;
 import rsc.flow.*;
 import rsc.scheduler.Scheduler;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**

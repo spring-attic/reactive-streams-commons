@@ -3,7 +3,7 @@ package rsc.publisher;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import rsc.test.TestSubscriber;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 
 public class PublisherTakeTest {
 

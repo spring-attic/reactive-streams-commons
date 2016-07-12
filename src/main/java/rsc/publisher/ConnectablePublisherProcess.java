@@ -13,9 +13,8 @@ import rsc.flow.Cancellation;
 import rsc.flow.Fuseable;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -114,7 +113,7 @@ public final class ConnectablePublisherProcess<T, U> extends ConnectablePublishe
     }
 
     static abstract class State<T, U>
-            implements Cancellation, Completable, Subscription, Receiver, Introspectable, Producer, Subscriber<T> {
+            implements Cancellation, Subscription, Receiver, Producer, Subscriber<T>, SubscriberState {
 
         final Processor<? super T, ? extends T> processor;
         final Publisher<? extends U>            publisher;
@@ -168,16 +167,6 @@ public final class ConnectablePublisherProcess<T, U> extends ConnectablePublishe
             if (CONNECTED.compareAndSet(this, 1, 2)) {
                 processor.onComplete();
             }
-        }
-
-        @Override
-        public int getMode() {
-            return INNER;
-        }
-
-        @Override
-        public String getName() {
-            return State.class.getSimpleName();
         }
 
         @Override

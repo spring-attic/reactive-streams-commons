@@ -9,17 +9,15 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
-import rsc.flow.*;
+import rsc.flow.MultiProducer;
+import rsc.flow.Producer;
+import rsc.flow.Receiver;
 import rsc.publisher.Px;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
-import rsc.util.SubscriptionHelper;
 
 /**
  * Dispatches onNext, onError and onComplete signals to zero-to-many Subscribers.
@@ -39,7 +37,7 @@ import rsc.util.SubscriptionHelper;
 @BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.ERROR)
 public final class DirectProcessor<T>
     extends Px<T>
-    implements Processor<T, T>, Receiver, Completable, MultiProducer {
+    implements Processor<T, T>, Receiver, MultiProducer, SubscriberState {
 
     @SuppressWarnings("rawtypes")
     private static final DirectProcessorSubscription[] EMPTY = new DirectProcessorSubscription[0];
@@ -223,8 +221,9 @@ public final class DirectProcessor<T>
         return null;
     }
 
-    static final class DirectProcessorSubscription<T> implements Subscription, Introspectable, Completable, Requestable,
-                                                                 Receiver, Producer, Cancellable {
+    static final class DirectProcessorSubscription<T> implements Subscription,
+                                                                 Receiver, Producer,
+                                                                 SubscriberState {
 
         final Subscriber<? super T> actual;
 
@@ -305,11 +304,6 @@ public final class DirectProcessor<T>
         @Override
         public boolean isTerminated() {
             return parent.isTerminated();
-        }
-
-        @Override
-        public int getMode() {
-            return INNER;
         }
     }
 

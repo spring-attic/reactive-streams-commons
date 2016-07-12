@@ -9,7 +9,6 @@ import org.reactivestreams.Subscription;
 
 import rsc.flow.Cancellation;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**

@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.*;
 
 import rsc.publisher.Px;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**

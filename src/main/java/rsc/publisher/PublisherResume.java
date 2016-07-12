@@ -36,7 +36,7 @@ public final class PublisherResume<T> extends PublisherSource<T, T> {
 
     @Override
     public long getCapacity() {
-        return -1L;
+        return getPending();
     }
 
     public static <T> PublisherResume<T> create(Publisher<? extends T> source, Publisher<? extends T> other) {

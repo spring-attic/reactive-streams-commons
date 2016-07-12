@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import rsc.flow.Receiver;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 
 /**
  * Defers the creation of the actual Publisher the Subscriber will be subscribed to.

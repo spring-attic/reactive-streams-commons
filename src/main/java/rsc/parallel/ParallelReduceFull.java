@@ -8,6 +8,7 @@ import org.reactivestreams.*;
 import rsc.flow.Fuseable;
 import rsc.publisher.Px;
 import rsc.subscriber.DeferredScalarSubscriber;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**

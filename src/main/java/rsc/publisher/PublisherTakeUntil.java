@@ -7,9 +7,9 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.subscriber.SerializedSubscriber;
-import rsc.util.CancelledSubscription;
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.CancelledSubscription;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Relays values from the main Publisher until another Publisher signals an event.

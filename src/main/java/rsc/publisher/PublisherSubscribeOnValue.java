@@ -9,7 +9,7 @@ import org.reactivestreams.*;
 import rsc.documentation.*;
 import rsc.flow.*;
 import rsc.scheduler.Scheduler;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Publisher indicating a scalar/empty source that subscribes on the specified scheduler.

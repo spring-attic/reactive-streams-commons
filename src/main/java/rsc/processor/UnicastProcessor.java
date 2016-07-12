@@ -1,18 +1,27 @@
 package rsc.processor;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Processor;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
-import rsc.flow.*;
+import rsc.flow.Fuseable;
+import rsc.flow.Producer;
+import rsc.flow.Receiver;
 import rsc.publisher.Px;
-import rsc.state.*;
-import rsc.util.*;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
+import rsc.util.BackpressureHelper;
+import rsc.util.UnsignalledExceptions;
 
 /**
  * A Processor implementation that takes a custom queue and allows
@@ -27,7 +36,8 @@ import rsc.util.*;
 @FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class UnicastProcessor<T> 
 extends Px<T>
-implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, Receiver, Completable, Cancellable, Requestable, Backpressurable {
+implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, Receiver,
+           SubscriberState {
 
     final Queue<T> queue;
     

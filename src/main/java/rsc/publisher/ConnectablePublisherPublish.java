@@ -14,14 +14,10 @@ import rsc.flow.Fuseable;
 import rsc.flow.Loopback;
 import rsc.flow.MultiProducer;
 import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.state.Requestable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -31,7 +27,7 @@ import rsc.util.UnsignalledExceptions;
  */
 @Operator(traits = OperatorType.CONNECTABLE, aliases = {"publish"})
 public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T>
-        implements Receiver, Loopback, Backpressurable {
+        implements Receiver, Loopback, PublisherConfig {
     /** The source observable. */
     final Publisher<? extends T> source;
     
@@ -106,7 +102,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
     }
 
     @Override
-    public long getCapacity() {
+    public long getPrefetch() {
         return prefetch;
     }
 
@@ -121,8 +117,8 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         return source;
     }
     
-    static final class State<T> implements Subscriber<T>, Receiver, MultiProducer, Backpressurable, Completable,
-                                           Cancellable, Cancellation, Introspectable {
+    static final class State<T> implements Subscriber<T>, Receiver, MultiProducer,
+                                           SubscriberState, Cancellation {
 
         final int prefetch;
         
@@ -532,7 +528,8 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         }
     }
     
-    static final class InnerSubscription<T> implements Subscription, Introspectable, Receiver, Requestable, Cancellable {
+    static final class InnerSubscription<T> implements Subscription, Receiver,
+                                                       SubscriberState {
         
         final Subscriber<? super T> actual;
         
@@ -576,16 +573,6 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         @Override
         public boolean isCancelled() {
             return cancelled != 0;
-        }
-
-        @Override
-        public int getMode() {
-            return INNER;
-        }
-
-        @Override
-        public String getName() {
-            return InnerSubscription.class.getSimpleName();
         }
 
         @Override

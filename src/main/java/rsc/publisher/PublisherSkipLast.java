@@ -7,8 +7,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Skips the last N elements from the source stream.
@@ -36,7 +36,9 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
         }
     }
 
-    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Receiver, Producer, Backpressurable, Subscription {
+    static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Receiver, Producer,
+                                                                 Subscription,
+                                                                 SubscriberState {
         final Subscriber<? super T> actual;
 
         final int n;

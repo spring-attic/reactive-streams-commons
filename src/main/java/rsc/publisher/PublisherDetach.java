@@ -2,7 +2,7 @@ package rsc.publisher;
 
 import org.reactivestreams.*;
 
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Detaches the both the child Subscriber and the Subscription on

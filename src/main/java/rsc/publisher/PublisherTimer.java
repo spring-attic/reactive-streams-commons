@@ -8,7 +8,7 @@ import org.reactivestreams.*;
 
 import rsc.flow.Cancellation;
 import rsc.scheduler.TimedScheduler;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Emits a single 0L value delayed by some time amount with a help of

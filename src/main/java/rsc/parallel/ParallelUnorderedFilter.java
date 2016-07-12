@@ -4,6 +4,7 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**

@@ -13,6 +13,10 @@ public abstract class GroupedPublisher<K, V> extends Px<V>{
 	 * Return defined identifier
 	 * @return defined identifier
 	 */
-	@Override
 	public abstract K key();
+
+	@Override
+	public K getId() {
+		return key();
+	}
 }

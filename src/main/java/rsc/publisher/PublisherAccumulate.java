@@ -11,9 +11,9 @@ import rsc.documentation.OperatorType;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Completable;
+import rsc.subscriber.SubscriberState;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -48,8 +48,9 @@ public final class PublisherAccumulate<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherAccumulateSubscriber<>(s, accumulator));
     }
 
-    static final class PublisherAccumulateSubscriber<T> implements Subscriber<T>, Receiver, Producer, Completable,
-                                                                   Loopback, Subscription {
+    static final class PublisherAccumulateSubscriber<T> implements Subscriber<T>, Receiver, Producer,
+                                                                   Loopback, Subscription,
+                                                                   SubscriberState {
         final Subscriber<? super T> actual;
 
         final BiFunction<T, ? super T, T> accumulator;

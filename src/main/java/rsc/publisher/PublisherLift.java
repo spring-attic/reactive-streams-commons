@@ -5,7 +5,7 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
 
 /**

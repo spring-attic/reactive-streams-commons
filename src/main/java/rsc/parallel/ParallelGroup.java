@@ -12,8 +12,8 @@ import rsc.publisher.GroupedPublisher;
 import rsc.publisher.PublisherArray;
 import rsc.publisher.Px;
 import rsc.util.BackpressureHelper;
-import rsc.util.EmptySubscription;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Exposes the 'rails' as individual GroupedPublisher instances, keyed by the rail index (zero based).

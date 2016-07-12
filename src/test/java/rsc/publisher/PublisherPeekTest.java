@@ -8,7 +8,7 @@ import org.reactivestreams.Subscription;
 import rsc.flow.Fuseable;
 import rsc.processor.UnicastProcessor;
 import rsc.test.TestSubscriber;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
 import rsc.util.SpscArrayQueue;
 

@@ -7,9 +7,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Completable;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -29,7 +28,8 @@ public final class PublisherNext<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherNextSubscriber<T>
-            implements Subscriber<T>, Subscription, Completable, Backpressurable, Receiver, Producer {
+            implements Subscriber<T>, Subscription, Receiver, Producer,
+                       SubscriberState {
 
         final Subscriber<? super T> actual;
 

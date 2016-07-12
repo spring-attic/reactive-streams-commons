@@ -12,10 +12,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.util.BackpressureHelper;
-import rsc.util.CancelledSubscription;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.CancelledSubscription;
+import rsc.subscriber.EmptySubscription;
 import rsc.util.ExceptionHelper;
-import rsc.util.SubscriptionHelper;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**

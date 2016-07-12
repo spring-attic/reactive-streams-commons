@@ -4,11 +4,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.state.Backpressurable;
-import rsc.state.Cancellable;
-import rsc.state.Completable;
-import rsc.state.Introspectable;
-import rsc.util.SubscriptionHelper;
 
 /**
  * Subscriber that makes sure signals are delivered sequentially in case the onNext, onError or onComplete methods are
@@ -23,7 +18,7 @@ import rsc.util.SubscriptionHelper;
  * @param <T> the value type
  */
 public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription, Receiver, Producer,
-                                                      Cancellable, Completable, Introspectable, Backpressurable {
+                                                      SubscriberState {
 
     final Subscriber<? super T> actual;
 
@@ -272,16 +267,6 @@ public final class SerializedSubscriber<T> implements Subscriber<T>, Subscriptio
     @Override
     public long getCapacity() {
         return LinkedArrayNode.DEFAULT_CAPACITY;
-    }
-
-    @Override
-    public int getMode() {
-        return INNER | TRACE_ONLY;
-    }
-
-    @Override
-    public String getName() {
-        return getClass().getSimpleName();
     }
 
     /**

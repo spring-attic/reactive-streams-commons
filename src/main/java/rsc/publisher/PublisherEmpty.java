@@ -4,8 +4,8 @@ import org.reactivestreams.*;
 
 import rsc.documentation.*;
 import rsc.flow.Fuseable;
-import rsc.state.Completable;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.EmptySubscription;
 
 /**
  * Represents an empty publisher which only calls onSubscribe and onComplete.
@@ -17,7 +17,7 @@ import rsc.util.EmptySubscription;
 @FusionSupport(output = { FusionMode.SCALAR })
 public final class PublisherEmpty 
 extends Px<Object>
-implements Fuseable.ScalarCallable<Object>, Completable {
+implements Fuseable.ScalarCallable<Object>, SubscriberState {
 
     private static final Publisher<Object> INSTANCE = new PublisherEmpty();
 

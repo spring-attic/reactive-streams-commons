@@ -14,7 +14,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.Backpressurable;
+import rsc.subscriber.SubscriberState;
 
 /**
  * Merges a fixed array of Publishers.
@@ -22,7 +22,8 @@ import rsc.state.Backpressurable;
  */
 @BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(input = { FusionMode.NOT_APPLICABLE }, innerInput = { FusionMode.SCALAR, FusionMode.SYNC, FusionMode.ASYNC })
-public final class PublisherMerge<T> extends Px<T> implements MultiReceiver, Backpressurable {
+public final class PublisherMerge<T> extends Px<T> implements MultiReceiver,
+                                                              SubscriberState {
 
     final Publisher<? extends T>[] sources;
     

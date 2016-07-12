@@ -12,8 +12,11 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.state.*;
+import rsc.subscriber.CancelledSubscription;
 import rsc.subscriber.DeferredScalarSubscriber;
+import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
 /**
@@ -25,7 +28,8 @@ import rsc.util.*;
  */
 @BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(innerInput = { FusionMode.SCALAR, FusionMode.SYNC, FusionMode.ASYNC })
-public final class PublisherZip<T, R> extends Px<R> implements Introspectable, Backpressurable, MultiReceiver {
+public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
+                                                               SubscriberState {
 
     final Publisher<? extends T>[] sources;
     
@@ -273,7 +277,7 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
     }
 
     static final class PublisherZipSingleCoordinator<T, R> extends DeferredScalarSubscriber<R, R>
-            implements MultiReceiver, Backpressurable {
+            implements MultiReceiver, SubscriberState {
 
         final Function<? super Object[], ? extends R> zipper;
         
@@ -389,8 +393,9 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         }
     }
     
-    static final class PublisherZipSingleSubscriber<T> implements Subscriber<T>, Cancellable, Cancellation, Backpressurable,
-                                                                  Completable, Introspectable, Receiver {
+    static final class PublisherZipSingleSubscriber<T> implements Subscriber<T>,
+                                                                  SubscriberState, Cancellation,
+                                                                  Receiver {
         final PublisherZipSingleCoordinator<T, ?> parent;
         
         final int index;
@@ -475,16 +480,6 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         }
 
         @Override
-        public int getMode() {
-            return INNER;
-        }
-
-        @Override
-        public String getName() {
-            return "ScalarZipSubscriber";
-        }
-
-        @Override
         public Object upstream() {
             return s;
         }
@@ -495,9 +490,8 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         }
     }
     
-    static final class PublisherZipCoordinator<T, R> implements Subscription, MultiReceiver, Cancellable, Backpressurable, Completable,
-                                                                Requestable,
-                                                                Introspectable {
+    static final class PublisherZipCoordinator<T, R> implements Subscription, MultiReceiver,
+                                                                SubscriberState {
 
         final Subscriber<? super R> actual;
         
@@ -815,9 +809,8 @@ public final class PublisherZip<T, R> extends Px<R> implements Introspectable, B
         }
     }
     
-    static final class PublisherZipInner<T> implements Subscriber<T>,
-                                                       Backpressurable,
-                                                       Completable, Prefetchable, Receiver, Producer {
+    static final class PublisherZipInner<T> implements Subscriber<T>, Receiver, Producer,
+                                                       SubscriberState {
         
         final PublisherZipCoordinator<T, ?> parent;
 

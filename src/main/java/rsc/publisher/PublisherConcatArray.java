@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.*;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import rsc.flow.MultiReceiver;
+import rsc.subscriber.EmptySubscription;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.util.*;
 

@@ -2,8 +2,8 @@ package rsc.publisher;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import rsc.state.Completable;
-import rsc.util.EmptySubscription;
+import rsc.subscriber.SubscriberState;
+import rsc.subscriber.EmptySubscription;
 
 /**
  * Represents an never publisher which only calls onSubscribe.
@@ -13,7 +13,7 @@ import rsc.util.EmptySubscription;
  */
 public final class PublisherNever 
 extends Px<Object>
-        implements Completable {
+        implements SubscriberState {
 
     private static final Publisher<Object> INSTANCE = new PublisherNever();
 
