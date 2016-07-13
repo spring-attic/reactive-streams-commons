@@ -27,6 +27,11 @@ public final class PublisherNext<T> extends PublisherSource<T, T> {
         source.subscribe(new PublisherNextSubscriber<>(s));
     }
 
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     static final class PublisherNextSubscriber<T>
             implements Subscriber<T>, Subscription, Receiver, Producer,
                        SubscriberState {

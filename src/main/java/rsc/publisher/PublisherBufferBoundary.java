@@ -36,6 +36,11 @@ extends PublisherSource<T, C> {
         this.other = Objects.requireNonNull(other, "other");
         this.bufferSupplier = Objects.requireNonNull(bufferSupplier, "bufferSupplier");
     }
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     @Override
     public void subscribe(Subscriber<? super C> s) {

@@ -35,7 +35,12 @@ public final class PublisherStreamCollector<T, A, R> extends PublisherSource<T, 
         super(source);
         this.collector = Objects.requireNonNull(collector, "collector");
     }
-    
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void subscribe(Subscriber<? super R> s) {
         A container;

@@ -39,15 +39,6 @@ public interface PublisherConfig {
         return 0;
     }
 
-
-    /**
-     * The name of the component
-     * @return the name of the component
-     */
-    default String getName() {
-        return getClass().getSimpleName();
-    }
-
     /**
      * The prefetch configuration of the component
      * @return the prefetch configuration of the component

@@ -20,7 +20,7 @@ import rsc.subscriber.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public abstract class ParallelPublisher<T> {
+public abstract class ParallelPublisher<T> implements PublisherConfig {
     
     /**
      * Subscribes an array of Subscribers to this ParallelPublisher and triggers

@@ -59,6 +59,11 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         this.innerQueueSupplier = Objects.requireNonNull(innerQueueSupplier, "innerQueueSupplier");
     }
 
+    @Override
+    public long getPrefetch() {
+        return prefetch;
+    }
+
     /**
      * Return a Subscriber that handles the merging operation with the given parameters.
      * @param <T> the input value type
@@ -167,11 +172,6 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         }
 
         return false;
-    }
-
-    @Override
-    public long getCapacity() {
-        return getPending();
     }
 
     static final class PublisherFlatMapMain<T, R>

@@ -40,6 +40,11 @@ public final class PublisherAggregate<T> extends PublisherSource<T, T> implement
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherAggregateSubscriber<>(s, aggregator));
     }
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     static final class PublisherAggregateSubscriber<T> extends DeferredScalarSubscriber<T, T> {
         final BiFunction<T, T, T> aggregator;

@@ -31,8 +31,8 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
     }
 
     @Override
-    public long getCapacity() {
-        return getPending();
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
     }
 
     static final class PublisherLatestSubscriber<T>

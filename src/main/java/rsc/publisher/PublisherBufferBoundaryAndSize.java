@@ -49,7 +49,12 @@ extends PublisherSource<T, C> {
         this.maxSize = maxSize;
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
     }
-    
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void subscribe(Subscriber<? super C> s) {
         C buffer;

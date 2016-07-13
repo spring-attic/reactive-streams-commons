@@ -26,6 +26,11 @@ public final class PublisherDelaySubscription<T, U> extends PublisherSource<T, T
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super T> s) {
         other.subscribe(new PublisherDelaySubscriptionOtherSubscriber<>(s, source));
     }

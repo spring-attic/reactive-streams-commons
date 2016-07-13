@@ -13,8 +13,7 @@ import rsc.subscriber.SubscriberState;
  * @param <R> the downstream value type
  */
 public abstract class PublisherSource<T, R> 
-    extends Px<R>
-        implements Receiver, SubscriberState {
+    extends Px<R> implements Receiver {
 
     final protected Publisher<? extends T> source;
 

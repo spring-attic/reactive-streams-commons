@@ -176,6 +176,11 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Receiver, Sub
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void onNext(T t) {
         Buffer<T> b = buffer;
         if (b.isDone()) {

@@ -45,6 +45,11 @@ public final class AsyncProcessor<T> extends Px<T> implements Processor<T, T>, F
     public AsyncProcessor() {
         SUBSCRIBERS.lazySet(this, EMPTY);
     }
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     @Override
     public void onSubscribe(Subscription s) {

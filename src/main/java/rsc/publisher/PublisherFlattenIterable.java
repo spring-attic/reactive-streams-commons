@@ -43,6 +43,11 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
     }
 
+    @Override
+    public long getPrefetch() {
+        return prefetch;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public void subscribe(Subscriber<? super R> s) {

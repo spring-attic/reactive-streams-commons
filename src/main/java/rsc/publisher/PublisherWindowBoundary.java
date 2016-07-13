@@ -39,6 +39,11 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Px<T
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super Px<T>> s) {
 
         Queue<T> q;

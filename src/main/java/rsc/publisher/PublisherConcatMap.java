@@ -60,8 +60,13 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
         this.prefetch = prefetch;
         this.errorMode = Objects.requireNonNull(errorMode, "errorMode");
     }
-    
-    public static <T, R> Subscriber<T> subscribe(Subscriber<? super R> s, Function<? super T, ? extends Publisher<? extends R>> mapper, 
+
+    @Override
+    public long getPrefetch() {
+        return prefetch;
+    }
+
+    public static <T, R> Subscriber<T> subscribe(Subscriber<? super R> s, Function<? super T, ? extends Publisher<? extends R>> mapper,
             Supplier<? extends Queue<T>> queueSupplier,
             int prefetch, ErrorMode errorMode) {
         Subscriber<T> parent = null;
@@ -97,11 +102,6 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
             parent = new PublisherConcatMapImmediate<>(s, mapper, queueSupplier, prefetch);
         }
         source.subscribe(parent);
-    }
-
-    @Override
-    public long getCapacity() {
-        return prefetch;
     }
     
     static final class PublisherConcatMapImmediate<T, R> implements Subscriber<T>, PublisherConcatMapSupport<R>, Subscription {

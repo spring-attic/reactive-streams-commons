@@ -35,6 +35,11 @@ public final class ParallelReduceFull<T> extends Px<T> implements Fuseable {
         
         source.subscribe(parent.subscribers);
     }
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     static final class ParallelReduceFullMainSubscriber<T> extends DeferredScalarSubscriber<T, T> {
 

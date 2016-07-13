@@ -53,6 +53,12 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Px<T>> 
         this.windowQueueSupplier = Objects.requireNonNull(windowQueueSupplier, "windowQueueSupplier");
         this.maxSize = maxSize;
     }
+
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     @Override
     public void subscribe(Subscriber<? super Px<T>> s) {

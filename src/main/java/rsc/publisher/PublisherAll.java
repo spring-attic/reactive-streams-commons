@@ -42,6 +42,11 @@ public final class PublisherAll<T> extends PublisherSource<T, Boolean> implement
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super Boolean> s) {
         source.subscribe(new PublisherAllSubscriber<T>(s, predicate));
     }

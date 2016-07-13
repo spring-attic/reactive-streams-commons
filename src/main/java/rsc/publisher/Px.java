@@ -552,11 +552,6 @@ public abstract class Px<T> implements Publisher<T>, PublisherConfig {
         return FACTORY;
     }
 
-    @Override
-    public String getName() {
-        return getClass().getSimpleName();
-    }
-
     public final <R> Px<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
         return flatMap(mapper, false, Integer.MAX_VALUE, BUFFER_SIZE);
     }

@@ -22,6 +22,11 @@ public final class PublisherIgnoreElements<T> extends PublisherSource<T, T> {
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherIgnoreElementsSubscriber<>(s));
     }
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     static final class PublisherIgnoreElementsSubscriber<T> implements Subscriber<T>, Producer, Subscription,
                                                                        Receiver {

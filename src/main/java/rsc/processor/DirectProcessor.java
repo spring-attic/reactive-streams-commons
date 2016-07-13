@@ -56,6 +56,11 @@ public final class DirectProcessor<T>
     private Throwable error;
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void onSubscribe(Subscription s) {
         Objects.requireNonNull(s, "s");
         if (subscribers != TERMINATED) {

@@ -48,7 +48,12 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         this.drainQueueSupplier = Objects.requireNonNull(drainQueueSupplier, "drainQueueSupplier");
         this.processorQueueSupplier = Objects.requireNonNull(processorQueueSupplier, "processorQueueSupplier");
     }
-    
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void subscribe(Subscriber<? super Px<T>> s) {
 

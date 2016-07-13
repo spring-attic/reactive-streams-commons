@@ -31,6 +31,11 @@ public final class ParallelCollect<T, C> extends ParallelPublisher<C> {
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super C>[] subscribers) {
         if (!validate(subscribers)) {
             return;

@@ -40,6 +40,11 @@ public final class PublisherElementAt<T> extends PublisherSource<T, T> implement
         this.defaultSupplier = null;
     }
 
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     public PublisherElementAt(Publisher<? extends T> source, long index, Supplier<? extends T> defaultSupplier) {
         super(source);
         if (index < 0) {

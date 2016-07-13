@@ -52,7 +52,12 @@ extends PublisherSource<T, C> {
         this.bufferSupplier = Objects.requireNonNull(bufferSupplier, "bufferSupplier");
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
     }
-    
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void subscribe(Subscriber<? super C> s) {
         

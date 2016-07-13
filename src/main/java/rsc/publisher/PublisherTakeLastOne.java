@@ -28,9 +28,10 @@ public final class PublisherTakeLastOne<T> extends PublisherSource<T, T> impleme
         source.subscribe(new PublisherTakeLastOneSubscriber<>(s));
     }
 
+
     @Override
-    public long getCapacity() {
-        return 1;
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
     }
 
     static final class PublisherTakeLastOneSubscriber<T>

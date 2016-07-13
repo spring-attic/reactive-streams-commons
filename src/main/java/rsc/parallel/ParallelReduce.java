@@ -30,6 +30,11 @@ public final class ParallelReduce<T, R> extends ParallelPublisher<R> {
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super R>[] subscribers) {
         if (!validate(subscribers)) {
             return;

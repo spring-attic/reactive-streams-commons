@@ -46,6 +46,11 @@ public final class PublisherAny<T> extends PublisherSource<T, Boolean> implement
         source.subscribe(new PublisherAnySubscriber<T>(s, predicate));
     }
 
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     static final class PublisherAnySubscriber<T> extends DeferredScalarSubscriber<T, Boolean>
             implements Receiver {
         final Predicate<? super T> predicate;

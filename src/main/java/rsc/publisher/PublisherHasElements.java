@@ -25,6 +25,11 @@ public final class PublisherHasElements<T> extends PublisherSource<T, Boolean> {
         source.subscribe(new PublisherHasElementsSubscriber<>(s));
     }
 
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     static final class PublisherHasElementsSubscriber<T> extends DeferredScalarSubscriber<T, Boolean>
             implements Receiver {
         Subscription s;

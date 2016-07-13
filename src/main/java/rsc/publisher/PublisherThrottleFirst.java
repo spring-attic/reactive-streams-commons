@@ -40,6 +40,11 @@ public final class PublisherThrottleFirst<T, U> extends PublisherSource<T, T> {
         
         source.subscribe(main);
     }
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     static final class PublisherThrottleFirstMain<T, U> 
     implements Subscriber<T>, Subscription {

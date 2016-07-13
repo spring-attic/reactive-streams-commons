@@ -226,7 +226,12 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
             s.request(Long.MAX_VALUE);
         }
     }
-    
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void onNext(T t) {
         if (done || cancelled) {

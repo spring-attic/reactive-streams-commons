@@ -39,11 +39,6 @@ public final class PublisherWithLatestFrom<T, U, R> extends PublisherSource<T, R
     }
 
     @Override
-    public long getCapacity() {
-        return getPending();
-    }
-
-    @Override
     public void subscribe(Subscriber<? super R> s) {
         SerializedSubscriber<R> serial = new SerializedSubscriber<>(s);
 

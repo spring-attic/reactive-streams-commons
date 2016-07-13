@@ -43,6 +43,11 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> implemen
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super R> s) {
         R container;
 

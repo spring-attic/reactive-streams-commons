@@ -60,8 +60,8 @@ public final class PublisherTake<T> extends PublisherSource<T, T> {
     }
 
     @Override
-    public long getCapacity() {
-        return n;
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
     }
 
     static final class PublisherTakeSubscriber<T>

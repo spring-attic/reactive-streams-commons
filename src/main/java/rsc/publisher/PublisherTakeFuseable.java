@@ -44,9 +44,4 @@ public final class PublisherTakeFuseable<T> extends PublisherSource<T, T> implem
     public void subscribe(Subscriber<? super T> s) {
         source.subscribe(new PublisherTakeFuseableSubscriber<>(s, n));
     }
-
-    @Override
-    public long getCapacity() {
-        return n;
-    }
 }

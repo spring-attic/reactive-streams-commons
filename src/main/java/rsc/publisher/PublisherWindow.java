@@ -13,17 +13,17 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
-import rsc.flow.*;
+import rsc.flow.MultiProducer;
+import rsc.flow.Producer;
+import rsc.flow.Receiver;
 import rsc.processor.UnicastProcessor;
 import rsc.subscriber.SubscriberState;
-import rsc.util.BackpressureHelper;
-
 import rsc.subscriber.SubscriptionHelper;
+import rsc.util.BackpressureHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -96,11 +96,6 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
             
             source.subscribe(new WindowOverlapSubscriber<>(s, size, skip, processorQueueSupplier, overflowQueue));
         }
-    }
-
-    @Override
-    public long getCapacity() {
-        return size;
     }
 
     static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Producer, Receiver,

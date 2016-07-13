@@ -36,6 +36,11 @@ public final class PublisherSingle<T> extends PublisherSource<T, T> implements F
         }
     };
 
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
 	/**
      * @param <T>
      * @return a Supplier instance marker that bypass NoSuchElementException if empty

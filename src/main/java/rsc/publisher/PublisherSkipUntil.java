@@ -27,6 +27,11 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super T> s) {
         PublisherSkipUntilMainSubscriber<T> mainSubscriber = new PublisherSkipUntilMainSubscriber<>(s);
 

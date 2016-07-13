@@ -57,6 +57,11 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     }
 
     @Override
+    public long getPrefetch() {
+        return prefetch;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super T> s) {
         
         if (PublisherSubscribeOnValue.scalarScheduleOn(source, s, scheduler)) {
@@ -90,12 +95,6 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     @Override
     public Object connectedOutput() {
         return scheduler;
-    }
-
-
-    @Override
-    public long getCapacity() {
-        return prefetch;
     }
 
     static final class PublisherObserveOnSubscriber<T>

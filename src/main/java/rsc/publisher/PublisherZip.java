@@ -74,6 +74,11 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
         this.prefetch = prefetch;
     }
 
+    @Override
+    public long getPrefetch() {
+        return prefetch;
+    }
+
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <U> PublisherZip<T, R> zipAdditionalSource(Publisher source, BiFunction zipper) {
         Publisher[] oldSources = sources;

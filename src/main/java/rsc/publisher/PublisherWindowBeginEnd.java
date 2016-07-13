@@ -80,6 +80,12 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         
         source.subscribe(main);
     }
+
+
+    @Override
+    public long getPrefetch() {
+        return bufferSize;
+    }
     
     static final class WindowBeginEndMainSubscriber<T, U, V>
     implements Subscriber<T>, Subscription {

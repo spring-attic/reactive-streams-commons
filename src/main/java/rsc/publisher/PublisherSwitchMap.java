@@ -44,7 +44,12 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
         this.bufferSize = bufferSize;
     }
-    
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void subscribe(Subscriber<? super R> s) {
         

@@ -47,11 +47,6 @@ public final class PublisherRepeat<T> extends PublisherSource<T, T> {
         }
     }
 
-    @Override
-    public long getCapacity() {
-        return getPending();
-    }
-
     static final class PublisherRepeatSubscriber<T>
             extends MultiSubscriptionSubscriber<T, T> {
 

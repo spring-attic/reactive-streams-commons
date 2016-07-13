@@ -50,6 +50,12 @@ public final class PublisherWindowBoundaryAndSize<T, U> extends PublisherSource<
         this.maxSize = maxSize;
     }
 
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void subscribe(Subscriber<? super Px<T>> s) {
 

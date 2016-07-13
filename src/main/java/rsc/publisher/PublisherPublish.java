@@ -51,6 +51,11 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
     }
 
     @Override
+    public long getPrefetch() {
+        return prefetch;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super R> s) {
         
         PublisherPublishMulticaster<T, R> multicast = new PublisherPublishMulticaster<>(prefetch, queueSupplier);

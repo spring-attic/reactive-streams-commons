@@ -38,6 +38,11 @@ public final class PublisherThrottleTimeout<T, U> extends PublisherSource<T, T> 
         this.throttler = Objects.requireNonNull(throttler, "throttler");
         this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
     }
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override

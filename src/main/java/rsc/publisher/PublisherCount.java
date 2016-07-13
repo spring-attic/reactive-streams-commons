@@ -30,6 +30,11 @@ public final class PublisherCount<T> extends PublisherSource<T, Long> implements
         source.subscribe(new PublisherCountSubscriber<>(s));
     }
 
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     static final class PublisherCountSubscriber<T> extends DeferredScalarSubscriber<T, Long>
             implements Receiver {
 

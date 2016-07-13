@@ -42,6 +42,11 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> implement
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super R> s) {
         R initialValue;
 

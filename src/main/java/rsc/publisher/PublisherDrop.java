@@ -39,9 +39,10 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
         this.onDrop = Objects.requireNonNull(onDrop, "onDrop");
     }
 
+
     @Override
-    public long getCapacity() {
-        return getPending();
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
     }
 
     @Override

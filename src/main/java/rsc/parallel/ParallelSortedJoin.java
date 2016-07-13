@@ -27,7 +27,12 @@ public final class ParallelSortedJoin<T> extends Px<T> {
         this.source = source;
         this.comparator = comparator;
     }
-    
+
+    @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
     @Override
     public void subscribe(Subscriber<? super T> s) {
         SortedJoinSubscription<T> parent = new SortedJoinSubscription<>(s, source.parallelism(), comparator);

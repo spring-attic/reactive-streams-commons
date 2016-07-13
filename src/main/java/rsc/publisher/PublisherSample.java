@@ -36,6 +36,11 @@ public final class PublisherSample<T, U> extends PublisherSource<T, T> {
     }
 
     @Override
+    public long getPrefetch() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
     public void subscribe(Subscriber<? super T> s) {
 
         Subscriber<T> serial = new SerializedSubscriber<>(s);
