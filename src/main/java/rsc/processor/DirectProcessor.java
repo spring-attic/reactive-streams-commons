@@ -316,9 +316,4 @@ public final class DirectProcessor<T>
     public Object upstream() {
         return null;
     }
-
-    @Override
-    public int getMode() {
-        return 0;
-    }
 }

@@ -291,11 +291,6 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
     }
 
     @Override
-    public int getMode() {
-        return INNER;
-    }
-
-    @Override
     public void request(long n) {
         if (SubscriptionHelper.validate(n)) {
             BackpressureHelper.getAndAddCap(REQUESTED, this, n);

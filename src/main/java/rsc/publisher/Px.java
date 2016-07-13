@@ -547,11 +547,6 @@ public abstract class Px<T> implements Publisher<T>, PublisherConfig {
         return onAssembly(new PublisherBufferBoundaryAndSize<>(this, other, bufferSupplier, maxSize, defaultUnboundedQueueSupplier(BUFFER_SIZE)));
     }
 
-    @Override
-    public int getMode() {
-        return FACTORY;
-    }
-
     public final <R> Px<R> flatMap(Function<? super T, ? extends Publisher<? extends R>> mapper) {
         return flatMap(mapper, false, Integer.MAX_VALUE, BUFFER_SIZE);
     }

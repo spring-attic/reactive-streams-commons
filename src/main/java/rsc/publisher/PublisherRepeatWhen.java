@@ -217,10 +217,5 @@ public final class PublisherRepeatWhen<T> extends PublisherSource<T, T> {
         public Object connectedOutput() {
             return completionSignal;
         }
-
-        @Override
-        public int getMode() {
-            return INNER | TRACE_ONLY;
-        }
     }
 }
