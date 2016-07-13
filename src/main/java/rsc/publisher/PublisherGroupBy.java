@@ -22,7 +22,7 @@ import rsc.flow.Fuseable;
 import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
@@ -77,12 +77,12 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
             q = mainQueueSupplier.get();
         } catch (Throwable ex) {
             ExceptionHelper.throwIfFatal(ex);
-            EmptySubscription.error(s, ex);
+            SubscriptionHelper.error(s, ex);
             return;
         }
         
         if (q == null) {
-            EmptySubscription.error(s, new NullPointerException("The mainQueueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The mainQueueSupplier returned a null queue"));
             return;
         }
         

@@ -19,7 +19,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Receiver;
 import rsc.subscriber.SubscriberState;
-import rsc.subscriber.CancelledSubscription;
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -276,12 +275,12 @@ public final class BlockingIterable<T> implements Iterable<T>, Receiver, Subscri
 
         @Override
         public boolean isStarted() {
-            return s != null && !done && s != CancelledSubscription.INSTANCE;
+            return s != null && !done && s != SubscriptionHelper.cancelled();
         }
 
         @Override
         public boolean isTerminated() {
-            return done || s == CancelledSubscription.INSTANCE;
+            return done || s == SubscriptionHelper.cancelled();
         }
     }
 

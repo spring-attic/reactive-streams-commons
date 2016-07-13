@@ -11,7 +11,7 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.ScalarSubscription;
 import rsc.subscriber.SubscriptionHelper;
 
@@ -46,7 +46,7 @@ extends Px<Integer>
         long st = start;
         long en = end;
         if (st == en) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         } else
         if (st + 1 == en) {

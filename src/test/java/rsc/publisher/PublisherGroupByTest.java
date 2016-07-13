@@ -10,9 +10,10 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import rsc.publisher.PublisherConcatMap.ErrorMode;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.test.TestSubscriber;
 import rsc.util.ConstructorTestBuilder;
-import rsc.subscriber.EmptySubscription;
+
 
 public class PublisherGroupByTest {
 
@@ -280,7 +281,7 @@ public class PublisherGroupByTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         TestSubscriber<Integer> ts3 = new TestSubscriber<>();
-        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        ts3.onSubscribe(SubscriptionHelper.empty());
         
         
         Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
@@ -333,7 +334,7 @@ public class PublisherGroupByTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         TestSubscriber<Integer> ts3 = new TestSubscriber<>();
-        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        ts3.onSubscribe(SubscriptionHelper.empty());
         
         
         Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
@@ -392,7 +393,7 @@ public class PublisherGroupByTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         TestSubscriber<Integer> ts3 = new TestSubscriber<>();
-        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        ts3.onSubscribe(SubscriptionHelper.empty());
         
         
         Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
@@ -452,7 +453,7 @@ public class PublisherGroupByTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         TestSubscriber<Integer> ts3 = new TestSubscriber<>();
-        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        ts3.onSubscribe(SubscriptionHelper.empty());
         
         
         Px.range(0, 1_000_000).groupBy(v -> v & 1).subscribe(new Subscriber<GroupedPublisher<Integer, Integer>>() {
@@ -505,7 +506,7 @@ public class PublisherGroupByTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         TestSubscriber<Integer> ts3 = new TestSubscriber<>();
-        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        ts3.onSubscribe(SubscriptionHelper.empty());
         
         
         Px.range(0, 1_000_000)
@@ -562,7 +563,7 @@ public class PublisherGroupByTest {
         TestSubscriber<Integer> ts1 = new TestSubscriber<>();
         TestSubscriber<Integer> ts2 = new TestSubscriber<>();
         TestSubscriber<Integer> ts3 = new TestSubscriber<>();
-        ts3.onSubscribe(EmptySubscription.INSTANCE);
+        ts3.onSubscribe(SubscriptionHelper.empty());
         
         
         Px.range(0, 1_000_000)

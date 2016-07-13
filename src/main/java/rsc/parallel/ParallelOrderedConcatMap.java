@@ -9,7 +9,7 @@ import org.reactivestreams.*;
 
 import rsc.flow.Fuseable;
 import rsc.publisher.PublisherConcatMap.ErrorMode;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
@@ -163,7 +163,7 @@ public final class ParallelOrderedConcatMap<T, R> extends ParallelOrderedBase<R>
                         } catch (Throwable ex) {
                             ExceptionHelper.throwIfFatal(ex);
                             s.cancel();
-                            EmptySubscription.error(actual, ex);
+                            SubscriptionHelper.error(actual, ex);
                             return;
                         }
                     }
@@ -173,7 +173,7 @@ public final class ParallelOrderedConcatMap<T, R> extends ParallelOrderedBase<R>
                     } catch (Throwable ex) {
                         s.cancel();
                         
-                        EmptySubscription.error(actual, ex);
+                        SubscriptionHelper.error(actual, ex);
                         return;
                     }
                 }
@@ -491,7 +491,7 @@ public final class ParallelOrderedConcatMap<T, R> extends ParallelOrderedBase<R>
                         } catch (Throwable ex) {
                             ExceptionHelper.throwIfFatal(ex);
                             s.cancel();
-                            EmptySubscription.error(actual, ex);
+                            SubscriptionHelper.error(actual, ex);
                             return;
                         }
                     }
@@ -501,7 +501,7 @@ public final class ParallelOrderedConcatMap<T, R> extends ParallelOrderedBase<R>
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
                         s.cancel();
-                        EmptySubscription.error(actual, ex);
+                        SubscriptionHelper.error(actual, ex);
                         return;
                     }
                 }

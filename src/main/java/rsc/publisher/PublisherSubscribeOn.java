@@ -10,7 +10,7 @@ import rsc.flow.*;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
 import rsc.subscriber.DeferredSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -45,12 +45,12 @@ public final class PublisherSubscribeOn<T> extends PublisherSource<T, T> impleme
             worker = scheduler.createWorker();
         } catch (Throwable e) {
             ExceptionHelper.throwIfFatal(e);
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (worker == null) {
-            EmptySubscription.error(s, new NullPointerException("The scheduler returned a null Function"));
+            SubscriptionHelper.error(s, new NullPointerException("The scheduler returned a null Function"));
             return;
         }
         

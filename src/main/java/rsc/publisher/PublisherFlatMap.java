@@ -12,8 +12,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.CancelledSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.ScalarSubscription;
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.SubscriptionHelper;
@@ -116,12 +115,12 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 t = ((Callable<? extends T>)source).call();
             } catch (Throwable e) {
                 ExceptionHelper.throwIfFatal(e);
-                EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
                 return true;
             }
 
             if (t == null) {
-                EmptySubscription.complete(s);
+                SubscriptionHelper.complete(s);
                 return true;
             }
 
@@ -131,12 +130,12 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 p = mapper.apply(t);
             } catch (Throwable e) {
                 ExceptionHelper.throwIfFatal(e);
-                EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
                 return true;
             }
 
             if (p == null) {
-                EmptySubscription.error(s, new NullPointerException("The mapper returned a null Publisher"));
+                SubscriptionHelper.error(s, new NullPointerException("The mapper returned a null Publisher"));
                 return true;
             }
 
@@ -147,14 +146,14 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     v = ((Callable<R>)p).call();
                 } catch (Throwable e) {
                     ExceptionHelper.throwIfFatal(e);
-                    EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                    SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
                     return true;
                 }
 
                 if (v != null) {
                     s.onSubscribe(new ScalarSubscription<>(s, v));
                 } else {
-                    EmptySubscription.complete(s);
+                    SubscriptionHelper.complete(s);
                 }
             } else {
                 if (!fuseableExpected || p instanceof Fuseable) {
@@ -1043,7 +1042,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
         @Override
         public boolean isCancelled() {
-            return s == CancelledSubscription.INSTANCE;
+            return s == SubscriptionHelper.cancelled();
         }
 
         @Override

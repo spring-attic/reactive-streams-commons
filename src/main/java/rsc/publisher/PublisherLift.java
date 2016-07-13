@@ -5,7 +5,8 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import rsc.subscriber.EmptySubscription;
+
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.ExceptionHelper;
 
 /**
@@ -36,12 +37,12 @@ public final class PublisherLift<T, R> extends PublisherSource<T, R> {
             ts = lifter.apply(s);
         } catch (Throwable e) {
             ExceptionHelper.throwIfFatal(e);
-            EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+            SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
             return;
         }
 
         if (ts == null) {
-            EmptySubscription.error(s, new NullPointerException("The operator returned a null Subscriber"));
+            SubscriptionHelper.error(s, new NullPointerException("The operator returned a null Subscriber"));
             return;
         }
 

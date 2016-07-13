@@ -10,7 +10,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
@@ -39,7 +39,7 @@ extends Px<T>
     
     public static <T> void subscribeWithArray(Subscriber<? super T> s, T[] array) {
         if (array.length == 0) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
         if (s instanceof ConditionalSubscriber) {

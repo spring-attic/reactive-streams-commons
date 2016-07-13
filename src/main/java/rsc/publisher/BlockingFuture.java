@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.subscriber.CancelledSubscription;
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -115,7 +114,7 @@ public final class BlockingFuture<T> {
 
         @Override
         public boolean isCancelled() {
-            return s == CancelledSubscription.INSTANCE;
+            return s == SubscriptionHelper.cancelled();
         }
 
         @Override

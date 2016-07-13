@@ -3,7 +3,7 @@ package rsc.publisher;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import rsc.subscriber.SubscriberState;
-import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Represents an never publisher which only calls onSubscribe.
@@ -23,7 +23,7 @@ extends Px<Object>
 
     @Override
     public void subscribe(Subscriber<? super Object> s) {
-        s.onSubscribe(EmptySubscription.INSTANCE);
+        s.onSubscribe(SubscriptionHelper.empty());
     }
 
     /**

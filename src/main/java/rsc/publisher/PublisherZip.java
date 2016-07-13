@@ -12,9 +12,8 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.CancelledSubscription;
 import rsc.subscriber.DeferredScalarSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
@@ -111,7 +110,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
         
         for (Publisher<? extends T> p : sourcesIterable) {
             if (p == null) {
-                EmptySubscription.error(s, new NullPointerException("The sourcesIterable returned a null Publisher"));
+                SubscriptionHelper.error(s, new NullPointerException("The sourcesIterable returned a null Publisher"));
                 return;
             }
             
@@ -124,12 +123,12 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
                     v = callable.call();
                 } catch (Throwable e) {
                     ExceptionHelper.throwIfFatal(e);
-                    EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                    SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
                     return;
                 }
                 
                 if (v == null) {
-                    EmptySubscription.complete(s);
+                    SubscriptionHelper.complete(s);
                     return;
                 }
                 
@@ -163,7 +162,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
         }
         
         if (n == 0) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
         
@@ -176,7 +175,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
         int n = srcs.length;
 
         if (n == 0) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
 
@@ -187,7 +186,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
             Publisher<? extends T> p = srcs[j];
             
             if (p == null) {
-                EmptySubscription.error(s, new NullPointerException("The sources contained a null Publisher"));
+                SubscriptionHelper.error(s, new NullPointerException("The sources contained a null Publisher"));
                 return;
             }
             
@@ -198,12 +197,12 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
                     v = ((Callable<? extends T>)p).call();
                 } catch (Throwable e) {
                     ExceptionHelper.throwIfFatal(e);
-                    EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+                    SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
                     return;
                 }
                 
                 if (v == null) {
-                    EmptySubscription.complete(s);
+                    SubscriptionHelper.complete(s);
                     return;
                 }
                 
@@ -466,7 +465,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
 
         @Override
         public boolean isCancelled() {
-            return s == CancelledSubscription.INSTANCE;
+            return s == SubscriptionHelper.cancelled();
         }
 
         @Override

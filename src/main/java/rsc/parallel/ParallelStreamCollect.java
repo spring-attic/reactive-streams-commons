@@ -6,7 +6,7 @@ import java.util.stream.Collector;
 import org.reactivestreams.*;
 
 import rsc.subscriber.DeferredScalarSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -56,7 +56,7 @@ public final class ParallelStreamCollect<T, A, R> extends ParallelPublisher<R> {
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
                 for (Subscriber<?> s : subscribers) {
-                    EmptySubscription.error(s, ex);
+                    SubscriptionHelper.error(s, ex);
                 }
                 return;
             }
@@ -84,7 +84,7 @@ public final class ParallelStreamCollect<T, A, R> extends ParallelPublisher<R> {
     
     void reportError(Subscriber<?>[] subscribers, Throwable ex) {
         for (Subscriber<?> s : subscribers) {
-            EmptySubscription.error(s, ex);
+            SubscriptionHelper.error(s, ex);
         }
     }
 

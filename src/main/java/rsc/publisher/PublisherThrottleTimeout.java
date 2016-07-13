@@ -13,7 +13,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -48,12 +48,12 @@ public final class PublisherThrottleTimeout<T, U> extends PublisherSource<T, T> 
         try {
             q = (Queue)queueSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (q == null) {
-            EmptySubscription.error(s, new NullPointerException("The queueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The queueSupplier returned a null queue"));
             return;
         }
         
@@ -142,7 +142,7 @@ public final class PublisherThrottleTimeout<T, U> extends PublisherSource<T, T> 
         public void onNext(T t) {
             long idx = INDEX.incrementAndGet(this);
             
-            if (!SubscriptionHelper.set(OTHER, this, EmptySubscription.INSTANCE)) {
+            if (!SubscriptionHelper.set(OTHER, this, SubscriptionHelper.empty())) {
                 return;
             }
             

@@ -5,7 +5,7 @@ import org.reactivestreams.*;
 import rsc.documentation.*;
 import rsc.flow.Fuseable;
 import rsc.subscriber.SubscriberState;
-import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Represents an empty publisher which only calls onSubscribe and onComplete.
@@ -27,7 +27,7 @@ implements Fuseable.ScalarCallable<Object>, SubscriberState {
 
     @Override
     public void subscribe(Subscriber<? super Object> s) {
-        EmptySubscription.complete(s);
+        SubscriptionHelper.complete(s);
     }
 
     /**

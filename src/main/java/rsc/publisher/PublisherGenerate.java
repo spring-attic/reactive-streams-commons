@@ -12,7 +12,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SignalEmitter;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
@@ -63,7 +63,7 @@ extends Px<T> {
         try {
             state = stateSupplier.call();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         s.onSubscribe(new GenerateSubscription<>(s, state, generator, stateConsumer));

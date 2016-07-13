@@ -22,7 +22,7 @@ import rsc.flow.*;
 import rsc.processor.UnicastProcessor;
 import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
@@ -85,12 +85,12 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
             try {
                 overflowQueue = overflowQueueSupplier.get();
             } catch (Throwable e) {
-                EmptySubscription.error(s, e);
+                SubscriptionHelper.error(s, e);
                 return;
             }
             
             if (overflowQueue == null) {
-                EmptySubscription.error(s, new NullPointerException("The overflowQueueSupplier returned a null queue"));
+                SubscriptionHelper.error(s, new NullPointerException("The overflowQueueSupplier returned a null queue"));
                 return;
             }
             

@@ -11,7 +11,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.flow.Fuseable.ConditionalSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
@@ -47,12 +47,12 @@ public final class PublisherDistinct<T, K, C extends Collection<? super K>> exte
         try {
             collection = collectionSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
         if (collection == null) {
-            EmptySubscription.error(s, new NullPointerException("The collectionSupplier returned a null collection"));
+            SubscriptionHelper.error(s, new NullPointerException("The collectionSupplier returned a null collection"));
             return;
         }
         

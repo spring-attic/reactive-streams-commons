@@ -12,7 +12,8 @@ import rsc.processor.DirectProcessor;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.subscriber.SerializedSubscriber;
 import rsc.subscriber.DeferredSubscription;
-import rsc.subscriber.EmptySubscription;
+
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.ExceptionHelper;
 
 /**
@@ -45,7 +46,7 @@ public final class PublisherRetryWhen<T> extends PublisherSource<T, T> {
         PublisherRetryWhenOtherSubscriber other = new PublisherRetryWhenOtherSubscriber();
         Subscriber<Throwable> signaller = new SerializedSubscriber<>(other.completionSignal);
         
-        signaller.onSubscribe(EmptySubscription.INSTANCE);
+        signaller.onSubscribe(SubscriptionHelper.empty());
 
         Subscriber<T> serial = new SerializedSubscriber<>(s);
 

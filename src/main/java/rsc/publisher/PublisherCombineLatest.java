@@ -8,7 +8,7 @@ import org.reactivestreams.*;
 
 import rsc.documentation.*;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
@@ -86,12 +86,12 @@ extends Px<R>
             try {
                 it = iterable.iterator();
             } catch (Throwable e) {
-                EmptySubscription.error(s, e);
+                SubscriptionHelper.error(s, e);
                 return;
             }
 
             if (it == null) {
-                EmptySubscription.error(s, new NullPointerException("The iterator returned is null"));
+                SubscriptionHelper.error(s, new NullPointerException("The iterator returned is null"));
                 return;
             }
 
@@ -102,7 +102,7 @@ extends Px<R>
                 try {
                     b = it.hasNext();
                 } catch (Throwable e) {
-                    EmptySubscription.error(s, e);
+                    SubscriptionHelper.error(s, e);
                     return;
                 }
 
@@ -115,12 +115,12 @@ extends Px<R>
                 try {
                     p = it.next();
                 } catch (Throwable e) {
-                    EmptySubscription.error(s, e);
+                    SubscriptionHelper.error(s, e);
                     return;
                 }
 
                 if (p == null) {
-                    EmptySubscription.error(s, new NullPointerException("The Publisher returned by the iterator is " +
+                    SubscriptionHelper.error(s, new NullPointerException("The Publisher returned by the iterator is " +
                       "null"));
                     return;
                 }
@@ -138,7 +138,7 @@ extends Px<R>
         }
 
         if (n == 0) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
         if (n == 1) {
@@ -156,12 +156,12 @@ extends Px<R>
         try {
             queue = queueSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (queue == null) {
-            EmptySubscription.error(s, new NullPointerException("The queueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The queueSupplier returned a null queue"));
             return;
         }
         

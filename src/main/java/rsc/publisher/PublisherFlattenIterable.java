@@ -12,7 +12,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -53,12 +53,12 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                 v = ((Callable<T>)source).call();
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
-                EmptySubscription.error(s, ex);
+                SubscriptionHelper.error(s, ex);
                 return;
             }
             
             if (v == null) {
-                EmptySubscription.complete(s);
+                SubscriptionHelper.complete(s);
                 return;
             }
             
@@ -70,7 +70,7 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                 it = iter.iterator();
             } catch (Throwable ex) {
                 ExceptionHelper.throwIfFatal(ex);
-                EmptySubscription.error(s, ex);
+                SubscriptionHelper.error(s, ex);
                 return;
             }
             
@@ -169,7 +169,7 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                 } catch (Throwable ex) {
                     ExceptionHelper.throwIfFatal(ex);
                     s.cancel();
-                    EmptySubscription.error(actual, ex);
+                    SubscriptionHelper.error(actual, ex);
                     return;
                 }
 

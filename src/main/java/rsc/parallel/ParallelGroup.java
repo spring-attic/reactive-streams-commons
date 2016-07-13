@@ -12,7 +12,7 @@ import rsc.publisher.GroupedPublisher;
 import rsc.publisher.PublisherArray;
 import rsc.publisher.Px;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -83,7 +83,7 @@ public final class ParallelGroup<T> extends Px<GroupedPublisher<Integer, T>> imp
                 this.actual = s;
                 s.onSubscribe(this);
             } else {
-                EmptySubscription.error(s, new IllegalStateException("This ParallelGroup can be subscribed to at most once."));
+                SubscriptionHelper.error(s, new IllegalStateException("This ParallelGroup can be subscribed to at most once."));
             }
         }
         

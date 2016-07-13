@@ -11,8 +11,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.subscriber.SerializedSubscriber;
-import rsc.subscriber.CancelledSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -244,7 +243,7 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
 
                 subscriber.onError(new TimeoutException());
             } else {
-                set(EmptySubscription.INSTANCE);
+                set(SubscriptionHelper.empty());
 
                 other.subscribe(new PublisherTimeoutOtherSubscriber<>(subscriber, this));
             }
@@ -330,7 +329,7 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (!S.compareAndSet(this, null, s)) {
                 s.cancel();
-                if (this.s != CancelledSubscription.INSTANCE) {
+                if (this.s != SubscriptionHelper.cancelled()) {
                     SubscriptionHelper.reportSubscriptionSet();
                 }
             } else {
@@ -358,9 +357,9 @@ public final class PublisherTimeout<T, U, V> extends PublisherSource<T, T> {
         @Override
         public void cancel() {
             Subscription a = s;
-            if (a != CancelledSubscription.INSTANCE) {
-                a = S.getAndSet(this, CancelledSubscription.INSTANCE);
-                if (a != null && a != CancelledSubscription.INSTANCE) {
+            if (a != SubscriptionHelper.cancelled()) {
+                a = S.getAndSet(this, SubscriptionHelper.cancelled());
+                if (a != null && a != SubscriptionHelper.cancelled()) {
                     a.cancel();
                 }
             }

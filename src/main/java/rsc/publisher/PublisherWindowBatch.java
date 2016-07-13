@@ -17,7 +17,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -61,12 +61,12 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Px<T>> 
         try {
             q = mainQueueSupplier.get();
         } catch (Throwable ex) {
-            EmptySubscription.error(s, ex);
+            SubscriptionHelper.error(s, ex);
             return;
         }
         
         if (q == null) {
-            EmptySubscription.error(s, new NullPointerException("The mainQueueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The mainQueueSupplier returned a null queue"));
             return;
         }
         

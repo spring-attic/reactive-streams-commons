@@ -10,7 +10,8 @@ import org.reactivestreams.Subscription;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
+
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.ExceptionHelper;
 
 /**
@@ -125,7 +126,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
                 }
                 catch (Throwable e) {
                     s.cancel();
-                    actual.onSubscribe(EmptySubscription.INSTANCE);
+                    actual.onSubscribe(SubscriptionHelper.empty());
                     onError(e);
                     return;
                 }
@@ -327,7 +328,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
                 }
                 catch (Throwable e) {
                     s.cancel();
-                    actual.onSubscribe(EmptySubscription.INSTANCE);
+                    actual.onSubscribe(SubscriptionHelper.empty());
                     onError(e);
                     return;
                 }
@@ -576,7 +577,7 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
                 }
                 catch (Throwable e) {
                     s.cancel();
-                    actual.onSubscribe(EmptySubscription.INSTANCE);
+                    actual.onSubscribe(SubscriptionHelper.empty());
                     onError(e);
                     return;
                 }

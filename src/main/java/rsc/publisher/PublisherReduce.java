@@ -14,7 +14,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -48,12 +48,12 @@ public final class PublisherReduce<T, R> extends PublisherSource<T, R> implement
         try {
             initialValue = initialSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
         if (initialValue == null) {
-            EmptySubscription.error(s, new NullPointerException("The initial value supplied is null"));
+            SubscriptionHelper.error(s, new NullPointerException("The initial value supplied is null"));
             return;
         }
 

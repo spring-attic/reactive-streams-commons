@@ -9,7 +9,7 @@ import org.reactivestreams.*;
 import rsc.publisher.*;
 import rsc.publisher.PublisherConcatMap.ErrorMode;
 import rsc.scheduler.Scheduler;
-import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Abstract base class for Parallel publishers that take an array of Subscribers.
@@ -54,7 +54,7 @@ public abstract class ParallelPublisher<T> {
         int p = parallelism();
         if (subscribers.length != p) {
             for (Subscriber<?> s : subscribers) {
-                EmptySubscription.error(s, new IllegalArgumentException("parallelism = " + p + ", subscribers = " + subscribers.length));
+                SubscriptionHelper.error(s, new IllegalArgumentException("parallelism = " + p + ", subscribers = " + subscribers.length));
             }
             return false;
         }

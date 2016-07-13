@@ -12,7 +12,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -50,7 +50,7 @@ public final class PublisherStreamCollector<T, A, R> extends PublisherSource<T, 
             finisher = collector.finisher();
         } catch (Throwable ex) {
             ExceptionHelper.throwIfFatal(ex);
-            EmptySubscription.error(s, ex);
+            SubscriptionHelper.error(s, ex);
             return;
         }
         

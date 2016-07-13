@@ -13,7 +13,7 @@ import org.reactivestreams.Subscription;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -57,12 +57,12 @@ public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends Publishe
         try {
             q = processorQueueSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
         if (q == null) {
-            EmptySubscription.error(s, new NullPointerException("The processorQueueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The processorQueueSupplier returned a null queue"));
             return;
         }
 
@@ -71,12 +71,12 @@ public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends Publishe
         try {
             dq = drainQueueSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
         if (dq == null) {
-            EmptySubscription.error(s, new NullPointerException("The drainQueueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The drainQueueSupplier returned a null queue"));
             return;
         }
 

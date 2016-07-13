@@ -19,7 +19,7 @@ import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
 import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 
@@ -69,12 +69,12 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
             worker = scheduler.createWorker();
         } catch (Throwable e) {
             ExceptionHelper.throwIfFatal(e);
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (worker == null) {
-            EmptySubscription.error(s, new NullPointerException("The scheduler returned a null Function"));
+            SubscriptionHelper.error(s, new NullPointerException("The scheduler returned a null Function"));
             return;
         }
         
@@ -195,7 +195,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     ExceptionHelper.throwIfFatal(e);
                     s.cancel();
                     try {
-                        EmptySubscription.error(actual, e);
+                        SubscriptionHelper.error(actual, e);
                     } finally {
                         worker.shutdown();
                     }
@@ -723,7 +723,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
                     s.cancel();
                     
                     try {
-                        EmptySubscription.error(actual, e);
+                        SubscriptionHelper.error(actual, e);
                     } finally {
                         worker.shutdown();
                     }

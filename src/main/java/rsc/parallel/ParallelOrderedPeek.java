@@ -5,7 +5,7 @@ import java.util.function.*;
 
 import org.reactivestreams.*;
 
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -118,7 +118,7 @@ public final class ParallelOrderedPeek<T> extends ParallelOrderedBase<T> {
                 } catch (Throwable ex) {
                     ExceptionHelper.throwIfFatal(ex);
                     s.cancel();
-                    actual.onSubscribe(EmptySubscription.INSTANCE);
+                    actual.onSubscribe(SubscriptionHelper.empty());
                     onError(ex);
                     return;
                 }

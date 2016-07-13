@@ -14,7 +14,7 @@ import rsc.flow.Fuseable;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.publisher.PublisherDistinct.PublisherDistinctFuseableSubscriber;
-import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * For each subscriber, tracks the source values that have been seen and
@@ -47,12 +47,12 @@ extends PublisherSource<T, T> implements Fuseable {
         try {
             collection = collectionSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
         if (collection == null) {
-            EmptySubscription.error(s, new NullPointerException("The collectionSupplier returned a null collection"));
+            SubscriptionHelper.error(s, new NullPointerException("The collectionSupplier returned a null collection"));
             return;
         }
         

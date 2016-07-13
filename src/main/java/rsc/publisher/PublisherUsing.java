@@ -10,7 +10,7 @@ import org.reactivestreams.*;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -64,7 +64,7 @@ extends Px<T>
             resource = resourceSupplier.call();
         } catch (Throwable e) {
             ExceptionHelper.throwIfFatal(e);
-            EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+            SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
             return;
         }
 
@@ -82,7 +82,7 @@ extends Px<T>
                 e = ex;
             }
 
-            EmptySubscription.error(s, ExceptionHelper.unwrap(e));
+            SubscriptionHelper.error(s, ExceptionHelper.unwrap(e));
             return;
         }
 
@@ -97,7 +97,7 @@ extends Px<T>
                 e = _ex;
             }
 
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 

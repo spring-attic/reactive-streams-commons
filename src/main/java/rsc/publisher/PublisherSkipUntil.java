@@ -7,8 +7,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.subscriber.SerializedSubscriber;
-import rsc.subscriber.CancelledSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -60,7 +59,7 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
             PublisherSkipUntilMainSubscriber<?> m = main;
             m.other.cancel();
             m.gate = true;
-            m.other = CancelledSubscription.INSTANCE;
+            m.other = SubscriptionHelper.cancelled();
         }
 
         @Override
@@ -79,7 +78,7 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
                 return;
             }
             m.gate = true;
-            m.other = CancelledSubscription.INSTANCE;
+            m.other = SubscriptionHelper.cancelled();
         }
 
 
@@ -109,7 +108,7 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
         void setOther(Subscription s) {
             if (!OTHER.compareAndSet(this, null, s)) {
                 s.cancel();
-                if (other != CancelledSubscription.INSTANCE) {
+                if (other != SubscriptionHelper.cancelled()) {
                     SubscriptionHelper.reportSubscriptionSet();
                 }
             }
@@ -122,9 +121,9 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
 
         void cancelMain() {
             Subscription s = main;
-            if (s != CancelledSubscription.INSTANCE) {
-                s = MAIN.getAndSet(this, CancelledSubscription.INSTANCE);
-                if (s != null && s != CancelledSubscription.INSTANCE) {
+            if (s != SubscriptionHelper.cancelled()) {
+                s = MAIN.getAndSet(this, SubscriptionHelper.cancelled());
+                if (s != null && s != SubscriptionHelper.cancelled()) {
                     s.cancel();
                 }
             }
@@ -132,9 +131,9 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
 
         void cancelOther() {
             Subscription s = other;
-            if (s != CancelledSubscription.INSTANCE) {
-                s = OTHER.getAndSet(this, CancelledSubscription.INSTANCE);
-                if (s != null && s != CancelledSubscription.INSTANCE) {
+            if (s != SubscriptionHelper.cancelled()) {
+                s = OTHER.getAndSet(this, SubscriptionHelper.cancelled());
+                if (s != null && s != SubscriptionHelper.cancelled()) {
                     s.cancel();
                 }
             }
@@ -150,7 +149,7 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
         public void onSubscribe(Subscription s) {
             if (!MAIN.compareAndSet(this, null, s)) {
                 s.cancel();
-                if (main != CancelledSubscription.INSTANCE) {
+                if (main != SubscriptionHelper.cancelled()) {
                     SubscriptionHelper.reportSubscriptionSet();
                 }
             } else {
@@ -170,8 +169,8 @@ public final class PublisherSkipUntil<T, U> extends PublisherSource<T, T> {
         @Override
         public void onError(Throwable t) {
             if (main == null) {
-                if (MAIN.compareAndSet(this, null, CancelledSubscription.INSTANCE)) {
-                    EmptySubscription.error(actual, t);
+                if (MAIN.compareAndSet(this, null, SubscriptionHelper.cancelled())) {
+                    SubscriptionHelper.error(actual, t);
                     return;
                 }
             }

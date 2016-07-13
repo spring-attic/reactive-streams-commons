@@ -17,7 +17,7 @@ import rsc.flow.Fuseable;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
 import rsc.publisher.Px;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
@@ -281,7 +281,7 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
                 drain();
             }
         } else {
-            EmptySubscription.error(s, new IllegalStateException("This processor allows only a single Subscriber"));
+            SubscriptionHelper.error(s, new IllegalStateException("This processor allows only a single Subscriber"));
         }
     }
 

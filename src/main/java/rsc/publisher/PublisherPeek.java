@@ -13,7 +13,8 @@ import rsc.flow.*;
 import rsc.flow.Fuseable.ConditionalSubscriber;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekConditionalSubscriber;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekFuseableSubscriber;
-import rsc.subscriber.EmptySubscription;
+
+import rsc.subscriber.SubscriptionHelper;
 import rsc.util.ExceptionHelper;
 
 /**
@@ -126,7 +127,7 @@ implements PublisherPeekHelper<T> {
                 }
                 catch (Throwable e) {
                     s.cancel();
-                    actual.onSubscribe(EmptySubscription.INSTANCE);
+                    actual.onSubscribe(SubscriptionHelper.empty());
                     onError(e);
                     return;
                 }

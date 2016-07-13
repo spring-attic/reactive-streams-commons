@@ -12,8 +12,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.CancelledSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -58,12 +57,12 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
         try {
             q = queueSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (q == null) {
-            EmptySubscription.error(s, new NullPointerException("The queueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The queueSupplier returned a null queue"));
             return;
         }
         
@@ -403,7 +402,7 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void onSubscribe(Subscription s) {
             Subscription a = this.s;
-            if (a == CancelledSubscription.INSTANCE) {
+            if (a == SubscriptionHelper.cancelled()) {
                 s.cancel();
             }
             if (a != null) {
@@ -418,7 +417,7 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
                 return;
             }
             a = this.s;
-            if (a != CancelledSubscription.INSTANCE) {
+            if (a != SubscriptionHelper.cancelled()) {
                 s.cancel();
                 
                 SubscriptionHelper.reportSubscriptionSet();
@@ -471,9 +470,9 @@ public final class PublisherSwitchMap<T, R> extends PublisherSource<T, R> {
         @Override
         public void cancel() {
             Subscription a = s;
-            if (a != CancelledSubscription.INSTANCE) {
-                a = S.getAndSet(this, CancelledSubscription.INSTANCE);
-                if (a != null && a != CancelledSubscription.INSTANCE) {
+            if (a != SubscriptionHelper.cancelled()) {
+                a = S.getAndSet(this, SubscriptionHelper.cancelled());
+                if (a != null && a != SubscriptionHelper.cancelled()) {
                     a.cancel();
                 }
             }

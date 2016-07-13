@@ -11,7 +11,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Emits the contents of a Stream source.
@@ -42,7 +42,7 @@ extends Px<T>
         try {
             it = stream.iterator();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 

@@ -2,8 +2,9 @@ package rsc.publisher;
 
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.test.TestSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 
 public class PublisherTakeTest {
 
@@ -67,7 +68,7 @@ public class PublisherTakeTest {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         Publisher<Integer> p = s -> {
-            s.onSubscribe(EmptySubscription.INSTANCE);
+            s.onSubscribe(SubscriptionHelper.empty());
             s.onNext(1);
             s.onNext(2);
             s.onNext(3);

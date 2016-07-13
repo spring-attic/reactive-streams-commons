@@ -36,7 +36,7 @@ public class DeferredSubscription
         Objects.requireNonNull(s, "s");
         for (;;) {
             Subscription a = this.s;
-            if (a == CancelledSubscription.INSTANCE) {
+            if (a == SubscriptionHelper.cancelled()) {
                 s.cancel();
                 return false;
             }
@@ -72,7 +72,7 @@ public class DeferredSubscription
     public final boolean set(Subscription s) {
         Objects.requireNonNull(s, "s");
         Subscription a = this.s;
-        if (a == CancelledSubscription.INSTANCE) {
+        if (a == SubscriptionHelper.cancelled()) {
             s.cancel();
             return false;
         }
@@ -95,7 +95,7 @@ public class DeferredSubscription
 
         a = this.s;
 
-        if (a != CancelledSubscription.INSTANCE) {
+        if (a != SubscriptionHelper.cancelled()) {
             s.cancel();
             return false;
         }
@@ -127,9 +127,9 @@ public class DeferredSubscription
     @Override
     public void cancel() {
         Subscription a = s;
-        if (a != CancelledSubscription.INSTANCE) {
-            a = S.getAndSet(this, CancelledSubscription.INSTANCE);
-            if (a != null && a != CancelledSubscription.INSTANCE) {
+        if (a != SubscriptionHelper.cancelled()) {
+            a = S.getAndSet(this, SubscriptionHelper.cancelled());
+            if (a != null && a != SubscriptionHelper.cancelled()) {
                 a.cancel();
             }
         }
@@ -142,7 +142,7 @@ public class DeferredSubscription
      */
     @Override
     public final boolean isCancelled() {
-        return s == CancelledSubscription.INSTANCE;
+        return s == SubscriptionHelper.cancelled();
     }
 
     @Override

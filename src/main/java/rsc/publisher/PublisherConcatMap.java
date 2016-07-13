@@ -12,7 +12,6 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.EmptySubscription;
 import rsc.subscriber.MultiSubscriptionSubscriber;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
@@ -189,7 +188,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                         } catch (Throwable ex) {
                             ExceptionHelper.throwIfFatal(ex);
                             s.cancel();
-                            EmptySubscription.error(actual, ex);
+                            SubscriptionHelper.error(actual, ex);
                             return;
                         }
                     }
@@ -199,7 +198,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                     } catch (Throwable ex) {
                         s.cancel();
                         
-                        EmptySubscription.error(actual, ex);
+                        SubscriptionHelper.error(actual, ex);
                         return;
                     }
                 }
@@ -515,7 +514,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                         } catch (Throwable ex) {
                             ExceptionHelper.throwIfFatal(ex);
                             s.cancel();
-                            EmptySubscription.error(actual, ex);
+                            SubscriptionHelper.error(actual, ex);
                             return;
                         }
                     }
@@ -525,7 +524,7 @@ public final class PublisherConcatMap<T, R> extends PublisherSource<T, R> {
                     } catch (Throwable ex) {
                         ExceptionHelper.throwIfFatal(ex);
                         s.cancel();
-                        EmptySubscription.error(actual, ex);
+                        SubscriptionHelper.error(actual, ex);
                         return;
                     }
                 }

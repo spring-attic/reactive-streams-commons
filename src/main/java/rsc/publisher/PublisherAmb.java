@@ -11,7 +11,7 @@ import org.reactivestreams.Subscription;
 import rsc.flow.MultiReceiver;
 import rsc.subscriber.SubscriberState;
 import rsc.subscriber.DeferredSubscriptionSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -63,12 +63,12 @@ extends Px<T>
             try {
                 it = iterable.iterator();
             } catch (Throwable e) {
-                EmptySubscription.error(s, e);
+                SubscriptionHelper.error(s, e);
                 return;
             }
 
             if (it == null) {
-                EmptySubscription.error(s, new NullPointerException("The iterator returned is null"));
+                SubscriptionHelper.error(s, new NullPointerException("The iterator returned is null"));
                 return;
             }
 
@@ -80,7 +80,7 @@ extends Px<T>
                 try {
                     b = it.hasNext();
                 } catch (Throwable e) {
-                    EmptySubscription.error(s, e);
+                    SubscriptionHelper.error(s, e);
                     return;
                 }
 
@@ -93,12 +93,12 @@ extends Px<T>
                 try {
                     p = it.next();
                 } catch (Throwable e) {
-                    EmptySubscription.error(s, e);
+                    SubscriptionHelper.error(s, e);
                     return;
                 }
 
                 if (p == null) {
-                    EmptySubscription.error(s, new NullPointerException("The Publisher returned by the iterator is " +
+                    SubscriptionHelper.error(s, new NullPointerException("The Publisher returned by the iterator is " +
                       "null"));
                     return;
                 }
@@ -116,14 +116,14 @@ extends Px<T>
         }
 
         if (n == 0) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
         if (n == 1) {
             Publisher<? extends T> p = a[0];
 
             if (p == null) {
-                EmptySubscription.error(s, new NullPointerException("The single source Publisher is null"));
+                SubscriptionHelper.error(s, new NullPointerException("The single source Publisher is null"));
             } else {
                 p.subscribe(s);
             }

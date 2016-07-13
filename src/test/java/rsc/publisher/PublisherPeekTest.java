@@ -7,8 +7,9 @@ import org.reactivestreams.Subscription;
 
 import rsc.flow.Fuseable;
 import rsc.processor.UnicastProcessor;
+import rsc.subscriber.SubscriptionHelper;
 import rsc.test.TestSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.util.SpscArrayQueue;
 
@@ -242,9 +243,10 @@ public class PublisherPeekTest {
         
         Px.wrap(u -> {
             if (!(u instanceof Fuseable.ConditionalSubscriber)) {
-                EmptySubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
+                SubscriptionHelper.error(u, new IllegalArgumentException("The subscriber is not " +
+                        "conditional: " + u));
             } else {
-                EmptySubscription.complete(u);
+                SubscriptionHelper.complete(u);
             }
         }).doOnNext(v -> { }).filter(v -> true).subscribe(ts);
         
@@ -259,9 +261,9 @@ public class PublisherPeekTest {
         
         Px.wrapFuseable(u -> {
             if (!(u instanceof Fuseable.ConditionalSubscriber)) {
-                EmptySubscription.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
+                SubscriptionHelper.error(u, new IllegalArgumentException("The subscriber is not conditional: " + u));
             } else {
-                EmptySubscription.complete(u);
+                SubscriptionHelper.complete(u);
             }
         }).doOnNext(v -> { }).filter(v -> true).subscribe(ts);
         

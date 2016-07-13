@@ -14,7 +14,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -49,12 +49,12 @@ public final class PublisherCollect<T, R> extends PublisherSource<T, R> implemen
         try {
             container = supplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
         if (container == null) {
-            EmptySubscription.error(s, new NullPointerException("The supplier returned a null container"));
+            SubscriptionHelper.error(s, new NullPointerException("The supplier returned a null container"));
             return;
         }
 

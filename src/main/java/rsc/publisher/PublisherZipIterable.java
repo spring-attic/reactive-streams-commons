@@ -12,7 +12,7 @@ import rsc.flow.MultiReceiver;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
 import rsc.subscriber.SubscriberState;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -46,12 +46,12 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         try {
             it = other.iterator();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (it == null) {
-            EmptySubscription.error(s, new NullPointerException("The other iterable produced a null iterator"));
+            SubscriptionHelper.error(s, new NullPointerException("The other iterable produced a null iterator"));
             return;
         }
         
@@ -60,12 +60,12 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
         try {
             b = it.hasNext();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (!b) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
         

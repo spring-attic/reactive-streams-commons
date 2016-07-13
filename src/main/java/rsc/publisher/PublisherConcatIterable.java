@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import rsc.flow.MultiReceiver;
 import rsc.subscriber.MultiSubscriptionSubscriber;
-import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Concatenates a fixed array of Publishers' values.
@@ -38,12 +38,12 @@ extends Px<T>
         try {
             it = iterable.iterator();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
         if (it == null) {
-            EmptySubscription.error(s, new NullPointerException("The Iterator returned is null"));
+            SubscriptionHelper.error(s, new NullPointerException("The Iterator returned is null"));
             return;
         }
 

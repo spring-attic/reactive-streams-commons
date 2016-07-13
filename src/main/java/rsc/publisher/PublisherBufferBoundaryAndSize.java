@@ -13,7 +13,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -57,12 +57,12 @@ extends PublisherSource<T, C> {
         try {
             buffer = bufferSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (buffer == null) {
-            EmptySubscription.error(s, new NullPointerException("The bufferSupplier returned a null buffer"));
+            SubscriptionHelper.error(s, new NullPointerException("The bufferSupplier returned a null buffer"));
             return;
         }
         
@@ -71,12 +71,12 @@ extends PublisherSource<T, C> {
         try {
             q = queueSupplier.get();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         
         if (q == null) {
-            EmptySubscription.error(s, new NullPointerException("The queueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The queueSupplier returned a null queue"));
             return;
         }
         

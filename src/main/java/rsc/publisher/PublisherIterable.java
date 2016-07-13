@@ -14,7 +14,7 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -41,7 +41,7 @@ extends Px<T>
         try {
             it = iterable.iterator();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
 
@@ -61,7 +61,7 @@ extends Px<T>
      */
     static <T> void subscribe(Subscriber<? super T> s, Iterator<? extends T> it) {
         if (it == null) {
-            EmptySubscription.error(s, new NullPointerException("The iterator is null"));
+            SubscriptionHelper.error(s, new NullPointerException("The iterator is null"));
             return;
         }
 
@@ -70,11 +70,11 @@ extends Px<T>
         try {
             b = it.hasNext();
         } catch (Throwable e) {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
             return;
         }
         if (!b) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
 

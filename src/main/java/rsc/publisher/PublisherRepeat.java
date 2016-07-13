@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import rsc.subscriber.MultiSubscriptionSubscriber;
-import rsc.subscriber.EmptySubscription;
+import rsc.subscriber.SubscriptionHelper;
 
 /**
  * Repeatedly subscribes to the source and relays its values either
@@ -34,7 +34,7 @@ public final class PublisherRepeat<T> extends PublisherSource<T, T> {
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (times == 0) {
-            EmptySubscription.complete(s);
+            SubscriptionHelper.complete(s);
             return;
         }
 

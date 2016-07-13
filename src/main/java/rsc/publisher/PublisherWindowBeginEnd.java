@@ -13,7 +13,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -63,12 +63,12 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
         try {
             q = queueSupplier.get();
         } catch (Throwable ex) {
-            EmptySubscription.error(s, ex);
+            SubscriptionHelper.error(s, ex);
             return;
         }
         
         if (q == null) {
-            EmptySubscription.error(s, new NullPointerException("The queueSupplier returned a null queue"));
+            SubscriptionHelper.error(s, new NullPointerException("The queueSupplier returned a null queue"));
             return;
         }
         
@@ -574,7 +574,7 @@ public final class PublisherWindowBeginEnd<T, U, V> extends PublisherSource<T, P
                     parent.drain();
                 }
             } else {
-                EmptySubscription.error(s, new IllegalStateException("This publisher allows only a single subscription"));
+                SubscriptionHelper.error(s, new IllegalStateException("This publisher allows only a single subscription"));
             }
         }
         

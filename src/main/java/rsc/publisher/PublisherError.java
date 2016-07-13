@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -61,7 +61,7 @@ extends Px<T> {
         if (whenRequested) {
             s.onSubscribe(new PublisherErrorSubscription(s, e));
         } else {
-            EmptySubscription.error(s, e);
+            SubscriptionHelper.error(s, e);
         }
     }
     

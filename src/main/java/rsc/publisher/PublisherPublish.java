@@ -16,7 +16,7 @@ import rsc.flow.Fuseable;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.util.BackpressureHelper;
-import rsc.subscriber.EmptySubscription;
+
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -61,12 +61,12 @@ public final class PublisherPublish<T, R> extends PublisherSource<T, R> implemen
             out = transform.apply(multicast);
         } catch (Throwable ex) {
             ExceptionHelper.throwIfFatal(ex);
-            EmptySubscription.error(s, ex);
+            SubscriptionHelper.error(s, ex);
             return;
         }
         
         if (out == null) {
-            EmptySubscription.error(s, new NullPointerException("The transform returned a null Publisher"));
+            SubscriptionHelper.error(s, new NullPointerException("The transform returned a null Publisher"));
             return;
         }
         
