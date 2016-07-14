@@ -39,7 +39,7 @@ import rsc.util.UnsignalledExceptions;
 @BackpressureSupport(input = BackpressureMode.BOUNDED, innerOutput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(innerOutput = { FusionMode.ASYNC}, output = { FusionMode.ASYNC })
 public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedPublisher<K, V>>
-        implements Fuseable, SubscriberState {
+        implements Fuseable {
 
     final Function<? super T, ? extends K> keySelector;
     
@@ -90,7 +90,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
     }
 
     @Override
-    public long getCapacity() {
+    public long getPrefetch() {
         return prefetch;
     }
     
