@@ -12,7 +12,7 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 
 import rsc.subscriber.SubscriptionHelper;
-import rsc.util.ExceptionHelper;
+import rsc.util.*;
 
 /**
  * Peek into the lifecycle events and signals of a sequence.
@@ -80,6 +80,8 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
         QueueSubscription<T> s;
 
         int sourceMode;
+        
+        boolean done;
 
         public PublisherPeekFuseableSubscriber(Subscriber<? super T> actual, PublisherPeekHelper<T> parent) {
             this.actual = actual;
@@ -137,6 +139,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return;
+            }
             if (sourceMode == NONE) {
                 if (parent.onNextCall() != null) {
                     try {
@@ -158,6 +164,11 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+            done = true;
             if(parent.onErrorCall() != null) {
                 ExceptionHelper.throwIfFatal(t);
                 parent.onErrorCall().accept(t);
@@ -183,6 +194,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onComplete() {
+            if (done) {
+                return;
+            }
+            done = true;
             if(parent.onCompleteCall() != null) {
                 try {
                     parent.onCompleteCall().run();
@@ -283,6 +298,8 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         int sourceMode;
 
+        boolean done;
+        
         public PublisherPeekFuseableConditionalSubscriber(ConditionalSubscriber<? super T> actual, PublisherPeekHelper<T> parent) {
             this.actual = actual;
             this.parent = parent;
@@ -339,6 +356,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return;
+            }
             if (sourceMode == NONE) {
                 if (parent.onNextCall() != null) {
                     try {
@@ -360,6 +381,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
         
         @Override
         public boolean tryOnNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return false;
+            }
             if (sourceMode == NONE) {
                 if (parent.onNextCall() != null) {
                     try {
@@ -383,6 +408,11 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+            done = true;
             if(parent.onErrorCall() != null) {
                 ExceptionHelper.throwIfFatal(t);
                 parent.onErrorCall().accept(t);
@@ -408,6 +438,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onComplete() {
+            if (done) {
+                return;
+            }
+            done = true;
             if(parent.onCompleteCall() != null) {
                 try {
                     parent.onCompleteCall().run();
@@ -532,6 +566,8 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
         final PublisherPeekHelper<T> parent;
 
         Subscription s;
+        
+        boolean done;
 
         public PublisherPeekConditionalSubscriber(ConditionalSubscriber<? super T> actual, PublisherPeekHelper<T> parent) {
             this.actual = actual;
@@ -588,6 +624,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return;
+            }
             if(parent.onNextCall() != null) {
                 try {
                     parent.onNextCall().accept(t);
@@ -604,6 +644,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public boolean tryOnNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return false;
+            }
             if(parent.onNextCall() != null) {
                 try {
                     parent.onNextCall().accept(t);
@@ -620,6 +664,11 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+            done = true;
             if(parent.onErrorCall() != null) {
                 ExceptionHelper.throwIfFatal(t);
                 parent.onErrorCall().accept(t);
@@ -645,6 +694,10 @@ public final class PublisherPeekFuseable<T> extends PublisherSource<T, T> implem
 
         @Override
         public void onComplete() {
+            if (done) {
+                return;
+            }
+            done = true;
             if(parent.onCompleteCall() != null) {
                 try {
                     parent.onCompleteCall().run();

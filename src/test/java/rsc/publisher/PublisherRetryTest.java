@@ -1,7 +1,10 @@
 package rsc.publisher;
 
+import java.util.function.Consumer;
+
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+
 import rsc.test.TestSubscriber;
 
 public class PublisherRetryTest {
@@ -77,4 +80,20 @@ public class PublisherRetryTest {
 
     }
 
+    @Test
+    public void doOnNextFails() {
+        Px.just(1)
+        .doOnNext(new Consumer<Integer>() {
+            int i;
+            @Override
+            public void accept(Integer t) {
+                if (i++ < 2) {
+                    throw new RuntimeException("test");
+                }
+            }
+        })
+        .retry(2)
+        .test()
+        .assertResult(1);
+    }
 }

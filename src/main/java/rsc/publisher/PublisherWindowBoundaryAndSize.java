@@ -11,7 +11,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.processor.UnicastProcessor;
-import rsc.subscriber.SubscriberState;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
 

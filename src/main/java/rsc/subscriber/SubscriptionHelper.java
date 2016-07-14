@@ -41,7 +41,7 @@ public enum SubscriptionHelper {
 
     /**
      * A singleton Subscription that represents a cancelled subscription instance and should not be leaked to clients as it
-     * represents a terminal state. <br> If algorithms need to hand out a subscription, replace this with {@link
+     * represents a terminal state. <br> If algorithms need to hand out a subscription, replace this with {@code
      * EmptySubscription#INSTANCE} because there is no standard way to tell if a Subscription is cancelled or not
      * otherwise.
      * @return a singleton noop {@link Subscription}

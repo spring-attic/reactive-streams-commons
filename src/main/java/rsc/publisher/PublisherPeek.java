@@ -15,7 +15,7 @@ import rsc.publisher.PublisherPeekFuseable.PublisherPeekConditionalSubscriber;
 import rsc.publisher.PublisherPeekFuseable.PublisherPeekFuseableSubscriber;
 
 import rsc.subscriber.SubscriptionHelper;
-import rsc.util.ExceptionHelper;
+import rsc.util.*;
 
 /**
  * Peek into the lifecycle events and signals of a sequence.
@@ -83,6 +83,8 @@ implements PublisherPeekHelper<T> {
 
         Subscription s;
 
+        boolean done;
+        
         public PublisherPeekSubscriber(Subscriber<? super T> actual, PublisherPeekHelper<T> parent) {
             this.actual = actual;
             this.parent = parent;
@@ -138,6 +140,10 @@ implements PublisherPeekHelper<T> {
 
         @Override
         public void onNext(T t) {
+            if (done) {
+                UnsignalledExceptions.onNextDropped(t);
+                return;
+            }
             if(parent.onNextCall() != null) {
                 try {
                     parent.onNextCall().accept(t);
@@ -155,6 +161,11 @@ implements PublisherPeekHelper<T> {
 
         @Override
         public void onError(Throwable t) {
+            if (done) {
+                UnsignalledExceptions.onErrorDropped(t);
+                return;
+            }
+            done = true;
             if(parent.onErrorCall() != null) {
                 ExceptionHelper.throwIfFatal(t);
                 parent.onErrorCall().accept(t);
@@ -180,6 +191,10 @@ implements PublisherPeekHelper<T> {
 
         @Override
         public void onComplete() {
+            if (done) {
+                return;
+            }
+            done = true;
             if(parent.onCompleteCall() != null) {
                 try {
                     parent.onCompleteCall().run();

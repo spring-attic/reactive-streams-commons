@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import org.reactivestreams.Publisher;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
 
 /**
  * Keep reference to the upstream Publisher in order to apply operator Subscribers
