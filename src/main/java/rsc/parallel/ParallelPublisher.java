@@ -20,7 +20,7 @@ import rsc.subscriber.SubscriptionHelper;
  * 
  * @param <T> the value type
  */
-public abstract class ParallelPublisher<T> implements PublisherConfig {
+public abstract class ParallelPublisher<T> {
     
     /**
      * Subscribes an array of Subscribers to this ParallelPublisher and triggers
@@ -868,5 +868,13 @@ public abstract class ParallelPublisher<T> implements PublisherConfig {
             return new ParallelOrderedConcatMap<>((ParallelOrderedBase<T>)this, mapper, Px.defaultQueueSupplier(prefetch), prefetch, errorMode);
         }
         return new ParallelUnorderedConcatMap<>(this, mapper, Px.defaultQueueSupplier(prefetch), prefetch, errorMode);
+    }
+
+    /**
+     * The prefetch configuration of the component
+     * @return the prefetch configuration of the component
+     */
+    public long getPrefetch() {
+        return -1L;
     }
 }

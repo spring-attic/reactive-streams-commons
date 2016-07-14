@@ -57,7 +57,15 @@ import rsc.util.UnsignalledExceptions;
  * 
  * @param <T> the output value type
  */
-public abstract class Px<T> implements Publisher<T>, PublisherConfig {
+public abstract class Px<T> implements Publisher<T> {
+
+    /**
+     * The prefetch configuration of the component
+     * @return the prefetch configuration of the component
+     */
+    public long getPrefetch() {
+        return -1L;
+    }
 
     static final int BUFFER_SIZE = 128;
     

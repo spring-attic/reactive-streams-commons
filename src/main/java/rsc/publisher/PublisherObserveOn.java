@@ -98,8 +98,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     }
 
     static final class PublisherObserveOnSubscriber<T>
-    implements Subscriber<T>, QueueSubscription<T>, Runnable, Producer, Loopback, Receiver, SubscriberState,
-               PublisherConfig {
+    implements Subscriber<T>, QueueSubscription<T>, Runnable, Producer, Loopback, Receiver, SubscriberState {
         
         final Subscriber<? super T> actual;
         

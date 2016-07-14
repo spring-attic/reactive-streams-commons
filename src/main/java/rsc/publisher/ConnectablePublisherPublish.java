@@ -27,7 +27,7 @@ import rsc.util.UnsignalledExceptions;
  */
 @Operator(traits = OperatorType.CONNECTABLE, aliases = {"publish"})
 public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T>
-        implements Receiver, Loopback, PublisherConfig {
+        implements Receiver, Loopback {
     /** The source observable. */
     final Publisher<? extends T> source;
     
