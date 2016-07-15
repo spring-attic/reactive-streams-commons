@@ -9,7 +9,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.MultiReceiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.DeferredSubscriptionSubscriber;
 
 import rsc.subscriber.SubscriptionHelper;
@@ -158,7 +158,7 @@ extends Px<T>
     }
 
     static final class PublisherAmbCoordinator<T>
-      implements Subscription, MultiReceiver, SubscriberState {
+      implements Subscription, MultiReceiver, Trackable {
 
         final PublisherAmbSubscriber<T>[] subscribers;
 

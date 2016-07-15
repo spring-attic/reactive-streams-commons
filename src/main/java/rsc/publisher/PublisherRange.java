@@ -9,7 +9,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 
 import rsc.subscriber.ScalarSubscription;
@@ -62,7 +62,7 @@ extends Px<Integer>
     }
 
     static final class RangeSubscription
-            implements SubscriberState, Producer, SynchronousSubscription<Integer>  {
+            implements Trackable, Producer, SynchronousSubscription<Integer>  {
 
         final Subscriber<? super Integer> actual;
 
@@ -217,7 +217,7 @@ extends Px<Integer>
     }
     
     static final class RangeSubscriptionConditional
-            implements SubscriberState, Producer, SynchronousSubscription<Integer> {
+            implements Trackable, Producer, SynchronousSubscription<Integer> {
 
         final ConditionalSubscriber<? super Integer> actual;
 

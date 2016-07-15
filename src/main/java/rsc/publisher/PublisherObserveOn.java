@@ -17,7 +17,7 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.scheduler.Scheduler;
 import rsc.scheduler.Scheduler.Worker;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 
 import rsc.util.ExceptionHelper;
@@ -98,7 +98,8 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
     }
 
     static final class PublisherObserveOnSubscriber<T>
-    implements Subscriber<T>, QueueSubscription<T>, Runnable, Producer, Loopback, Receiver, SubscriberState {
+    implements Subscriber<T>, QueueSubscription<T>, Runnable, Producer, Loopback, Receiver,
+               Trackable {
         
         final Subscriber<? super T> actual;
         
@@ -623,8 +624,7 @@ public final class PublisherObserveOn<T> extends PublisherSource<T, T> implement
 
     static final class PublisherObserveOnConditionalSubscriber<T>
     implements Subscriber<T>, QueueSubscription<T>, Runnable,
-               Producer, Loopback, Receiver,
-               SubscriberState {
+               Producer, Loopback, Receiver, Trackable {
         
         final Fuseable.ConditionalSubscriber<? super T> actual;
         

@@ -23,7 +23,7 @@ import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
 
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
@@ -97,7 +97,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
     static final class PublisherGroupByMain<T, K, V> implements Subscriber<T>,
                                                                 Fuseable.QueueSubscription<GroupedPublisher<K, V>>,
                                                                 MultiProducer, Producer,
-                                                                SubscriberState, Receiver {
+                                                                Trackable, Receiver {
 
         final Function<? super T, ? extends K> keySelector;
         
@@ -504,7 +504,7 @@ public final class PublisherGroupBy<T, K, V> extends PublisherSource<T, GroupedP
     
     static final class UnicastGroupedPublisher<K, V> extends GroupedPublisher<K, V> 
     implements Fuseable, Fuseable.QueueSubscription<V>,
-               Producer, Receiver, SubscriberState {
+               Producer, Receiver, Trackable {
         final K key;
         
         final int limit;

@@ -9,6 +9,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 
 /**
@@ -25,7 +26,7 @@ import rsc.util.BackpressureHelper;
  * @param <O> the output value type
  */
 public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription, Subscriber<I>, Producer,
-                                                                   SubscriberState,
+                                                                   Trackable,
                                                                    Receiver {
 
     protected final Subscriber<? super O> subscriber;

@@ -18,7 +18,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -29,7 +29,7 @@ import rsc.subscriber.SubscriptionHelper;
  *
  * @param <T> the value type
  */
-public final class BlockingIterable<T> implements Iterable<T>, Receiver, SubscriberState {
+public final class BlockingIterable<T> implements Iterable<T>, Receiver, Trackable {
 
     final Publisher<? extends T> source;
     
@@ -124,7 +124,7 @@ public final class BlockingIterable<T> implements Iterable<T>, Receiver, Subscri
     }
     
     static final class SubscriberIterator<T> implements Subscriber<T>, Iterator<T>, Runnable, Receiver,
-                                                        SubscriberState {
+                                                        Trackable {
 
         final Queue<T> queue;
         

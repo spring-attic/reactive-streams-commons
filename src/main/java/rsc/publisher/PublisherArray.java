@@ -11,7 +11,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -50,7 +50,7 @@ extends Px<T>
     }
 
     static final class ArraySubscription<T>
-            implements Producer, SubscriberState, MultiReceiver,
+            implements Producer, Trackable, MultiReceiver,
                        SynchronousSubscription<T> {
         final Subscriber<? super T> actual;
 
@@ -219,7 +219,7 @@ extends Px<T>
     }
 
     static final class ArrayConditionalSubscription<T>
-    implements Producer, SubscriberState, MultiReceiver, SynchronousSubscription<T> {
+    implements Producer, Trackable, MultiReceiver, SynchronousSubscription<T> {
         final ConditionalSubscriber<? super T> actual;
 
         final T[] array;

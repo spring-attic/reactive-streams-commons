@@ -14,7 +14,7 @@ import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 import rsc.util.DrainHelper;
 import rsc.util.ExceptionHelper;
@@ -66,8 +66,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
     }
 
     static final class PublisherBufferExactSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription, Receiver, Producer, Loopback,
-                 SubscriberState {
+      implements Subscriber<T>, Subscription, Receiver, Producer, Loopback, Trackable {
 
         final Subscriber<? super C> actual;
 
@@ -212,8 +211,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
     }
 
     static final class PublisherBufferSkipSubscriber<T, C extends Collection<? super T>>
-      implements Subscriber<T>, Subscription, Receiver, Producer, Loopback,
-                 SubscriberState {
+      implements Subscriber<T>, Subscription, Receiver, Producer, Loopback, Trackable {
 
         final Subscriber<? super C> actual;
 
@@ -390,7 +388,7 @@ public final class PublisherBuffer<T, C extends Collection<? super T>> extends P
 
     static final class PublisherBufferOverlappingSubscriber<T, C extends Collection<? super T>>
       implements Subscriber<T>, Subscription, Receiver, BooleanSupplier, Producer,
-                 SubscriberState, Loopback {
+                 Trackable, Loopback {
         final Subscriber<? super C> actual;
 
         final Supplier<C> bufferSupplier;

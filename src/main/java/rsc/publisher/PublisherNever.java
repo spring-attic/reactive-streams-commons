@@ -2,7 +2,7 @@ package rsc.publisher;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -13,7 +13,7 @@ import rsc.subscriber.SubscriptionHelper;
  */
 public final class PublisherNever 
 extends Px<Object>
-        implements SubscriberState {
+        implements Trackable {
 
     private static final Publisher<Object> INSTANCE = new PublisherNever();
 

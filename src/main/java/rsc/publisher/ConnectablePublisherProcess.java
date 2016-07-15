@@ -13,7 +13,7 @@ import rsc.flow.Cancellation;
 import rsc.flow.Fuseable;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
 
@@ -113,7 +113,8 @@ public final class ConnectablePublisherProcess<T, U> extends ConnectablePublishe
     }
 
     static abstract class State<T, U>
-            implements Cancellation, Subscription, Receiver, Producer, Subscriber<T>, SubscriberState {
+            implements Cancellation, Subscription, Receiver, Producer, Subscriber<T>,
+                       Trackable {
 
         final Processor<? super T, ? extends T> processor;
         final Publisher<? extends U>            publisher;

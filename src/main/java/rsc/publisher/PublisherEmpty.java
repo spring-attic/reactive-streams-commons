@@ -4,7 +4,7 @@ import org.reactivestreams.*;
 
 import rsc.documentation.*;
 import rsc.flow.Fuseable;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -17,7 +17,7 @@ import rsc.subscriber.SubscriptionHelper;
 @FusionSupport(output = { FusionMode.SCALAR })
 public final class PublisherEmpty 
 extends Px<Object>
-implements Fuseable.ScalarCallable<Object>, SubscriberState {
+implements Fuseable.ScalarCallable<Object>, Trackable {
 
     private static final Publisher<Object> INSTANCE = new PublisherEmpty();
 

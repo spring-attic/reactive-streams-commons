@@ -16,7 +16,7 @@ import rsc.flow.Fuseable.*;
  * @param <O> The downstream sequence type
  */
 public class DeferredScalarSubscriber<I, O> implements Subscriber<I>, QueueSubscription<O>, Loopback,
-                                                       SubscriberState,
+                                                       Trackable,
                                                        Receiver, Producer {
 
     static final int SDS_NO_REQUEST_NO_VALUE   = 0;

@@ -9,7 +9,7 @@ import org.reactivestreams.*;
 import rsc.documentation.*;
 import rsc.flow.*;
 
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -174,7 +174,7 @@ extends Px<R>
     }
     
     static final class PublisherCombineLatestCoordinator<T, R> 
-    implements QueueSubscription<R>, MultiReceiver, SubscriberState {
+    implements QueueSubscription<R>, MultiReceiver, Trackable {
 
         final Subscriber<? super R> actual;
         
@@ -526,8 +526,7 @@ extends Px<R>
     }
     
     static final class PublisherCombineLatestInner<T>
-            implements Subscriber<T>, Receiver, Producer,
-                       SubscriberState {
+            implements Subscriber<T>, Receiver, Producer, Trackable {
 
         final PublisherCombineLatestCoordinator<T, ?> parent;
 

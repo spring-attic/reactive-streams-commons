@@ -12,7 +12,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 
 import rsc.subscriber.SubscriptionHelper;
@@ -86,7 +86,7 @@ extends Px<T>
     }
 
     static final class IterableSubscription<T>
-            implements Producer, SubscriberState, SynchronousSubscription<T> {
+            implements Producer, Trackable, SynchronousSubscription<T> {
 
         final Subscriber<? super T> actual;
 
@@ -331,7 +331,7 @@ extends Px<T>
     }
 
     static final class IterableSubscriptionConditional<T>
-            implements Producer, SubscriberState, Subscription, SynchronousSubscription<T> {
+            implements Producer, Trackable, Subscription, SynchronousSubscription<T> {
 
         final ConditionalSubscriber<? super T> actual;
 

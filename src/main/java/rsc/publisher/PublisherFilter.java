@@ -12,7 +12,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -55,7 +55,8 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
     }
 
     static final class FilterSubscriber<T>
-            implements Receiver, Producer, Loopback, Subscription, Fuseable.ConditionalSubscriber<T>, SubscriberState {
+            implements Receiver, Producer, Loopback, Subscription, Fuseable.ConditionalSubscriber<T>,
+                       Trackable {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;
@@ -185,7 +186,7 @@ public final class PublisherFilter<T> extends PublisherSource<T, T> {
 
     static final class FilterConditionalSubscriber<T> 
     implements Receiver, Producer, Loopback, Subscription, Fuseable.ConditionalSubscriber<T>,
-               SubscriberState {
+               Trackable {
         final Fuseable.ConditionalSubscriber<? super T> actual;
 
         final Predicate<? super T> predicate;

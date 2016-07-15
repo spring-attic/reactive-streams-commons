@@ -7,6 +7,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import rsc.flow.Fuseable;
+import rsc.flow.Trackable;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -231,7 +232,7 @@ public enum SubscriptionHelper {
         }
     }
 
-     enum CancelledSubscription implements Subscription, SubscriberState {
+     enum CancelledSubscription implements Subscription, Trackable {
         INSTANCE;
 
         @Override

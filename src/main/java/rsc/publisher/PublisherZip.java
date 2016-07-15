@@ -14,7 +14,7 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.subscriber.DeferredScalarSubscriber;
 
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -27,8 +27,7 @@ import rsc.util.*;
  */
 @BackpressureSupport(input = BackpressureMode.NOT_APPLICABLE, innerInput = BackpressureMode.BOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(innerInput = { FusionMode.SCALAR, FusionMode.SYNC, FusionMode.ASYNC })
-public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
-                                                               SubscriberState {
+public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver, Trackable {
 
     final Publisher<? extends T>[] sources;
     
@@ -281,7 +280,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
     }
 
     static final class PublisherZipSingleCoordinator<T, R> extends DeferredScalarSubscriber<R, R>
-            implements MultiReceiver, SubscriberState {
+            implements MultiReceiver, Trackable {
 
         final Function<? super Object[], ? extends R> zipper;
         
@@ -398,7 +397,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
     }
     
     static final class PublisherZipSingleSubscriber<T> implements Subscriber<T>,
-                                                                  SubscriberState, Cancellation,
+                                                                  Trackable, Cancellation,
                                                                   Receiver {
         final PublisherZipSingleCoordinator<T, ?> parent;
         
@@ -495,7 +494,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
     }
     
     static final class PublisherZipCoordinator<T, R> implements Subscription, MultiReceiver,
-                                                                SubscriberState {
+                                                                Trackable {
 
         final Subscriber<? super R> actual;
         
@@ -814,7 +813,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver,
     }
     
     static final class PublisherZipInner<T> implements Subscriber<T>, Receiver, Producer,
-                                                       SubscriberState {
+                                                       Trackable {
         
         final PublisherZipCoordinator<T, ?> parent;
 

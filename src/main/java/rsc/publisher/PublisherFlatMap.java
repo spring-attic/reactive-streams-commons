@@ -14,7 +14,7 @@ import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 
 import rsc.subscriber.ScalarSubscription;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.subscriber.SuppressFuseableSubscriber;
 import rsc.util.*;
@@ -176,8 +176,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
 
     static final class PublisherFlatMapMain<T, R>
             extends SpscFreeListTracker<PublisherFlatMapInner<R>>
-    implements Subscriber<T>, Subscription, Receiver, MultiReceiver, Producer,
-               SubscriberState {
+    implements Subscriber<T>, Subscription, Receiver, MultiReceiver, Producer, Trackable {
         
         final Subscriber<? super R> actual;
 
@@ -923,7 +922,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
     }
     
     static final class PublisherFlatMapInner<R> 
-    implements Subscriber<R>, Subscription, Producer, Receiver, SubscriberState  {
+    implements Subscriber<R>, Subscription, Producer, Receiver, Trackable {
 
         final PublisherFlatMapMain<?, R> parent;
         

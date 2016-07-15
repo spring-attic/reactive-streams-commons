@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.Subscription;
 import rsc.flow.Receiver;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 
 /**
@@ -13,7 +14,7 @@ import rsc.util.BackpressureHelper;
  * they need to be cancelled or requested at any time.
  */
 public class DeferredSubscription
-        implements Subscription, Receiver, SubscriberState {
+        implements Subscription, Receiver, Trackable {
 
     volatile Subscription s;
     static final AtomicReferenceFieldUpdater<DeferredSubscription, Subscription> S =

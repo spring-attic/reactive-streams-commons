@@ -9,7 +9,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
@@ -51,7 +51,7 @@ public final class PublisherDrop<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherDropSubscriber<T>
-            implements Subscriber<T>, Subscription, Producer, Loopback, SubscriberState {
+            implements Subscriber<T>, Subscription, Producer, Loopback, Trackable {
 
         final Subscriber<? super T> actual;
 

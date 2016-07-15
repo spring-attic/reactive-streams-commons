@@ -11,7 +11,7 @@ import org.reactivestreams.Subscription;
 import rsc.flow.MultiReceiver;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
@@ -74,7 +74,7 @@ public final class PublisherZipIterable<T, U, R> extends PublisherSource<T, R> {
     
     static final class PublisherZipSubscriber<T, U, R> implements Subscriber<T>, Producer, MultiReceiver,
                                                                   Receiver, Subscription,
-                                                                  SubscriberState {
+                                                                  Trackable {
         
         final Subscriber<? super R> actual;
         

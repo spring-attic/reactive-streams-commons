@@ -7,7 +7,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 
 /**
@@ -37,8 +37,7 @@ public final class PublisherSkipLast<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherSkipLastSubscriber<T> implements Subscriber<T>, Receiver, Producer,
-                                                                 Subscription,
-                                                                 SubscriberState {
+                                                                 Subscription, Trackable {
         final Subscriber<? super T> actual;
 
         final int n;

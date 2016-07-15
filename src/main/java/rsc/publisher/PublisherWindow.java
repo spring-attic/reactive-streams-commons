@@ -21,7 +21,7 @@ import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
 import rsc.processor.UnicastProcessor;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
 import rsc.util.UnsignalledExceptions;
@@ -99,7 +99,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
     }
 
     static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Producer, Receiver,
-                                                           MultiProducer, SubscriberState {
+                                                           MultiProducer, Trackable {
         
         final Subscriber<? super Px<T>> actual;
 
@@ -289,7 +289,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
     
     static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Receiver,
                                                           MultiProducer, Producer,
-                                                          SubscriberState {
+                                                          Trackable {
         
         final Subscriber<? super Px<T>> actual;
 
@@ -499,7 +499,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
 
     static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Runnable,
                                                              Producer, MultiProducer, Receiver,
-                                                             SubscriberState {
+                                                             Trackable {
         
         final Subscriber<? super Px<T>> actual;
 

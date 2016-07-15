@@ -9,7 +9,7 @@ import org.reactivestreams.Subscription;
 import rsc.flow.Loopback;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.UnsignalledExceptions;
@@ -40,7 +40,7 @@ public final class PublisherTakeWhile<T> extends PublisherSource<T, T> {
 
     static final class PublisherTakeWhileSubscriber<T> implements Subscriber<T>, Producer, Receiver,
                                                                   Loopback, Subscription,
-                                                                  SubscriberState {
+                                                                  Trackable {
         final Subscriber<? super T> actual;
 
         final Predicate<? super T> predicate;

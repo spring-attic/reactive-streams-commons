@@ -39,7 +39,6 @@ import rsc.subscriber.BlockingLastSubscriber;
 import rsc.subscriber.EmptyAsyncSubscriber;
 import rsc.subscriber.LambdaSubscriber;
 import rsc.subscriber.PeekLastSubscriber;
-import rsc.subscriber.SignalEmitter;
 import rsc.test.TestSubscriber;
 import rsc.util.SpscArrayQueue;
 import rsc.util.SpscLinkedArrayQueue;
@@ -1051,15 +1050,15 @@ public abstract class Px<T> implements Publisher<T> {
         return onAssembly(new PublisherDefer<>(callback));
     }
 
-    public static <T, S> Px<T> generate(BiFunction<S, SignalEmitter<T>, S> generator) {
+    public static <T, S> Px<T> generate(BiFunction<S, SynchronousSink<T>, S> generator) {
         return onAssembly(new PublisherGenerate<>(generator));
     }
 
-    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator) {
+    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SynchronousSink<T>, S> generator) {
         return onAssembly(new PublisherGenerate<>(stateSupplier, generator));
     }
 
-    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator, Consumer<? super S> stateConsumer) {
+    public static <T, S> Px<T> generate(Callable<S> stateSupplier, BiFunction<S, SynchronousSink<T>, S> generator, Consumer<? super S> stateConsumer) {
         return onAssembly(new PublisherGenerate<>(stateSupplier, generator, stateConsumer));
     }
 

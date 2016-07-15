@@ -9,7 +9,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.SubscriptionHelper;
 
@@ -36,7 +36,7 @@ public final class PublisherLatest<T> extends PublisherSource<T, T> {
     }
 
     static final class PublisherLatestSubscriber<T>
-            implements Subscriber<T>, Subscription, SubscriberState,
+            implements Subscriber<T>, Subscription, Trackable,
                        Producer,
                        Receiver {
 

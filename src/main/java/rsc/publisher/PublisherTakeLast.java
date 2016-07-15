@@ -12,7 +12,7 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 import rsc.publisher.PublisherTakeLastOne.PublisherTakeLastOneSubscriber;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 
@@ -111,7 +111,7 @@ public final class PublisherTakeLast<T> extends PublisherSource<T, T> implements
     }
 
     static final class PublisherTakeLastManySubscriber<T>
-      implements Subscriber<T>, Subscription, BooleanSupplier, Producer, SubscriberState, Receiver {
+      implements Subscriber<T>, Subscription, BooleanSupplier, Producer, Trackable, Receiver {
 
         final Subscriber<? super T> actual;
 

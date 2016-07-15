@@ -19,7 +19,7 @@ import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
 import rsc.publisher.Px;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
 import rsc.util.UnsignalledExceptions;
@@ -32,7 +32,7 @@ import rsc.util.UnsignalledExceptions;
 @BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.BOUNDED)
 @FusionSupport(input = { FusionMode.NONE }, output = { FusionMode.ASYNC })
 public final class ReplayProcessor<T> 
-extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Receiver, SubscriberState {
+extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Receiver, Trackable {
 
     final Buffer<T> buffer;
 
@@ -737,7 +737,7 @@ extends Px<T> implements Processor<T, T>, Fuseable, MultiProducer, Receiver, Sub
     }
     
     static final class ReplaySubscription<T> implements QueueSubscription<T>, Producer,
-                                                        SubscriberState, Receiver {
+                                                        Trackable, Receiver {
         final Subscriber<? super T> actual;
         
         final ReplayProcessor<T> parent;

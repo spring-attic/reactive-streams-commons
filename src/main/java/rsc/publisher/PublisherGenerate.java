@@ -13,7 +13,6 @@ import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
 
-import rsc.subscriber.SignalEmitter;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.*;
 import rsc.flow.Fuseable.*;
@@ -35,21 +34,21 @@ extends Px<T> {
 
     final Callable<S> stateSupplier;
 
-    final BiFunction<S, SignalEmitter<T>, S> generator;
+    final BiFunction<S, SynchronousSink<T>, S> generator;
 
     final Consumer<? super S> stateConsumer;
 
-    public PublisherGenerate(BiFunction<S, SignalEmitter<T>, S> generator) {
+    public PublisherGenerate(BiFunction<S, SynchronousSink<T>, S> generator) {
         this(() -> null, generator, s -> {
         });
     }
 
-    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator) {
+    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, SynchronousSink<T>, S> generator) {
         this(stateSupplier, generator, s -> {
         });
     }
 
-    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, SignalEmitter<T>, S> generator,
+    public PublisherGenerate(Callable<S> stateSupplier, BiFunction<S, SynchronousSink<T>, S> generator,
                              Consumer<? super S> stateConsumer) {
         this.stateSupplier = Objects.requireNonNull(stateSupplier, "stateSupplier");
         this.generator = Objects.requireNonNull(generator, "generator");
@@ -70,11 +69,11 @@ extends Px<T> {
     }
 
     static final class GenerateSubscription<T, S>
-      implements QueueSubscription<T>, SignalEmitter<T> {
+      implements QueueSubscription<T>, SynchronousSink<T> {
 
         final Subscriber<? super T> actual;
 
-        final BiFunction<S, SignalEmitter<T>, S> generator;
+        final BiFunction<S, SynchronousSink<T>, S> generator;
 
         final Consumer<? super S> stateConsumer;
 
@@ -108,7 +107,7 @@ extends Px<T> {
         }
 
         public GenerateSubscription(Subscriber<? super T> actual, S state,
-                                             BiFunction<S, SignalEmitter<T>, S> generator, Consumer<? super
+                                             BiFunction<S, SynchronousSink<T>, S> generator, Consumer<? super
           S> stateConsumer) {
             this.actual = actual;
             this.state = state;
@@ -186,7 +185,7 @@ extends Px<T> {
         void fastPath() {
             S s = state;
 
-            final BiFunction<S, SignalEmitter<T>, S> g = generator;
+            final BiFunction<S, SynchronousSink<T>, S> g = generator;
 
             for (; ; ) {
 
@@ -224,7 +223,7 @@ extends Px<T> {
 
             long e = 0L;
 
-            final BiFunction<S, SignalEmitter<T>, S> g = generator;
+            final BiFunction<S, SynchronousSink<T>, S> g = generator;
 
             for (; ; ) {
                 while (e != n) {

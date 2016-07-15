@@ -14,7 +14,7 @@ import rsc.flow.Fuseable;
 import rsc.flow.Loopback;
 import rsc.flow.MultiProducer;
 import rsc.flow.Receiver;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.util.BackpressureHelper;
 import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
@@ -118,7 +118,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
     }
     
     static final class State<T> implements Subscriber<T>, Receiver, MultiProducer,
-                                           SubscriberState, Cancellation {
+                                           Trackable, Cancellation {
 
         final int prefetch;
         
@@ -528,8 +528,7 @@ public final class ConnectablePublisherPublish<T> extends ConnectablePublisher<T
         }
     }
     
-    static final class InnerSubscription<T> implements Subscription, Receiver,
-                                                       SubscriberState {
+    static final class InnerSubscription<T> implements Subscription, Receiver, Trackable {
         
         final Subscriber<? super T> actual;
         

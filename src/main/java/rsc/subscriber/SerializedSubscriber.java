@@ -4,6 +4,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
+import rsc.flow.Trackable;
 
 /**
  * Subscriber that makes sure signals are delivered sequentially in case the onNext, onError or onComplete methods are
@@ -18,7 +19,7 @@ import rsc.flow.Receiver;
  * @param <T> the value type
  */
 public final class SerializedSubscriber<T> implements Subscriber<T>, Subscription, Receiver, Producer,
-                                                      SubscriberState {
+                                                      Trackable {
 
     final Subscriber<? super T> actual;
 

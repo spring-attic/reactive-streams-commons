@@ -9,7 +9,7 @@ import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
 import rsc.flow.*;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.ScalarSubscription;
 
 /**
@@ -21,7 +21,7 @@ import rsc.subscriber.ScalarSubscription;
 @FusionSupport(input = { FusionMode.NOT_APPLICABLE}, output = { FusionMode.SCALAR, FusionMode.SYNC })
 public final class PublisherJust<T> 
 extends Px<T>
-implements Fuseable.ScalarCallable<T>, Receiver, Fuseable, SubscriberState {
+implements Fuseable.ScalarCallable<T>, Receiver, Fuseable, Trackable {
 
     final T value;
 

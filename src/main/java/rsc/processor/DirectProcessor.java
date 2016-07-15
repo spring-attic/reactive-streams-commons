@@ -15,7 +15,7 @@ import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
 import rsc.publisher.Px;
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
 
@@ -37,7 +37,7 @@ import rsc.util.BackpressureHelper;
 @BackpressureSupport(input = BackpressureMode.UNBOUNDED, output = BackpressureMode.ERROR)
 public final class DirectProcessor<T>
     extends Px<T>
-    implements Processor<T, T>, Receiver, MultiProducer, SubscriberState {
+    implements Processor<T, T>, Receiver, MultiProducer, Trackable {
 
     @SuppressWarnings("rawtypes")
     private static final DirectProcessorSubscription[] EMPTY = new DirectProcessorSubscription[0];
@@ -228,7 +228,7 @@ public final class DirectProcessor<T>
 
     static final class DirectProcessorSubscription<T> implements Subscription,
                                                                  Receiver, Producer,
-                                                                 SubscriberState {
+                                                                 Trackable {
 
         final Subscriber<? super T> actual;
 

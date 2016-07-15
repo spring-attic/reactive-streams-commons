@@ -18,7 +18,7 @@ import rsc.flow.Producer;
 import rsc.flow.Receiver;
 import rsc.publisher.Px;
 
-import rsc.subscriber.SubscriberState;
+import rsc.flow.Trackable;
 import rsc.subscriber.SubscriptionHelper;
 import rsc.util.BackpressureHelper;
 import rsc.util.UnsignalledExceptions;
@@ -37,7 +37,7 @@ import rsc.util.UnsignalledExceptions;
 public final class UnicastProcessor<T> 
 extends Px<T>
 implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, Receiver,
-           SubscriberState {
+           Trackable {
 
     final Queue<T> queue;
     
