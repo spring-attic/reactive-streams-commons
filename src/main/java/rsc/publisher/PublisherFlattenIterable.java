@@ -224,6 +224,8 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
             if (!cancelled) {
                 cancelled = true;
                 
+                s.cancel();
+                
                 if (WIP.getAndIncrement(this) == 0) {
                     queue.clear();
                 }
@@ -282,6 +284,7 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                             b = it.hasNext();
                         } catch (Throwable exc) {
                             ExceptionHelper.throwIfFatal(exc);
+                            s.cancel();
                             onError(exc);
                             it = null;
                             continue;
@@ -327,6 +330,7 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                             v = it.next();
                         } catch (Throwable exc) {
                             ExceptionHelper.throwIfFatal(exc);
+                            s.cancel();
                             onError(exc);
                             continue;
                         }
@@ -347,6 +351,7 @@ public final class PublisherFlattenIterable<T, R> extends PublisherSource<T, R> 
                             b = it.hasNext();
                         } catch (Throwable exc) {
                             ExceptionHelper.throwIfFatal(exc);
+                            s.cancel();
                             onError(exc);
                             continue;
                         }
