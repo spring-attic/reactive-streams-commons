@@ -211,7 +211,7 @@ public final class SingleScheduler implements Scheduler {
             }
         }
         
-        static final class SingleWorkerTask implements Runnable, Cancellation {
+        static final class SingleWorkerTask implements Callable<Void>, Cancellation {
             final Runnable run;
             
             final SingleWorker parent;
@@ -232,9 +232,9 @@ public final class SingleScheduler implements Scheduler {
             }
             
             @Override
-            public void run() {
+            public Void call() {
                 if (cancelled || parent.shutdown) {
-                    return;
+                    return null;
                 }
                 try {
                     try {
@@ -255,6 +255,7 @@ public final class SingleScheduler implements Scheduler {
                         }
                     }
                 }
+                return null;
             }
             
             @Override

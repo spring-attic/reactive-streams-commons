@@ -103,7 +103,7 @@ apply plugin: 'license'
 apply from: file('gradle/license.gradle')
 
 jmh {
-	jmhVersion = '1.11.3'
+	jmhVersion = '1.13'
 	humanOutputFile = null
 	if (project.hasProperty('jmh')) {
 		include = ".*" + project.jmh + ".*"

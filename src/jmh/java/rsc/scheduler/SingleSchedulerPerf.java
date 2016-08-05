@@ -27,14 +27,17 @@ import rsc.util.PerfAsyncSubscriber;
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)
-@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 30, timeUnit = TimeUnit.SECONDS)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
 @State(Scope.Thread)
 public class SingleSchedulerPerf {
 
-    @Param({"1", "1000", "1000000"})
+    @Param({/*"1", */"1000"/*, "1000000"*/})
     int count;
+
+    @Param({/*"1", */"128", /* "256", "512", "1024", "16384"/*, "1000000"*/})
+    int prefetch;
 
     Publisher<Integer> source;
 
@@ -48,7 +51,7 @@ public class SingleSchedulerPerf {
         SingleScheduler s1 = new SingleScheduler();
         SingleScheduler s2 = new SingleScheduler();
         
-        source = Px.fromArray(array).subscribeOn(s1).observeOn(s2);
+        source = Px.fromArray(array).subscribeOn(s1).observeOn(s2, false, prefetch);
     }
 
     @Benchmark
