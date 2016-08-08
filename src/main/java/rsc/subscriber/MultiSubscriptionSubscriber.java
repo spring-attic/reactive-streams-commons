@@ -310,11 +310,11 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
                     }
                     actual = ms;
                     if (r != 0L) {
-                        requestAmount = r;
+                        requestAmount = BackpressureHelper.addCap(requestAmount, r);
                         requestTarget = ms;
                     }
                 } else if (mr != 0L && a != null) {
-                    requestAmount = mr;
+                    requestAmount = BackpressureHelper.addCap(requestAmount, mr);
                     requestTarget = a;
                 }
             }
