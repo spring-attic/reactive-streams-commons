@@ -121,4 +121,10 @@ public class PublisherConcatArrayTest {
         .assertNotComplete();
     }
 
+    @Test
+    public void veryLongTake() {
+        Px.range(1, 1_000_000_000).concatWith(Px.<Integer>empty()).take(10)
+        .test()
+        .assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    }
 }

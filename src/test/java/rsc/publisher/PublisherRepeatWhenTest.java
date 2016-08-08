@@ -23,7 +23,7 @@ public class PublisherRepeatWhenTest {
 
         new PublisherRepeatWhen<>(new PublisherJust<>(1), v -> new PublisherRange(1, 10)).subscribe(ts);
 
-        ts.assertValues(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+        ts.assertValues(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
           .assertComplete()
           .assertNoError();
     }
@@ -58,7 +58,7 @@ public class PublisherRepeatWhenTest {
 
         ts.request(10);
 
-        ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2, 1, 2)
+        ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)
           .assertComplete()
           .assertNoError();
     }

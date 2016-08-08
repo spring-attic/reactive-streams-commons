@@ -113,15 +113,14 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
             actual = s;
             
             long r = requested;
-            if (r != 0L) {
-                s.request(r);
+            
+            if (WIP.decrementAndGet(this) != 0) {
+                drainLoop();
             }
             
-            if (WIP.decrementAndGet(this) == 0) {
-                return;
+            if (s != null && r != 0L) {
+                s.request(r);
             }
-
-            drainLoop();
 
             return;
         }
@@ -150,16 +149,15 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
                     }
                 }
                 Subscription a = actual;
+
+                if (WIP.decrementAndGet(this) != 0) {
+                    drainLoop();
+                }
+                
                 if (a != null) {
                     a.request(n);
                 }
-
-                if (WIP.decrementAndGet(this) == 0) {
-                    return;
-                }
-
-                drainLoop();
-
+                
                 return;
             }
 
@@ -257,6 +255,9 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
     final void drainLoop() {
         int missed = 1;
 
+        long requestAmount = 0L;
+        Subscription requestTarget = null;
+        
         for (; ; ) {
 
             Subscription ms = missedSubscription;
@@ -309,15 +310,20 @@ public abstract class MultiSubscriptionSubscriber<I, O> implements Subscription,
                     }
                     actual = ms;
                     if (r != 0L) {
-                        ms.request(r);
+                        requestAmount = r;
+                        requestTarget = ms;
                     }
                 } else if (mr != 0L && a != null) {
-                    a.request(mr);
+                    requestAmount = mr;
+                    requestTarget = a;
                 }
             }
 
             missed = WIP.addAndGet(this, -missed);
             if (missed == 0) {
+                if (requestAmount != 0L) {
+                    requestTarget.request(requestAmount);
+                }
                 return;
             }
         }

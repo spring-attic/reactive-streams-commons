@@ -62,7 +62,7 @@ public class PublisherRetryWhenTest {
 
         ts.request(10);
 
-        ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2, 1, 2)
+        ts.assertValues(1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)
           .assertComplete()
           .assertNoError();
     }
