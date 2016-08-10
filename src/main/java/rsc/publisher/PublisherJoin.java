@@ -151,6 +151,7 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 
 		static final Integer RIGHT_CLOSE = 4;
 
+		@SuppressWarnings("unchecked")
 		public GroupJoinSubscription(Subscriber<? super R> actual,
 				Function<? super TLeft, ? extends Publisher<TLeftEnd>> leftEnd,
 				Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd,
@@ -159,8 +160,11 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 			this.actual = actual;
 			this.cancellations = new OpenHashSet<>();
 			this.queue = queue;
-
-			this.queueBiOffer = queue instanceof BiPredicate ? (BiPredicate)queue : null;
+			if(!(queue instanceof BiPredicate)){
+				throw new IllegalArgumentException("The provided queue must implement " +
+						"BiPredicate to expose atomic dual insert");
+			}
+			this.queueBiOffer = (BiPredicate)queue;
 			this.lefts = new LinkedHashMap<>();
 			this.rights = new LinkedHashMap<>();
 			this.leftEnd = leftEnd;
@@ -474,13 +478,7 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 		@Override
 		public void innerValue(boolean isLeft, Object o) {
 			synchronized (this) {
-				if(queueBiOffer != null){
-					queueBiOffer.test(isLeft ? LEFT_VALUE : RIGHT_VALUE, o);
-				}
-				else{
-					queue.offer(isLeft ? LEFT_VALUE : RIGHT_VALUE);
-					queue.offer(o);
-				}
+				queueBiOffer.test(isLeft ? LEFT_VALUE : RIGHT_VALUE, o);
 			}
 			drain();
 		}
@@ -488,13 +486,7 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 		@Override
 		public void innerClose(boolean isLeft, LeftRightEndSubscriber index) {
 			synchronized (this) {
-				if(queueBiOffer != null){
-					queueBiOffer.test(isLeft ? LEFT_CLOSE : RIGHT_CLOSE, index);
-				}
-				else{
-					queue.offer(isLeft ? LEFT_CLOSE : RIGHT_CLOSE);
-					queue.offer(index);
-				}
+				queueBiOffer.test(isLeft ? LEFT_CLOSE : RIGHT_CLOSE, index);
 			}
 			drain();
 		}

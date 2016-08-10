@@ -181,6 +181,7 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
 
         static final Integer RIGHT_CLOSE = 4;
 
+	    @SuppressWarnings("unchecked")
         public GroupJoinSubscription(Subscriber<? super R> actual, Function<? super TLeft, ? extends Publisher<TLeftEnd>> leftEnd,
                 Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd,
                 BiFunction<? super TLeft, ? super Px<TRight>, ? extends R>
@@ -190,7 +191,11 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
 	        this.cancellations = new OpenHashSet<>();
 	        this.queue = queue;
 	        this.processorQueueSupplier = processorQueueSupplier;
-	        this.queueBiOffer = queue instanceof BiPredicate ? (BiPredicate)queue : null;
+	        if(!(queue instanceof BiPredicate)){
+		        throw new IllegalArgumentException("The provided queue must implement " +
+				        "BiPredicate to expose atomic dual insert");
+	        }
+	        this.queueBiOffer = (BiPredicate)queue;
 	        this.lefts = new LinkedHashMap<>();
 	        this.rights = new LinkedHashMap<>();
 	        this.leftEnd = leftEnd;
@@ -444,13 +449,7 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
         @Override
         public void innerValue(boolean isLeft, Object o) {
 	        synchronized (this) {
-		        if(queueBiOffer != null){
-			        queueBiOffer.test(isLeft ? LEFT_VALUE : RIGHT_VALUE, o);
-		        }
-		        else{
-			        queue.offer(isLeft ? LEFT_VALUE : RIGHT_VALUE);
-			        queue.offer(o);
-		        }
+		        queueBiOffer.test(isLeft ? LEFT_VALUE : RIGHT_VALUE, o);
 	        }
             drain();
         }
@@ -458,13 +457,7 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
         @Override
         public void innerClose(boolean isLeft, LeftRightEndSubscriber index) {
 	        synchronized (this) {
-		        if(queueBiOffer != null){
-			        queueBiOffer.test(isLeft ? LEFT_CLOSE : RIGHT_CLOSE, index);
-		        }
-		        else{
-			        queue.offer(isLeft ? LEFT_CLOSE : RIGHT_CLOSE);
-			        queue.offer(index);
-		        }
+		        queueBiOffer.test(isLeft ? LEFT_CLOSE : RIGHT_CLOSE, index);
 	        }
             drain();
         }
