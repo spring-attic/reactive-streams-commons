@@ -180,10 +180,10 @@ public final class ForkJoinScheduler implements Scheduler {
             }
             
             if (set != null && !set.isEmpty()) {
-                Object[] a = set.keys;
-                for (Object o : a) {
+                ParallelWorkerTask[] a = set.keys();
+                for (ParallelWorkerTask o : a) {
                     if (o != null) {
-                        ((ParallelWorkerTask)o).cancelFuture();
+                        o.cancelFuture();
                     }
                 }
             }

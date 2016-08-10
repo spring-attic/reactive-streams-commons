@@ -1,0 +1,629 @@
+/*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package rsc.publisher;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import rsc.documentation.BackpressureMode;
+import rsc.documentation.BackpressureSupport;
+import rsc.flow.Cancellation;
+import rsc.flow.Trackable;
+import rsc.processor.UnicastProcessor;
+import rsc.subscriber.SubscriptionHelper;
+import rsc.util.BackpressureHelper;
+import rsc.util.ExceptionHelper;
+import rsc.util.OpenHashSet;
+import rsc.util.SpscLinkedArrayQueue;
+import rsc.util.UnsignalledExceptions;
+
+/**
+ * A Publisher that correlates two Publishers when they overlap in time and groups the
+ * results.
+ * <p>
+ * There are no guarantees in what order the items get combined when multiple
+ * items from one or both source Publishers overlap.
+ *
+ * @param <TLeft>
+ *            the left Publisher to correlate items from the source Publisher with
+ * @param <TRight>
+ *            the other Publisher to correlate items from the source Publisher with
+ * @param <TLeftEnd>
+ *            type that a function returns via a Publisher whose emissions indicate the
+ *            duration of the values of
+ *            the source Publisher
+ * @param <TRightEnd>
+ *            type that a function that returns via a Publisher whose emissions indicate
+ *            the duration of the values of
+ *            the {@code right} Publisher
+ * @param <R>
+ *            type that a function that takes an item emitted by each Publisher and
+ *            returns the
+ *            value to be emitted
+ *            by the resulting Publisher
+ */
+@BackpressureSupport(input = BackpressureMode.BOUNDED, innerOutput = BackpressureMode
+        .BOUNDED, output = BackpressureMode.ERROR)
+public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> extends
+                                                                             PublisherSource<TLeft, R>{
+
+    final Publisher<? extends TRight> other;
+
+    final Function<? super TLeft, ? extends Publisher<TLeftEnd>> leftEnd;
+
+    final Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd;
+
+    final BiFunction<? super TLeft, ? super Px<TRight>, ? extends R> resultSelector;
+
+    final Supplier<? extends Queue<Object>> queueSupplier;
+    final Supplier<? extends Queue<TRight>> processorQueueSupplier;
+
+    public PublisherGroupJoin(
+            Publisher<TLeft> source,
+            Publisher<? extends TRight> other,
+            Function<? super TLeft, ? extends Publisher<TLeftEnd>> leftEnd,
+            Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd,
+            BiFunction<? super TLeft, ? super Px<TRight>, ? extends R> resultSelector,
+            Supplier<? extends Queue<Object>> queueSupplier,
+		    Supplier<? extends Queue<TRight>> processorQueueSupplier) {
+        super(source);
+        this.other = Objects.requireNonNull(other, "other");
+        this.leftEnd = Objects.requireNonNull(leftEnd, "leftEnd");
+        this.rightEnd = Objects.requireNonNull(rightEnd, "rightEnd");
+        this.queueSupplier = Objects.requireNonNull(queueSupplier, "queueSupplier");
+        this.processorQueueSupplier = Objects.requireNonNull(processorQueueSupplier, "processorQueueSupplier");
+        this.resultSelector = Objects.requireNonNull(resultSelector, "resultSelector");
+    }
+
+    @Override
+    public void subscribe(Subscriber<? super R> s) {
+
+        GroupJoinSubscription<TLeft, TRight, TLeftEnd, TRightEnd, R> parent =
+                new GroupJoinSubscription<>(s, leftEnd, rightEnd, resultSelector,
+		                queueSupplier.get(), processorQueueSupplier);
+
+        s.onSubscribe(parent);
+
+        LeftRightSubscriber left = new LeftRightSubscriber(parent, true);
+        parent.cancellations.add(left);
+        LeftRightSubscriber right = new LeftRightSubscriber(parent, false);
+        parent.cancellations.add(right);
+
+        source.subscribe(left);
+        other.subscribe(right);
+    }
+
+    interface JoinSupport {
+
+        void innerError(Throwable ex);
+
+        void innerComplete(LeftRightSubscriber sender);
+
+        void innerValue(boolean isLeft, Object o);
+
+        void innerClose(boolean isLeft, LeftRightEndSubscriber index);
+
+        void innerCloseError(Throwable ex);
+    }
+
+    static final class GroupJoinSubscription<TLeft, TRight, TLeftEnd, TRightEnd, R>
+            implements Subscription, JoinSupport {
+
+        final Subscriber<? super R> actual;
+
+        final         Queue<Object>               queue;
+        final BiPredicate<Object, Object> queueBiOffer;
+
+        final OpenHashSet<Cancellation> cancellations;
+
+        final Map<Integer, UnicastProcessor<TRight>> lefts;
+
+        final Map<Integer, TRight> rights;
+
+        final Function<? super TLeft, ? extends Publisher<TLeftEnd>> leftEnd;
+
+        final Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd;
+
+        final BiFunction<? super TLeft, ? super Px<TRight>, ? extends R> resultSelector;
+
+	    final Supplier<? extends Queue<TRight>> processorQueueSupplier;
+
+        int leftIndex;
+
+        int rightIndex;
+
+	    volatile int wip;
+
+	    static final AtomicIntegerFieldUpdater<GroupJoinSubscription> WIP =
+			    AtomicIntegerFieldUpdater.newUpdater(GroupJoinSubscription.class, "wip");
+
+	    volatile int active;
+
+	    static final AtomicIntegerFieldUpdater<GroupJoinSubscription> ACTIVE =
+			    AtomicIntegerFieldUpdater.newUpdater(GroupJoinSubscription.class,
+					    "active");
+
+	    volatile long requested;
+
+	    static final AtomicLongFieldUpdater<GroupJoinSubscription>
+			    REQUESTED =
+			    AtomicLongFieldUpdater.newUpdater(GroupJoinSubscription.class,
+					    "requested");
+
+	    volatile Throwable error;
+
+	    static final AtomicReferenceFieldUpdater<GroupJoinSubscription, Throwable>
+			    ERROR =
+			    AtomicReferenceFieldUpdater.newUpdater(GroupJoinSubscription.class,
+					    Throwable.class,
+					    "error");
+
+        volatile boolean cancelled;
+
+        static final Integer LEFT_VALUE = 1;
+
+        static final Integer RIGHT_VALUE = 2;
+
+        static final Integer LEFT_CLOSE = 3;
+
+        static final Integer RIGHT_CLOSE = 4;
+
+        public GroupJoinSubscription(Subscriber<? super R> actual, Function<? super TLeft, ? extends Publisher<TLeftEnd>> leftEnd,
+                Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd,
+                BiFunction<? super TLeft, ? super Px<TRight>, ? extends R>
+		                resultSelector, Queue<Object> queue, Supplier<? extends
+		        Queue<TRight>> processorQueueSupplier) {
+            this.actual = actual;
+	        this.cancellations = new OpenHashSet<>();
+	        this.queue = queue;
+	        this.processorQueueSupplier = processorQueueSupplier;
+	        this.queueBiOffer = queue instanceof BiPredicate ? (BiPredicate)queue : null;
+	        this.lefts = new LinkedHashMap<>();
+	        this.rights = new LinkedHashMap<>();
+	        this.leftEnd = leftEnd;
+	        this.rightEnd = rightEnd;
+	        this.resultSelector = resultSelector;
+	        ACTIVE.lazySet(this, 2);
+        }
+
+        @Override
+        public void request(long n) {
+            if (SubscriptionHelper.validate(n)) {
+                BackpressureHelper.getAndAddCap(REQUESTED, this, n);
+            }
+        }
+
+        @Override
+        public void cancel() {
+            if (cancelled) {
+                return;
+            }
+            cancelled = true;
+            cancelAll();
+            if (WIP.getAndIncrement(this) == 0) {
+                queue.clear();
+            }
+        }
+
+        void cancelAll() {
+	        Cancellation[] a = cancellations.keys();
+	        for (Cancellation o : a) {
+		        if (o != null) {
+			        o.dispose();
+		        }
+	        }
+        }
+
+        void errorAll(Subscriber<?> a) {
+            Throwable ex = ExceptionHelper.terminate(ERROR, this);
+
+            for (UnicastProcessor<TRight> up : lefts.values()) {
+                up.onError(ex);
+            }
+
+            lefts.clear();
+            rights.clear();
+
+            a.onError(ex);
+        }
+
+        void fail(Throwable exc, Subscriber<?> a, Queue<?> q) {
+            ExceptionHelper.throwIfFatal(exc);
+            ExceptionHelper.addThrowable(ERROR, this, exc);
+            q.clear();
+            cancelAll();
+            errorAll(a);
+        }
+
+        void drain() {
+            if (WIP.getAndIncrement(this) != 0) {
+                return;
+            }
+
+            int missed = 1;
+            Queue<Object> q = queue;
+            Subscriber<? super R> a = actual;
+
+            for (;;) {
+                for (;;) {
+                    if (cancelled) {
+                        q.clear();
+                        return;
+                    }
+
+                    Throwable ex = error;
+                    if (ex != null) {
+                        q.clear();
+                        cancelAll();
+                        errorAll(a);
+                        return;
+                    }
+
+                    boolean d = active == 0;
+
+                    Integer mode = (Integer)q.poll();
+
+                    boolean empty = mode == null;
+
+                    if (d && empty) {
+                        for (UnicastProcessor<?> up : lefts.values()) {
+                            up.onComplete();
+                        }
+
+                        lefts.clear();
+                        rights.clear();
+                        cancelAll();
+
+                        a.onComplete();
+                        return;
+                    }
+
+                    if (empty) {
+                        break;
+                    }
+
+                    Object val = q.poll();
+
+                    if (mode == LEFT_VALUE) {
+                        @SuppressWarnings("unchecked")
+                        TLeft left = (TLeft)val;
+
+                        UnicastProcessor<TRight> up = new UnicastProcessor<>(processorQueueSupplier.get());
+                        int idx = leftIndex++;
+                        lefts.put(idx, up);
+
+                        Publisher<TLeftEnd> p;
+
+                        try {
+                            p = Objects.requireNonNull(leftEnd.apply(left), "The leftEnd returned a null Publisher");
+                        } catch (Throwable exc) {
+                            fail(exc, a, q);
+                            return;
+                        }
+
+                        LeftRightEndSubscriber end = new LeftRightEndSubscriber(this, true, idx);
+                        cancellations.add(end);
+
+                        p.subscribe(end);
+
+                        ex = error;
+                        if (ex != null) {
+                            q.clear();
+                            cancelAll();
+                            errorAll(a);
+                            return;
+                        }
+
+                        R w;
+
+                        try {
+                            w = Objects.requireNonNull(resultSelector.apply(left, up), "The resultSelector returned a null value");
+                        } catch (Throwable exc) {
+                            fail(exc, a, q);
+                            return;
+                        }
+
+                        // TODO since only left emission calls the actual, it is possible to link downstream backpressure with left's source and not error out
+	                    long r = requested;
+                        if (r != 0L) {
+                            a.onNext(w);
+	                        long upd;
+	                        for(;;) {
+		                        if (r == Long.MAX_VALUE) {
+			                        break;
+		                        }
+		                        upd = r - 1L;
+		                        if (upd < 0L){
+			                        fail(new IllegalStateException("More produced than " +
+					                        "requested: " + upd), a, q);
+			                        return;
+		                        }
+		                        if(REQUESTED.compareAndSet(this, r, upd)){
+			                        break;
+		                        }
+		                        r = requested;
+	                        }
+                        } else {
+                            fail(new IllegalStateException("Could not emit value due to lack of requests"),
+                                    a, q);
+                            return;
+                        }
+
+                        for (TRight right : rights.values()) {
+                            up.onNext(right);
+                        }
+                    }
+                    else if (mode == RIGHT_VALUE) {
+                        @SuppressWarnings("unchecked")
+                        TRight right = (TRight)val;
+
+                        int idx = rightIndex++;
+
+                        rights.put(idx, right);
+
+                        Publisher<TRightEnd> p;
+
+                        try {
+                            p = Objects.requireNonNull(rightEnd.apply(right), "The rightEnd returned a null Publisher");
+                        } catch (Throwable exc) {
+                            fail(exc, a, q);
+                            return;
+                        }
+
+                        LeftRightEndSubscriber end = new LeftRightEndSubscriber(this, false, idx);
+                        cancellations.add(end);
+
+                        p.subscribe(end);
+
+                        ex = error;
+                        if (ex != null) {
+                            q.clear();
+                            cancelAll();
+                            errorAll(a);
+                            return;
+                        }
+
+                        for (UnicastProcessor<TRight> up : lefts.values()) {
+                            up.onNext(right);
+                        }
+                    }
+                    else if (mode == LEFT_CLOSE) {
+                        LeftRightEndSubscriber end = (LeftRightEndSubscriber)val;
+
+                        UnicastProcessor<TRight> up = lefts.remove(end.index);
+                        cancellations.remove(end);
+                        if (up != null) {
+                            up.onComplete();
+                        }
+                    }
+                    else if (mode == RIGHT_CLOSE) {
+                        LeftRightEndSubscriber end = (LeftRightEndSubscriber)val;
+
+                        rights.remove(end.index);
+                        cancellations.remove(end);
+                    }
+                }
+
+                missed = WIP.addAndGet(this, -missed);
+                if (missed == 0) {
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void innerError(Throwable ex) {
+            if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                ACTIVE.decrementAndGet(this);
+                drain();
+            } else {
+                UnsignalledExceptions.onErrorDropped(ex);
+            }
+        }
+
+        @Override
+        public void innerComplete(LeftRightSubscriber sender) {
+            cancellations.remove(sender);
+            ACTIVE.decrementAndGet(this);
+            drain();
+        }
+
+        @Override
+        public void innerValue(boolean isLeft, Object o) {
+	        synchronized (this) {
+		        if(queueBiOffer != null){
+			        queueBiOffer.test(isLeft ? LEFT_VALUE : RIGHT_VALUE, o);
+		        }
+		        else{
+			        queue.offer(isLeft ? LEFT_VALUE : RIGHT_VALUE);
+			        queue.offer(o);
+		        }
+	        }
+            drain();
+        }
+
+        @Override
+        public void innerClose(boolean isLeft, LeftRightEndSubscriber index) {
+	        synchronized (this) {
+		        if(queueBiOffer != null){
+			        queueBiOffer.test(isLeft ? LEFT_CLOSE : RIGHT_CLOSE, index);
+		        }
+		        else{
+			        queue.offer(isLeft ? LEFT_CLOSE : RIGHT_CLOSE);
+			        queue.offer(index);
+		        }
+	        }
+            drain();
+        }
+
+        @Override
+        public void innerCloseError(Throwable ex) {
+            if (ExceptionHelper.addThrowable(ERROR, this, ex)) {
+                drain();
+            } else {
+                UnsignalledExceptions.onErrorDropped(ex);
+            }
+        }
+    }
+
+    static final class LeftRightSubscriber
+            implements Subscriber<Object>, Cancellation, Trackable {
+
+        final JoinSupport parent;
+
+        final boolean isLeft;
+
+	    volatile Subscription subscription;
+
+	    final static AtomicReferenceFieldUpdater<LeftRightSubscriber,Subscription>
+			    SUBSCRIPTION = AtomicReferenceFieldUpdater.newUpdater
+			    (LeftRightSubscriber.class, Subscription.class, "subscription");
+
+        public LeftRightSubscriber(JoinSupport parent, boolean isLeft) {
+            this.parent = parent;
+            this.isLeft = isLeft;
+        }
+
+        @Override
+        public void dispose() {
+	        Subscription current = SUBSCRIPTION.get(this);
+	        if (current != SubscriptionHelper.cancelled()) {
+		        current = SUBSCRIPTION.getAndSet(this, SubscriptionHelper.cancelled());
+		        if (current != SubscriptionHelper.cancelled()) {
+			        if (current != null) {
+				        current.cancel();
+			        }
+		        }
+	        }
+        }
+
+        @Override
+        public boolean isCancelled() {
+	        return SubscriptionHelper.cancelled() == subscription;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+	        if (SubscriptionHelper.setOnce(SUBSCRIPTION, this, s)) {
+                s.request(Long.MAX_VALUE);
+            }
+        }
+
+        @Override
+        public void onNext(Object t) {
+            parent.innerValue(isLeft, t);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            parent.innerError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            parent.innerComplete(this);
+        }
+
+    }
+
+    static final class LeftRightEndSubscriber
+            implements Subscriber<Object>, Cancellation, Trackable {
+
+        final JoinSupport parent;
+
+        final boolean isLeft;
+
+        final int index;
+
+	    volatile Subscription subscription;
+
+	    final static AtomicReferenceFieldUpdater<LeftRightEndSubscriber,Subscription>
+			    SUBSCRIPTION = AtomicReferenceFieldUpdater.newUpdater
+			    (LeftRightEndSubscriber.class, Subscription.class, "subscription");
+
+        public LeftRightEndSubscriber(JoinSupport parent,
+                boolean isLeft, int index) {
+            this.parent = parent;
+            this.isLeft = isLeft;
+            this.index = index;
+        }
+
+        @Override
+        public void dispose() {
+	        Subscription current = SUBSCRIPTION.get(this);
+	        if (current != SubscriptionHelper.cancelled()) {
+		        current = SUBSCRIPTION.getAndSet(this, SubscriptionHelper.cancelled());
+		        if (current != SubscriptionHelper.cancelled()) {
+			        if (current != null) {
+				        current.cancel();
+			        }
+		        }
+	        }
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return SubscriptionHelper.cancelled() == subscription;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            if (SubscriptionHelper.setOnce(SUBSCRIPTION, this, s)) {
+                s.request(Long.MAX_VALUE);
+            }
+        }
+
+        @Override
+        public void onNext(Object t) {
+	        Subscription current = SUBSCRIPTION.get(this);
+	        if (current != SubscriptionHelper.cancelled()) {
+		        current = SUBSCRIPTION.getAndSet(this, SubscriptionHelper.cancelled());
+		        if (current != SubscriptionHelper.cancelled()) {
+			        if (current != null) {
+				        current.cancel();
+			        }
+			        parent.innerClose(isLeft, this);
+		        }
+	        }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            parent.innerError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            parent.innerClose(isLeft, this);
+        }
+
+    }
+}

@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import rsc.flow.Cancellation;
 import rsc.util.ExceptionHelper;
+import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -207,10 +208,10 @@ public final class ExecutorScheduler implements Scheduler {
             }
             
             if (!list.isEmpty()) {
-                Object[] a = list.keys;
-                for (Object o : a) {
+                ExecutorTrackedRunnable[] a = list.keys();
+                for (ExecutorTrackedRunnable o : a) {
                     if (o != null) {
-                        ((ExecutorTrackedRunnable)o).dispose();
+                        o.dispose();
                     }
                 }
             }

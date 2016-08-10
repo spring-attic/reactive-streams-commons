@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import rsc.flow.Cancellation;
 import rsc.scheduler.TimedScheduler.TimedWorker;
+import rsc.util.OpenHashSet;
 
 /**
  * Wraps another TimedWorker and tracks Runnable tasks scheduled with it.

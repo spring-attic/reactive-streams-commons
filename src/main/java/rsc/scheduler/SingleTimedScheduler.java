@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import rsc.flow.Cancellation;
+import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -252,10 +253,10 @@ public final class SingleTimedScheduler implements TimedScheduler {
             }
             
             if (!set.isEmpty()) {
-                Object[] keys = set.keys;
-                for (Object c : keys) {
+                CancelFuture[] keys = set.keys();
+                for (CancelFuture c : keys) {
                     if (c != null) {
-                        ((CancelFuture)c).cancelFuture();
+                        c.cancelFuture();
                     }
                 }
             }

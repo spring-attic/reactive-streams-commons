@@ -175,10 +175,10 @@ public final class SingleScheduler implements Scheduler {
             }
             
             if (set != null && !set.isEmpty()) {
-                Object[] a = set.keys;
-                for (Object o : a) {
+                SingleWorkerTask[] a = set.keys();
+                for (SingleWorkerTask o : a) {
                     if (o != null) {
-                        ((SingleWorkerTask)o).cancelFuture();
+                        o.cancelFuture();
                     }
                 }
             }

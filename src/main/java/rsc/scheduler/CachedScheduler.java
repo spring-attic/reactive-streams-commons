@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import rsc.flow.Cancellation;
 import rsc.util.ExceptionHelper;
+import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -282,10 +283,10 @@ public final class CachedScheduler implements Scheduler {
             }
             
             if (!set.isEmpty()) {
-                Object[] keys = set.keys;
-                for (Object o : keys) {
+                CachedTask[] keys = set.keys();
+                for (CachedTask o : keys) {
                     if (o != null) {
-                        ((CachedTask)o).cancelFuture();
+                        o.cancelFuture();
                     }
                 }
             }

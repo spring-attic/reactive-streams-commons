@@ -1,10 +1,26 @@
 
 /*
+ * Copyright (c) 2011-2016 Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
  * Inspired by fastutils' OpenHashSet implementation at
  * https://github.com/vigna/fastutil/blob/master/drv/OpenHashSet.drv
  */
 
-package rsc.scheduler;
+package rsc.util;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -17,7 +33,7 @@ import rsc.util.PowerOf2;
  *
  * @param <T> the element type
  */
-final class OpenHashSet<T> {
+public final class OpenHashSet<T> {
     final float loadFactor;
     int mask;
     int size;
@@ -218,7 +234,7 @@ final class OpenHashSet<T> {
         return size;
     }
     
-    public T[] rawKeys() {
+    public T[] keys() {
         return keys;
     }
 }

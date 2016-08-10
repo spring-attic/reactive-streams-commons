@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import rsc.flow.Cancellation;
 import rsc.scheduler.ExecutorScheduler.ExecutorSchedulerTrampolineWorker;
+import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -112,10 +113,10 @@ public final class ExecutorServiceScheduler implements Scheduler {
                 }
                 
                 if (!coll.isEmpty()) {
-                    Object[] a = coll.keys;
-                    for (Object o : a) {
+                    ScheduledRunnable[] a = coll.keys();
+                    for (ScheduledRunnable o : a) {
                         if (o != null) {
-                            ((ScheduledRunnable)o).cancelFuture();
+                            o.cancelFuture();
                         }
                     }
                 }

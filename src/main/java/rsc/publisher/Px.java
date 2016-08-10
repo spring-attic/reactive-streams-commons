@@ -1066,6 +1066,29 @@ public abstract class Px<T> implements Publisher<T> {
         return onAssembly(new PublisherCharSequence(string));
     }
 
+    public final <TRight, TLeftEnd, TRightEnd, R> Px<R> groupJoin(
+            Publisher<? extends TRight> other,
+            Function<? super T, ? extends Publisher<TLeftEnd>> leftEnd,
+            Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd,
+            BiFunction<? super T, ? super Px<TRight>, ? extends R> resultSelector
+    ) {
+        return new PublisherGroupJoin<T, TRight, TLeftEnd, TRightEnd, R>(
+                this, other, leftEnd, rightEnd, resultSelector,
+                defaultUnboundedQueueSupplier(bufferSize()),
+                defaultUnboundedQueueSupplier(bufferSize()));
+    }
+
+    public final <TRight, TLeftEnd, TRightEnd, R> Px<R> join(
+            Publisher<? extends TRight> other,
+            Function<? super T, ? extends Publisher<TLeftEnd>> leftEnd,
+            Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd,
+            BiFunction<? super T, ? super TRight, ? extends R> resultSelector
+    ) {
+        return new PublisherJoin<T, TRight, TLeftEnd, TRightEnd, R>(
+                this, other, leftEnd, rightEnd, resultSelector, defaultUnboundedQueueSupplier(bufferSize()));
+    }
+
+
     @SuppressWarnings("rawtypes")
     static final Function IDENTITY_FUNCTION = new Function() {
         @Override
