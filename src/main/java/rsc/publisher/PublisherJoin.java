@@ -193,10 +193,10 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 		}
 
 		void cancelAll() {
-			Cancellation[] a = cancellations.keys();
-			for (Cancellation o : a) {
+			Object[] a = cancellations.keys();
+			for (Object o : a) {
 				if (o != null) {
-					o.dispose();
+					((Cancellation)o).dispose();
 				}
 			}
 		}
@@ -252,10 +252,10 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 
 						lefts.clear();
 						rights.clear();
-						Cancellation[] c = cancellations.keys();
-						for (Cancellation o : c) {
+						Object[] c = cancellations.keys();
+						for (Object o : c) {
 							if (o != null) {
-								o.dispose();
+								((Cancellation)o).dispose();
 							}
 						}
 

@@ -219,7 +219,7 @@ public final class OpenHashSet<T> {
         return size;
     }
     
-    public T[] keys() {
+    public Object[] keys() {
         return keys;
     }
 }

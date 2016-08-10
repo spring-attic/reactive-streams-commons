@@ -100,10 +100,10 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
                 }
                 
                 if (set != null && !set.isEmpty()) {
-                    AbstractTimedTask[] keys = set.keys();
-                    for (AbstractTimedTask o : keys) {
+                    Object[] keys = set.keys();
+                    for (Object o : keys) {
                         if (o != null) {
-                            o.cancelFuture();
+                            ((AbstractTimedTask)o).cancelFuture();
                         }
                     }
                 }

@@ -224,10 +224,10 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
         }
 
         void cancelAll() {
-	        Cancellation[] a = cancellations.keys();
-	        for (Cancellation o : a) {
+	        Object[] a = cancellations.keys();
+	        for (Object o : a) {
 		        if (o != null) {
-			        o.dispose();
+			        ((Cancellation)o).dispose();
 		        }
 	        }
         }

@@ -283,10 +283,10 @@ public final class CachedScheduler implements Scheduler {
             }
             
             if (!set.isEmpty()) {
-                CachedTask[] keys = set.keys();
-                for (CachedTask o : keys) {
+                Object[] keys = set.keys();
+                for (Object o : keys) {
                     if (o != null) {
-                        o.cancelFuture();
+                        ((CachedTask)o).cancelFuture();
                     }
                 }
             }

@@ -208,10 +208,10 @@ public final class ExecutorScheduler implements Scheduler {
             }
             
             if (!list.isEmpty()) {
-                ExecutorTrackedRunnable[] a = list.keys();
-                for (ExecutorTrackedRunnable o : a) {
+                Object[] a = list.keys();
+                for (Object o : a) {
                     if (o != null) {
-                        o.dispose();
+                        ((ExecutorTrackedRunnable)o).dispose();
                     }
                 }
             }
