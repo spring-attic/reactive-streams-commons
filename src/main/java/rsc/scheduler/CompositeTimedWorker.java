@@ -124,7 +124,7 @@ public final class CompositeTimedWorker implements TimedWorker {
         }
         
         if (set != null) {
-            Object[] array = set.rawKeys();
+            Object[] array = set.keys();
             for (Object tt : array) {
                 if (tt != null) {
                     ((TimedTask)tt).cancelFuture();
