@@ -4,7 +4,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.junit.Test;
-import org.reactivestreams.Subscriber;
 import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 

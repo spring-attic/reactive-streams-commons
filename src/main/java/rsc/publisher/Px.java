@@ -1072,7 +1072,7 @@ public abstract class Px<T> implements Publisher<T> {
             Function<? super TRight, ? extends Publisher<TRightEnd>> rightEnd,
             BiFunction<? super T, ? super Px<TRight>, ? extends R> resultSelector
     ) {
-        return new PublisherGroupJoin<T, TRight, TLeftEnd, TRightEnd, R>(
+        return new PublisherGroupJoin<>(
                 this, other, leftEnd, rightEnd, resultSelector,
                 defaultUnboundedQueueSupplier(bufferSize()),
                 defaultUnboundedQueueSupplier(bufferSize()));

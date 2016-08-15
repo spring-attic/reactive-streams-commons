@@ -115,24 +115,28 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 
 		volatile int wip;
 
-		static final AtomicIntegerFieldUpdater<GroupJoinSubscription> WIP =
+		@SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<GroupJoinSubscription> WIP =
 				AtomicIntegerFieldUpdater.newUpdater(GroupJoinSubscription.class, "wip");
 
 		volatile int active;
 
-		static final AtomicIntegerFieldUpdater<GroupJoinSubscription> ACTIVE =
+		@SuppressWarnings("rawtypes")
+        static final AtomicIntegerFieldUpdater<GroupJoinSubscription> ACTIVE =
 				AtomicIntegerFieldUpdater.newUpdater(GroupJoinSubscription.class,
 						"active");
 
 		volatile long requested;
 
-		static final AtomicLongFieldUpdater<GroupJoinSubscription> REQUESTED =
+		@SuppressWarnings("rawtypes")
+        static final AtomicLongFieldUpdater<GroupJoinSubscription> REQUESTED =
 				AtomicLongFieldUpdater.newUpdater(GroupJoinSubscription.class,
 						"requested");
 
 		volatile Throwable error;
 
-		static final AtomicReferenceFieldUpdater<GroupJoinSubscription, Throwable> ERROR =
+		@SuppressWarnings("rawtypes")
+        static final AtomicReferenceFieldUpdater<GroupJoinSubscription, Throwable> ERROR =
 				AtomicReferenceFieldUpdater.newUpdater(GroupJoinSubscription.class,
 						Throwable.class,
 						"error");
@@ -164,7 +168,7 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 				throw new IllegalArgumentException("The provided queue must implement " +
 						"BiPredicate to expose atomic dual insert");
 			}
-			this.queueBiOffer = (BiPredicate)queue;
+			this.queueBiOffer = (BiPredicate<Object, Object>)queue;
 			this.lefts = new LinkedHashMap<>();
 			this.rights = new LinkedHashMap<>();
 			this.leftEnd = leftEnd;

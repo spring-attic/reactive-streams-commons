@@ -2,12 +2,9 @@ package rsc.publisher;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.junit.Test;
-import org.reactivestreams.Subscriber;
 import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 
