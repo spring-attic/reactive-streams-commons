@@ -6,7 +6,6 @@ def excludingCoreScope =  [						   'completablefuture',
 													  'subscribeonother',
 						   'blockingfuture', 'windowbatch',
 						   'empty', 'just',
-						   'awaitonsubscribe',
 						   'blockingiterable', 'bufferboundaryandsize',
 						   'windowbeginend', /*'windowboundaryandsize',*/
 						   'lift', //Already managed by reactor-core
