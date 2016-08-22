@@ -1,5 +1,7 @@
 # reactive-streams-commons
 A joint research effort for building highly optimized Reactive-Streams compliant operators.
+Current implementors include RxJava2 and [Reactor](http://github
+.com/reactor/reactor-core).
 
 Java 8 required.
 
