@@ -1,17 +1,21 @@
 package rsc.publisher;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Supplier;
 
-import org.reactivestreams.*;
-
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import rsc.flow.Cancellation;
 import rsc.processor.UnicastProcessor;
-import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
-
-import rsc.util.ExceptionHelper;
 import rsc.subscriber.SubscriptionHelper;
+import rsc.util.BackpressureHelper;
+import rsc.util.ExceptionHelper;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -86,7 +90,7 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Px<T
     }
 
     static final class PublisherWindowBoundaryMain<T, U>
-            implements Subscriber<T>, Subscription, Runnable {
+            implements Subscriber<T>, Subscription, Cancellation {
 
         final Subscriber<? super Px<T>> actual;
 
@@ -178,7 +182,7 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Px<T
         }
 
         @Override
-        public void run() {
+        public void dispose() {
             if (OPEN.decrementAndGet(this) == 0) {
                 cancelMain();
                 boundary.cancel();
@@ -199,7 +203,7 @@ public final class PublisherWindowBoundary<T, U> extends PublisherSource<T, Px<T
         @Override
         public void cancel() {
             if (ONCE.compareAndSet(this, 0, 1)) {
-                run();
+                dispose();
             }
         }
 

@@ -13,6 +13,7 @@ import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
+import rsc.flow.Cancellation;
 import rsc.flow.Fuseable;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
@@ -41,10 +42,10 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
 
     final Queue<T> queue;
     
-    volatile Runnable onTerminate;
+    volatile Cancellation onTerminate;
     @SuppressWarnings("rawtypes")
-    static final AtomicReferenceFieldUpdater<UnicastProcessor, Runnable> ON_TERMINATE =
-            AtomicReferenceFieldUpdater.newUpdater(UnicastProcessor.class, Runnable.class, "onTerminate");
+    static final AtomicReferenceFieldUpdater<UnicastProcessor, Cancellation> ON_TERMINATE =
+            AtomicReferenceFieldUpdater.newUpdater(UnicastProcessor.class, Cancellation.class, "onTerminate");
     
     volatile boolean done;
     Throwable error;
@@ -78,15 +79,15 @@ implements Processor<T, T>, Fuseable.QueueSubscription<T>, Fuseable, Producer, R
         this.onTerminate = null;
     }
 
-    public UnicastProcessor(Queue<T> queue, Runnable onTerminate) {
+    public UnicastProcessor(Queue<T> queue, Cancellation onTerminate) {
         this.queue = Objects.requireNonNull(queue, "queue");
         this.onTerminate = Objects.requireNonNull(onTerminate, "onTerminate");
     }
     
     void doTerminate() {
-        Runnable r = onTerminate;
+        Cancellation r = onTerminate;
         if (r != null && ON_TERMINATE.compareAndSet(this, r, null)) {
-            r.run();
+            r.dispose();
         }
     }
     

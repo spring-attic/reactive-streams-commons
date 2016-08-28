@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import rsc.flow.Cancellation;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
@@ -82,7 +83,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
     }
     
     static final class WindowStartEndMainSubscriber<T, U, V>
-    implements Subscriber<T>, Subscription, Runnable {
+    implements Subscriber<T>, Subscription, Cancellation {
         
         final Subscriber<? super Px<T>> actual;
         
@@ -232,12 +233,12 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
         
         void closeMain() {
             if (ONCE.compareAndSet(this, 0, 1)) {
-                run();
+                dispose();
             }
         }
         
         @Override
-        public void run() {
+        public void dispose() {
             if (OPEN.decrementAndGet(this) == 0) {
                 SubscriptionHelper.terminate(S, this);
             }

@@ -15,6 +15,7 @@ import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
+import rsc.flow.Cancellation;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
 
@@ -81,7 +82,8 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Px<T>> 
         source.subscribe(parent);
     }
     
-    static final class PublisherWindowBatchMain<T, U> implements Subscriber<T>, Subscription, Runnable {
+    static final class PublisherWindowBatchMain<T, U> implements Subscriber<T>, Subscription,
+                                                                 Cancellation {
 
         final Subscriber<? super Px<T>> actual;
 
@@ -293,7 +295,7 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Px<T>> 
         }
         
         @Override
-        public void run() {
+        public void dispose() {
             if (OPEN.decrementAndGet(this) == 0) {
                 s.cancel();
                 cancelOther();

@@ -17,6 +17,7 @@ import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
+import rsc.flow.Cancellation;
 import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
@@ -98,7 +99,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         }
     }
 
-    static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Producer, Receiver,
+    static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription,
+                                                           Cancellation, Producer, Receiver,
                                                            MultiProducer, Trackable {
         
         final Subscriber<? super Px<T>> actual;
@@ -235,12 +237,12 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         @Override
         public void cancel() {
             if (ONCE.compareAndSet(this, 0, 1)) {
-                run();
+                dispose();
             }
         }
 
         @Override
-        public void run() {
+        public void dispose() {
             if (WIP.decrementAndGet(this) == 0) {
                 s.cancel();
             }
@@ -287,7 +289,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         }
     }
     
-    static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Runnable, Receiver,
+    static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Cancellation, Receiver,
                                                           MultiProducer, Producer,
                                                           Trackable {
         
@@ -445,12 +447,12 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         @Override
         public void cancel() {
             if (ONCE.compareAndSet(this, 0, 1)) {
-                run();
+                dispose();
             }
         }
 
         @Override
-        public void run() {
+        public void dispose() {
             if (WIP.decrementAndGet(this) == 0) {
                 s.cancel();
             }
@@ -497,7 +499,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         }
     }
 
-    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Runnable,
+    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Cancellation,
                                                              Producer, MultiProducer, Receiver,
                                                              Trackable {
         
@@ -766,12 +768,12 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         public void cancel() {
             cancelled = true;
             if (ONCE.compareAndSet(this, 0, 1)) {
-                run();
+                dispose();
             }
         }
 
         @Override
-        public void run() {
+        public void dispose() {
             if (WIP.decrementAndGet(this) == 0) {
                 s.cancel();
             }
