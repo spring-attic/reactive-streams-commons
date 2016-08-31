@@ -1,25 +1,15 @@
 package rsc.publisher;
 
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
-import rsc.processor.DirectProcessor;
-import rsc.processor.UnicastProcessor;
-import rsc.test.TestSubscriber;
-import rsc.util.ConstructorTestBuilder;
+import rsc.processor.*;
 import rsc.scheduler.ExecutorServiceScheduler;
-import rsc.util.SpscArrayQueue;
-import rsc.util.SpscLinkedArrayQueue;
+import rsc.test.TestSubscriber;
+import rsc.util.*;
 
 public class PublisherObserveOnTest {
 
@@ -704,14 +694,14 @@ public class PublisherObserveOnTest {
     }
 
     @Test
-    public void crossRangeMaxHiddenLoop() {
+    public void crossRangeMaxHiddenLoop() throws Exception  {
         for (int i = 0; i < 50; i++) {
             crossRangeMaxHidden();
         }
     }
 
     @Test
-    public void crossRangeMaxHidden() {
+    public void crossRangeMaxHidden() throws Exception {
         TestSubscriber<Integer> ts = new TestSubscriber<>();
 
         int count = 1000000;
@@ -722,6 +712,7 @@ public class PublisherObserveOnTest {
         
         if (!ts.await(10, TimeUnit.SECONDS)) {
             ts.cancel();
+            throw new TimeoutException("" + ts.received());
         }
         
         ts.assertValueCount(count * 2)

@@ -8,10 +8,10 @@ import java.util.function.*;
 import org.junit.*;
 import org.reactivestreams.Publisher;
 
-import rsc.processor.DirectProcessor;
-import rsc.processor.UnicastProcessor;
+import rsc.processor.*;
+import rsc.scheduler.*;
 import rsc.test.TestSubscriber;
-import rsc.util.ConstructorTestBuilder;
+import rsc.util.*;
 
 public class PublisherFlatMapTest {
 
@@ -665,5 +665,33 @@ public class PublisherFlatMapTest {
         ts.assertValueCount(1_000_000);
         ts.assertComplete();
         ts.assertNoError();
+    }
+    
+    @Test
+    public void outerInnerCompleteRace() throws Exception {
+        
+        Scheduler s = new SingleScheduler();
+        
+        for (int i = 0; i < 100000; i++) {
+            
+            DirectProcessor<Integer> dp1 = new DirectProcessor<>();
+            DirectProcessor<Integer> dp2 = new DirectProcessor<>();
+            
+            TestSubscriber<Integer> ts = dp1.flatMap(v -> dp2).test(0L);
+            
+            dp1.onNext(1);
+            dp2.onNext(1);
+            
+            TestHelper.race(() -> dp1.onComplete(), () -> dp2.onComplete(), s);
+
+            ts.request(1);
+
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                throw new TimeoutException();
+            }
+            
+            ts.assertResult(1);
+        }
     }
 }
