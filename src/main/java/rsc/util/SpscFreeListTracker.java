@@ -83,6 +83,7 @@ public abstract class SpscFreeListTracker<T> {
                 idx = n;
             }
             setIndex(entry, idx);
+            SIZE.lazySet(this, size); // make sure entry is released
             a[idx] = entry;
             SIZE.lazySet(this, size + 1);
             return true;

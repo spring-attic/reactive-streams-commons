@@ -523,41 +523,37 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                 long e = 0L;
                 long replenishMain = 0L;
                 
-                if (r != 0L) {
-                    sq = scalarQueue;
-                    if (sq != null) {
+                if (r != 0L && sq != null) {
+                    while (e != r) {
+                        d = done;
                         
-                        while (e != r) {
-                            d = done;
-                            
-                            R v = sq.poll();
-                            
-                            boolean empty = v == null;
+                        R v = sq.poll();
+                        
+                        boolean empty = v == null;
 
-                            if (checkTerminated(d, false, a)) {
-                                return;
-                            }
-                            
-                            if (empty) {
-                                break;
-                            }
-                            
-                            a.onNext(v);
-                            
-                            e++;
+                        if (checkTerminated(d, false, a)) {
+                            return;
                         }
                         
-                        if (e != 0L) {
-                            replenishMain += e;
-                            if (r != Long.MAX_VALUE) {
-                                r = REQUESTED.addAndGet(this, -e);
-                            }
-                            e = 0L;
-                            again = true;
+                        if (empty) {
+                            break;
                         }
                         
+                        a.onNext(v);
+                        
+                        e++;
+                    }
+                    
+                    if (e != 0L) {
+                        replenishMain += e;
+                        if (r != Long.MAX_VALUE) {
+                            r = REQUESTED.addAndGet(this, -e);
+                        }
+                        e = 0L;
+                        again = true;
                     }
                 }
+                
                 if (r != 0L && !noSources) {
                     
                     int j = lastIndex;
@@ -869,19 +865,19 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
                     if (checkTerminated(d, noSources && (sq == null || sq.isEmpty()), actual)) {
                         return;
                     }
-                    
-                    if (WIP.decrementAndGet(this) != 0) {
-                        drainLoop();
+
+                    if (!d) {
+                        s.request(1);
                     }
-                    s.request(1);
-                    return;
+
+                    if (WIP.decrementAndGet(this) == 0) {
+                        return;
+                    }
                 }
+                drainLoop();
             } else {
-                if (WIP.getAndIncrement(this) != 0) {
-                    return;
-                }
+                drain();
             }
-            drainLoop();
         }
         
         Queue<R> getOrCreateScalarQueue(PublisherFlatMapInner<R> inner) {
