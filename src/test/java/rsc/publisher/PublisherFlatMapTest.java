@@ -694,4 +694,36 @@ public class PublisherFlatMapTest {
             ts.assertResult(1);
         }
     }
+
+    @Test
+    public void outerNextInnerComplete() throws Exception {
+        
+        Scheduler s = new SingleScheduler();
+        
+        for (int i = 0; i < 10000; i++) {
+            
+            DirectProcessor<Integer> dp1 = new DirectProcessor<>();
+            DirectProcessor<Integer> dp2 = new DirectProcessor<>();
+            
+            TestSubscriber<Integer> ts = dp1.flatMap(v -> v == 1 ? dp2 : Px.empty()).test(0L);
+            
+            dp1.onNext(1);
+            dp2.onNext(1);
+            
+            TestHelper.race(() -> { 
+                dp1.onNext(2);
+                dp1.onComplete();
+            }, () -> dp2.onComplete(), s);
+
+            ts.request(1);
+
+            if (!ts.await(5, TimeUnit.SECONDS)) {
+                ts.cancel();
+                throw new TimeoutException();
+            }
+            
+            ts.assertResult(1);
+        }
+    }
+
 }
