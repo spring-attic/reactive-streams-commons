@@ -710,12 +710,9 @@ public class PublisherObserveOnTest {
         .hide().flatMap(v -> Px.range(v, 2).hide(), false, 32)
         .hide().observeOn(exec).subscribe(ts);
         
-        if (!ts.await(10, TimeUnit.SECONDS)) {
-            ts.cancel();
-            throw new TimeoutException("" + ts.received());
-        }
-        
-        ts.assertValueCount(count * 2)
+        ts
+        .assertTerminated(10, TimeUnit.SECONDS)
+        .assertValueCount(count * 2)
         .assertNoError()
         .assertComplete();
     }
