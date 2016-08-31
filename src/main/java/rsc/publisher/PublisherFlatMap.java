@@ -856,6 +856,34 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
             }
         }
         
+        void innerComplete(PublisherFlatMapInner<R> inner) {
+            if (wip == 0 && WIP.compareAndSet(this, 0, 1)) {
+                Queue<R> q = inner.queue;
+                if (q == null || q.isEmpty()) {
+                    remove(inner.index);
+                    
+                    boolean d = done;
+                    Queue<R> sq = scalarQueue;
+                    boolean noSources = isEmpty();
+                    
+                    if (checkTerminated(d, noSources && (sq == null || sq.isEmpty()), actual)) {
+                        return;
+                    }
+                    
+                    if (WIP.decrementAndGet(this) != 0) {
+                        drainLoop();
+                    }
+                    s.request(1);
+                    return;
+                }
+            } else {
+                if (WIP.getAndIncrement(this) != 0) {
+                    return;
+                }
+            }
+            drainLoop();
+        }
+        
         Queue<R> getOrCreateScalarQueue(PublisherFlatMapInner<R> inner) {
             Queue<R> q = inner.queue;
             if (q == null) {
@@ -1008,7 +1036,7 @@ public final class PublisherFlatMap<T, R> extends PublisherSource<T, R> {
         public void onComplete() {
             // onComplete is practically idempotent so there is no risk due to subscription-race in async mode
             done = true;
-            parent.drain();
+            parent.innerComplete(this);
         }
 
         @Override
