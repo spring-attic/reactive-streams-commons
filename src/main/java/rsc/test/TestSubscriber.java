@@ -225,7 +225,7 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
     public final TestSubscriber<T> assertValueCount(int n) {
         int s = values.size();
         if (s != n) {
-            assertionError("Different value count: expected = " + n + ", actual = " + s);
+            assertionError("Different value count: expected = " + n + ", actual = " + s + ", last = " + (System.currentTimeMillis() - lastEvent) + " ms ago");
         }
         return this;
     }
@@ -707,10 +707,9 @@ public class TestSubscriber<T> extends DeferredSubscriptionSubscriber<T, T> {
      * @return this
      */
     public final TestSubscriber<T> assertTerminated(long timeout, TimeUnit unit) {
-        long ts = System.currentTimeMillis();
         if (!await(timeout, unit)) {
             cancel();
-            assertionError("TestSubscriber timed out. Received: " + volatileSize + ", last event: " + (ts - lastEvent) + " ms ago");
+            assertionError("TestSubscriber timed out. Received: " + volatileSize + ", last event: " + (System.currentTimeMillis() - lastEvent) + " ms ago");
         }
         return this;
     }

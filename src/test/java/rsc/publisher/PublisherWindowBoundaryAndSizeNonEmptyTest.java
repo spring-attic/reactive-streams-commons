@@ -359,12 +359,15 @@ public class PublisherWindowBoundaryAndSizeNonEmptyTest {
                 .window(Px.interval(5, TimeUnit.MILLISECONDS, exec), maxSize, false)
                 .subscribe(ts);
 
-                ts.assertTerminated(10, TimeUnit.SECONDS);
+                ts.assertTerminated(10, TimeUnit.SECONDS)
+                .assertNoError();
 
                 
                 List<Long> data = new ArrayList<>(2500);
                 for (TestSubscriber<Long> its : tss) {
-                    its.assertTerminated(10, TimeUnit.SECONDS);
+                    its.assertTerminated(10, TimeUnit.SECONDS)
+                    .assertNoError()
+                    ;
                     data.addAll(its.values());
                 }
 

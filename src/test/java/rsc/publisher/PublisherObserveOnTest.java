@@ -410,10 +410,10 @@ public class PublisherObserveOnTest {
         Px.mergeArray(fork1, fork2).observeOn(ForkJoinPool.commonPool()).subscribe(ts);
 
 
-        new PublisherRange(0, 128).hide().observeOn(ForkJoinPool.commonPool()).subscribe(sp);
+        Px.range(0, 128).hide().observeOn(ForkJoinPool.commonPool()).subscribe(sp);
 
-        ts.await(5, TimeUnit.SECONDS);
-        ts.assertValueCount(256)
+        ts.assertTerminated(5, TimeUnit.SECONDS)
+          .assertValueCount(256)
           .assertNoError()
           .assertComplete();
     }
