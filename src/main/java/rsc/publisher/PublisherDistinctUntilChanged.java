@@ -199,28 +199,8 @@ public final class PublisherDistinctUntilChanged<T, K> extends PublisherSource<T
 
         @Override
         public void onNext(T t) {
-            if (done) {
-                UnsignalledExceptions.onNextDropped(t);
-                return;
-            }
-
-            K k;
-
-            try {
-                k = keyExtractor.apply(t);
-            } catch (Throwable e) {
-                s.cancel();
-                ExceptionHelper.throwIfFatal(e);
-                onError(ExceptionHelper.unwrap(e));
-                return;
-            }
-
-
-            lastKey = k;
-            if (Objects.equals(lastKey, k)) {
+            if (!tryOnNext(t)) {
                 s.request(1);
-            } else {
-                actual.onNext(t);
             }
         }
 

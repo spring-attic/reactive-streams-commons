@@ -1,6 +1,8 @@
 package rsc.publisher;
 
 import org.junit.Test;
+
+import rsc.processor.DirectProcessor;
 import rsc.test.TestSubscriber;
 
 public class PublisherDistinctUntilChangedTest {
@@ -122,4 +124,20 @@ public class PublisherDistinctUntilChangedTest {
           .assertErrorMessage("forced failure");
     }
 
+    @Test
+    public void allDistinctConditional() {
+        DirectProcessor<Integer> dp = new DirectProcessor<>();
+        
+        TestSubscriber<Integer> ts = dp
+        .distinctUntilChanged()
+        .filter(v -> true)
+        .test();
+        
+        dp.onNext(1);
+        dp.onNext(2);
+        dp.onNext(3);
+        dp.onComplete();
+        
+        ts.assertResult(1, 2, 3);
+    }
 }
