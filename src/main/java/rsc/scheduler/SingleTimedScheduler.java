@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
 
@@ -90,7 +90,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         try {
             Future<?> f = executor.submit(task);
             return () -> f.cancel(true);
@@ -100,7 +100,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+    public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
         try {
             Future<?> f = executor.schedule(task, delay, unit);
             return () -> f.cancel(true);
@@ -110,7 +110,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
     }
     
     @Override
-    public Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
+    public Disposable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
         try {
             Future<?> f = executor.scheduleAtFixedRate(task, initialDelay, period, unit);
             return () -> f.cancel(true);
@@ -147,7 +147,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             if (terminated) {
                 return REJECTED;
             }
@@ -182,7 +182,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
         
         @Override
-        public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+        public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
             if (terminated) {
                 return REJECTED;
             }
@@ -209,7 +209,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
         }
         
         @Override
-        public Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
+        public Disposable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
             if (terminated) {
                 return REJECTED;
             }
@@ -269,7 +269,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
     
     static final class TimedScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellation, CancelFuture {
+    implements Runnable, Disposable, CancelFuture {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         
@@ -386,7 +386,7 @@ public final class SingleTimedScheduler implements TimedScheduler {
 
     static final class TimedPeriodicScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellation, CancelFuture {
+    implements Runnable, Disposable, CancelFuture {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         

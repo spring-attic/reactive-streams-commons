@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.ExceptionHelper;
 import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
@@ -106,7 +106,7 @@ public final class SingleScheduler2 implements Scheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         try {
             return executor.submit(task);
         } catch (RejectedExecutionException ex) {
@@ -133,7 +133,7 @@ public final class SingleScheduler2 implements Scheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             if (shutdown) {
                 return REJECTED;
             }
@@ -147,7 +147,7 @@ public final class SingleScheduler2 implements Scheduler {
                 tasks.add(pw);
             }
             
-            Cancellation f;
+            Disposable f;
             try {
                 f = exec.submit(pw);
             } catch (RejectedExecutionException ex) {
@@ -214,19 +214,19 @@ public final class SingleScheduler2 implements Scheduler {
             }
         }
         
-        static final class SingleWorkerTask implements Runnable, Cancellation {
+        static final class SingleWorkerTask implements Runnable, Disposable {
             final Runnable run;
             
             final SingleWorker parent;
             
             volatile boolean cancelled;
             
-            volatile Cancellation future;
-            static final AtomicReferenceFieldUpdater<SingleWorkerTask, Cancellation> FUTURE =
-                    AtomicReferenceFieldUpdater.newUpdater(SingleWorkerTask.class, Cancellation.class, "future");
+            volatile Disposable future;
+            static final AtomicReferenceFieldUpdater<SingleWorkerTask, Disposable> FUTURE =
+                    AtomicReferenceFieldUpdater.newUpdater(SingleWorkerTask.class, Disposable.class, "future");
             
-            static final Cancellation FINISHED = () -> { };
-            static final Cancellation CANCELLED = () -> { };
+            static final Disposable FINISHED  = () -> { };
+            static final Disposable CANCELLED = () -> { };
             
             public SingleWorkerTask(Runnable run, SingleWorker parent) {
                 this.run = run;
@@ -247,7 +247,7 @@ public final class SingleScheduler2 implements Scheduler {
                     }
                 } finally {
                     for (;;) {
-                        Cancellation f = future;
+                        Disposable f = future;
                         if (f == CANCELLED) {
                             break;
                         }
@@ -265,7 +265,7 @@ public final class SingleScheduler2 implements Scheduler {
                 if (!cancelled) {
                     cancelled = true;
                     
-                    Cancellation f = future;
+                    Disposable f = future;
                     if (f != CANCELLED && f != FINISHED) {
                         f = FUTURE.getAndSet(this, CANCELLED);
                         if (f != CANCELLED && f != FINISHED) {
@@ -279,7 +279,7 @@ public final class SingleScheduler2 implements Scheduler {
                 }
             }
             
-            void setFuture(Cancellation f) {
+            void setFuture(Disposable f) {
                 if (future != null || !FUTURE.compareAndSet(this, null, f)) {
                     if (future != FINISHED) {
                         f.dispose();
@@ -288,7 +288,7 @@ public final class SingleScheduler2 implements Scheduler {
             }
             
             void cancelFuture() {
-                Cancellation f = future;
+                Disposable f = future;
                 if (f != CANCELLED && f != FINISHED) {
                     f = FUTURE.getAndSet(this, CANCELLED);
                     if (f != null && f != CANCELLED && f != FINISHED) {

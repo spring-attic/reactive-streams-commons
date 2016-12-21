@@ -397,7 +397,7 @@ public final class PublisherZip<T, R> extends Px<R> implements MultiReceiver, Tr
     }
     
     static final class PublisherZipSingleSubscriber<T> implements Subscriber<T>,
-                                                                  Trackable, Cancellation,
+                                                                  Trackable, Disposable,
                                                                   Receiver {
         final PublisherZipSingleCoordinator<T, ?> parent;
         

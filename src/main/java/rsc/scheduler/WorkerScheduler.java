@@ -2,7 +2,7 @@ package rsc.scheduler;
 
 import java.util.concurrent.Executor;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.scheduler.ExecutorScheduler.ExecutorSchedulerWorker;
 
 /**
@@ -25,7 +25,7 @@ public final class WorkerScheduler implements Scheduler, Executor {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         return main.schedule(task);
     }
     

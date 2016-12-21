@@ -5,7 +5,7 @@ package rsc.flow;
  * <p>Call to the dispose method is/should be idempotent.
  */
 @FunctionalInterface
-public interface Cancellation {
+public interface Disposable {
     /**
      * Cancel or dispose the underlying task or resource.
      * <p>Call to this method is/should be idempotent.

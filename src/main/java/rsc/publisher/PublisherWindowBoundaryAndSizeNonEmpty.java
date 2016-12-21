@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.processor.UnicastProcessor;
 import rsc.subscriber.DeferredSubscription;
 import rsc.subscriber.SubscriptionHelper;
@@ -96,7 +96,7 @@ public final class PublisherWindowBoundaryAndSizeNonEmpty<T, U> extends Publishe
     }
 
     static final class PublisherWindowBoundaryMain<T, U>
-            implements Subscriber<T>, Subscription, Cancellation {
+            implements Subscriber<T>, Subscription, Disposable {
 
         final Subscriber<? super Px<T>> actual;
 

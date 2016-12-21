@@ -18,7 +18,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.publisher.PublisherGroupJoin.JoinSupport;
 import rsc.publisher.PublisherGroupJoin.LeftRightEndSubscriber;
 import rsc.publisher.PublisherGroupJoin.LeftRightSubscriber;
@@ -101,7 +101,7 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 		final Queue<Object>               queue;
 		final BiPredicate<Object, Object> queueBiOffer;
 
-		final OpenHashSet<Cancellation> cancellations;
+		final OpenHashSet<Disposable> cancellations;
 
 		final Map<Integer, TLeft> lefts;
 
@@ -200,7 +200,7 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 			Object[] a = cancellations.keys();
 			for (Object o : a) {
 				if (o != null) {
-					((Cancellation)o).dispose();
+					((Disposable)o).dispose();
 				}
 			}
 		}
@@ -259,7 +259,7 @@ public final class PublisherJoin<TLeft, TRight, TLeftEnd, TRightEnd, R>
 						Object[] c = cancellations.keys();
 						for (Object o : c) {
 							if (o != null) {
-								((Cancellation)o).dispose();
+								((Disposable)o).dispose();
 							}
 						}
 

@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.scheduler.Scheduler;
 
 public final class TestHelper {
@@ -26,7 +26,7 @@ public final class TestHelper {
         final Throwable[] errors = { null, null };
         final CountDownLatch cdl = new CountDownLatch(1);
         
-            Cancellation c = scheduler.schedule(new Runnable() {
+            Disposable c = scheduler.schedule(new Runnable() {
                 @Override
                 public void run() {
                     if (counter.decrementAndGet() != 0) {

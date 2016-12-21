@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
 import rsc.subscriber.DeferredSubscription;
@@ -83,7 +83,7 @@ public final class PublisherWindowStartEnd<T, U, V> extends PublisherSource<T, P
     }
     
     static final class WindowStartEndMainSubscriber<T, U, V>
-    implements Subscriber<T>, Subscription, Cancellation {
+    implements Subscriber<T>, Subscription, Disposable {
         
         final Subscriber<? super Px<T>> actual;
         

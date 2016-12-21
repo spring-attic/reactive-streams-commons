@@ -3,7 +3,7 @@ package rsc.scheduler;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.scheduler.TimedScheduler.TimedWorker;
 import rsc.util.OpenHashSet;
 
@@ -24,7 +24,7 @@ public final class CompositeTimedWorker implements TimedWorker {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         if (terminated) {
             return Scheduler.REJECTED;
         }
@@ -38,7 +38,7 @@ public final class CompositeTimedWorker implements TimedWorker {
             tasks.add(st);
         }
         
-        Cancellation f;
+        Disposable f;
         
         try {
             f = actual.schedule(st);
@@ -54,7 +54,7 @@ public final class CompositeTimedWorker implements TimedWorker {
     }
     
     @Override
-    public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+    public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
         if (terminated) {
             return Scheduler.REJECTED;
         }
@@ -68,7 +68,7 @@ public final class CompositeTimedWorker implements TimedWorker {
             tasks.add(st);
         }
         
-        Cancellation f;
+        Disposable f;
         
         try {
             f = actual.schedule(st, delay, unit);
@@ -83,7 +83,7 @@ public final class CompositeTimedWorker implements TimedWorker {
     }
     
     @Override
-    public Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
+    public Disposable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
         if (terminated) {
             return Scheduler.REJECTED;
         }
@@ -97,7 +97,7 @@ public final class CompositeTimedWorker implements TimedWorker {
             tasks.add(st);
         }
         
-        Cancellation f;
+        Disposable f;
         
         try {
             f = actual.schedulePeriodically(st, initialDelay, period, unit);
@@ -146,26 +146,26 @@ public final class CompositeTimedWorker implements TimedWorker {
         }
     }
     
-    static final Cancellation FINISHED = () -> { };
-    static final Cancellation CANCELLED = () -> { };
+    static final Disposable FINISHED  = () -> { };
+    static final Disposable CANCELLED = () -> { };
 
-    static abstract class TimedTask implements Runnable, Cancellation {
+    static abstract class TimedTask implements Runnable, Disposable {
         final CompositeTimedWorker parent;
         
         final Runnable run;
         
-        volatile Cancellation future;
-        static final AtomicReferenceFieldUpdater<CompositeTimedWorker.TimedTask, Cancellation> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(CompositeTimedWorker.TimedTask.class, Cancellation.class, "future");
+        volatile Disposable future;
+        static final AtomicReferenceFieldUpdater<CompositeTimedWorker.TimedTask, Disposable> FUTURE =
+                AtomicReferenceFieldUpdater.newUpdater(CompositeTimedWorker.TimedTask.class, Disposable.class, "future");
         
         public TimedTask(Runnable run, CompositeTimedWorker parent) {
             this.run = run;
             this.parent = parent;
         }
         
-        final void setFuture(Cancellation f) {
+        final void setFuture(Disposable f) {
             for (;;) {
-                Cancellation c = future;
+                Disposable c = future;
                 if (c == FINISHED) {
                     break;
                 }
@@ -181,7 +181,7 @@ public final class CompositeTimedWorker implements TimedWorker {
         
         final void cancelFuture() {
             for (;;) {
-                Cancellation c = future;
+                Disposable c = future;
                 if (c == FINISHED || c == CANCELLED) {
                     break;
                 }
@@ -197,7 +197,7 @@ public final class CompositeTimedWorker implements TimedWorker {
         @Override
         public final void dispose() {
             for (;;) {
-                Cancellation c = future;
+                Disposable c = future;
                 if (c == FINISHED || c == CANCELLED) {
                     break;
                 }
@@ -224,7 +224,7 @@ public final class CompositeTimedWorker implements TimedWorker {
                 run.run();
             } finally {
                 for (;;) {
-                    Cancellation c = future;
+                    Disposable c = future;
                     if (c == CANCELLED) {
                         break;
                     }
@@ -251,7 +251,7 @@ public final class CompositeTimedWorker implements TimedWorker {
                 run.run();
             } catch (final Throwable ex) {
                 for (;;) {
-                    Cancellation c = future;
+                    Disposable c = future;
                     if (c == CANCELLED) {
                         break;
                     }

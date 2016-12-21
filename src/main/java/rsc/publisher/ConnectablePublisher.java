@@ -2,7 +2,7 @@ package rsc.publisher;
 
 import java.util.function.Consumer;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 
 /**
  * The abstract base class for connectable publishers that let subscribers pile up
@@ -42,7 +42,7 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * @param cancelSupport the consumer that will receive the runnable that allows disconnecting
      * @return the Publisher that connects to the upstream source when the given amount of subscribers subscribed
      */
-    public final Px<T> autoConnect(int minSubscribers, Consumer<? super Cancellation> cancelSupport) {
+    public final Px<T> autoConnect(int minSubscribers, Consumer<? super Disposable> cancelSupport) {
         if (minSubscribers == 0) {
             connect(cancelSupport);
             return this;
@@ -55,8 +55,8 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * can be used for disconnecting.
      * @return the Runnable that allows disconnecting the connection after.
      */
-    public final Cancellation connect() {
-        final Cancellation[] out = { null };
+    public final Disposable connect() {
+        final Disposable[] out = { null };
         connect(r -> out[0] = r);
         return out[0];
     }
@@ -68,10 +68,10 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
      * and subsequent times. In addition the disconnection should be also tied
      * to a particular connection (so two different connection can't disconnect the other).
      *
-     * @param cancelSupport the callback is called with a Cancellation instance that can
+     * @param cancelSupport the callback is called with a Disposable instance that can
      * be called to disconnect the source, even synchronously.
      */
-    public abstract void connect(Consumer<? super Cancellation> cancelSupport);
+    public abstract void connect(Consumer<? super Disposable> cancelSupport);
 
 	/**
      * Connects to the upstream source when the given number of Subscriber subscribes and disconnects
@@ -92,7 +92,7 @@ public abstract class ConnectablePublisher<T> extends Px<T> {
         return refCount(1);
     }
 
-    static final Consumer<Cancellation> NOOP_DISCONNECT = runnable -> {
+    static final Consumer<Disposable> NOOP_DISCONNECT = runnable -> {
 
     };
 }

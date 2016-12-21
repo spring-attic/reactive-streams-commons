@@ -35,7 +35,7 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
         if (v == null) {
             ScheduledEmpty parent = new ScheduledEmpty(s);
             s.onSubscribe(parent);
-            Cancellation f = scheduler.schedule(parent);
+            Disposable f = scheduler.schedule(parent);
             parent.setFuture(f);
         } else {
             s.onSubscribe(new ScheduledScalar<>(s, v, scheduler));
@@ -72,7 +72,7 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
             if (v == null) {
                 ScheduledEmpty parent = new ScheduledEmpty(s);
                 s.onSubscribe(parent);
-                Cancellation f = scheduler.schedule(parent);
+                Disposable f = scheduler.schedule(parent);
                 parent.setFuture(f);
             } else {
                 s.onSubscribe(new ScheduledScalar<>(s, v, scheduler));
@@ -97,14 +97,14 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
         static final AtomicIntegerFieldUpdater<ScheduledScalar> ONCE =
         AtomicIntegerFieldUpdater.newUpdater(ScheduledScalar.class, "once");
 
-        volatile Cancellation future;
+        volatile Disposable future;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<ScheduledScalar, Cancellation> FUTURE =
-        AtomicReferenceFieldUpdater.newUpdater(ScheduledScalar.class, Cancellation.class, "future");
+        static final AtomicReferenceFieldUpdater<ScheduledScalar, Disposable> FUTURE =
+        AtomicReferenceFieldUpdater.newUpdater(ScheduledScalar.class, Disposable.class, "future");
 
-        static final Cancellation CANCELLED = () -> { };
+        static final Disposable CANCELLED = () -> { };
 
-        static final Cancellation FINISHED = () -> { };
+        static final Disposable FINISHED = () -> { };
 
         int fusionState;
 
@@ -123,7 +123,7 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
         public void request(long n) {
             if (SubscriptionHelper.validate(n)) {
                 if (ONCE.compareAndSet(this, 0, 1)) {
-                    Cancellation f = scheduler.schedule(this);
+                    Disposable f = scheduler.schedule(this);
                     if (!FUTURE.compareAndSet(this, null, f)) {
                         if (future != FINISHED && future != CANCELLED) {
                             f.dispose();
@@ -136,7 +136,7 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
         @Override
         public void cancel() {
             ONCE.lazySet(this, 1);
-            Cancellation f = future;
+            Disposable f = future;
             if (f != CANCELLED && future != FINISHED) {
                 f = FUTURE.getAndSet(this, CANCELLED);
                 if (f != null && f != CANCELLED && f != FINISHED) {
@@ -210,13 +210,13 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
     static final class ScheduledEmpty implements Fuseable.QueueSubscription<Void>, Runnable, Producer, Loopback {
         final Subscriber<?> actual;
 
-        volatile Cancellation future;
-        static final AtomicReferenceFieldUpdater<ScheduledEmpty, Cancellation> FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(ScheduledEmpty.class, Cancellation.class, "future");
+        volatile Disposable future;
+        static final AtomicReferenceFieldUpdater<ScheduledEmpty, Disposable> FUTURE =
+                AtomicReferenceFieldUpdater.newUpdater(ScheduledEmpty.class, Disposable.class, "future");
 
-        static final Cancellation CANCELLED = () -> { };
+        static final Disposable CANCELLED = () -> { };
 
-        static final Cancellation FINISHED = () -> { };
+        static final Disposable FINISHED = () -> { };
 
         public ScheduledEmpty(Subscriber<?> actual) {
             this.actual = actual;
@@ -229,7 +229,7 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
 
         @Override
         public void cancel() {
-            Cancellation f = future;
+            Disposable f = future;
             if (f != CANCELLED && f != FINISHED) {
                 f = FUTURE.getAndSet(this, CANCELLED);
                 if (f != null && f != CANCELLED && f != FINISHED) {
@@ -247,9 +247,9 @@ public final class PublisherSubscribeOnValue<T> extends Px<T> implements Fuseabl
             }
         }
 
-        void setFuture(Cancellation f) {
+        void setFuture(Disposable f) {
             if (!FUTURE.compareAndSet(this, null, f)) {
-                Cancellation a = future;
+                Disposable a = future;
                 if (a != FINISHED && a != CANCELLED) {
                     f.dispose();
                 }

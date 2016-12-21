@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.ExceptionHelper;
 import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
@@ -155,7 +155,7 @@ public final class CachedScheduler implements Scheduler {
     }
 
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         ExecutorService exec = pick();
         
         Runnable wrapper = () -> {
@@ -239,7 +239,7 @@ public final class CachedScheduler implements Scheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             if (shutdown) {
                 return REJECTED;
             }
@@ -309,7 +309,7 @@ public final class CachedScheduler implements Scheduler {
         
         static final class CachedTask 
         extends AtomicReference<Future<?>>
-        implements Runnable, Cancellation {
+        implements Runnable, Disposable {
             /** */
             private static final long serialVersionUID = 6799295393954430738L;
 

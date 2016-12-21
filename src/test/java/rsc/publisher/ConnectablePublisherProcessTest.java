@@ -6,7 +6,7 @@ import java.util.function.*;
 import org.junit.*;
 import org.reactivestreams.Processor;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.processor.DirectProcessor;
 import rsc.processor.UnicastProcessor;
 import rsc.test.TestSubscriber;
@@ -206,7 +206,7 @@ public class ConnectablePublisherProcessTest {
         
         p.subscribe(ts);
         
-        Cancellation r = p.connect();
+        Disposable r = p.connect();
                 
         sp.onNext(1);
         sp.onNext(2);
@@ -233,7 +233,7 @@ public class ConnectablePublisherProcessTest {
         p.subscribe(ts1);
         p.subscribe(ts2);
 
-        Cancellation r = p.connect();
+        Disposable r = p.connect();
 
         sp.onNext(1);
         sp.onNext(2);
@@ -266,7 +266,7 @@ public class ConnectablePublisherProcessTest {
         
         p.subscribe(ts);
         
-        Cancellation r = p.connect();
+        Disposable r = p.connect();
                 
         r.dispose();
         

@@ -6,7 +6,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.scheduler.ExecutorScheduler.ExecutorSchedulerTrampolineWorker;
 import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
@@ -49,7 +49,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         Future<?> f = executor.submit(task);
         return () -> f.cancel(true);
     }
@@ -68,7 +68,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
         }
         
         @Override
-        public Cancellation schedule(Runnable t) {
+        public Disposable schedule(Runnable t) {
             ScheduledRunnable sr = new ScheduledRunnable(t, this);
             if (add(sr)) {
                 Future<?> f = executor.submit(sr);
@@ -126,7 +126,7 @@ public final class ExecutorServiceScheduler implements Scheduler {
     
     static final class ScheduledRunnable
     extends AtomicReference<Future<?>>
-    implements Runnable, Cancellation {
+    implements Runnable, Disposable {
         /** */
         private static final long serialVersionUID = 2284024836904862408L;
         

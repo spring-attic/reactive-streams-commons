@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 
 public class WorkerSchedulerTest {
     @Test
@@ -27,7 +27,7 @@ public class WorkerSchedulerTest {
         w2.schedule(a2::getAndIncrement);
         w2.shutdown();
 
-        Cancellation c3 = w2.schedule(a3::getAndIncrement);
+        Disposable c3 = w2.schedule(a3::getAndIncrement);
         
         Assert.assertEquals(1, a1.get());
         Assert.assertEquals(1, a2.get());

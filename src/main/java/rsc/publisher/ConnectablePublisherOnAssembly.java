@@ -108,7 +108,7 @@ public final class ConnectablePublisherOnAssembly<T> extends ConnectablePublishe
     }
 
     @Override
-    public void connect(Consumer<? super Cancellation> cancelSupport) {
+    public void connect(Consumer<? super Disposable> cancelSupport) {
         source.connect(cancelSupport);
     }
 }

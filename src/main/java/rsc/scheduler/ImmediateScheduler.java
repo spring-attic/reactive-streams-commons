@@ -1,6 +1,6 @@
 package rsc.scheduler;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.*;
 
 /**
@@ -20,10 +20,10 @@ public final class ImmediateScheduler implements Scheduler {
         
     }
     
-    static final Cancellation EMPTY = () -> { };
+    static final Disposable EMPTY = () -> { };
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         try {
             task.run();
         } catch (Throwable ex) {
@@ -43,7 +43,7 @@ public final class ImmediateScheduler implements Scheduler {
         volatile boolean shutdown;
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             if (shutdown) {
                 return REJECTED;
             }

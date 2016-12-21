@@ -28,7 +28,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.flow.Fuseable;
 import rsc.parallel.ParallelPublisher;
 import rsc.scheduler.ExecutorServiceScheduler;
@@ -790,21 +790,21 @@ public abstract class Px<T> implements Publisher<T> {
     
     // ------------------------------------------------------------------------------------------------
     
-    public final Cancellation subscribe() {
+    public final Disposable subscribe() {
         EmptyAsyncSubscriber<T> s = new EmptyAsyncSubscriber<>();
         subscribe(s);
         return s;
     }
     
-    public final Cancellation subscribe(Consumer<? super T> onNext) {
+    public final Disposable subscribe(Consumer<? super T> onNext) {
         return subscribe(onNext, DROP_ERROR, EMPTY_RUNNABLE);
     }
 
-    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError) {
+    public final Disposable subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError) {
         return subscribe(onNext, onError, EMPTY_RUNNABLE);
     }
 
-    public final Cancellation subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError, Runnable onComplete) {
+    public final Disposable subscribe(Consumer<? super T> onNext, Consumer<Throwable> onError, Runnable onComplete) {
         LambdaSubscriber<T> s = new LambdaSubscriber<>(onNext, onError, onComplete);
         subscribe(s);
         return s;

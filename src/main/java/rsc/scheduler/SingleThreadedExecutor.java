@@ -6,7 +6,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 
 public final class SingleThreadedExecutor implements Runnable {
 
@@ -70,7 +70,7 @@ public final class SingleThreadedExecutor implements Runnable {
         }
     }
     
-    public Cancellation submit(Runnable task) {
+    public Disposable submit(Runnable task) {
         if (shutdown) {
             throw new RejectedExecutionException();
         }
@@ -102,7 +102,7 @@ public final class SingleThreadedExecutor implements Runnable {
         queue.clear();
     }
     
-    static final class Task implements Runnable, Cancellation {
+    static final class Task implements Runnable, Disposable {
         
         final Runnable task;
         

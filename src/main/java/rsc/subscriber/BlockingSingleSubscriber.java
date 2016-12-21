@@ -4,11 +4,11 @@ import java.util.concurrent.*;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.ExceptionHelper;
 
 public abstract class BlockingSingleSubscriber<T> extends CountDownLatch
-implements Subscriber<T>, Cancellation {
+implements Subscriber<T>, Disposable {
 
     T value;
     Throwable error;

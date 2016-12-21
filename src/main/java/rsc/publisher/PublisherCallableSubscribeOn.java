@@ -40,7 +40,7 @@ public final class PublisherCallableSubscribeOn<T> extends Px<T> implements Fuse
         CallableSubscribeOnSubscription<T> parent = new CallableSubscribeOnSubscription<>(s, callable, scheduler);
         s.onSubscribe(parent);
         
-        Cancellation f = scheduler.schedule(parent);
+        Disposable f = scheduler.schedule(parent);
         
         parent.setMainFuture(f);
     }
@@ -71,17 +71,17 @@ public final class PublisherCallableSubscribeOn<T> extends Px<T> implements Fuse
         static final int HAS_VALUE = 2;
         static final int COMPLETE = 3;
         
-        volatile Cancellation mainFuture;
+        volatile Disposable mainFuture;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<CallableSubscribeOnSubscription, Cancellation> MAIN_FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(CallableSubscribeOnSubscription.class, Cancellation.class, "mainFuture");
+        static final AtomicReferenceFieldUpdater<CallableSubscribeOnSubscription, Disposable> MAIN_FUTURE =
+                AtomicReferenceFieldUpdater.newUpdater(CallableSubscribeOnSubscription.class, Disposable.class, "mainFuture");
 
-        volatile Cancellation requestFuture;
+        volatile Disposable requestFuture;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<CallableSubscribeOnSubscription, Cancellation> REQUEST_FUTURE =
-                AtomicReferenceFieldUpdater.newUpdater(CallableSubscribeOnSubscription.class, Cancellation.class, "requestFuture");
+        static final AtomicReferenceFieldUpdater<CallableSubscribeOnSubscription, Disposable> REQUEST_FUTURE =
+                AtomicReferenceFieldUpdater.newUpdater(CallableSubscribeOnSubscription.class, Disposable.class, "requestFuture");
 
-        static final Cancellation CANCEL = () -> { };
+        static final Disposable CANCEL = () -> { };
         
         public CallableSubscribeOnSubscription(Subscriber<? super T> actual, 
                 Callable<? extends T> callable, Scheduler scheduler) {
@@ -94,7 +94,7 @@ public final class PublisherCallableSubscribeOn<T> extends Px<T> implements Fuse
         public void cancel() {
             state = CANCELLED;
             fusionState = COMPLETE;
-            Cancellation a = mainFuture;
+            Disposable a = mainFuture;
             if (a != CANCEL) {
                 a = MAIN_FUTURE.getAndSet(this, CANCEL);
                 if (a != null && a != CANCEL) {
@@ -144,9 +144,9 @@ public final class PublisherCallableSubscribeOn<T> extends Px<T> implements Fuse
             return isEmpty() ? 0 : 1;
         }
         
-        void setMainFuture(Cancellation c) {
+        void setMainFuture(Disposable c) {
             for (;;) {
-                Cancellation a = mainFuture;
+                Disposable a = mainFuture;
                 if (a == CANCEL) {
                     c.dispose();
                     return;
@@ -157,9 +157,9 @@ public final class PublisherCallableSubscribeOn<T> extends Px<T> implements Fuse
             }
         }
 
-        void setRequestFuture(Cancellation c) {
+        void setRequestFuture(Disposable c) {
             for (;;) {
-                Cancellation a = requestFuture;
+                Disposable a = requestFuture;
                 if (a == CANCEL) {
                     c.dispose();
                     return;
@@ -219,7 +219,7 @@ public final class PublisherCallableSubscribeOn<T> extends Px<T> implements Fuse
                     }
                     if (s == NO_REQUEST_HAS_VALUE) {
                         if (STATE.compareAndSet(this, s, HAS_REQUEST_HAS_VALUE)) {
-                            Cancellation f = scheduler.schedule(this::emitValue);
+                            Disposable f = scheduler.schedule(this::emitValue);
                             setRequestFuture(f);
                         }
                         return;

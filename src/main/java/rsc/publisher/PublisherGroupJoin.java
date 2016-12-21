@@ -17,7 +17,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.flow.Trackable;
 import rsc.processor.UnicastProcessor;
 import rsc.subscriber.SubscriptionHelper;
@@ -123,7 +123,7 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
         final         Queue<Object>               queue;
         final BiPredicate<Object, Object> queueBiOffer;
 
-        final OpenHashSet<Cancellation> cancellations;
+        final OpenHashSet<Disposable> cancellations;
 
         final Map<Integer, UnicastProcessor<TRight>> lefts;
 
@@ -227,7 +227,7 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
 	        Object[] a = cancellations.keys();
 	        for (Object o : a) {
 		        if (o != null) {
-			        ((Cancellation)o).dispose();
+			        ((Disposable)o).dispose();
 		        }
 	        }
         }
@@ -473,7 +473,7 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
     }
 
     static final class LeftRightSubscriber
-            implements Subscriber<Object>, Cancellation, Trackable {
+            implements Subscriber<Object>, Disposable, Trackable {
 
         final JoinSupport parent;
 
@@ -533,7 +533,7 @@ public final class PublisherGroupJoin<TLeft, TRight, TLeftEnd, TRightEnd, R> ext
     }
 
     static final class LeftRightEndSubscriber
-            implements Subscriber<Object>, Cancellation, Trackable {
+            implements Subscriber<Object>, Disposable, Trackable {
 
         final JoinSupport parent;
 

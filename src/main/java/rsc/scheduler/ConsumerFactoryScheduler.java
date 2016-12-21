@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.ExceptionHelper;
 
 /**
@@ -19,7 +19,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         Objects.requireNonNull(task, "task");
         
         ConsumerFactoryWorker w; 
@@ -53,7 +53,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
     }
     
-    static final class ConsumerFactoryWorker implements Worker, Cancellation {
+    static final class ConsumerFactoryWorker implements Worker, Disposable {
         final Consumer<Runnable> consumer;
         
         volatile boolean terminated;
@@ -63,7 +63,7 @@ public final class ConsumerFactoryScheduler implements Scheduler {
         }
         
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
 
             if (terminated) {

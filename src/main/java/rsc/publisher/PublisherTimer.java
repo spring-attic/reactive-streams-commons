@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.scheduler.TimedScheduler;
 import rsc.subscriber.SubscriptionHelper;
 
@@ -41,19 +41,19 @@ public final class PublisherTimer extends Px<Long> {
     static final class PublisherTimerRunnable implements Runnable, Subscription {
         final Subscriber<? super Long> s;
         
-        volatile Cancellation cancel;
-        static final AtomicReferenceFieldUpdater<PublisherTimerRunnable, Cancellation> CANCEL =
-                AtomicReferenceFieldUpdater.newUpdater(PublisherTimerRunnable.class, Cancellation.class, "cancel");
+        volatile Disposable cancel;
+        static final AtomicReferenceFieldUpdater<PublisherTimerRunnable, Disposable> CANCEL =
+                AtomicReferenceFieldUpdater.newUpdater(PublisherTimerRunnable.class, Disposable.class, "cancel");
         
         volatile boolean requested;
         
-        static final Cancellation CANCELLED = () -> { };
+        static final Disposable CANCELLED = () -> { };
 
         public PublisherTimerRunnable(Subscriber<? super Long> s) {
             this.s = s;
         }
         
-        public void setCancel(Cancellation cancel) {
+        public void setCancel(Disposable cancel) {
             if (!CANCEL.compareAndSet(this, null, cancel)) {
                 cancel.dispose();
             }
@@ -75,7 +75,7 @@ public final class PublisherTimer extends Px<Long> {
         
         @Override
         public void cancel() {
-            Cancellation c = cancel;
+            Disposable c = cancel;
             if (c != CANCELLED) {
                 c =  CANCEL.getAndSet(this, CANCELLED);
                 if (c != null && c != CANCELLED) {

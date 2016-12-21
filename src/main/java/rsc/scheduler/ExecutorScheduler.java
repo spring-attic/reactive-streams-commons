@@ -8,7 +8,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.ExceptionHelper;
 import rsc.util.OpenHashSet;
 import rsc.util.UnsignalledExceptions;
@@ -34,7 +34,7 @@ public final class ExecutorScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         Objects.requireNonNull(task, "task");
         ExecutorPlainRunnable r = new ExecutorPlainRunnable(task);
         try {
@@ -58,7 +58,7 @@ public final class ExecutorScheduler implements Scheduler {
      * ExecutorRunnable will stay in the Executor's queue and be always executed.
      */
     static final class ExecutorPlainRunnable extends AtomicBoolean 
-    implements Runnable, Cancellation {
+    implements Runnable, Disposable {
         /** */
         private static final long serialVersionUID = 5116223460201378097L;
         
@@ -103,7 +103,7 @@ public final class ExecutorScheduler implements Scheduler {
      * remove itself once completed or cancelled
      */
     static final class ExecutorTrackedRunnable extends AtomicBoolean 
-    implements Runnable, Cancellation {
+    implements Runnable, Disposable {
         /** */
         private static final long serialVersionUID = 3503344795919906192L;
         
@@ -164,7 +164,7 @@ public final class ExecutorScheduler implements Scheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
             if (terminated) {
                 return REJECTED;
@@ -248,7 +248,7 @@ public final class ExecutorScheduler implements Scheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             Objects.requireNonNull(task, "task");
             if (terminated) {
                 return REJECTED;

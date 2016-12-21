@@ -3,7 +3,7 @@ package rsc.scheduler;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.*;
 
 /**
@@ -102,7 +102,7 @@ public final class SingleScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         try {
             Future<?> f = executor.submit(task);
             return () -> f.cancel(true);
@@ -130,7 +130,7 @@ public final class SingleScheduler implements Scheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             if (shutdown) {
                 return REJECTED;
             }
@@ -211,7 +211,7 @@ public final class SingleScheduler implements Scheduler {
             }
         }
         
-        static final class SingleWorkerTask implements Callable<Void>, Cancellation {
+        static final class SingleWorkerTask implements Callable<Void>, Disposable {
             final Runnable run;
             
             final SingleWorker parent;

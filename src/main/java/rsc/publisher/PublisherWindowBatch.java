@@ -15,7 +15,7 @@ import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.processor.UnicastProcessor;
 import rsc.util.BackpressureHelper;
 
@@ -83,7 +83,7 @@ public final class PublisherWindowBatch<T, U> extends PublisherSource<T, Px<T>> 
     }
     
     static final class PublisherWindowBatchMain<T, U> implements Subscriber<T>, Subscription,
-                                                                 Cancellation {
+                                                                 Disposable {
 
         final Subscriber<? super Px<T>> actual;
 

@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.reactivestreams.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.UnsignalledExceptions;
 
 /**
@@ -13,7 +13,7 @@ import rsc.util.UnsignalledExceptions;
  *
  * @param <T> the value type
  */
-public final class EmptyAsyncSubscriber<T> implements Subscriber<T>, Cancellation {
+public final class EmptyAsyncSubscriber<T> implements Subscriber<T>, Disposable {
 
     volatile Subscription s;
     @SuppressWarnings("rawtypes")

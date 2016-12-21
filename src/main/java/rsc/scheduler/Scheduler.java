@@ -1,6 +1,6 @@
 package rsc.scheduler;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 
 /**
  * Provides an abstract asychronous boundary to operators.
@@ -15,10 +15,10 @@ public interface Scheduler {
      * 
      * @param task the task to execute
      * 
-     * @return the Cancellation instance that let's one cancel this particular task.
-     * If the Scheduler has been shut down, the {@link #REJECTED} Cancellation instance is returned.
+     * @return the Disposable instance that let's one cancel this particular task.
+     * If the Scheduler has been shut down, the {@link #REJECTED} Disposable instance is returned.
      */
-    Cancellation schedule(Runnable task);
+    Disposable schedule(Runnable task);
     
     /**
      * Creates a worker of this Scheduler that executed task in a strict
@@ -73,10 +73,10 @@ public interface Scheduler {
         /**
          * Schedules the task on this worker.
          * @param task the task to schedule
-         * @return the Cancellation instance that let's one cancel this particular task.
-         * If the Scheduler has been shut down, the {@link #REJECTED} Cancellation instance is returned.
+         * @return the Disposable instance that let's one cancel this particular task.
+         * If the Scheduler has been shut down, the {@link #REJECTED} Disposable instance is returned.
          */
-        Cancellation schedule(Runnable task);
+        Disposable schedule(Runnable task);
         
         /**
          * Instructs this worker to cancel all pending tasks, all running tasks in 
@@ -89,7 +89,7 @@ public interface Scheduler {
     /**
      * Returned by the schedule() methods if the Scheduler or the Worker has ben shut down.
      */
-    Cancellation REJECTED = new Cancellation() {
+    Disposable REJECTED = new Disposable() {
         @Override
         public void dispose() {
             // deliberately no-op

@@ -8,7 +8,7 @@ import org.reactivestreams.*;
 
 import rsc.documentation.Operator;
 import rsc.documentation.OperatorType;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.flow.MultiProducer;
 import rsc.flow.Receiver;
 import rsc.subscriber.SubscriptionHelper;
@@ -74,7 +74,7 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         return source;
     }
 
-    static final class State<T> implements Consumer<Cancellation>, MultiProducer, Receiver {
+    static final class State<T> implements Consumer<Disposable>, MultiProducer, Receiver {
         
         final int n;
         
@@ -85,12 +85,12 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         static final AtomicIntegerFieldUpdater<State> SUBSCRIBERS =
                 AtomicIntegerFieldUpdater.newUpdater(State.class, "subscribers");
         
-        volatile Cancellation disconnect;
+        volatile Disposable disconnect;
         @SuppressWarnings("rawtypes")
-        static final AtomicReferenceFieldUpdater<State, Cancellation> DISCONNECT =
-                AtomicReferenceFieldUpdater.newUpdater(State.class, Cancellation.class, "disconnect");
+        static final AtomicReferenceFieldUpdater<State, Disposable> DISCONNECT =
+                AtomicReferenceFieldUpdater.newUpdater(State.class, Disposable.class, "disconnect");
         
-        static final Cancellation DISCONNECTED = () -> { };
+        static final Disposable DISCONNECTED = () -> { };
 
         public State(int n, ConnectablePublisherRefCount<? extends T> parent) {
             this.n = n;
@@ -109,14 +109,14 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         }
         
         @Override
-        public void accept(Cancellation r) {
+        public void accept(Disposable r) {
             if (!DISCONNECT.compareAndSet(this, null, r)) {
                 r.dispose();
             }
         }
         
         void doDisconnect() {
-            Cancellation a = disconnect;
+            Disposable a = disconnect;
             if (a != DISCONNECTED) {
                 a = DISCONNECT.getAndSet(this, DISCONNECTED);
                 if (a != null && a != DISCONNECTED) {
@@ -136,7 +136,7 @@ public final class ConnectablePublisherRefCount<T> extends Px<T>
         }
         
         void upstreamFinished() {
-            Cancellation a = disconnect;
+            Disposable a = disconnect;
             if (a != DISCONNECTED) {
                 DISCONNECT.getAndSet(this, DISCONNECTED);
             }

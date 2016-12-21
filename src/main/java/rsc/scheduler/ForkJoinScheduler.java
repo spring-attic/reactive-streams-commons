@@ -3,7 +3,7 @@ package rsc.scheduler;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.*;
 
 /**
@@ -111,7 +111,7 @@ public final class ForkJoinScheduler implements Scheduler {
     }
     
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         ExecutorService exec = pick();
         Future<?> f = exec.submit(task);
         return () -> f.cancel(true);
@@ -135,7 +135,7 @@ public final class ForkJoinScheduler implements Scheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             if (shutdown) {
                 return REJECTED;
             }
@@ -216,7 +216,7 @@ public final class ForkJoinScheduler implements Scheduler {
             }
         }
         
-        static final class ParallelWorkerTask implements Runnable, Cancellation {
+        static final class ParallelWorkerTask implements Runnable, Disposable {
             final Runnable run;
             
             final ParallelWorker parent;

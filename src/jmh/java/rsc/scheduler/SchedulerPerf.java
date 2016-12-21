@@ -321,7 +321,7 @@ public class SchedulerPerf {
 
     /*
     static final class ReactorScheduler implements Scheduler {
-        static final Cancellation NOOP = () -> {};
+        static final Disposable NOOP = () -> {};
 
         final reactor.core.scheduler.Scheduler scheduler;
 
@@ -330,7 +330,7 @@ public class SchedulerPerf {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             scheduler.schedule(task);
             return NOOP;
         }
@@ -359,7 +359,7 @@ public class SchedulerPerf {
             }
 
             @Override
-            public Cancellation schedule(Runnable task) {
+            public Disposable schedule(Runnable task) {
                 w.schedule(task);
                 return NOOP;
             }
@@ -372,7 +372,7 @@ public class SchedulerPerf {
     }
 
     static final class ReactorTimedScheduler implements TimedScheduler {
-        static final Cancellation NOOP = () -> {};
+        static final Disposable NOOP = () -> {};
 
         final reactor.core.scheduler.TimedScheduler scheduler;
 
@@ -381,13 +381,13 @@ public class SchedulerPerf {
         }
 
         @Override
-        public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+        public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
             scheduler.schedule(task, delay, unit);
             return NOOP;
         }
 
         @Override
-        public Cancellation schedulePeriodically(Runnable task,
+        public Disposable schedulePeriodically(Runnable task,
                 long initialDelay,
                 long period,
                 TimeUnit unit) {
@@ -396,7 +396,7 @@ public class SchedulerPerf {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             scheduler.schedule(task);
             return NOOP;
         }
@@ -425,13 +425,13 @@ public class SchedulerPerf {
             }
 
             @Override
-            public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+            public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
                 w.schedule(task, delay, unit);
                 return NOOP;
             }
 
             @Override
-            public Cancellation schedulePeriodically(Runnable task,
+            public Disposable schedulePeriodically(Runnable task,
                     long initialDelay,
                     long period,
                     TimeUnit unit) {
@@ -440,7 +440,7 @@ public class SchedulerPerf {
             }
 
             @Override
-            public Cancellation schedule(Runnable task) {
+            public Disposable schedule(Runnable task) {
                 w.schedule(task);
                 return NOOP;
             }

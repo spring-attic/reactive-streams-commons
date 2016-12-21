@@ -9,7 +9,7 @@ import org.reactivestreams.*;
 
 import rsc.documentation.Operator;
 import rsc.documentation.OperatorType;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.flow.Fuseable;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
@@ -47,7 +47,7 @@ public final class ConnectablePublisherProcess<T, U> extends ConnectablePublishe
     }
 
     @Override
-    public void connect(Consumer<? super Cancellation> cancelSupport) {
+    public void connect(Consumer<? super Disposable> cancelSupport) {
         boolean doConnect;
         State<T, U> s;
 
@@ -113,8 +113,8 @@ public final class ConnectablePublisherProcess<T, U> extends ConnectablePublishe
     }
 
     static abstract class State<T, U>
-            implements Cancellation, Subscription, Receiver, Producer, Subscriber<T>,
-                       Trackable {
+		    implements Disposable, Subscription, Receiver, Producer, Subscriber<T>,
+		               Trackable {
 
         final Processor<? super T, ? extends T> processor;
         final Publisher<? extends U>            publisher;

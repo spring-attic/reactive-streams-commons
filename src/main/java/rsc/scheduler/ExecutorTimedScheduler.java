@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.*;
 
 /**
@@ -20,19 +20,19 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
     }
 
     @Override
-    public Cancellation schedule(Runnable task) {
+    public Disposable schedule(Runnable task) {
         Future<?> f = executor.submit(task);
         return () -> f.cancel(true);
     }
 
     @Override
-    public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+    public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
         Future<?> f = executor.schedule(task, delay, unit);
         return () -> f.cancel(true);
     }
 
     @Override
-    public Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
+    public Disposable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
         Future<?> f = executor.scheduleAtFixedRate(task, initialDelay, period, unit);
         return () -> f.cancel(true);
     }
@@ -62,7 +62,7 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task) {
+        public Disposable schedule(Runnable task) {
             if (stopped) {
                 return REJECTED;
             }
@@ -124,7 +124,7 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
         }
 
         @Override
-        public Cancellation schedule(Runnable task, long delay, TimeUnit unit) {
+        public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
             if (stopped) {
                 return REJECTED;
             }
@@ -152,7 +152,7 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
         }
 
         @Override
-        public Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
+        public Disposable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
             if (stopped) {
                 return REJECTED;
             }
@@ -214,7 +214,7 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
             } while (WIP.decrementAndGet(this) != 0);
         }
         
-        static final class ScheduledTask implements Runnable, Cancellation {
+        static final class ScheduledTask implements Runnable, Disposable {
             final Runnable run;
             
             final ExecutorTimedWorker parent;
@@ -244,7 +244,7 @@ public final class ExecutorTimedScheduler implements TimedScheduler {
             }
         }
         
-        static abstract class AbstractTimedTask implements Cancellation, Runnable {
+        static abstract class AbstractTimedTask implements Disposable, Runnable {
             final ExecutorTimedWorker parent;
             
             volatile boolean cancelled;

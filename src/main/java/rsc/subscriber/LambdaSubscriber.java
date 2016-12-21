@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.util.ExceptionHelper;
 import rsc.util.UnsignalledExceptions;
 
@@ -17,7 +17,7 @@ import rsc.util.UnsignalledExceptions;
  *
  * @param <T> the value type
  */
-public final class LambdaSubscriber<T> implements Subscriber<T>, Cancellation {
+public final class LambdaSubscriber<T> implements Subscriber<T>, Disposable {
 
     final Consumer<? super T> onNextCall;
     

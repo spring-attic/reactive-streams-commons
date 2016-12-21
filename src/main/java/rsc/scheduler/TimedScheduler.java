@@ -2,7 +2,7 @@ package rsc.scheduler;
 
 import java.util.concurrent.TimeUnit;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 
 /**
  * Provides an abstract, timed asychronous boundary to operators.
@@ -19,9 +19,9 @@ public interface TimedScheduler extends Scheduler {
      * @param task the task to schedule
      * @param delay the delay amount, non-positive values indicate non-delayed scheduling
      * @param unit the unit of measure of the delay amount
-     * @return the Cancellation that let's one cancel this particular delayed task.
+     * @return the Disposable that let's one cancel this particular delayed task.
      */
-    Cancellation schedule(Runnable task, long delay, TimeUnit unit);
+    Disposable schedule(Runnable task, long delay, TimeUnit unit);
     
     /**
      * Schedules a periodic execution of the given task with the given initial delay and period.
@@ -38,9 +38,9 @@ public interface TimedScheduler extends Scheduler {
      * @param initialDelay the initial delay amount, non-positive values indicate non-delayed scheduling
      * @param period the period at which the task should be re-executed
      * @param unit the unit of measure of the delay amount
-     * @return the Cancellation that let's one cancel this particular delayed task.
+     * @return the Disposable that let's one cancel this particular delayed task.
      */
-    Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
+    Disposable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
     
     /**
      * Returns the "current time" notion of this scheduler.
@@ -79,9 +79,9 @@ public interface TimedScheduler extends Scheduler {
          * @param task the task to schedule
          * @param delay the delay amount, non-positive values indicate non-delayed scheduling
          * @param unit the unit of measure of the delay amount
-         * @return the Cancellation that let's one cancel this particular delayed task.
+         * @return the Disposable that let's one cancel this particular delayed task.
          */
-        Cancellation schedule(Runnable task, long delay, TimeUnit unit);
+        Disposable schedule(Runnable task, long delay, TimeUnit unit);
         
         /**
          * Schedules a periodic execution of the given task with the given initial delay and period.
@@ -97,9 +97,9 @@ public interface TimedScheduler extends Scheduler {
          * @param initialDelay the initial delay amount, non-positive values indicate non-delayed scheduling
          * @param period the period at which the task should be re-executed
          * @param unit the unit of measure of the delay amount
-         * @return the Cancellation that let's one cancel this particular delayed task.
+         * @return the Disposable that let's one cancel this particular delayed task.
          */
-        Cancellation schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
+        Disposable schedulePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit);
         
         /**
          * Returns the "current time" notion of this scheduler.

@@ -4,7 +4,7 @@ import java.util.concurrent.*;
 
 import org.junit.*;
 
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 
 public class ExecutorSchedulerTest {
 
@@ -127,7 +127,7 @@ public class ExecutorSchedulerTest {
 
         w.shutdown();
         
-        Cancellation r = w.schedule(() -> { });
+        Disposable r = w.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
     }
@@ -141,7 +141,7 @@ public class ExecutorSchedulerTest {
 
         w.shutdown();
         
-        Cancellation r = w.schedule(() -> { });
+        Disposable r = w.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
     }
@@ -152,7 +152,7 @@ public class ExecutorSchedulerTest {
         exec.shutdown();
         Scheduler s = new ExecutorScheduler(exec, false);
 
-        Cancellation r = s.schedule(() -> { });
+        Disposable r = s.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
 
@@ -169,7 +169,7 @@ public class ExecutorSchedulerTest {
         exec.shutdown();
         Scheduler s = new ExecutorScheduler(exec, true);
         
-        Cancellation r = s.schedule(() -> { });
+        Disposable r = s.schedule(() -> { });
         
         Assert.assertSame(Scheduler.REJECTED, r);
 

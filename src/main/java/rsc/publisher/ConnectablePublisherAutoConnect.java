@@ -8,7 +8,7 @@ import org.reactivestreams.Subscriber;
 
 import rsc.documentation.Operator;
 import rsc.documentation.OperatorType;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.flow.Receiver;
 
 /**
@@ -23,7 +23,7 @@ public final class ConnectablePublisherAutoConnect<T> extends Px<T>
 
     final ConnectablePublisher<? extends T> source;
 
-    final Consumer<? super Cancellation> cancelSupport;
+    final Consumer<? super Disposable> cancelSupport;
 
     volatile int remaining;
     @SuppressWarnings("rawtypes")
@@ -32,7 +32,7 @@ public final class ConnectablePublisherAutoConnect<T> extends Px<T>
 
 
     public ConnectablePublisherAutoConnect(ConnectablePublisher<? extends T> source, 
-            int n, Consumer<? super Cancellation> cancelSupport) {
+            int n, Consumer<? super Disposable> cancelSupport) {
         if (n <= 0) {
             throw new IllegalArgumentException("n > required but it was " + n);
         }

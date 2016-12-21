@@ -17,7 +17,7 @@ import rsc.documentation.BackpressureMode;
 import rsc.documentation.BackpressureSupport;
 import rsc.documentation.FusionMode;
 import rsc.documentation.FusionSupport;
-import rsc.flow.Cancellation;
+import rsc.flow.Disposable;
 import rsc.flow.MultiProducer;
 import rsc.flow.Producer;
 import rsc.flow.Receiver;
@@ -100,7 +100,7 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
     }
 
     static final class WindowExactSubscriber<T> implements Subscriber<T>, Subscription,
-                                                           Cancellation, Producer, Receiver,
+                                                           Disposable, Producer, Receiver,
                                                            MultiProducer, Trackable {
         
         final Subscriber<? super Px<T>> actual;
@@ -289,7 +289,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         }
     }
     
-    static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription, Cancellation, Receiver,
+    static final class WindowSkipSubscriber<T> implements Subscriber<T>, Subscription,
+                                                          Disposable, Receiver,
                                                           MultiProducer, Producer,
                                                           Trackable {
         
@@ -499,7 +500,8 @@ public final class PublisherWindow<T> extends PublisherSource<T, Px<T>> {
         }
     }
 
-    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription, Cancellation,
+    static final class WindowOverlapSubscriber<T> implements Subscriber<T>, Subscription,
+                                                             Disposable,
                                                              Producer, MultiProducer, Receiver,
                                                              Trackable {
         
