@@ -162,7 +162,7 @@ public class PublisherSubscribeOnTest {
             ts.assertValueCount(1)
             .assertNoError();
             
-            Assert.assertNotEquals(main, ts.values().get(0));
+            Assert.assertNotSame(main, ts.values().get(0));
         } finally {
             s.shutdown();
         }
@@ -188,7 +188,7 @@ public class PublisherSubscribeOnTest {
             ts.assertValueCount(1)
             .assertNoError();
             
-            Assert.assertNotEquals(main, ts.values().get(0));
+            Assert.assertNotSame(main, ts.values().get(0));
         } finally {
             s.shutdown();
         }
@@ -212,7 +212,7 @@ public class PublisherSubscribeOnTest {
             .assertValueCount(1)
             .assertNoError();
             
-            Assert.assertNotEquals(main, ts.values().get(0));
+            Assert.assertNotSame(main, ts.values().get(0));
         } finally {
             s.shutdown();
         }
