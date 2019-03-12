@@ -24,12 +24,12 @@ def customizePom(def pom, def gradleProject) {
 			url = "https://github.com/reactor/${rootProject.githubProjectName}"
 			organization {
 				name = 'reactor'
-				url = 'http://github.com/reactor'
+				url = 'https://github.com/reactor'
 			}
 			licenses {
 				license {
 					name 'The Apache Software License, Version 2.0'
-					url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
 					distribution 'repo'
 				}
 			}

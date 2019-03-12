@@ -4,7 +4,7 @@ buildscript {
 		maven {
 			url "https://plugins.gradle.org/m2/"
 		}
-		maven { url "http://repo.spring.io/plugins-release" }
+		maven { url "https://repo.spring.io/plugins-release" }
 	}
 
 	dependencies {
@@ -40,7 +40,7 @@ apply from: file('gradle/maven.gradle')
 repositories {
 	mavenCentral()
 //    maven { url 'https://oss.jfrog.org/libs-snapshot' }
-    maven { url 'http://repo.spring.io/libs-snapshot' }
+    maven { url 'https://repo.spring.io/libs-snapshot' }
 }
 
 apply plugin: 'maven'
