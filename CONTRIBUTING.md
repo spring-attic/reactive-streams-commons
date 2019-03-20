@@ -18,7 +18,7 @@ Here are some questions that you should be able to answer beforehand:
   - Can you write a properly backpressured, single element Publisher (`just()`)  from scratch?
   - Do you understand the various concurrent queue types and when to use them?
   
-It is also advised you read @akarnokd's blog about [Advanced RxJava](http://akarnokd.blogspot.hu/) (beginning with the very first post and moving forward in time). Most RxJava constructs are about a relatively simple transformation away from Reactive-Streams constructs.
+It is also advised you read @akarnokd's blog about [Advanced RxJava](https://akarnokd.blogspot.hu/) (beginning with the very first post and moving forward in time). Most RxJava constructs are about a relatively simple transformation away from Reactive-Streams constructs.
 
 ## Asking questions
 

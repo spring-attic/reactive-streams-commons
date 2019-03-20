@@ -1,6 +1,6 @@
 # reactive-streams-commons
 A joint research effort for building highly optimized Reactive-Streams compliant operators.
-Current implementors include [RxJava2](https://github.com/ReactiveX/RxJava) and [Reactor](http://github.com/reactor/reactor-core).
+Current implementors include [RxJava2](https://github.com/ReactiveX/RxJava) and [Reactor](https://github.com/reactor/reactor-core).
 
 Java 8 required.
 
@@ -10,7 +10,7 @@ Java 8 required.
 
 ```
 repositories {
-    maven { url 'http://repo.spring.io/libs-snapshot' }
+    maven { url 'https://repo.spring.io/libs-snapshot' }
 }
 
 dependencies {
@@ -18,12 +18,12 @@ dependencies {
 }
 ```
 
-[Snapshot](http://repo.spring.io/libs-snapshot/io/projectreactor/reactive-streams-commons/) directory.
+[Snapshot](https://repo.spring.io/libs-snapshot/io/projectreactor/reactive-streams-commons/) directory.
 
 ## Operator-fusion documentation
 
-  - [Operator fusion, 1/2](http://akarnokd.blogspot.hu/2016/03/operator-fusion-part-1.html)
-  - [Operator fusion, 2/2](http://akarnokd.blogspot.hu/2016/04/operator-fusion-part-2-final.html)
+  - [Operator fusion, 1/2](https://akarnokd.blogspot.hu/2016/03/operator-fusion-part-1.html)
+  - [Operator fusion, 2/2](https://akarnokd.blogspot.hu/2016/04/operator-fusion-part-2-final.html)
   - [Fusion Matrix](https://rawgit.com/reactor/reactive-streams-commons/master/fusion-matrix.html)
 
 ## Supported datasources
