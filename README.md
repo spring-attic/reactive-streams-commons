@@ -1,3 +1,5 @@
+# reactive-streams-commons is no longer actively maintained by VMware, Inc.
+
 # reactive-streams-commons
 A joint research effort for building highly optimized Reactive-Streams compliant operators.
 Current implementors include [RxJava2](https://github.com/ReactiveX/RxJava) and [Reactor](https://github.com/reactor/reactor-core).
